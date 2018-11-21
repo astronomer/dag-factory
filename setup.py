@@ -23,11 +23,7 @@ VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = [
-    "apache-airflow>=1.9.0",
-    "pyyaml",
-    "logme",
-]
+REQUIRED = ["apache-airflow>=1.9.0", "pyyaml", "logme"]
 
 try:
     with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
@@ -71,12 +67,12 @@ class UploadCommand(Command):
         self.status("Building Source and Wheel (universal) distribution…")
         os.system("{0} setup.py sdist bdist_wheel --universal".format(sys.executable))
 
-        # self.status("Uploading the package to PyPI via Twine…")
-        # os.system("twine upload dist/*")
+        self.status("Uploading the package to PyPI via Twine…")
+        os.system("twine upload dist/*")
 
-        # self.status("Pushing git tags…")
-        # os.system("git tag v{0}".format(about["__version__"]))
-        # os.system("git push --tags")
+        self.status("Pushing git tags…")
+        os.system("git tag v{0}".format(about["__version__"]))
+        os.system("git push --tags")
 
         sys.exit()
 

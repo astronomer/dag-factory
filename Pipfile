@@ -9,6 +9,7 @@ dag-factory = {editable = true,path = "."}
 [dev-packages]
 black = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.6"

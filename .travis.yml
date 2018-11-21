@@ -9,6 +9,6 @@ install:
   - "pipenv install --dev"
   - "pip install coveralls"
 script:
-  - "pipenv run pytest tests -p no:warnings --verbose --color=yes"
+  - "pipenv run pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes"
 after_success:
 - coveralls

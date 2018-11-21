@@ -28,7 +28,7 @@ fmt: .installed ## Formats all files with black
 
 .PHONY: test
 test: .installed ## Runs unit tests
-	@pipenv run pytest tests -p no:warnings --verbose --color=yes
+	@pipenv run pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
 
 .PHONY: docker-build
 docker-build:
