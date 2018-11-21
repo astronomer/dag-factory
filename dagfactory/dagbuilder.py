@@ -1,4 +1,3 @@
-import logme
 from airflow import DAG, configuration
 from airflow.utils.module_loading import import_string
 
@@ -8,7 +7,6 @@ from dagfactory import utils
 SYSTEM_PARAMS = ["operator", "dependencies"]
 
 
-@logme.log
 class DagBuilder(object):
     def __init__(self, dag_name, dag_config, default_config):
         self.dag_name = dag_name
@@ -24,22 +22,19 @@ class DagBuilder(object):
         try:
             dag_params = utils.merge_configs(self.dag_config, self.default_config)
         except Exception as e:
-            self.logger.error("Failed to merge config with default config")
-            raise e
+            raise Exception(f"Failed to merge config with default config, err: {e}")
         dag_params["dag_id"] = self.dag_name
         try:
             dag_params["default_args"]["start_date"] = utils.get_start_date(
                 dag_params["default_args"]["start_date"]
             )
         except KeyError as e:
-            self.logger.error(f"{self.dag_name} config is missing start_date")
-            raise e
+            raise Exception(f"{self.dag_name} config is missing start_date, err: {e}")
 
         return dag_params
 
     @staticmethod
-    @logme.log
-    def make_task(operator, task_params, logger=None):
+    def make_task(operator, task_params):
         """
         Takes an operator and params and creates an instance of that operator.
 
@@ -48,13 +43,11 @@ class DagBuilder(object):
         try:
             operator_obj = import_string(operator)
         except Exception as e:
-            logger.error(f"Failed to import operator: {operator}. err: {e}")
-            raise e
+            raise Exception(f"Failed to import operator: {operator}. err: {e}")
         try:
             task = operator_obj(**task_params)
         except Exception as e:
-            logger.error(f"Failed to create {operator_obj} task. err: {e}")
-            raise e
+            raise Exception(f"Failed to create {operator_obj} task. err: {e}")
         return task
 
     def build(self):

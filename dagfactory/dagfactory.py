@@ -1,13 +1,11 @@
 import os
 import sys
 
-import logme
 import yaml
 
 from dagfactory.dagbuilder import DagBuilder
 
 
-@logme.log
 class DagFactory(object):
     """
     :param config_filepath: the filepath of the DAG factory YAML config file.
@@ -20,18 +18,15 @@ class DagFactory(object):
         self.config = self._load_config(self.config_filepath)
 
     @staticmethod
-    @logme.log
-    def _validate_config_filepath(config_filepath, logger=None):
+    def _validate_config_filepath(config_filepath):
         """
         Validates config file path is absolute
         """
         if not os.path.isabs(config_filepath):
-            logger.error("DAG Factory `config_filepath` must be absolute path")
-            raise Exception
+            raise Exception("DAG Factory `config_filepath` must be absolute path")
 
     @staticmethod
-    @logme.log
-    def _load_config(config_filepath, logger=None):
+    def _load_config(config_filepath):
         """
         Loads YAML config file to dictionary
 
@@ -40,8 +35,7 @@ class DagFactory(object):
         try:
             config = yaml.load(open(config_filepath, "r"))
         except Exception as e:
-            logger.error(f"Invalid DAG Factory config file; err: {e}")
-            raise e
+            raise Exception(f"Invalid DAG Factory config file; err: {e}")
         return config
 
     def get_dag_configs(self):
@@ -75,8 +69,7 @@ class DagFactory(object):
             try:
                 dag = dag_builder.build()
             except Exception as e:
-                self.logger.error(
+                raise Exception(
                     f"Failed to generate dag {dag_name}. make sure config is properly populated. err:{e}"
                 )
-                raise e
             globals[dag["dag_id"]] = dag["dag"]

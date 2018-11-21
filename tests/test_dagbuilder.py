@@ -2,7 +2,7 @@ import os
 import datetime
 
 import pytest
-from airflow import AirflowException, DAG
+from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 
 from dagfactory import dagbuilder
@@ -74,7 +74,7 @@ class TestDagBuilder(object):
 
     def test_get_dag_params_no_start_date(self):
         td = dagbuilder.DagBuilder("test_dag", {}, {})
-        with pytest.raises(KeyError):
+        with pytest.raises(Exception):
             td.get_dag_params()
 
     def test_make_task_valid(self):
@@ -97,7 +97,7 @@ class TestDagBuilder(object):
         td = dagbuilder.DagBuilder("test_dag", self.dag_config, self.default_config)
         operator = "airflow.operators.bash_operator.BashOperator"
         task_params = {"task_id": "test_task"}
-        with pytest.raises(AirflowException):
+        with pytest.raises(Exception):
             td.make_task(operator, task_params)
 
     def test_build(self):
