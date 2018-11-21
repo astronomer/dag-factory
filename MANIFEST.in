@@ -1,0 +1,6 @@
+include Makefile
+include LICENSE
+include README.md
+include setup.py
+include requirements.txt
+prune tests
