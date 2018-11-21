@@ -7,7 +7,7 @@ env:
 install:
   - "pip install pipenv --upgrade-strategy=only-if-needed"
   - "pipenv install --dev"
-  - "pipenv install coveralls"
+  - "pip install coveralls"
 script:
   - "pipenv run pytest tests -p no:warnings --verbose --color=yes"
 after_success:
