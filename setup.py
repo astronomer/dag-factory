@@ -24,7 +24,9 @@ VERSION = None
 here = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRED = [
-    line.strip() for line in open(os.path.join(here, "requirements.txt")).readlines()
+    "apache-airflow>=1.9.0",
+    "pyyaml",
+    "logme",
 ]
 
 try:

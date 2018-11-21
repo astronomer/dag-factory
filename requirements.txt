@@ -1,3 +1,0 @@
-apache-airflow>=1.9.0
-logme
-pyyaml
