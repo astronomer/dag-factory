@@ -1,21 +1,34 @@
 import datetime
 import re
 
+import pendulum
 
-def get_start_date(date_value):
+
+def get_start_date(date_value, timezone="UTC"):
     """
     Takes value from DAG config and generates valid start_date. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
 
     :param date_value: either a datetime or a relative time
+    :parma timezone: string value representing timezone for the DAG
     :returns: datetime.datetime for start_date
     """
+    try:
+        local_tz = pendulum.timezone(timezone)
+    except Exception as e:
+        raise Exception(f"Failed to create timezone; err: {e}")
     if isinstance(date_value, datetime.date):
-        return datetime.datetime.combine(date_value, datetime.datetime.min.time())
+        return datetime.datetime.combine(
+            date_value, datetime.datetime.min.time()
+        ).replace(tzinfo=local_tz)
     if isinstance(date_value, datetime.datetime):
-        return date_value
+        return date_value.replace(tzinfo=local_tz)
     rel_delta = get_time_delta(date_value)
-    now = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    now = (
+        datetime.datetime.today()
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .replace(tzinfo=local_tz)
+    )
     if not rel_delta:
         return now
     return now - rel_delta
