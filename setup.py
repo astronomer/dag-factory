@@ -23,7 +23,7 @@ VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = ["apache-airflow>=1.9.0", "pyyaml", "logme"]
+REQUIRED = ["apache-airflow>=1.9.0", "pyyaml"]
 
 try:
     with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
