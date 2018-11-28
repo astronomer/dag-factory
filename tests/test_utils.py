@@ -1,5 +1,6 @@
 import datetime
 
+import pendulum
 import pytest
 
 from dagfactory import utils
@@ -7,20 +8,37 @@ from dagfactory import utils
 
 class TestGetStartDate(object):
     now = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    cet = pendulum.timezone("Europe/Amsterdam")
+    utc = pendulum.timezone("UTC")
 
-    def test_date(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0)
+    def test_date_no_timezone(self):
+        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.utc)
         actual = utils.get_start_date(datetime.date(2018, 2, 1))
         assert actual == expected
 
-    def test_datetime(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0)
+    def test_datetime_no_timezone(self):
+        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.utc)
         actual = utils.get_start_date(datetime.datetime(2018, 2, 1))
         assert actual == expected
 
-    def test_relative_time(self):
-        expected = self.now - datetime.timedelta(days=1)
+    def test_relative_time_no_timezone(self):
+        expected = self.now.replace(tzinfo=self.utc) - datetime.timedelta(days=1)
         actual = utils.get_start_date("1 day")
+        assert actual == expected
+
+    def test_date_timezone(self):
+        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.cet)
+        actual = utils.get_start_date(datetime.date(2018, 2, 1), "Europe/Amsterdam")
+        assert actual == expected
+
+    def test_datetime_timezone(self):
+        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.cet)
+        actual = utils.get_start_date(datetime.datetime(2018, 2, 1), "Europe/Amsterdam")
+        assert actual == expected
+
+    def test_relative_time_timezone(self):
+        expected = self.now.replace(tzinfo=self.cet) - datetime.timedelta(days=1)
+        actual = utils.get_start_date("1 day", "Europe/Amsterdam")
         assert actual == expected
 
     def test_bad_date(self):
