@@ -41,6 +41,10 @@ class TestGetStartDate(object):
         actual = utils.get_start_date("1 day", "Europe/Amsterdam")
         assert actual == expected
 
+    def test_bad_timezone(self):
+        with pytest.raises(Exception):
+            utils.get_start_date(datetime.datetime(2018, 2, 1), "bad_timezone")
+
     def test_bad_date(self):
         with pytest.raises(Exception):
             utils.get_start_date("bad_date")

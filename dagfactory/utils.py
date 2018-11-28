@@ -13,7 +13,10 @@ def get_start_date(date_value, timezone="UTC"):
     :parma timezone: string value representing timezone for the DAG
     :returns: datetime.datetime for start_date
     """
-    local_tz = pendulum.timezone(timezone)
+    try:
+        local_tz = pendulum.timezone(timezone)
+    except Exception as e:
+        raise Exception(f"Failed to create timezone; err: {e}")
     if isinstance(date_value, datetime.date):
         return datetime.datetime.combine(
             date_value, datetime.datetime.min.time()
