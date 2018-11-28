@@ -1,5 +1,6 @@
 FROM python:3.6-slim
 
+ARG AIRFLOW_VERSION=1.10.1
 ARG AIRFLOW_HOME=/usr/local/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
@@ -32,12 +33,8 @@ RUN set -ex \
     /usr/share/doc \
     /usr/share/doc-base
 
-ADD requirements.txt requirements.txt
-ADD test-requirements.txt test-requirements.txt
-RUN pip install -r requirements.txt
-RUN pip install -r test-requirements.txt
-
 ADD . /
+RUN pip install apache-airflow==${AIRFLOW_VERSION}
 RUN pip install -e .
 
 RUN chmod +x /scripts/entrypoint.sh
