@@ -106,3 +106,6 @@ pip-selfcheck.json
 
 # vscode
 .vscode
+
+# IntelliJ
+.idea/*
