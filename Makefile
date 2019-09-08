@@ -31,6 +31,10 @@ fmt: venv ## Formats all files with black
 	@echo "==> Formatting with Black"
 	@${PYTHON} -m black dagfactory
 
+.PHONY: lint
+lint: venv ## Lint code with pylint
+	@${PYTHON} -m pylint dagfactory
+
 .PHONY: test
 test: venv ## Runs unit tests
 	@${PYTHON} -m pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
