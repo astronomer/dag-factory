@@ -5,10 +5,10 @@ env:
   global:
     - SLUGIFY_USES_TEXT_UNIDECODE=yes
 install:
-  - "pip install pipenv --upgrade-strategy=only-if-needed"
-  - "pipenv install --dev"
+  - "make setup-dev"
+  - "make venv"
   - "pip install coveralls"
 script:
-  - "pipenv run pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes"
+  - "make test"
 after_success:
-- coveralls
+  - coveralls
