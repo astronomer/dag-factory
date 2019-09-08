@@ -1,34 +1,37 @@
-.EXPORT_ALL_VARIABLES:
-PIPENV_VENV_IN_PROJECT = 1
-PIPENV_IGNORE_VIRTUALENVS = 1
-
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.installed: Pipfile Pipfile.lock
-	@echo "==> Pipfile(.lock) is newer than .installed, (re)installing"
-	@pipenv install --dev
-	@echo "This file is used by 'make' for keeping track of last install time. If Pipfile or Pipfile.lock are newer then this file (.installed) then all 'make *' commands that depend on '.installed' know they need to run pipenv install first." \
-		> .installed
+.PHONY: setup-dev
+setup-dev: ## Setup development environment
+	@pip3 install virtualenv
+	@make venv
+
+.PHONY: venv
+venv: venv/bin/activate
+venv/bin/activate: setup.py
+	@test -d venv || virtualenv -p python3 venv
+	@pip3 install -U pip
+	@pip3 install -e .
+	@touch venv/bin/activate
 
 .PHONY: clean
 clean: ## Removes build and test artifacts
 	@echo "==> Removing build and test artifacts"
-	@rm -rf *.egg *egg-info .cache .coverage .tox build bin include dist htmlcov lib .pytest_cache .venv .installed
+	@rm -rf *.egg *egg-info .cache .coverage .tox build bin include dist htmlcov lib .pytest_cache .venv
 	@find . -name '*.pyc' -exec rm -f {} +
 	@find . -name '*.pyo' -exec rm -f {} +
 	@find . -name '*~' -exec rm -f {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
 
 .PHONY: fmt
-fmt: .installed ## Formats all files with black
+fmt: venv ## Formats all files with black
 	@echo "==> Formatting with Black"
-	@pipenv run black dagfactory
+	@black dagfactory
 
 .PHONY: test
-test: .installed ## Runs unit tests
-	@pipenv run pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
+test: venv ## Runs unit tests
+	@pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
 
 .PHONY: docker-build
 docker-build:
