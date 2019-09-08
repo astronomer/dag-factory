@@ -15,7 +15,7 @@ venv/bin/activate: setup.py
 	@test -d venv || virtualenv -p python3 venv
 	@${PYTHON} -m pip install -U pip
 	@${PYTHON} -m pip install -e .[dev]
-	touch venv/bin/activate
+	@touch venv/bin/activate
 
 .PHONY: clean
 clean: ## Removes build and test artifacts
