@@ -1,3 +1,5 @@
+PYTHON=venv/bin/python3
+
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -11,9 +13,9 @@ setup-dev: ## Setup development environment
 venv: venv/bin/activate
 venv/bin/activate: setup.py
 	@test -d venv || virtualenv -p python3 venv
-	@pip3 install -U pip
-	@pip3 install -e .
-	@touch venv/bin/activate
+	@${PYTHON} -m pip install -U pip
+	@${PYTHON} -m pip install -e .[dev]
+	touch venv/bin/activate
 
 .PHONY: clean
 clean: ## Removes build and test artifacts
@@ -27,11 +29,11 @@ clean: ## Removes build and test artifacts
 .PHONY: fmt
 fmt: venv ## Formats all files with black
 	@echo "==> Formatting with Black"
-	@black dagfactory
+	@${PYTHON} -m black dagfactory
 
 .PHONY: test
 test: venv ## Runs unit tests
-	@pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
+	@${PYTHON} -m pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
 
 .PHONY: docker-build
 docker-build:

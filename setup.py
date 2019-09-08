@@ -24,6 +24,7 @@ VERSION = None
 here = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRED = ["apache-airflow>=1.9.0", "pyyaml"]
+DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov"]
 
 try:
     with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
@@ -89,6 +90,7 @@ setup(
     url=URL,
     packages=find_packages(exclude=("tests",)),
     install_requires=REQUIRED,
+    extras_require={"dev": DEV_REQUIRED},
     include_package_data=True,
     license="MIT",
     keywords="airflow",
