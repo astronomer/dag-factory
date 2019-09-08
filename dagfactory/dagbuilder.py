@@ -12,11 +12,9 @@ SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
 
 
 class DagBuilder(object):
-
-    def __init__(self,
-                 dag_name: str,
-                 dag_config: Dict[str, Any],
-                 default_config: Dict[str, Any]) -> None:
+    def __init__(
+        self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
+    ) -> None:
         self.dag_name: str = dag_name
         self.dag_config: Dict[str, Any] = dag_config
         self.default_config: Dict[str, Any] = default_config
@@ -28,7 +26,9 @@ class DagBuilder(object):
         :returns: dict of dag parameters
         """
         try:
-            dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
+            dag_params: Dict[str, Any] = utils.merge_configs(
+                self.dag_config, self.default_config
+            )
         except Exception as e:
             raise Exception(f"Failed to merge config with default config, err: {e}")
         dag_params["dag_id"]: str = self.dag_name
@@ -86,8 +86,12 @@ class DagBuilder(object):
             task_conf["task_id"]: str = task_name
             operator: str = task_conf["operator"]
             task_conf["dag"]: DAG = dag
-            params: Dict[str, Any] = {k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS}
-            task: BaseOperator = DagBuilder.make_task(operator=operator, task_params=params)
+            params: Dict[str, Any] = {
+                k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
+            }
+            task: BaseOperator = DagBuilder.make_task(
+                operator=operator, task_params=params
+            )
             tasks_dict[task.task_id]: BaseOperator = task
 
         # set task dependencies after creating tasks

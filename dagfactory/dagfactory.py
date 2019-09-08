@@ -16,7 +16,9 @@ class DagFactory(object):
     def __init__(self, config_filepath: str) -> None:
         DagFactory._validate_config_filepath(config_filepath=config_filepath)
         self.config_filepath: str = config_filepath
-        self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
+        self.config: Dict[str, Any] = DagFactory._load_config(
+            config_filepath=config_filepath
+        )
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
@@ -66,9 +68,9 @@ class DagFactory(object):
         default_config: Dict[str, Any] = self.get_default_config()
 
         for dag_name, dag_config in dag_configs.items():
-            dag_builder: DagBuilder = DagBuilder(dag_name=dag_name,
-                                                 dag_config=dag_config,
-                                                 default_config=default_config)
+            dag_builder: DagBuilder = DagBuilder(
+                dag_name=dag_name, dag_config=dag_config, default_config=default_config
+            )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
             except Exception as e:

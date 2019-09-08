@@ -5,7 +5,9 @@ from typing import Dict, Any, Union, Pattern, Match, AnyStr, Optional
 import pendulum
 
 
-def get_start_date(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
+def get_start_date(
+    date_value: Union[str, datetime, date], timezone: str = "UTC"
+) -> datetime:
     """
     Takes value from DAG config and generates valid start_date. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
@@ -22,18 +24,20 @@ def get_start_date(date_value: Union[str, datetime, date], timezone: str = "UTC"
     except Exception as e:
         raise Exception(f"Failed to create timezone; err: {e}")
     if isinstance(date_value, date):
-        return datetime.combine(date=date_value, time=datetime.min.time()).replace(tzinfo=local_tz)
+        return datetime.combine(date=date_value, time=datetime.min.time()).replace(
+            tzinfo=local_tz
+        )
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     rel_delta: timedelta = get_time_delta(date_value)
     now: datetime = (
         datetime.today()
-            .replace(hour=0, minute=0, second=0, microsecond=0)
-            .replace(tzinfo=local_tz)
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .replace(tzinfo=local_tz)
     )
     if not rel_delta:
         return now
-    return (now - rel_delta)
+    return now - rel_delta
 
 
 def get_time_delta(time_string: str) -> timedelta:
@@ -65,7 +69,9 @@ def get_time_delta(time_string: str) -> timedelta:
     return timedelta(**time_params)
 
 
-def merge_configs(config: Dict[str, Any], default_config: Dict[str, Any]) -> Dict[str, Any]:
+def merge_configs(
+    config: Dict[str, Any], default_config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Merges a `default` config with DAG config. Used to set default values
     for a group of DAGs.
