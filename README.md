@@ -1,9 +1,10 @@
 # dag-factory
 
-[![Travis CI](https://img.shields.io/travis/ajbosco/dag-factory.svg?style=flat-square)](https://travis-ci.org/ajbosco/dag-factory)
-[![Coverage](https://img.shields.io/coveralls/github/ajbosco/dag-factory.svg?style=flat-square)](https://coveralls.io/github/ajbosco/dag-factory)
-[![PyPi](https://img.shields.io/pypi/v/dag-factory.svg?style=flat-square)](https://pypi.org/project/dag-factory/)
-[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/ambv/black)
+[![Travis CI](https://img.shields.io/travis/ajbosco/dag-factory.svg)](https://travis-ci.org/ajbosco/dag-factory)
+[![Coverage](https://img.shields.io/coveralls/github/ajbosco/dag-factory.svg)](https://coveralls.io/github/ajbosco/dag-factory)
+[![PyPi](https://img.shields.io/pypi/v/dag-factory.svg)](https://pypi.org/project/dag-factory/)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
 
 *dag-factory* is a library for dynamically generating [Apache Airflow](https://github.com/apache/incubator-airflow) DAGs from YAML configuration files.
 - [Installation](#installation)
