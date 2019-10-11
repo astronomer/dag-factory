@@ -10,7 +10,6 @@ from dagfactory import utils
 NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 CET = pendulum.timezone("Europe/Amsterdam")
 UTC = pendulum.timezone("UTC")
-THIS_FILE_PATH = os.path.realpath(__file__)
 
 
 def test_get_start_date_date_no_timezone():
@@ -126,10 +125,12 @@ def print_test():
 
 
 def test_get_python_callable_valid():
-
+    python_callable_file = os.path.realpath(__file__)
     python_callable_name = "print_test"
 
-    python_callable = utils.get_python_callable(python_callable_name, THIS_FILE_PATH)
+    python_callable = utils.get_python_callable(
+        python_callable_name, python_callable_file
+    )
 
     assert callable(python_callable)
 
