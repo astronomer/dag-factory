@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Any, Union
+from typing import Any, Dict, Union
 
 import yaml
 from airflow.models import DAG
@@ -7,7 +7,7 @@ from airflow.models import DAG
 from dagfactory.dagbuilder import DagBuilder
 
 
-class DagFactory(object):
+class DagFactory:
     """
     :param config_filepath: the filepath of the DAG factory YAML config file.
         Must be absolute path to file.

@@ -1,6 +1,11 @@
+import importlib.util
+import inspect
+import os
 import re
-from datetime import datetime, date, timedelta
-from typing import Dict, Any, Union, Pattern, Match, AnyStr, Optional
+import sys
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 
 import pendulum
 
@@ -90,3 +95,30 @@ def merge_configs(
         else:
             config[key]: Any = default_config[key]
     return config
+
+
+def get_python_callable(python_callable_name, python_callable_file):
+    """
+    Uses python filepath and callable name to import a valid callable
+    for use in PythonOperator.
+
+    :param python_callable_name: name of python callable to be imported
+    :type python_callable_name:  str
+    :param python_callable_file: aboslute path of python file with callable
+    :type python_callable_file: str
+    :returns: python calllable
+    :type: callable
+    """
+
+    if not os.path.isabs(python_callable_file):
+        raise Exception("`python_callable_file` must be absolute path")
+
+    python_file_path = Path(python_callable_file).resolve()
+    module_name = python_file_path.stem
+    spec = importlib.util.spec_from_file_location(module_name, python_callable_file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    sys.modules[module_name] = module
+    python_callable = getattr(module, python_callable_name)
+
+    return python_callable

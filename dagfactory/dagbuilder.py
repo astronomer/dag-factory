@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Dict, Any, List, Union, Callable
+from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.utils.module_loading import import_string
 
 from dagfactory import utils
@@ -11,7 +12,7 @@ from dagfactory import utils
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
 
 
-class DagBuilder(object):
+class DagBuilder:
     def __init__(
         self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
     ) -> None:
@@ -55,6 +56,17 @@ class DagBuilder(object):
         except Exception as e:
             raise Exception(f"Failed to import operator: {operator}. err: {e}")
         try:
+            if operator_obj == PythonOperator:
+                if not task_params.get("python_callable_name") and not task_params.get(
+                    "python_callable_file"
+                ):
+                    raise Exception(
+                        "Failed to create task. PythonOperator requires `python_callable_name` and `python_callable_file` parameters."
+                    )
+                task_params["python_callable"]: callable = utils.get_python_callable(
+                    task_params["python_callable_name"],
+                    task_params["python_callable_file"],
+                )
             task: BaseOperator = operator_obj(**task_params)
         except Exception as e:
             raise Exception(f"Failed to create {operator_obj} task. err: {e}")

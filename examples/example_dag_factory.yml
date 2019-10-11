@@ -1,27 +1,28 @@
 default:
   default_args:
-    owner: 'default_owner'
+    owner: "default_owner"
     start_date: 2018-03-01
   max_active_runs: 1
-  schedule_interval: '0 1 * * *'
+  schedule_interval: "0 1 * * *"
 
 example_dag:
   default_args:
-    owner: 'custom_owner'
+    owner: "custom_owner"
     start_date: 2 days
-  description: 'this is an example dag'
-  schedule_interval: '0 3 * * *'
+  description: "this is an example dag"
+  schedule_interval: "0 3 * * *"
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 1'
+      bash_command: "echo 1"
     task_2:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 2'
+      bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 3'
+      operator: airflow.operators.python_operator.PythonOperator
+      python_callable_name: print_hello
+      python_callable_file: /usr/local/airflow/dags/print_hello.py
       dependencies: [task_1]
 
 example_dag2:
@@ -30,26 +31,26 @@ example_dag2:
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 1'
+      bash_command: "echo 1"
     task_2:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 2'
+      bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 3'
+      bash_command: "echo 3"
       dependencies: [task_1]
 
 example_dag3:
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 1'
+      bash_command: "echo 1"
     task_2:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 2'
+      bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 3'
+      bash_command: "echo 3"
       dependencies: [task_1]
