@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import pendulum
 import pytest
@@ -6,103 +7,137 @@ import pytest
 from dagfactory import utils
 
 
-class TestGetStartDate(object):
-    now = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    cet = pendulum.timezone("Europe/Amsterdam")
-    utc = pendulum.timezone("UTC")
-
-    def test_date_no_timezone(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.utc)
-        actual = utils.get_start_date(datetime.date(2018, 2, 1))
-        assert actual == expected
-
-    def test_datetime_no_timezone(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.utc)
-        actual = utils.get_start_date(datetime.datetime(2018, 2, 1))
-        assert actual == expected
-
-    def test_relative_time_no_timezone(self):
-        expected = self.now.replace(tzinfo=self.utc) - datetime.timedelta(days=1)
-        actual = utils.get_start_date("1 day")
-        assert actual == expected
-
-    def test_date_timezone(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.cet)
-        actual = utils.get_start_date(datetime.date(2018, 2, 1), "Europe/Amsterdam")
-        assert actual == expected
-
-    def test_datetime_timezone(self):
-        expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=self.cet)
-        actual = utils.get_start_date(datetime.datetime(2018, 2, 1), "Europe/Amsterdam")
-        assert actual == expected
-
-    def test_relative_time_timezone(self):
-        expected = self.now.replace(tzinfo=self.cet) - datetime.timedelta(days=1)
-        actual = utils.get_start_date("1 day", "Europe/Amsterdam")
-        assert actual == expected
-
-    def test_bad_timezone(self):
-        with pytest.raises(Exception):
-            utils.get_start_date(datetime.datetime(2018, 2, 1), "bad_timezone")
-
-    def test_bad_date(self):
-        with pytest.raises(Exception):
-            utils.get_start_date("bad_date")
+NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+CET = pendulum.timezone("Europe/Amsterdam")
+UTC = pendulum.timezone("UTC")
+THIS_FILE_PATH = os.path.realpath(__file__)
 
 
-class TestGetTimeDelta(object):
-    def test_seconds(self):
-        expected = datetime.timedelta(0, 25)
-        actual = utils.get_time_delta("25 seconds")
-        assert actual == expected
-
-    def test_minutes(self):
-        expected = datetime.timedelta(0, 60)
-        actual = utils.get_time_delta("1 minute")
-        assert actual == expected
-
-    def test_hours(self):
-        expected = datetime.timedelta(0, 18000)
-        actual = utils.get_time_delta("5 hours")
-        assert actual == expected
-
-    def test_days(self):
-        expected = datetime.timedelta(10)
-        actual = utils.get_time_delta("10 days")
-        assert actual == expected
-
-    def test_combo(self):
-        expected = datetime.timedelta(0, 3600)
-        actual = utils.get_time_delta("1 hour 30 minutes")
-        assert actual == expected
-
-    def test_bad_date(self):
-        with pytest.raises(Exception):
-            utils.get_time_delta("bad_date")
+def test_get_start_date_date_no_timezone():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
+    actual = utils.get_start_date(datetime.date(2018, 2, 1))
+    assert actual == expected
 
 
-class TestMergeConfigs(object):
-    def test_same_configs(self):
-        dag_config = {"thing": "value1"}
-        default_config = {"thing": "value2"}
+def test_get_start_date_datetime_no_timezone():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
+    actual = utils.get_start_date(datetime.datetime(2018, 2, 1))
+    assert actual == expected
 
-        expected = {"thing": "value1"}
-        actual = utils.merge_configs(dag_config, default_config)
-        assert actual == expected
 
-    def test_different_configs(self):
-        dag_config = {"thing": "value1"}
-        default_config = {"thing2": "value2"}
+def test_get_start_date_relative_time_no_timezone():
+    expected = NOW.replace(tzinfo=UTC) - datetime.timedelta(days=1)
+    actual = utils.get_start_date("1 day")
+    assert actual == expected
 
-        expected = {"thing": "value1", "thing2": "value2"}
-        actual = utils.merge_configs(dag_config, default_config)
-        assert actual == expected
 
-    def test_nested_configs(self):
-        dag_config = {"thing": {"thing3": "value3"}}
-        default_config = {"thing2": "value2"}
+def test_get_start_date_date_timezone():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=CET)
+    actual = utils.get_start_date(datetime.date(2018, 2, 1), "Europe/Amsterdam")
+    assert actual == expected
 
-        expected = {"thing": {"thing3": "value3"}, "thing2": "value2"}
-        actual = utils.merge_configs(dag_config, default_config)
-        assert actual == expected
+
+def test_get_start_date_datetime_timezone():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=CET)
+    actual = utils.get_start_date(datetime.datetime(2018, 2, 1), "Europe/Amsterdam")
+    assert actual == expected
+
+
+def test_get_start_date_relative_time_timezone():
+    expected = NOW.replace(tzinfo=CET) - datetime.timedelta(days=1)
+    actual = utils.get_start_date("1 day", "Europe/Amsterdam")
+    assert actual == expected
+
+
+def test_get_start_date_bad_timezone():
+    with pytest.raises(Exception):
+        utils.get_start_date(datetime.datetime(2018, 2, 1), "bad_timezone")
+
+
+def test_get_start_date_bad_date():
+    with pytest.raises(Exception):
+        utils.get_start_date("bad_date")
+
+
+def test_get_time_delta_seconds():
+    expected = datetime.timedelta(0, 25)
+    actual = utils.get_time_delta("25 seconds")
+    assert actual == expected
+
+
+def test_get_time_delta_minutes():
+    expected = datetime.timedelta(0, 60)
+    actual = utils.get_time_delta("1 minute")
+    assert actual == expected
+
+
+def test_get_time_delta_hours():
+    expected = datetime.timedelta(0, 18000)
+    actual = utils.get_time_delta("5 hours")
+    assert actual == expected
+
+
+def test_get_time_delta_days():
+    expected = datetime.timedelta(10)
+    actual = utils.get_time_delta("10 days")
+    assert actual == expected
+
+
+def test_get_time_delta_combo():
+    expected = datetime.timedelta(0, 3600)
+    actual = utils.get_time_delta("1 hour 30 minutes")
+    assert actual == expected
+
+
+def test_get_time_delta_bad_date():
+    with pytest.raises(Exception):
+        utils.get_time_delta("bad_date")
+
+
+def test_merge_configs_same_configs():
+    dag_config = {"thing": "value1"}
+    default_config = {"thing": "value2"}
+
+    expected = {"thing": "value1"}
+    actual = utils.merge_configs(dag_config, default_config)
+    assert actual == expected
+
+
+def test_merge_configs_different_configs():
+    dag_config = {"thing": "value1"}
+    default_config = {"thing2": "value2"}
+
+    expected = {"thing": "value1", "thing2": "value2"}
+    actual = utils.merge_configs(dag_config, default_config)
+    assert actual == expected
+
+
+def test_merge_configs_nested_configs():
+    dag_config = {"thing": {"thing3": "value3"}}
+    default_config = {"thing2": "value2"}
+
+    expected = {"thing": {"thing3": "value3"}, "thing2": "value2"}
+    actual = utils.merge_configs(dag_config, default_config)
+    assert actual == expected
+
+
+def print_test():
+    print("test")
+
+
+def test_get_python_callable_valid():
+
+    python_callable_name = "print_test"
+
+    python_callable = utils.get_python_callable(python_callable_name, THIS_FILE_PATH)
+
+    assert callable(python_callable)
+
+
+def test_get_python_callable_invalid_path():
+    python_callable_file = "/not/absolute/path"
+    python_callable_name = "print_test"
+
+    with pytest.raises(Exception):
+        utils.get_python_callable(python_callable_name, python_callable_file)
 

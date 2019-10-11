@@ -63,7 +63,7 @@ class DagBuilder:
                     raise Exception(
                         "Failed to create task. PythonOperator requires `python_callable_name` and `python_callable_file` parameters."
                     )
-                task_params["python_callable"]: callable = utils.get_python_callable(
+                task_params["python_callable"]: Callable = utils.get_python_callable(
                     task_params["python_callable_name"],
                     task_params["python_callable_file"],
                 )
