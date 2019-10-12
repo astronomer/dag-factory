@@ -1,5 +1,5 @@
+"""Module contains various utilities used by dag-factory"""
 import importlib.util
-import inspect
 import os
 import re
 import sys
@@ -10,6 +10,7 @@ from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 import pendulum
 
 
+# pylint: disable=bad-continuation
 def get_start_date(
     date_value: Union[str, datetime, date], timezone: str = "UTC"
 ) -> datetime:
@@ -26,8 +27,8 @@ def get_start_date(
     """
     try:
         local_tz: pendulum.Timezone = pendulum.timezone(timezone)
-    except Exception as e:
-        raise Exception(f"Failed to create timezone; err: {e}")
+    except Exception as err:
+        raise Exception(f"Failed to create timezone; err: {err}")
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(
             tzinfo=local_tz
@@ -55,6 +56,7 @@ def get_time_delta(time_string: str) -> timedelta:
     :returns: datetime.timedelta for relative time
     :type datetime.timedelta
     """
+    # pylint: disable=line-too-long
     rel_time: Pattern = re.compile(
         pattern=r"((?P<hours>\d+?)\s+hour)?((?P<minutes>\d+?)\s+minute)?((?P<seconds>\d+?)\s+second)?((?P<days>\d+?)\s+day)?",
         # noqa
@@ -66,7 +68,7 @@ def get_time_delta(time_string: str) -> timedelta:
     # https://docs.python.org/3/library/re.html#re.Match.groupdict
     parts: Dict[str, str] = parts.groupdict()
     time_params = {}
-    if all(value == None for value in parts.values()):
+    if all(value is None for value in parts.values()):
         raise Exception(f"Invalid relative time: {time_string}")
     for time_unit, magnitude in parts.items():
         if magnitude:

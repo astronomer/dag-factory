@@ -1,3 +1,4 @@
+"""Module contains code for generating tasks and constructing a DAG"""
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Union
 
@@ -13,6 +14,16 @@ SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
 
 
 class DagBuilder:
+    """
+    Generates tasks and a DAG from a config.
+
+    :param dag_name: the name of the DAG
+    :param dag_config: a dictionary containing configuration for the DAG
+    :param default_config: a dictitionary containing defaults for all DAGs
+        in the YAML file
+    """
+
+    # pylint: disable=bad-continuation
     def __init__(
         self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
     ) -> None:
@@ -30,17 +41,18 @@ class DagBuilder:
             dag_params: Dict[str, Any] = utils.merge_configs(
                 self.dag_config, self.default_config
             )
-        except Exception as e:
-            raise Exception(f"Failed to merge config with default config, err: {e}")
+        except Exception as err:
+            raise Exception(f"Failed to merge config with default config, err: {err}")
         dag_params["dag_id"]: str = self.dag_name
         try:
-            # ensure that default_args dictionary contains key "start_date" with "datetime" value in specified timezone
+            # ensure that default_args dictionary contains key "start_date"
+            # with "datetime" value in specified timezone
             dag_params["default_args"]["start_date"]: datetime = utils.get_start_date(
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
-        except KeyError as e:
-            raise Exception(f"{self.dag_name} config is missing start_date, err: {e}")
+        except KeyError as err:
+            raise Exception(f"{self.dag_name} config is missing start_date, err: {err}")
         return dag_params
 
     @staticmethod
@@ -53,23 +65,24 @@ class DagBuilder:
         try:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
-        except Exception as e:
-            raise Exception(f"Failed to import operator: {operator}. err: {e}")
+        except Exception as err:
+            raise Exception(f"Failed to import operator: {operator}. err: {err}")
         try:
             if operator_obj == PythonOperator:
                 if not task_params.get("python_callable_name") and not task_params.get(
                     "python_callable_file"
                 ):
                     raise Exception(
-                        "Failed to create task. PythonOperator requires `python_callable_name` and `python_callable_file` parameters."
+                        "Failed to create task. PythonOperator requires `python_callable_name` \
+                        and `python_callable_file` parameters."
                     )
                 task_params["python_callable"]: Callable = utils.get_python_callable(
                     task_params["python_callable_name"],
                     task_params["python_callable_file"],
                 )
             task: BaseOperator = operator_obj(**task_params)
-        except Exception as e:
-            raise Exception(f"Failed to create {operator_obj} task. err: {e}")
+        except Exception as err:
+            raise Exception(f"Failed to create {operator_obj} task. err: {err}")
         return task
 
     def build(self) -> Dict[str, Union[str, DAG]]:
