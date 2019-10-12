@@ -1,10 +1,16 @@
+"""Module contains various utilities used by dag-factory"""
+import importlib.util
+import os
 import re
-from datetime import datetime, date, timedelta
-from typing import Dict, Any, Union, Pattern, Match, AnyStr, Optional
+import sys
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 
 import pendulum
 
 
+# pylint: disable=bad-continuation
 def get_start_date(
     date_value: Union[str, datetime, date], timezone: str = "UTC"
 ) -> datetime:
@@ -21,8 +27,8 @@ def get_start_date(
     """
     try:
         local_tz: pendulum.Timezone = pendulum.timezone(timezone)
-    except Exception as e:
-        raise Exception(f"Failed to create timezone; err: {e}")
+    except Exception as err:
+        raise Exception(f"Failed to create timezone; err: {err}")
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(
             tzinfo=local_tz
@@ -50,6 +56,7 @@ def get_time_delta(time_string: str) -> timedelta:
     :returns: datetime.timedelta for relative time
     :type datetime.timedelta
     """
+    # pylint: disable=line-too-long
     rel_time: Pattern = re.compile(
         pattern=r"((?P<hours>\d+?)\s+hour)?((?P<minutes>\d+?)\s+minute)?((?P<seconds>\d+?)\s+second)?((?P<days>\d+?)\s+day)?",
         # noqa
@@ -61,7 +68,7 @@ def get_time_delta(time_string: str) -> timedelta:
     # https://docs.python.org/3/library/re.html#re.Match.groupdict
     parts: Dict[str, str] = parts.groupdict()
     time_params = {}
-    if all(value == None for value in parts.values()):
+    if all(value is None for value in parts.values()):
         raise Exception(f"Invalid relative time: {time_string}")
     for time_unit, magnitude in parts.items():
         if magnitude:
@@ -90,3 +97,30 @@ def merge_configs(
         else:
             config[key]: Any = default_config[key]
     return config
+
+
+def get_python_callable(python_callable_name, python_callable_file):
+    """
+    Uses python filepath and callable name to import a valid callable
+    for use in PythonOperator.
+
+    :param python_callable_name: name of python callable to be imported
+    :type python_callable_name:  str
+    :param python_callable_file: aboslute path of python file with callable
+    :type python_callable_file: str
+    :returns: python calllable
+    :type: callable
+    """
+
+    if not os.path.isabs(python_callable_file):
+        raise Exception("`python_callable_file` must be absolute path")
+
+    python_file_path = Path(python_callable_file).resolve()
+    module_name = python_file_path.stem
+    spec = importlib.util.spec_from_file_location(module_name, python_callable_file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    sys.modules[module_name] = module
+    python_callable = getattr(module, python_callable_name)
+
+    return python_callable

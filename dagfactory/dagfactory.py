@@ -1,5 +1,6 @@
+"""Module contains code for loading a DagFactory config and generating DAGs"""
 import os
-from typing import Dict, Any, Union
+from typing import Any, Dict, Union
 
 import yaml
 from airflow.models import DAG
@@ -7,8 +8,10 @@ from airflow.models import DAG
 from dagfactory.dagbuilder import DagBuilder
 
 
-class DagFactory(object):
+class DagFactory:
     """
+    Takes a YAML config and generates DAGs.
+
     :param config_filepath: the filepath of the DAG factory YAML config file.
         Must be absolute path to file.
     """
@@ -37,8 +40,8 @@ class DagFactory(object):
         """
         try:
             config: Dict[str, Any] = yaml.load(stream=open(config_filepath, "r"))
-        except Exception as e:
-            raise Exception(f"Invalid DAG Factory config file; err: {e}")
+        except Exception as err:
+            raise Exception(f"Invalid DAG Factory config file; err: {err}")
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
@@ -57,6 +60,7 @@ class DagFactory(object):
         """
         return self.config.get("default", {})
 
+    # pylint: disable=redefined-builtin
     def generate_dags(self, globals: Dict[str, Any]) -> None:
         """
         Generates DAGs from YAML config
@@ -73,8 +77,8 @@ class DagFactory(object):
             )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-            except Exception as e:
+            except Exception as err:
                 raise Exception(
-                    f"Failed to generate dag {dag_name}. make sure config is properly populated. err:{e}"
+                    f"Failed to generate dag {dag_name}. verify config is correct. err:{err}"
                 )
             globals[dag["dag_id"]]: DAG = dag["dag"]
