@@ -10,5 +10,6 @@ install:
   - "pip install coveralls"
 script:
   - "make test"
+  - "make lint"
 after_success:
   - coveralls
