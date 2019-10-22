@@ -20,7 +20,7 @@ To install *dag-factory* run `pip install dag-factory`. It requires Python 3.6.0
 
 After installing *dag-factory* in your Airflow environment, there are two steps to creating DAGs. First, we need to create a YAML configuration file. For example:
 
-```
+```yaml
 example_dag1:
   default_args:
     owner: 'example_owner'
@@ -43,7 +43,7 @@ example_dag1:
 
 Then in the DAGs folder in your Airflow environment you need to create a python file like this:
 
-```
+```python
 from airflow import DAG
 import dagfactory
 
