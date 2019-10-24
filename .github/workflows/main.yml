@@ -1,0 +1,29 @@
+name: test
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        python: ['3.6', '3.7']
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install dependencies
+      run: |
+        make setup-dev
+        make venv
+        pip install coveralls
+      env:
+        SLUGIFY_USES_TEXT_UNIDECODE: yes
+    - name: Lint with pylint
+      run: make lint
+    - name: Test with pytest
+      run: make test
+    - name: coveralls
+      run: python -m coveralls
