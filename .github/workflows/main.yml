@@ -1,4 +1,4 @@
-name: test
+name: build
 
 on: [push]
 
@@ -18,12 +18,14 @@ jobs:
       run: |
         make setup-dev
         make venv
-        pip install coveralls
       env:
         SLUGIFY_USES_TEXT_UNIDECODE: yes
     - name: Lint with pylint
       run: make lint
     - name: Test with pytest
       run: make test
-    - name: coveralls
-      run: python -m coveralls
+    - name: Upload coverage to Codecov  
+      uses: codecov/codecov-action@v1.0.3
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.xml

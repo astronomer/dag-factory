@@ -1,7 +1,6 @@
 # dag-factory
 
-[![Travis CI](https://img.shields.io/travis/ajbosco/dag-factory.svg)](https://travis-ci.org/ajbosco/dag-factory)
-[![Coverage](https://img.shields.io/coveralls/github/ajbosco/dag-factory.svg)](https://coveralls.io/github/ajbosco/dag-factory)
+[![Github Actions](https://github.com/ajbosco/dag-factory/workflows/build/badge.svg)](https://github.com/ajbosco/dag-factory/actions?workflow=build)
 [![PyPi](https://img.shields.io/pypi/v/dag-factory.svg)](https://pypi.org/project/dag-factory/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
