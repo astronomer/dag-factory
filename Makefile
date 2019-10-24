@@ -31,13 +31,18 @@ fmt: venv ## Formats all files with black
 	@echo "==> Formatting with Black"
 	@${PYTHON} -m black dagfactory
 
+.PHONY: fmt-check
+fmt-check: venv ## Checks files were formatted with black
+	@echo "==> Formatting with Black"
+	@${PYTHON} -m black --check dagfactory
+
 .PHONY: lint
 lint: venv ## Lint code with pylint
 	@${PYTHON} -m pylint dagfactory
 
 .PHONY: test
 test: venv ## Runs unit tests
-	@${PYTHON} -m pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes
+	@${PYTHON} -m pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes --cov-report=xml
 
 .PHONY: docker-build
 docker-build:
