@@ -20,6 +20,8 @@ jobs:
         make venv
       env:
         SLUGIFY_USES_TEXT_UNIDECODE: yes
+    - name: Check formatting with black
+      run: make fmt-check
     - name: Lint with pylint
       run: make lint
     - name: Test with pytest
