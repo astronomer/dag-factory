@@ -30,6 +30,7 @@ def test_load_config_valid():
                 "start_date": datetime.date(2018, 3, 1),
             },
             "max_active_runs": 1,
+            "dagrun_timeout_sec": 600,
             "schedule_interval": "0 1 * * *",
         },
         "example_dag": {
@@ -136,6 +137,7 @@ def test_get_default_config():
             "start_date": datetime.date(2018, 3, 1),
         },
         "max_active_runs": 1,
+        "dagrun_timeout_sec": 600,
         "schedule_interval": "0 1 * * *",
     }
     actual = td.get_default_config()
