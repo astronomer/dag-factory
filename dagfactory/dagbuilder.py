@@ -61,7 +61,7 @@ class DagBuilder:
 
         try:
             # ensure that default_args dictionary contains key "start_date"
-            # with "dtetime" value in specified timezone
+            # with "datetime" value in specified timezone
             dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
