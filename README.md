@@ -30,6 +30,7 @@ example_dag1:
   concurrency: 1
   max_active_runs: 1
   dagrun_timeout_sec: 60
+  default_view: 'tree'  # or 'graph', 'duration', 'gantt', 'landing_times'
   description: 'this is an example dag!'
   tasks:
     task_1:

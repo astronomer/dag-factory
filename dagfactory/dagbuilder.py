@@ -120,6 +120,7 @@ class DagBuilder:
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
             ),
             dagrun_timeout=dag_params.get("dagrun_timeout", None),
+            default_view=dag_params.get("default_view", None),
             default_args=dag_params.get("default_args", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]

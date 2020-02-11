@@ -33,6 +33,7 @@ def test_load_config_valid():
             "concurrency": 1,
             "max_active_runs": 1,
             "dagrun_timeout_sec": 600,
+            "default_view": "tree",
             "schedule_interval": "0 1 * * *",
         },
         "example_dag": {
@@ -142,6 +143,7 @@ def test_get_default_config():
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout_sec": 600,
+        "default_view": "tree",
         "schedule_interval": "0 1 * * *",
     }
     actual = td.get_default_config()
