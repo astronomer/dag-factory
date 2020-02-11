@@ -11,18 +11,18 @@ import pendulum
 
 
 # pylint: disable=bad-continuation
-def get_start_date(
+def get_datetime(
     date_value: Union[str, datetime, date], timezone: str = "UTC"
 ) -> datetime:
     """
-    Takes value from DAG config and generates valid start_date. Defaults to
+    Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
 
     :param date_value: either a datetime (or date) or a relative time as string
     :type date_value: Uniont[datetime, date, str]
     :param timezone: string value representing timezone for the DAG
     :type timezone: str
-    :returns: datetime for start_date
+    :returns: datetime for date_value
     :type: datetime.datetime
     """
     try:

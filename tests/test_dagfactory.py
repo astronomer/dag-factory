@@ -28,6 +28,7 @@ def test_load_config_valid():
             "default_args": {
                 "owner": "default_owner",
                 "start_date": datetime.date(2018, 3, 1),
+                "end_date": datetime.date(2018, 3, 5),
             },
             "max_active_runs": 1,
             "dagrun_timeout_sec": 600,
@@ -135,6 +136,7 @@ def test_get_default_config():
         "default_args": {
             "owner": "default_owner",
             "start_date": datetime.date(2018, 3, 1),
+            "end_date": datetime.date(2018, 3, 5),
         },
         "max_active_runs": 1,
         "dagrun_timeout_sec": 600,

@@ -44,15 +44,25 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to merge config with default config, err: {err}")
         dag_params["dag_id"]: str = self.dag_name
+
+        # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
         if "dagrun_timeout_sec" in dag_params:
             dag_params["dagrun_timeout"]: timedelta = timedelta(
                 seconds=dag_params["dagrun_timeout_sec"]
             )
             del dag_params["dagrun_timeout_sec"]
+
+        # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
+        if "end_date" in dag_params["default_args"]:
+            dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["default_args"]["end_date"],
+                timezone=dag_params["default_args"].get("timezone", "UTC"),
+            )
+
         try:
             # ensure that default_args dictionary contains key "start_date"
-            # with "datetime" value in specified timezone
-            dag_params["default_args"]["start_date"]: datetime = utils.get_start_date(
+            # with "dtetime" value in specified timezone
+            dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )

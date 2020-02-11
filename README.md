@@ -24,7 +24,8 @@ After installing *dag-factory* in your Airflow environment, there are two steps 
 example_dag1:
   default_args:
     owner: 'example_owner'
-    start_date: 2018-01-01
+    start_date: 2018-01-01  # or '2 days'
+    end_date: 2018-01-05
   schedule_interval: '0 3 * * *'
   max_active_runs: 1
   dagrun_timeout_sec: 60

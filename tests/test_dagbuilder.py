@@ -13,7 +13,11 @@ here = os.path.dirname(__file__)
 
 
 DEFAULT_CONFIG = {
-    "default_args": {"owner": "default_owner", "start_date": datetime.date(2018, 3, 1)},
+    "default_args": {
+        "owner": "default_owner",
+        "start_date": datetime.date(2018, 3, 1),
+        "end_date": datetime.date(2018, 3, 5),
+    },
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
     "schedule_interval": "0 1 * * *",
@@ -49,6 +53,7 @@ def test_get_dag_params():
         "default_args": {
             "owner": "custom_owner",
             "start_date": datetime.datetime(2018, 3, 1, 0, 0, tzinfo=UTC),
+            "end_date": datetime.datetime(2018, 3, 5, 0, 0, tzinfo=UTC),
         },
         "description": "this is an example dag",
         "schedule_interval": "0 3 * * *",

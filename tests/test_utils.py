@@ -14,48 +14,48 @@ UTC = pendulum.timezone("UTC")
 
 def test_get_start_date_date_no_timezone():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
-    actual = utils.get_start_date(datetime.date(2018, 2, 1))
+    actual = utils.get_datetime(datetime.date(2018, 2, 1))
     assert actual == expected
 
 
 def test_get_start_date_datetime_no_timezone():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
-    actual = utils.get_start_date(datetime.datetime(2018, 2, 1))
+    actual = utils.get_datetime(datetime.datetime(2018, 2, 1))
     assert actual == expected
 
 
 def test_get_start_date_relative_time_no_timezone():
     expected = NOW.replace(tzinfo=UTC) - datetime.timedelta(days=1)
-    actual = utils.get_start_date("1 day")
+    actual = utils.get_datetime("1 day")
     assert actual == expected
 
 
 def test_get_start_date_date_timezone():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=CET)
-    actual = utils.get_start_date(datetime.date(2018, 2, 1), "Europe/Amsterdam")
+    actual = utils.get_datetime(datetime.date(2018, 2, 1), "Europe/Amsterdam")
     assert actual == expected
 
 
 def test_get_start_date_datetime_timezone():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=CET)
-    actual = utils.get_start_date(datetime.datetime(2018, 2, 1), "Europe/Amsterdam")
+    actual = utils.get_datetime(datetime.datetime(2018, 2, 1), "Europe/Amsterdam")
     assert actual == expected
 
 
 def test_get_start_date_relative_time_timezone():
     expected = NOW.replace(tzinfo=CET) - datetime.timedelta(days=1)
-    actual = utils.get_start_date("1 day", "Europe/Amsterdam")
+    actual = utils.get_datetime("1 day", "Europe/Amsterdam")
     assert actual == expected
 
 
 def test_get_start_date_bad_timezone():
     with pytest.raises(Exception):
-        utils.get_start_date(datetime.datetime(2018, 2, 1), "bad_timezone")
+        utils.get_datetime(datetime.datetime(2018, 2, 1), "bad_timezone")
 
 
 def test_get_start_date_bad_date():
     with pytest.raises(Exception):
-        utils.get_start_date("bad_date")
+        utils.get_datetime("bad_date")
 
 
 def test_get_time_delta_seconds():
