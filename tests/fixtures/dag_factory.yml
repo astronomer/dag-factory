@@ -3,6 +3,7 @@ default:
     owner: 'default_owner'
     start_date: 2018-03-01
   max_active_runs: 1
+  dagrun_timeout_sec: 600
   schedule_interval: '0 1 * * *'
 
 example_dag:

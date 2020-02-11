@@ -1,5 +1,5 @@
 """Module contains code for generating tasks and constructing a DAG"""
-from datetime import datetime
+from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
@@ -44,6 +44,11 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to merge config with default config, err: {err}")
         dag_params["dag_id"]: str = self.dag_name
+        if "dagrun_timeout_sec" in dag_params:
+            dag_params["dagrun_timeout"]: timedelta = timedelta(
+                seconds=dag_params["dagrun_timeout_sec"]
+            )
+            del dag_params["dagrun_timeout_sec"]
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone
@@ -101,6 +106,7 @@ class DagBuilder:
                 "max_active_runs",
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
             ),
+            dagrun_timeout=dag_params.get("dagrun_timeout", None),
             default_args=dag_params.get("default_args", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]

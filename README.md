@@ -26,6 +26,8 @@ example_dag1:
     owner: 'example_owner'
     start_date: 2018-01-01
   schedule_interval: '0 3 * * *'
+  max_active_runs: 1
+  dagrun_timeout_sec: 60
   description: 'this is an example dag!'
   tasks:
     task_1:
