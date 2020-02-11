@@ -121,6 +121,9 @@ class DagBuilder:
             ),
             dagrun_timeout=dag_params.get("dagrun_timeout", None),
             default_view=dag_params.get("default_view", None),
+            orientation=dag_params.get(
+                "orientation", configuration.conf.get("webserver", "dag_orientation"),
+            ),
             default_args=dag_params.get("default_args", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]

@@ -7,6 +7,7 @@ default:
   max_active_runs: 1
   dagrun_timeout_sec: 600
   default_view: 'tree'
+  orientation: 'LR'
   schedule_interval: '0 1 * * *'
 
 example_dag:

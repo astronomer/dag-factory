@@ -34,6 +34,7 @@ def test_load_config_valid():
             "max_active_runs": 1,
             "dagrun_timeout_sec": 600,
             "default_view": "tree",
+            "orientation": "LR",
             "schedule_interval": "0 1 * * *",
         },
         "example_dag": {
@@ -144,6 +145,7 @@ def test_get_default_config():
         "max_active_runs": 1,
         "dagrun_timeout_sec": 600,
         "default_view": "tree",
+        "orientation": "LR",
         "schedule_interval": "0 1 * * *",
     }
     actual = td.get_default_config()
