@@ -15,6 +15,7 @@ here = os.path.dirname(__file__)
 DEFAULT_CONFIG = {
     "default_args": {"owner": "default_owner", "start_date": datetime.date(2018, 3, 1)},
     "max_active_runs": 1,
+    "dagrun_timeout_sec": 600,
     "schedule_interval": "0 1 * * *",
 }
 DAG_CONFIG = {
@@ -52,6 +53,7 @@ def test_get_dag_params():
         "description": "this is an example dag",
         "schedule_interval": "0 3 * * *",
         "max_active_runs": 1,
+        "dagrun_timeout_sec": 600,
         "tasks": {
             "task_1": {
                 "operator": "airflow.operators.bash_operator.BashOperator",
