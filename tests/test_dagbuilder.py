@@ -53,7 +53,7 @@ def test_get_dag_params():
         "description": "this is an example dag",
         "schedule_interval": "0 3 * * *",
         "max_active_runs": 1,
-        "dagrun_timeout_sec": 600,
+        "dagrun_timeout": datetime.timedelta(seconds=600),
         "tasks": {
             "task_1": {
                 "operator": "airflow.operators.bash_operator.BashOperator",

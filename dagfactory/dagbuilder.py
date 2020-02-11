@@ -44,10 +44,11 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to merge config with default config, err: {err}")
         dag_params["dag_id"]: str = self.dag_name
-        dag_run_timeout_sec: int = dag_params.get("dagrun_timeout_sec", None)
-        dag_params["dag_run_timeout"]: timedelta = timedelta(
-            seconds=dag_run_timeout_sec
-        ) if dag_run_timeout_sec else None
+        if "dagrun_timeout_sec" in dag_params:
+            dag_params["dagrun_timeout"]: timedelta = timedelta(
+                seconds=dag_params["dagrun_timeout_sec"]
+            )
+            del dag_params["dagrun_timeout_sec"]
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone
@@ -105,7 +106,7 @@ class DagBuilder:
                 "max_active_runs",
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
             ),
-            dagrun_timeout=dag_params.get("dag_run_timeout", None),
+            dagrun_timeout=dag_params.get("dagrun_timeout", None),
             default_args=dag_params.get("default_args", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
