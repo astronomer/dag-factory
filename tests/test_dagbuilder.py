@@ -18,6 +18,7 @@ DEFAULT_CONFIG = {
         "start_date": datetime.date(2018, 3, 1),
         "end_date": datetime.date(2018, 3, 5),
     },
+    "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
     "schedule_interval": "0 1 * * *",
@@ -57,6 +58,7 @@ def test_get_dag_params():
         },
         "description": "this is an example dag",
         "schedule_interval": "0 3 * * *",
+        "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
         "tasks": {

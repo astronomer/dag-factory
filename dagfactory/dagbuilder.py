@@ -112,6 +112,9 @@ class DagBuilder:
             dag_id=dag_params["dag_id"],
             schedule_interval=dag_params["schedule_interval"],
             description=dag_params.get("description", ""),
+            concurrency=dag_params.get(
+                "concurrency", configuration.conf.getint("core", "dag_concurrency"),
+            ),
             max_active_runs=dag_params.get(
                 "max_active_runs",
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
