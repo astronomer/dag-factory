@@ -45,8 +45,9 @@ class DagBuilder:
             raise Exception(f"Failed to merge config with default config, err: {err}")
         dag_params["dag_id"]: str = self.dag_name
         dag_run_timeout_sec: int = dag_params.get("dagrun_timeout_sec", None)
-        dag_params["dag_run_timeout"]: timedelta = \
-            timedelta(seconds=dag_run_timeout_sec) if dag_run_timeout_sec else None
+        dag_params["dag_run_timeout"]: timedelta = timedelta(
+            seconds=dag_run_timeout_sec
+        ) if dag_run_timeout_sec else None
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone

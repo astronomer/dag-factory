@@ -141,4 +141,3 @@ def test_get_python_callable_invalid_path():
 
     with pytest.raises(Exception):
         utils.get_python_callable(python_callable_name, python_callable_file)
-
