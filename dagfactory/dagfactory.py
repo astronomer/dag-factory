@@ -39,7 +39,9 @@ class DagFactory:
         :returns: dict from YAML config file
         """
         try:
-            config: Dict[str, Any] = yaml.load(stream=open(config_filepath, "r"))
+            config: Dict[str, Any] = yaml.load(
+                stream=open(config_filepath, "r"), Loader=yaml.FullLoader
+            )
         except Exception as err:
             raise Exception(f"Invalid DAG Factory config file; err: {err}")
         return config
