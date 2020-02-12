@@ -137,4 +137,4 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :return: result to check
     :type: bool
     """
-    return True if key in item_dict and item_dict[key] is not None else False
+    return bool(key in item_dict and item_dict[key] is not None)
