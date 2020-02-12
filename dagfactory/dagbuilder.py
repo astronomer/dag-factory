@@ -46,14 +46,20 @@ class DagBuilder:
         dag_params["dag_id"]: str = self.dag_name
 
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
-        if "dagrun_timeout_sec" in dag_params:
+        if (
+            "dagrun_timeout_sec" in dag_params
+            and dag_params["dagrun_timeout_sec"] is not None
+        ):
             dag_params["dagrun_timeout"]: timedelta = timedelta(
                 seconds=dag_params["dagrun_timeout_sec"]
             )
             del dag_params["dagrun_timeout_sec"]
 
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
-        if "end_date" in dag_params["default_args"]:
+        if (
+            "end_date" in dag_params["default_args"]
+            and dag_params["default_args"]["end_date"] is not None
+        ):
             dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["end_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
