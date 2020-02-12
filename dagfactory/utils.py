@@ -124,3 +124,17 @@ def get_python_callable(python_callable_name, python_callable_file):
     python_callable = getattr(module, python_callable_name)
 
     return python_callable
+
+
+def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
+    """
+    Check if the key is included in given dictionary, and has a valid value.
+
+    :param item_dict: a dictionary to test
+    :type item_dict: Dict[str, Any]
+    :param key: a key to test
+    :type key: str
+    :return: result to check
+    :type: bool
+    """
+    return True if key in item_dict and item_dict[key] is not None else False

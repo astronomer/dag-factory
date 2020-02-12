@@ -9,6 +9,10 @@ default:
   default_view: "tree"
   orientation: "LR"
   schedule_interval: "0 1 * * *"
+  on_success_callback_name: print_hello
+  on_success_callback_file: /usr/local/airflow/dags/print_hello.py
+  on_failure_callback_name: print_hello
+  on_failure_callback_file: /usr/local/airflow/dags/print_hello.py
 
 example_dag:
   default_args:

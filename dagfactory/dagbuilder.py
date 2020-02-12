@@ -46,23 +46,33 @@ class DagBuilder:
         dag_params["dag_id"]: str = self.dag_name
 
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
-        if (
-            "dagrun_timeout_sec" in dag_params
-            and dag_params["dagrun_timeout_sec"] is not None
-        ):
+        if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
             dag_params["dagrun_timeout"]: timedelta = timedelta(
                 seconds=dag_params["dagrun_timeout_sec"]
             )
             del dag_params["dagrun_timeout_sec"]
 
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
-        if (
-            "end_date" in dag_params["default_args"]
-            and dag_params["default_args"]["end_date"] is not None
-        ):
+        if utils.check_dict_key(dag_params["default_args"], "end_date"):
             dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["end_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
+            )
+
+        if utils.check_dict_key(
+            dag_params, "on_success_callback_name"
+        ) and utils.check_dict_key(dag_params, "on_success_callback_file"):
+            dag_params["on_success_callback"]: Callable = utils.get_python_callable(
+                dag_params["on_success_callback_name"],
+                dag_params["on_success_callback_file"],
+            )
+
+        if utils.check_dict_key(
+            dag_params, "on_failure_callback_name"
+        ) and utils.check_dict_key(dag_params, "on_failure_callback_file"):
+            dag_params["on_failure_callback"]: Callable = utils.get_python_callable(
+                dag_params["on_failure_callback_name"],
+                dag_params["on_failure_callback_file"],
             )
 
         try:
@@ -130,6 +140,8 @@ class DagBuilder:
             orientation=dag_params.get(
                 "orientation", configuration.conf.get("webserver", "dag_orientation"),
             ),
+            on_success_callback=dag_params.get("on_success_callback", None),
+            on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]

@@ -33,6 +33,10 @@ example_dag1:
   default_view: 'tree'  # or 'graph', 'duration', 'gantt', 'landing_times'
   orientation: 'LR'  # or 'TB', 'RL', 'BT'
   description: 'this is an example dag!'
+  on_success_callback_name: print_hello
+  on_success_callback_file: /usr/local/airflow/dags/print_hello.py
+  on_failure_callback_name: print_hello
+  on_failure_callback_file: /usr/local/airflow/dags/print_hello.py
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
