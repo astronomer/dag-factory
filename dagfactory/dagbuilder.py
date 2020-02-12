@@ -59,6 +59,12 @@ class DagBuilder:
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
 
+        if utils.check_dict_key(dag_params["default_args"], "retry_delay_sec"):
+            dag_params["default_args"]["retry_delay"]: timedelta = timedelta(
+                seconds=dag_params["default_args"]["retry_delay_sec"]
+            )
+            del dag_params["default_args"]["retry_delay_sec"]
+
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
         ) and utils.check_dict_key(dag_params, "on_success_callback_file"):

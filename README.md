@@ -26,6 +26,8 @@ example_dag1:
     owner: 'example_owner'
     start_date: 2018-01-01  # or '2 days'
     end_date: 2018-01-05
+    retries: 1
+    retry_delay_sec: 300
   schedule_interval: '0 3 * * *'
   concurrency: 1
   max_active_runs: 1
