@@ -11,18 +11,18 @@ import pendulum
 
 
 # pylint: disable=bad-continuation
-def get_start_date(
+def get_datetime(
     date_value: Union[str, datetime, date], timezone: str = "UTC"
 ) -> datetime:
     """
-    Takes value from DAG config and generates valid start_date. Defaults to
+    Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
 
     :param date_value: either a datetime (or date) or a relative time as string
     :type date_value: Uniont[datetime, date, str]
     :param timezone: string value representing timezone for the DAG
     :type timezone: str
-    :returns: datetime for start_date
+    :returns: datetime for date_value
     :type: datetime.datetime
     """
     try:
@@ -124,3 +124,17 @@ def get_python_callable(python_callable_name, python_callable_file):
     python_callable = getattr(module, python_callable_name)
 
     return python_callable
+
+
+def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
+    """
+    Check if the key is included in given dictionary, and has a valid value.
+
+    :param item_dict: a dictionary to test
+    :type item_dict: Dict[str, Any]
+    :param key: a key to test
+    :type key: str
+    :return: result to check
+    :type: bool
+    """
+    return bool(key in item_dict and item_dict[key] is not None)

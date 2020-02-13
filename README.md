@@ -24,11 +24,21 @@ After installing *dag-factory* in your Airflow environment, there are two steps 
 example_dag1:
   default_args:
     owner: 'example_owner'
-    start_date: 2018-01-01
+    start_date: 2018-01-01  # or '2 days'
+    end_date: 2018-01-05
+    retries: 1
+    retry_delay_sec: 300
   schedule_interval: '0 3 * * *'
+  concurrency: 1
   max_active_runs: 1
   dagrun_timeout_sec: 60
+  default_view: 'tree'  # or 'graph', 'duration', 'gantt', 'landing_times'
+  orientation: 'LR'  # or 'TB', 'RL', 'BT'
   description: 'this is an example dag!'
+  on_success_callback_name: print_hello
+  on_success_callback_file: /usr/local/airflow/dags/print_hello.py
+  on_failure_callback_name: print_hello
+  on_failure_callback_file: /usr/local/airflow/dags/print_hello.py
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator

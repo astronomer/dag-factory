@@ -28,9 +28,15 @@ def test_load_config_valid():
             "default_args": {
                 "owner": "default_owner",
                 "start_date": datetime.date(2018, 3, 1),
+                "end_date": datetime.date(2018, 3, 5),
+                "retries": 1,
+                "retry_delay_sec": 300,
             },
+            "concurrency": 1,
             "max_active_runs": 1,
             "dagrun_timeout_sec": 600,
+            "default_view": "tree",
+            "orientation": "LR",
             "schedule_interval": "0 1 * * *",
         },
         "example_dag": {
@@ -135,9 +141,15 @@ def test_get_default_config():
         "default_args": {
             "owner": "default_owner",
             "start_date": datetime.date(2018, 3, 1),
+            "end_date": datetime.date(2018, 3, 5),
+            "retries": 1,
+            "retry_delay_sec": 300,
         },
+        "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout_sec": 600,
+        "default_view": "tree",
+        "orientation": "LR",
         "schedule_interval": "0 1 * * *",
     }
     actual = td.get_default_config()
