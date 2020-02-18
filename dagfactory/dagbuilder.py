@@ -142,7 +142,9 @@ class DagBuilder:
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
             ),
             dagrun_timeout=dag_params.get("dagrun_timeout", None),
-            default_view=dag_params.get("default_view", None),
+            default_view=dag_params.get(
+                "default_view", configuration.conf.get("webserver", "dag_default_view")
+            ),
             orientation=dag_params.get(
                 "orientation", configuration.conf.get("webserver", "dag_orientation"),
             ),
