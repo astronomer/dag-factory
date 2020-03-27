@@ -163,6 +163,21 @@ def test_generate_dags_valid():
     assert "example_dag2" in globals()
     assert "fake_example_dag" not in globals()
 
+def test_generate_dags_with_removal_valid():
+    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td.generate_dags(globals())
+    assert "example_dag" in globals()
+    assert "example_dag2" in globals()
+    assert "fake_example_dag" not in globals()
+
+    # remove a config and check if dag is going to be removed
+    del td.config['example_dag2']
+    del td.config['example_dag']
+    td.clean_dags(globals())
+    assert "example_dag" not in globals()
+    assert "example_dag2" not in globals()
+    assert "fake_example_dag" not in globals()
+
 
 def test_generate_dags_invalid():
     td = dagfactory.DagFactory(INVALID_DAG_FACTORY)

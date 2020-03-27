@@ -152,6 +152,10 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
         )
+
+        # mark the dag as an auto-generated one
+        dag.is_dagfactory_auto_generated = True
+
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
         # create dictionary to track tasks and set dependencies
