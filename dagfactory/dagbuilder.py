@@ -154,6 +154,9 @@ class DagBuilder:
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
+        # add a propert to mark this dag as an auto-generated on
+        dag.is_dagfactory_auto_generated = True
+
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
         for task_name, task_conf in tasks.items():
