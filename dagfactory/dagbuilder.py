@@ -71,7 +71,7 @@ class DagBuilder:
              )
              del dag_params["default_args"]["execution_timeout_sec"]
  
-        for task_id in dag_params["tasks"]:
+        for task_id in dag_params["tasks"].keys():
             if utils.check_dict_key(dag_params["tasks"][task_id], "execution_timeout_sec"):
                 dag_params["tasks"][task_id]["execution_timeout"]: timedelta = timedelta(
                     seconds=dag_params["tasks"][task_id]["execution_timeout_sec"]
