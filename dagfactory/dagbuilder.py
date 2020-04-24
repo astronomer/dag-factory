@@ -64,6 +64,25 @@ class DagBuilder:
                 seconds=dag_params["default_args"]["retry_delay_sec"]
             )
             del dag_params["default_args"]["retry_delay_sec"]
+            
+        if utils.check_dict_key(dag_params["default_args"], "execution_timeout_sec"):
+             dag_params["default_args"]["execution_timeout"]: timedelta = timedelta(
+                 seconds=dag_params["default_args"]["execution_timeout_sec"]
+             )
+             del dag_params["default_args"]["execution_timeout_sec"]
+ 
+        for task_id in dag_params["tasks"]:
+            if utils.check_dict_key(dag_params["tasks"][task_id], "execution_timeout_sec"):
+                dag_params["tasks"][task_id]["execution_timeout"]: timedelta = timedelta(
+                    seconds=dag_params["tasks"][task_id]["execution_timeout_sec"]
+                )
+                del dag_params["tasks"][task_id]["execution_timeout_sec"]
+ 
+            if utils.check_dict_key(dag_params["tasks"][task_id], "retry_delay_sec"):
+                dag_params["tasks"][task_id]["retry_delay"]: timedelta = timedelta(
+                    seconds=dag_params["tasks"][task_id]["retry_delay_sec"]
+                )
+                 del dag_params["tasks"][task_id]["retry_delay_sec"]
 
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
