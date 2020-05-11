@@ -132,7 +132,9 @@ class DagBuilder:
         dag_params: Dict[str, Any] = self.get_dag_params()
         dag: DAG = DAG(
             dag_id=dag_params["dag_id"],
-            schedule_interval=None if dag_params["schedule_interval"] == 'None' else dag_params["schedule_interval"],
+            schedule_interval=None
+            if dag_params["schedule_interval"] == "None"
+            else dag_params["schedule_interval"],
             description=dag_params.get("description", ""),
             concurrency=dag_params.get(
                 "concurrency", configuration.conf.getint("core", "dag_concurrency"),
