@@ -33,6 +33,7 @@ DAG_CONFIG = {
         "task_1": {
             "operator": "airflow.operators.bash_operator.BashOperator",
             "bash_command": "echo 1",
+            "execution_timeout_secs" : 5,
         },
         "task_2": {
             "operator": "airflow.operators.bash_operator.BashOperator",
@@ -69,6 +70,7 @@ def test_get_dag_params():
             "task_1": {
                 "operator": "airflow.operators.bash_operator.BashOperator",
                 "bash_command": "echo 1",
+                "execution_timeout_secs": 5
             },
             "task_2": {
                 "operator": "airflow.operators.bash_operator.BashOperator",
@@ -95,7 +97,7 @@ def test_get_dag_params_no_start_date():
 def test_make_task_valid():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.bash_operator.BashOperator"
-    task_params = {"task_id": "test_task", "bash_command": "echo 1"}
+    task_params = {"task_id": "test_task", "bash_command": "echo 1","execution_timeout_secs":5}
     actual = td.make_task(operator, task_params)
     assert actual.task_id == "test_task"
     assert actual.bash_command == "echo 1"

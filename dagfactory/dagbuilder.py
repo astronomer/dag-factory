@@ -117,6 +117,13 @@ class DagBuilder:
                     task_params["python_callable_name"],
                     task_params["python_callable_file"],
                 )
+
+            if utils.check_dict_key(task_params, "execution_timeout_secs"):
+                task_params["execution_timeout"]: timedelta = timedelta(
+                    seconds=task_params["execution_timeout_secs"]
+                )
+                del task_params["execution_timeout_secs"]
+
             task: BaseOperator = operator_obj(**task_params)
         except Exception as err:
             raise Exception(f"Failed to create {operator_obj} task. err: {err}")
