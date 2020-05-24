@@ -29,6 +29,7 @@ DAG_CONFIG = {
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "schedule_interval": "0 3 * * *",
+    "tags" : ["tag1","tag2"],
     "tasks": {
         "task_1": {
             "operator": "airflow.operators.bash_operator.BashOperator",
@@ -66,6 +67,7 @@ def test_get_dag_params():
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
+        "tags": ["tag1", "tag2"],
         "tasks": {
             "task_1": {
                 "operator": "airflow.operators.bash_operator.BashOperator",

@@ -158,6 +158,7 @@ class DagBuilder:
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
+            tags=dag_params.get("tags", {}),
         )
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
