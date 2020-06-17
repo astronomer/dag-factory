@@ -23,8 +23,8 @@ VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = ["apache-airflow>=1.9.0", "pyyaml"]
-DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov"]
+REQUIRED = ["apache-airflow>=1.10.0", "pyyaml", "packaging"]
+DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov", "tox"]
 
 try:
     with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:

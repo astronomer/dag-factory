@@ -6,6 +6,8 @@ import pytest
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow import __version__ as AIRFLOW_VERSION
+from packaging import version
 
 from dagfactory import dagbuilder
 
@@ -155,3 +157,5 @@ def test_build():
     assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
+    if version.parse(AIRFLOW_VERSION) >= version.parse('1.10.8') :
+        assert actual["dag"].tags == ["tag1","tag2"]
