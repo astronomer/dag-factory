@@ -163,7 +163,7 @@ class DagBuilder:
         )
 
         # tags parameter introduced in Airflow 1.10.8
-        if version.parse(AIRFLOW_VERSION) >= version.parse('1.10.8') :
+        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
             dag.tags = dag_params.get("tags", None)
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
