@@ -25,7 +25,7 @@ jobs:
       run: make fmt-check
     - name: Lint with pylint
       run: make lint
-    - name: Test with pytest
+    - name: Test with tox
       run: make test
     - name: Upload coverage to Codecov  
       uses: codecov/codecov-action@v1.0.3
