@@ -42,7 +42,7 @@ lint: venv ## Lint code with pylint
 
 .PHONY: test
 test: venv ## Runs unit tests
-	@${PYTHON} -m pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes --cov-report=xml
+	@${PYTHON} -m tox
 
 .PHONY: docker-build
 docker-build:

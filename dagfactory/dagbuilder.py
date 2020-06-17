@@ -6,6 +6,8 @@ from airflow import DAG, configuration
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.module_loading import import_string
+from airflow import __version__ as AIRFLOW_VERSION
+from packaging import version
 
 from dagfactory import utils
 
@@ -158,11 +160,15 @@ class DagBuilder:
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
-            tags=dag_params.get("tags", None),
         )
+
+        # tags parameter introduced in Airflow 1.10.8
+        if version.parse(AIRFLOW_VERSION) >= version.parse('1.10.8') :
+            dag.tags = dag_params.get("tags", None)
+
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
-        # add a propert to mark this dag as an auto-generated on
+        # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary to track tasks and set dependencies

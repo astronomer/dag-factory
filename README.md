@@ -14,7 +14,7 @@
   
 ## Installation
 
-To install *dag-factory* run `pip install dag-factory`. It requires Python 3.6.0+ and Apache Airflow 1.9+.
+To install *dag-factory* run `pip install dag-factory`. It requires Python 3.6.0+ and Apache Airflow 1.10+.
 
 ## Usage
 
