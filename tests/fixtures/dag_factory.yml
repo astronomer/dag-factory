@@ -85,3 +85,4 @@ example_dag2:
       get_logs: True
       in_cluster: False
       dependencies: ['task_1']
+      variables_as_parameters: [{"variable_name" : "your_var","argument_name":"your_argument"}]

@@ -116,6 +116,7 @@ def test_load_config_valid():
                     "get_logs": True,
                     "in_cluster": False,
                     "dependencies": ["task_1"],
+                    "variables_as_parameters": [{"variable_name": "your_var", "argument_name": "your_argument"}]
                 },
             }
         },
@@ -209,6 +210,7 @@ def test_get_dag_configs():
                     "get_logs" : True,
                     "in_cluster" : False,
                     "dependencies": ["task_1"],
+                    "variables_as_parameters" : [{"variable_name": "your_var", "argument_name": "your_argument"}]
                 },
             }
         },
