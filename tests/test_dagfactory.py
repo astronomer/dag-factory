@@ -76,6 +76,47 @@ def test_load_config_valid():
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
+                "task_4": {
+                    "operator": "airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator",
+                    "namespace": "default",
+                    "config_file": "path_to_config_file",
+                    "image": "image",
+                    "image_pull_policy": "Always",
+                    "arguments": [
+                        'arg1', 'arg2', 'arg3'
+                    ],
+                    "labels": {'foo': 'bar'},
+                    "name": "passing-test",
+                    "secrets" : [{"secret": "secret", "deploy_type": "env", "deploy_target": "ENV_VAR"}],
+                    "ports": [{"name" : "name","container_port":"container_port"},
+                              {"name" : "name","container_port":"container_port"}],
+                    "volume_mounts": [
+                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
+                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
+                    ],
+                    "volumes": [
+                        {"name": "name", "configs": {"config1": "config1"}},
+                        {"name": "name", "configs": {"config1": "config1"}},
+                    ],
+                    "pod_runtime_info_envs": [
+                        {"name": "name", "field_path": "field_path"},
+                        {"name": "name", "field_path": "field_path"},
+                    ],
+                    "full_pod_spec": {
+                        "api_version": "api_version",
+                        "kind": "kind",
+                        "metadata": "metadata",
+                        "spec": "spec",
+                        "status": "status",
+                    },
+                    "init_containers": [
+                        {"name": "name", "args": "args", "command": "command"},
+                    ],
+                    "task_id": "passing-task",
+                    "get_logs": True,
+                    "in_cluster": False,
+                    "dependencies": ["task_1"],
+                },
             }
         },
     }
@@ -128,6 +169,47 @@ def test_get_dag_configs():
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
+                "task_4": {
+                    "operator": "airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator",
+                    "namespace": "default",
+                    "config_file" : "path_to_config_file",
+                    "image" : "image",
+                    "image_pull_policy" : "Always",
+                    "arguments" : [
+                        'arg1','arg2','arg3'
+                    ],
+                    "labels" : {'foo':'bar'},
+                    "name" : "passing-test",
+                    "secrets" : [{"secret": "secret", "deploy_type": "env", "deploy_target": "ENV_VAR"}],
+                    "ports": [{"name" : "name","container_port":"container_port"},
+                              {"name" : "name","container_port":"container_port"}],
+                    "volume_mounts": [
+                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
+                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
+                    ],
+                    "volumes": [
+                        {"name": "name", "configs": {"config1": "config1"}},
+                        {"name": "name", "configs": {"config1": "config1"}},
+                    ],
+                    "pod_runtime_info_envs": [
+                        {"name": "name", "field_path": "field_path"},
+                        {"name": "name", "field_path": "field_path"},
+                    ],
+                    "full_pod_spec": {
+                        "api_version": "api_version",
+                        "kind": "kind",
+                        "metadata": "metadata",
+                        "spec": "spec",
+                        "status": "status",
+                    },
+                    "init_containers": [
+                        {"name": "name", "args": "args", "command": "command"},
+                    ],
+                    "task_id": "passing-task",
+                    "get_logs" : True,
+                    "in_cluster" : False,
+                    "dependencies": ["task_1"],
+                },
             }
         },
     }
@@ -176,8 +258,6 @@ def test_generate_dags_with_removal_valid():
     assert "example_dag" not in globals()
     assert "example_dag2" not in globals()
     assert "fake_example_dag" not in globals()
-
-
 
 def test_generate_dags_invalid():
     td = dagfactory.DagFactory(INVALID_DAG_FACTORY)

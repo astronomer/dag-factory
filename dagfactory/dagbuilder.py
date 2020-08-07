@@ -3,6 +3,16 @@ from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
+
+# kubernetes
+from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.pod import Port
+from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+from kubernetes.client.models import V1Pod, V1Container
+
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.module_loading import import_string
@@ -119,6 +129,53 @@ class DagBuilder:
                     task_params["python_callable_name"],
                     task_params["python_callable_file"],
                 )
+
+            # KubernetesPodOperator
+            if operator_obj == KubernetesPodOperator:
+                if task_params.get("secrets"):
+                    secrets = []
+                    for secret in task_params.get("secrets"):
+                        secrets.append(Secret(**secret))
+                    task_params["secrets"] = secrets
+
+                if task_params.get("ports"):
+                    ports = []
+                    for port in task_params.get("ports"):
+                        ports.append(Port(**port))
+                    task_params["ports"] = ports
+
+                if task_params.get("volume_mounts"):
+                    volume_mounts = []
+                    for volume_mount in task_params.get("volume_mounts"):
+                        volume_mounts.append(VolumeMount(**volume_mount))
+                    task_params["volume_mounts"] = volume_mounts
+
+                if task_params.get("volumes"):
+                    volumes = []
+                    for volume in task_params.get("volumes"):
+                        volumes.append(Volume(**volume))
+                    task_params["volumes"] = volumes
+
+                if task_params.get("pod_runtime_info_envs"):
+                    pod_runtime_info_envs = []
+                    for pod_runtime_info_env in task_params.get(
+                        "pod_runtime_info_envs"
+                    ):
+                        pod_runtime_info_envs.append(
+                            PodRuntimeInfoEnv(**pod_runtime_info_env)
+                        )
+                    task_params["pod_runtime_info_envs"] = pod_runtime_info_envs
+
+                if task_params.get("full_pod_spec"):
+                    task_params["full_pod_spec"] = V1Pod(
+                        **task_params.get("full_pod_spec")
+                    )
+
+                if task_params.get("init_containers"):
+                    init_containers = []
+                    for init_container in task_params.get("init_containers"):
+                        init_containers.append(V1Container(**init_container))
+                    task_params["init_containers"] = init_containers
 
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
