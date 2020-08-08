@@ -134,28 +134,45 @@ class DagBuilder:
 
             # KubernetesPodOperator
             if operator_obj == KubernetesPodOperator:
-                task_params["secrets"] = [
-                    Secret(**v) for v in task_params.get("secrets")
-                ]
-                task_params["ports"] = [Port(**v) for v in task_params.get("ports")]
-                task_params["volume_mounts"] = [
-                    VolumeMount(**v) for v in task_params.get("volume_mounts")
-                ]
-                task_params["volumes"] = [
-                    Volume(**v) for v in task_params.get("volumes")
-                ]
-                task_params["pod_runtime_info_envs"] = [
-                    PodRuntimeInfoEnv(**v)
-                    for v in task_params.get("pod_runtime_info_envs")
-                ]
-                task_params["full_pod_spec"] = (
-                    V1Pod(**task_params.get("full_pod_spec"))
-                    if task_params.get("full_pod_spec")
+                task_params["secrets"] = (
+                    [Secret(**v) for v in task_params.get("secrets")]
+                    if task_params.get("secrets") is not None
                     else None
                 )
-                task_params["init_containers"] = [
-                    V1Container(**v) for v in task_params.get("init_containers")
-                ]
+
+                task_params["ports"] = (
+                    [Port(**v) for v in task_params.get("ports")]
+                    if task_params.get("ports") is not None
+                    else None
+                )
+                task_params["volume_mounts"] = (
+                    [VolumeMount(**v) for v in task_params.get("volume_mounts")]
+                    if task_params.get("volume_mounts") is not None
+                    else None
+                )
+                task_params["volumes"] = (
+                    [Volume(**v) for v in task_params.get("volumes")]
+                    if task_params.get("volumes") is not None
+                    else None
+                )
+                task_params["pod_runtime_info_envs"] = (
+                    [
+                        PodRuntimeInfoEnv(**v)
+                        for v in task_params.get("pod_runtime_info_envs")
+                    ]
+                    if task_params.get("pod_runtime_info_envs") is not None
+                    else None
+                )
+                task_params["full_pod_spec"] = (
+                    V1Pod(**task_params.get("full_pod_spec"))
+                    if task_params.get("full_pod_spec") is not None
+                    else None
+                )
+                task_params["init_containers"] = (
+                    [V1Container(**v) for v in task_params.get("init_containers")]
+                    if task_params.get("init_containers") is not None
+                    else None
+                )
 
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
@@ -164,19 +181,16 @@ class DagBuilder:
                 del task_params["execution_timeout_secs"]
 
             # use variables as arguments on operator
-            if utils.check_dict_key(task_params, "variables_as_parameters"):
+            if utils.check_dict_key(task_params, "variables_as_arguments"):
                 variables: List[Dict[str, str]] = task_params.get(
-                    "variables_as_parameters"
+                    "variables_as_arguments"
                 )
                 for variable in variables:
-                    if (
-                        Variable.get(variable["variable_name"], default_var=None)
-                        is not None
-                    ):
-                        task_params[variable["argument_name"]] = Variable.get(
-                            variable["variable_name"], default_var=None
+                    if Variable.get(variable["variable"], default_var=None) is not None:
+                        task_params[variable["attribute"]] = Variable.get(
+                            variable["variable"], default_var=None
                         )
-                del task_params["variables_as_parameters"]
+                del task_params["variables_as_arguments"]
 
             task: BaseOperator = operator_obj(**task_params)
         except Exception as err:

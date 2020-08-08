@@ -4,6 +4,7 @@ import datetime
 import pytest
 
 from dagfactory import dagfactory
+from airflow.models import Variable
 
 here = os.path.dirname(__file__)
 
@@ -11,6 +12,8 @@ here = os.path.dirname(__file__)
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
+DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
+DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
 
 def test_validate_config_filepath_valid():
@@ -76,48 +79,6 @@ def test_load_config_valid():
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-                "task_4": {
-                    "operator": "airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator",
-                    "namespace": "default",
-                    "config_file": "path_to_config_file",
-                    "image": "image",
-                    "image_pull_policy": "Always",
-                    "arguments": [
-                        'arg1', 'arg2', 'arg3'
-                    ],
-                    "labels": {'foo': 'bar'},
-                    "name": "passing-test",
-                    "secrets" : [{"secret": "secret", "deploy_type": "env", "deploy_target": "ENV_VAR"}],
-                    "ports": [{"name" : "name","container_port":"container_port"},
-                              {"name" : "name","container_port":"container_port"}],
-                    "volume_mounts": [
-                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
-                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
-                    ],
-                    "volumes": [
-                        {"name": "name", "configs": {"config1": "config1"}},
-                        {"name": "name", "configs": {"config1": "config1"}},
-                    ],
-                    "pod_runtime_info_envs": [
-                        {"name": "name", "field_path": "field_path"},
-                        {"name": "name", "field_path": "field_path"},
-                    ],
-                    "full_pod_spec": {
-                        "api_version": "api_version",
-                        "kind": "kind",
-                        "metadata": "metadata",
-                        "spec": "spec",
-                        "status": "status",
-                    },
-                    "init_containers": [
-                        {"name": "name", "args": "args", "command": "command"},
-                    ],
-                    "task_id": "passing-task",
-                    "get_logs": True,
-                    "in_cluster": False,
-                    "dependencies": ["task_1"],
-                    "variables_as_parameters": [{"variable_name": "your_var", "argument_name": "your_argument"}]
-                },
             }
         },
     }
@@ -169,48 +130,6 @@ def test_get_dag_configs():
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
-                },
-                "task_4": {
-                    "operator": "airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator",
-                    "namespace": "default",
-                    "config_file" : "path_to_config_file",
-                    "image" : "image",
-                    "image_pull_policy" : "Always",
-                    "arguments" : [
-                        'arg1','arg2','arg3'
-                    ],
-                    "labels" : {'foo':'bar'},
-                    "name" : "passing-test",
-                    "secrets" : [{"secret": "secret", "deploy_type": "env", "deploy_target": "ENV_VAR"}],
-                    "ports": [{"name" : "name","container_port":"container_port"},
-                              {"name" : "name","container_port":"container_port"}],
-                    "volume_mounts": [
-                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
-                        {"name": "name", "mount_path": "mount_path", "sub_path": "sub_path", "read_only": "read_only"},
-                    ],
-                    "volumes": [
-                        {"name": "name", "configs": {"config1": "config1"}},
-                        {"name": "name", "configs": {"config1": "config1"}},
-                    ],
-                    "pod_runtime_info_envs": [
-                        {"name": "name", "field_path": "field_path"},
-                        {"name": "name", "field_path": "field_path"},
-                    ],
-                    "full_pod_spec": {
-                        "api_version": "api_version",
-                        "kind": "kind",
-                        "metadata": "metadata",
-                        "spec": "spec",
-                        "status": "status",
-                    },
-                    "init_containers": [
-                        {"name": "name", "args": "args", "command": "command"},
-                    ],
-                    "task_id": "passing-task",
-                    "get_logs" : True,
-                    "in_cluster" : False,
-                    "dependencies": ["task_1"],
-                    "variables_as_parameters" : [{"variable_name": "your_var", "argument_name": "your_argument"}]
                 },
             }
         },
@@ -265,3 +184,18 @@ def test_generate_dags_invalid():
     td = dagfactory.DagFactory(INVALID_DAG_FACTORY)
     with pytest.raises(Exception):
         td.generate_dags(globals())
+
+def test_kubernetes_pod_operator_dag():
+    td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR)
+    td.generate_dags(globals())
+    assert "example_dag" in globals()
+
+def test_variables_as_arguments_dag():
+    override_command = 'value_from_variable'
+    Variable.set("var1",override_command)
+    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
+    td.generate_dags(globals())
+    tasks = globals()['example_dag'].tasks
+    for task in tasks:
+        if task.task_id == "task_3":
+            assert task.bash_command == override_command
