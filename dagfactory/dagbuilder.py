@@ -227,7 +227,7 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
             tags=dag_params.get("tags", {}),
-            doc_md=dag_params.get("doc_md","")
+            doc_md=dag_params.get("doc_md", ""),
         )
 
         # tags parameter introduced in Airflow 1.10.8

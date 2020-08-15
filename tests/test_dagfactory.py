@@ -43,6 +43,7 @@ def test_load_config_valid():
             "schedule_interval": "0 1 * * *",
         },
         "example_dag": {
+            "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule_interval": "0 3 * * *",
@@ -95,6 +96,7 @@ def test_get_dag_configs():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     expected = {
         "example_dag": {
+            "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule_interval": "0 3 * * *",

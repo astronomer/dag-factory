@@ -13,6 +13,7 @@ default:
   schedule_interval: '0 1 * * *'
 
 example_dag:
+  doc_md : "##here is a doc md string"
   default_args:
     owner: 'custom_owner'
     start_date: 2 days
