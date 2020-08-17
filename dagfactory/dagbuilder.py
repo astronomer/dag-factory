@@ -243,7 +243,9 @@ class DagBuilder:
                 dag_params.get("doc_md_python_callable_name"),
                 os.path.abspath(dag_params.get("doc_md_python_callable_file")),
             )
-            dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments",{}))
+            dag.doc_md = doc_md_callable(
+                **dag_params.get("doc_md_python_arguments", {})
+            )
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
