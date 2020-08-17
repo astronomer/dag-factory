@@ -2,6 +2,8 @@
 from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
+import os
+
 from airflow import DAG, configuration
 from airflow.models import Variable
 
@@ -229,6 +231,19 @@ class DagBuilder:
             tags=dag_params.get("tags", {}),
             doc_md=dag_params.get("doc_md", ""),
         )
+
+        if dag_params.get("doc_md_file_path"):
+            with open(dag_params.get("doc_md_file_path"), "r") as file:
+                dag.doc_md = file.readlines()
+
+        if dag_params.get("doc_md_python_callable_file") and dag_params.get(
+            "doc_md_python_callable_name"
+        ):
+            doc_md_callable = utils.get_python_callable(
+                dag_params.get("doc_md_python_callable_name"),
+                os.path.abspath(dag_params.get("doc_md_python_callable_file")),
+            )
+            dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments"))
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):

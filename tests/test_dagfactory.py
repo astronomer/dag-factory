@@ -16,6 +16,8 @@ DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_k
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
 
+
+
 def test_validate_config_filepath_valid():
     dagfactory.DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
 
@@ -65,6 +67,7 @@ def test_load_config_valid():
             },
         },
         "example_dag2": {
+            "doc_md_file_path" : "./fixtures/mydocfile.md",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -79,6 +82,17 @@ def test_load_config_valid():
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
+                },
+            }
+        },
+        "example_dag3": {
+            "doc_md_python_callable_name" : "mydocmdbuilder",
+            "doc_md_python_callable_file": "./fixtures/doc_md_builder.py",
+            "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo 1",
                 },
             }
         },
@@ -118,6 +132,7 @@ def test_get_dag_configs():
             },
         },
         "example_dag2": {
+            "doc_md_file_path": "./fixtures/mydocfile.md",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -132,6 +147,17 @@ def test_get_dag_configs():
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
+                },
+            }
+        },
+        "example_dag3": {
+            "doc_md_python_callable_name": "mydocmdbuilder",
+            "doc_md_python_callable_file": "./fixtures/doc_md_builder.py",
+            "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo 1",
                 },
             }
         },
@@ -194,10 +220,16 @@ def test_kubernetes_pod_operator_dag():
 
 def test_variables_as_arguments_dag():
     override_command = 'value_from_variable'
-    Variable.set("var1",override_command)
+    os.environ['AIRFLOW_VAR_VAR1'] = override_command
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     td.generate_dags(globals())
     tasks = globals()['example_dag'].tasks
     for task in tasks:
         if task.task_id == "task_3":
             assert task.bash_command == override_command
+
+def test_doc_md_callable():
+    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td.generate_dags(globals())
+    expected_doc_md = globals()['example_dag3'].doc_md
+    assert str(td.get_dag_configs()['example_dag3']['doc_md_python_arguments']) == expected_doc_md
