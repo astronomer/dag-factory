@@ -229,12 +229,12 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
             tags=dag_params.get("tags", {}),
-            doc_md=dag_params.get("doc_md", ""),
+            doc_md=dag_params.get("doc_md", None),
         )
 
         if dag_params.get("doc_md_file_path"):
             with open(dag_params.get("doc_md_file_path"), "r") as file:
-                dag.doc_md = file.readlines()
+                dag.doc_md = file.read()
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get(
             "doc_md_python_callable_name"
@@ -243,7 +243,7 @@ class DagBuilder:
                 dag_params.get("doc_md_python_callable_name"),
                 os.path.abspath(dag_params.get("doc_md_python_callable_file")),
             )
-            dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments"))
+            dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments",{}))
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):

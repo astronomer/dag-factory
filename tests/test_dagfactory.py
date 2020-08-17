@@ -228,6 +228,14 @@ def test_variables_as_arguments_dag():
         if task.task_id == "task_3":
             assert task.bash_command == override_command
 
+def test_doc_md_file_path():
+    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td.generate_dags(globals())
+    generated_doc_md = globals()['example_dag2'].doc_md
+    with open("./fixtures/mydocfile.md","r") as file:
+        expected_doc_md = file.read()
+    assert generated_doc_md == expected_doc_md
+
 def test_doc_md_callable():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
