@@ -7,23 +7,30 @@ import os
 from airflow import DAG, configuration
 from airflow.models import Variable
 
-# kubernetes operator
-from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.pod import Port
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
+# kubernetes operator
+try:
+    from airflow.kubernetes.secret import Secret
+    from airflow.kubernetes.pod import Port
+    from airflow.kubernetes.volume_mount import VolumeMount
+    from airflow.kubernetes.volume import Volume
+    from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+except ImportError:
+    from airflow.contrib.kubernetes.secret import Secret
+    from airflow.contrib.kubernetes.pod import Port
+    from airflow.contrib.kubernetes.volume_mount import VolumeMount
+    from airflow.contrib.kubernetes.volume import Volume
+    from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
 from kubernetes.client.models import V1Pod, V1Container
-
 from packaging import version
 
 from dagfactory import utils
+
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
@@ -228,11 +235,13 @@ class DagBuilder:
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
-            tags=dag_params.get("tags", {}),
             doc_md=dag_params.get("doc_md", None),
         )
 
         if dag_params.get("doc_md_file_path"):
+            if not os.path.isabs(dag_params.get("doc_md_file_path")):
+                raise Exception("`doc_md_file_path` must be absolute path")
+
             with open(dag_params.get("doc_md_file_path"), "r") as file:
                 dag.doc_md = file.read()
 
@@ -241,7 +250,7 @@ class DagBuilder:
         ):
             doc_md_callable = utils.get_python_callable(
                 dag_params.get("doc_md_python_callable_name"),
-                os.path.abspath(dag_params.get("doc_md_python_callable_file")),
+                dag_params.get("doc_md_python_callable_file"),
             )
             dag.doc_md = doc_md_callable(
                 **dag_params.get("doc_md_python_arguments", {})

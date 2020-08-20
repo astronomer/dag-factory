@@ -1,13 +1,13 @@
 import os
 import datetime
-
 import pytest
-
-from dagfactory import dagfactory
-from airflow.models import Variable
+from airflow.models.variable import Variable
+from packaging import version
+from airflow import __version__ as AIRFLOW_VERSION
 
 here = os.path.dirname(__file__)
 
+from dagfactory import dagfactory
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
@@ -15,8 +15,19 @@ INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
+DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
+DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
 
-
+@pytest.fixture(autouse=True)
+def build_path_for_doc_md():
+    with open(TEST_DAG_FACTORY,'r') as f:
+        oldText = f.read()
+        newText = oldText.replace('{here}', here)
+    with open(TEST_DAG_FACTORY,'w') as f:
+        f.write(newText)
+    yield
+    with open(TEST_DAG_FACTORY,'w') as f:
+        f.write(oldText)
 
 def test_validate_config_filepath_valid():
     dagfactory.DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
@@ -67,7 +78,7 @@ def test_load_config_valid():
             },
         },
         "example_dag2": {
-            "doc_md_file_path" : "./fixtures/mydocfile.md",
+            "doc_md_file_path" : DOC_MD_FIXTURE_FILE,
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -87,7 +98,7 @@ def test_load_config_valid():
         },
         "example_dag3": {
             "doc_md_python_callable_name" : "mydocmdbuilder",
-            "doc_md_python_callable_file": "./fixtures/doc_md_builder.py",
+            "doc_md_python_callable_file": DOC_MD_PYTHON_CALLABLE_FILE,
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
@@ -98,6 +109,8 @@ def test_load_config_valid():
         },
     }
     actual = dagfactory.DagFactory._load_config(TEST_DAG_FACTORY)
+    actual['example_dag2']['doc_md_file_path'] = DOC_MD_FIXTURE_FILE
+    actual['example_dag3']['doc_md_python_callable_file'] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
@@ -132,7 +145,7 @@ def test_get_dag_configs():
             },
         },
         "example_dag2": {
-            "doc_md_file_path": "./fixtures/mydocfile.md",
+            "doc_md_file_path": DOC_MD_FIXTURE_FILE,
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -152,7 +165,7 @@ def test_get_dag_configs():
         },
         "example_dag3": {
             "doc_md_python_callable_name": "mydocmdbuilder",
-            "doc_md_python_callable_file": "./fixtures/doc_md_builder.py",
+            "doc_md_python_callable_file": DOC_MD_PYTHON_CALLABLE_FILE,
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
@@ -163,6 +176,8 @@ def test_get_dag_configs():
         },
     }
     actual = td.get_dag_configs()
+    actual['example_dag2']['doc_md_file_path'] = DOC_MD_FIXTURE_FILE
+    actual['example_dag3']['doc_md_python_callable_file'] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
@@ -220,7 +235,10 @@ def test_kubernetes_pod_operator_dag():
 
 def test_variables_as_arguments_dag():
     override_command = 'value_from_variable'
-    os.environ['AIRFLOW_VAR_VAR1'] = override_command
+    if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
+        os.environ['AIRFLOW_VAR_VAR1'] = override_command
+    else:
+        Variable.set("var1",override_command)
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     td.generate_dags(globals())
     tasks = globals()['example_dag'].tasks
@@ -232,7 +250,7 @@ def test_doc_md_file_path():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     generated_doc_md = globals()['example_dag2'].doc_md
-    with open("./fixtures/mydocfile.md","r") as file:
+    with open(DOC_MD_FIXTURE_FILE,"r") as file:
         expected_doc_md = file.read()
     assert generated_doc_md == expected_doc_md
 
