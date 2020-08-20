@@ -29,11 +29,11 @@ def get_datetime(
         local_tz: pendulum.Timezone = pendulum.timezone(timezone)
     except Exception as err:
         raise Exception(f"Failed to create timezone; err: {err}")
-    if type(date_value) is date:
+    if type(date_value) is date:  # pylint: disable=unidiomatic-typecheck
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(
             tzinfo=local_tz
         )
-    if type(date_value) is datetime:
+    if type(date_value) is datetime:  # pylint: disable=unidiomatic-typecheck
         return date_value.replace(tzinfo=local_tz)
     rel_delta: timedelta = get_time_delta(date_value)
     now: datetime = (
