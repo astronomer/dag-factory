@@ -19,8 +19,8 @@ def test_get_start_date_date_no_timezone():
 
 
 def test_get_start_date_datetime_no_timezone():
-    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
-    actual = utils.get_datetime(datetime.datetime(2018, 2, 1))
+    expected = datetime.datetime(2018, 2, 1, 5, 4, tzinfo=UTC)
+    actual = utils.get_datetime(datetime.datetime(2018, 2, 1, 5, 4))
     assert actual == expected
 
 
