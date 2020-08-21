@@ -29,12 +29,12 @@ def get_datetime(
         local_tz: pendulum.Timezone = pendulum.timezone(timezone)
     except Exception as err:
         raise Exception(f"Failed to create timezone; err: {err}")
+    if isinstance(date_value, datetime):
+        return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(
             tzinfo=local_tz
         )
-    if isinstance(date_value, datetime):
-        return date_value.replace(tzinfo=local_tz)
     rel_delta: timedelta = get_time_delta(date_value)
     now: datetime = (
         datetime.today()
