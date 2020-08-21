@@ -1,47 +1,60 @@
 default:
+  concurrency: 1
+  dagrun_timeout_sec: 600
   default_args:
-    owner: 'default_owner'
-    start_date: 2018-03-01
     end_date: 2018-03-05
+    owner: default_owner
     retries: 1
     retry_delay_sec: 300
-  concurrency: 1
+    start_date: 2018-03-01
+  default_view: tree
   max_active_runs: 1
-  dagrun_timeout_sec: 600
-  default_view: 'tree'
-  orientation: 'LR'
-  schedule_interval: '0 1 * * *'
-
+  orientation: LR
+  schedule_interval: 0 1 * * *
 example_dag:
   default_args:
-    owner: 'custom_owner'
+    owner: custom_owner
     start_date: 2 days
-  description: 'this is an example dag'
-  schedule_interval: '0 3 * * *'
+  description: this is an example dag
+  doc_md: '##here is a doc md string'
+  schedule_interval: 0 3 * * *
   tasks:
     task_1:
+      bash_command: echo 1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 1'
     task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 2'
-      dependencies: [task_1]
     task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 3'
-      dependencies: [task_1]
-
 example_dag2:
+  doc_md_file_path: {here}/fixtures/mydocfile.md
   tasks:
     task_1:
+      bash_command: echo 1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 1'
     task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 2'
-      dependencies: [task_1]
     task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
       operator: airflow.operators.bash_operator.BashOperator
-      bash_command: 'echo 3'
-      dependencies: [task_1]
-
+example_dag3:
+  doc_md_python_arguments:
+    arg1: arg1
+    arg2: arg2
+  doc_md_python_callable_file: {here}/fixtures/doc_md_builder.py
+  doc_md_python_callable_name: mydocmdbuilder
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash_operator.BashOperator

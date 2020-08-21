@@ -2,14 +2,35 @@
 from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
+import os
+
 from airflow import DAG, configuration
+from airflow.models import Variable
+
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
+
+# kubernetes operator
+try:
+    from airflow.kubernetes.secret import Secret
+    from airflow.kubernetes.pod import Port
+    from airflow.kubernetes.volume_mount import VolumeMount
+    from airflow.kubernetes.volume import Volume
+    from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+except ImportError:
+    from airflow.contrib.kubernetes.secret import Secret
+    from airflow.contrib.kubernetes.pod import Port
+    from airflow.contrib.kubernetes.volume_mount import VolumeMount
+    from airflow.contrib.kubernetes.volume import Volume
+    from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+from kubernetes.client.models import V1Pod, V1Container
 from packaging import version
 
 from dagfactory import utils
+
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
@@ -120,11 +141,65 @@ class DagBuilder:
                     task_params["python_callable_file"],
                 )
 
+            # KubernetesPodOperator
+            if operator_obj == KubernetesPodOperator:
+                task_params["secrets"] = (
+                    [Secret(**v) for v in task_params.get("secrets")]
+                    if task_params.get("secrets") is not None
+                    else None
+                )
+
+                task_params["ports"] = (
+                    [Port(**v) for v in task_params.get("ports")]
+                    if task_params.get("ports") is not None
+                    else None
+                )
+                task_params["volume_mounts"] = (
+                    [VolumeMount(**v) for v in task_params.get("volume_mounts")]
+                    if task_params.get("volume_mounts") is not None
+                    else None
+                )
+                task_params["volumes"] = (
+                    [Volume(**v) for v in task_params.get("volumes")]
+                    if task_params.get("volumes") is not None
+                    else None
+                )
+                task_params["pod_runtime_info_envs"] = (
+                    [
+                        PodRuntimeInfoEnv(**v)
+                        for v in task_params.get("pod_runtime_info_envs")
+                    ]
+                    if task_params.get("pod_runtime_info_envs") is not None
+                    else None
+                )
+                task_params["full_pod_spec"] = (
+                    V1Pod(**task_params.get("full_pod_spec"))
+                    if task_params.get("full_pod_spec") is not None
+                    else None
+                )
+                task_params["init_containers"] = (
+                    [V1Container(**v) for v in task_params.get("init_containers")]
+                    if task_params.get("init_containers") is not None
+                    else None
+                )
+
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
                     seconds=task_params["execution_timeout_secs"]
                 )
                 del task_params["execution_timeout_secs"]
+
+            # use variables as arguments on operator
+            if utils.check_dict_key(task_params, "variables_as_arguments"):
+                variables: List[Dict[str, str]] = task_params.get(
+                    "variables_as_arguments"
+                )
+                for variable in variables:
+                    if Variable.get(variable["variable"], default_var=None) is not None:
+                        task_params[variable["attribute"]] = Variable.get(
+                            variable["variable"], default_var=None
+                        )
+                del task_params["variables_as_arguments"]
 
             task: BaseOperator = operator_obj(**task_params)
         except Exception as err:
@@ -160,7 +235,26 @@ class DagBuilder:
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", {}),
+            doc_md=dag_params.get("doc_md", None),
         )
+
+        if dag_params.get("doc_md_file_path"):
+            if not os.path.isabs(dag_params.get("doc_md_file_path")):
+                raise Exception("`doc_md_file_path` must be absolute path")
+
+            with open(dag_params.get("doc_md_file_path"), "r") as file:
+                dag.doc_md = file.read()
+
+        if dag_params.get("doc_md_python_callable_file") and dag_params.get(
+            "doc_md_python_callable_name"
+        ):
+            doc_md_callable = utils.get_python_callable(
+                dag_params.get("doc_md_python_callable_name"),
+                dag_params.get("doc_md_python_callable_file"),
+            )
+            dag.doc_md = doc_md_callable(
+                **dag_params.get("doc_md_python_arguments", {})
+            )
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
