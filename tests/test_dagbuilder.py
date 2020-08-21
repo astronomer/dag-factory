@@ -28,6 +28,7 @@ DEFAULT_CONFIG = {
     "schedule_interval": "0 1 * * *",
 }
 DAG_CONFIG = {
+    "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "schedule_interval": "0 3 * * *",
@@ -56,6 +57,7 @@ UTC = pendulum.timezone("UTC")
 def test_get_dag_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     expected = {
+        "doc_md": "##here is a doc md string",
         "dag_id": "test_dag",
         "default_args": {
             "owner": "custom_owner",
