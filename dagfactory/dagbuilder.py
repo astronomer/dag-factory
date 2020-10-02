@@ -219,7 +219,8 @@ class DagBuilder:
             schedule_interval=dag_params["schedule_interval"],
             description=dag_params.get("description", ""),
             concurrency=dag_params.get(
-                "concurrency", configuration.conf.getint("core", "dag_concurrency"),
+                "concurrency",
+                configuration.conf.getint("core", "dag_concurrency"),
             ),
             max_active_runs=dag_params.get(
                 "max_active_runs",
@@ -230,7 +231,8 @@ class DagBuilder:
                 "default_view", configuration.conf.get("webserver", "dag_default_view")
             ),
             orientation=dag_params.get(
-                "orientation", configuration.conf.get("webserver", "dag_orientation"),
+                "orientation",
+                configuration.conf.get("webserver", "dag_orientation"),
             ),
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
