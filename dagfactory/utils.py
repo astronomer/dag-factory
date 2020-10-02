@@ -10,7 +10,6 @@ from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 import pendulum
 
 
-# pylint: disable=bad-continuation
 def get_datetime(
     date_value: Union[str, datetime, date], timezone: str = "UTC"
 ) -> datetime:
@@ -28,7 +27,7 @@ def get_datetime(
     try:
         local_tz: pendulum.Timezone = pendulum.timezone(timezone)
     except Exception as err:
-        raise Exception(f"Failed to create timezone; err: {err}")
+        raise "Failed to create timezone" from err
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
