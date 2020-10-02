@@ -46,7 +46,6 @@ class DagBuilder:
         in the YAML file
     """
 
-    # pylint: disable=bad-continuation
     def __init__(
         self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
     ) -> None:
@@ -65,7 +64,7 @@ class DagBuilder:
                 self.dag_config, self.default_config
             )
         except Exception as err:
-            raise Exception(f"Failed to merge config with default config, err: {err}")
+            raise "Failed to merge config with default config" from err
         dag_params["dag_id"]: str = self.dag_name
 
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
@@ -112,7 +111,7 @@ class DagBuilder:
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
         except KeyError as err:
-            raise Exception(f"{self.dag_name} config is missing start_date, err: {err}")
+            raise f"{self.dag_name} config is missing start_date" from err
         return dag_params
 
     @staticmethod
@@ -126,7 +125,7 @@ class DagBuilder:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
         except Exception as err:
-            raise Exception(f"Failed to import operator: {operator}. err: {err}")
+            raise f"Failed to import operator: {operator}" from err
         try:
             if operator_obj == PythonOperator:
                 if not task_params.get("python_callable_name") and not task_params.get(
@@ -203,7 +202,7 @@ class DagBuilder:
 
             task: BaseOperator = operator_obj(**task_params)
         except Exception as err:
-            raise Exception(f"Failed to create {operator_obj} task. err: {err}")
+            raise f"Failed to create {operator_obj} task" from err
         return task
 
     def build(self) -> Dict[str, Union[str, DAG]]:
@@ -219,7 +218,8 @@ class DagBuilder:
             schedule_interval=dag_params["schedule_interval"],
             description=dag_params.get("description", ""),
             concurrency=dag_params.get(
-                "concurrency", configuration.conf.getint("core", "dag_concurrency"),
+                "concurrency",
+                configuration.conf.getint("core", "dag_concurrency"),
             ),
             max_active_runs=dag_params.get(
                 "max_active_runs",
@@ -230,7 +230,8 @@ class DagBuilder:
                 "default_view", configuration.conf.get("webserver", "dag_default_view")
             ),
             orientation=dag_params.get(
-                "orientation", configuration.conf.get("webserver", "dag_orientation"),
+                "orientation",
+                configuration.conf.get("webserver", "dag_orientation"),
             ),
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
