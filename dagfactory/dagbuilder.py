@@ -221,6 +221,10 @@ class DagBuilder:
                 "concurrency",
                 configuration.conf.getint("core", "dag_concurrency"),
             ),
+            catchup=dag_params.get(
+                "catchup",
+                configuration.conf.getboolean("scheduler", "catchup_by_default"),
+            ),
             max_active_runs=dag_params.get(
                 "max_active_runs",
                 configuration.conf.getint("core", "max_active_runs_per_dag"),
