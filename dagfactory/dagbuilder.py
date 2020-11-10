@@ -187,7 +187,22 @@ class DagBuilder:
                     seconds=task_params["execution_timeout_secs"]
                 )
                 del task_params["execution_timeout_secs"]
+            
+            if utils.check_dict_key(task_params, "execution_delta_secs"):
+                task_params["execution_delta"]: timedelta = timedelta(
+                    seconds=task_params["execution_delta_secs"]
+                )
+                del task_params["execution_delta_secs"]
 
+            if utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(task_params, "execution_date_fn_file"):
+                task_params["execution_date_fn"]: Callable = utils.get_python_callable(
+                    task_params["execution_date_fn_name"],
+                    task_params["execution_date_fn_file"],
+                )
+                del task_params["execution_date_fn_name"]
+                del task_params["execution_date_fn_file"]
+                
+            
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
                 variables: List[Dict[str, str]] = task_params.get(
