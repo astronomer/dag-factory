@@ -194,7 +194,8 @@ class DagBuilder:
                 )
                 del task_params["execution_delta_secs"]
 
-            if utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(task_params, "execution_date_fn_file"):
+            if utils.check_dict_key(task_params, "execution_date_fn_name") and \
+                    utils.check_dict_key(task_params, "execution_date_fn_file"):
                 task_params["execution_date_fn"]: Callable = utils.get_python_callable(
                     task_params["execution_date_fn_name"],
                     task_params["execution_date_fn_file"],
