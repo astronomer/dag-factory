@@ -43,7 +43,7 @@ lint: venv ## Lint code with pylint
 
 .PHONY: test
 test: venv ## Runs unit tests
-	@bash -c 'source venv/bin/activate && airflow initdb'
+	@bash -c 'source venv/bin/activate && airflow db init'
 	@${PYTHON} -m tox
 
 .PHONY: docker-build
