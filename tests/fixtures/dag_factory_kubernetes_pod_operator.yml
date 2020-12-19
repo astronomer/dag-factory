@@ -31,8 +31,8 @@ example_dag:
         {"name":"name","mount_path":"mount_path","sub_path":"sub_path","read_only":"read_only"},
       ]
       volumes : [
-        {"name":"name","configs":{"config1":"config1"}},
-        {"name":"name","configs":{"config1":"config1"}},
+        {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
+        {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
       ]
       pod_runtime_info_envs : [
         {"name":"name","field_path":"field_path"},
@@ -54,7 +54,6 @@ example_dag:
       get_logs: True
       in_cluster: False
       dependencies: ['task_1']
-      variables_as_parameters: [{"variable_name" : "your_var","argument_name":"image"}]
     task_2:
       operator: airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
       namespace: 'default'
@@ -72,4 +71,3 @@ example_dag:
       get_logs: True
       in_cluster: False
       dependencies: ['task_1']
-      variables_as_parameters: [{"variable_name" : "your_var","argument_name":"image"}]
