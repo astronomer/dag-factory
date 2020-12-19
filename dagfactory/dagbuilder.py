@@ -139,7 +139,8 @@ class DagBuilder:
                     task_params["python_callable_name"],
                     task_params["python_callable_file"],
                 )
-                # remove dag-factory specific parameters, Airflow 2.0 doesn't allow these to be passed to operator
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
 

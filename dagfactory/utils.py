@@ -25,7 +25,7 @@ def get_datetime(
     :type: datetime.datetime
     """
     try:
-        local_tz: pendulum.Timezone = pendulum.timezone(timezone)
+        local_tz: pendulum.timezone = pendulum.timezone(timezone)
     except Exception as err:
         raise "Failed to create timezone" from err
     if isinstance(date_value, datetime):
