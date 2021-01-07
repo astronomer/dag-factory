@@ -34,6 +34,7 @@ example_dag:
       operator: airflow.operators.bash_operator.BashOperator
 example_dag2:
   doc_md_file_path: {here}/fixtures/mydocfile.md
+  schedule_interval: None
   tasks:
     task_1:
       bash_command: echo 1
