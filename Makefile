@@ -52,7 +52,7 @@ docker-build:
 
 .PHONY: docker-run
 docker-run: docker-build ## Runs local Airflow for testing
-	@docker run -d -e AIRFLOW__CORE__DAGS_FOLDER=/usr/local/airflow/dags -v $(PWD)/examples:/usr/local/airflow/dags -p 8080:8080 --name=dag_factory dag_factory:latest
+	@docker run -d -e AIRFLOW__CORE__DAGS_FOLDER=/usr/local/airflow/dags -v $(PWD)/examples:/usr/local/airflow/dags -p 127.0.0.1:8080:8080 --name=dag_factory dag_factory:latest
 	@echo "==> Airflow is running at http://localhost:8080"
 
 .PHONY: docker-stop
