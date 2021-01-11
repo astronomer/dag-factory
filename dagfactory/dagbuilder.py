@@ -67,6 +67,12 @@ class DagBuilder:
             raise "Failed to merge config with default config" from err
         dag_params["dag_id"]: str = self.dag_name
 
+        if (
+            utils.check_dict_key(dag_params, "schedule_interval")
+            and dag_params["schedule_interval"] == "None"
+        ):
+            dag_params["schedule_interval"] = None
+
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
         if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
             dag_params["dagrun_timeout"]: timedelta = timedelta(
@@ -235,8 +241,8 @@ class DagBuilder:
         dag_params: Dict[str, Any] = self.get_dag_params()
         dag: DAG = DAG(
             dag_id=dag_params["dag_id"],
-            schedule_interval=dag_params["schedule_interval"],
-            description=dag_params.get("description", ""),
+            schedule_interval=dag_params.get("schedule_interval", timedelta(days=1)),
+            description=dag_params.get("description", None),
             concurrency=dag_params.get(
                 "concurrency",
                 configuration.conf.getint("core", "dag_concurrency"),
@@ -259,7 +265,7 @@ class DagBuilder:
             ),
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
-            default_args=dag_params.get("default_args", {}),
+            default_args=dag_params.get("default_args", None),
             doc_md=dag_params.get("doc_md", None),
         )
 

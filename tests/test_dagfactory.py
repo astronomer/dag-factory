@@ -79,6 +79,7 @@ def test_load_config_valid():
         },
         "example_dag2": {
             "doc_md_file_path" : DOC_MD_FIXTURE_FILE,
+            "schedule_interval": "None",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -146,6 +147,7 @@ def test_get_dag_configs():
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
+            "schedule_interval": "None",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -259,3 +261,9 @@ def test_doc_md_callable():
     td.generate_dags(globals())
     expected_doc_md = globals()['example_dag3'].doc_md
     assert str(td.get_dag_configs()['example_dag3']['doc_md_python_arguments']) == expected_doc_md
+
+def test_schedule_interval():
+    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td.generate_dags(globals())
+    schedule_interval = globals()['example_dag2'].schedule_interval
+    assert schedule_interval is None
