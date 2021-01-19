@@ -242,7 +242,6 @@ class DagBuilder:
         dag: DAG = DAG(
             dag_id=dag_params["dag_id"],
             schedule_interval=dag_params.get("schedule_interval", timedelta(days=1)),
-            description=dag_params.get("description", None),
             concurrency=dag_params.get(
                 "concurrency",
                 configuration.conf.getint("core", "dag_concurrency"),
@@ -290,6 +289,12 @@ class DagBuilder:
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
             dag.tags = dag_params.get("tags", None)
+
+        # The default value of description parameter was changed since Airflow 1.10.11
+        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
+            dag.description = dag_params.get("description", None)
+        else:
+            dag.description = dag_params.get("description", "")
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
