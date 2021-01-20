@@ -292,9 +292,9 @@ class DagBuilder:
 
         # The default value of description parameter was changed since Airflow 1.10.11
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
-            dag.description = dag_params.get("description", None)
+            dag._description = dag_params.get("description", None)
         else:
-            dag.description = dag_params.get("description", "")
+            dag._description = dag_params.get("description", "")
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
 
