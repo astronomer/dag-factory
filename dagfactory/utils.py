@@ -17,7 +17,7 @@ def get_datetime(
     Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
 
-    :param date_value: either a datetime (or date) or a relative time as string
+    :param date_value: either a datetime (or date), a date string or a relative time as string
     :type date_value: Uniont[datetime, date, str]
     :param timezone: string value representing timezone for the DAG
     :type timezone: str
@@ -27,22 +27,27 @@ def get_datetime(
     try:
         local_tz: pendulum.timezone = pendulum.timezone(timezone)
     except Exception as err:
-        raise "Failed to create timezone" from err
+        raise Exception("Failed to create timezone") from err
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(
             tzinfo=local_tz
         )
-    rel_delta: timedelta = get_time_delta(date_value)
-    now: datetime = (
-        datetime.today()
-        .replace(hour=0, minute=0, second=0, microsecond=0)
-        .replace(tzinfo=local_tz)
-    )
-    if not rel_delta:
-        return now
-    return now - rel_delta
+    # Try parsing as date string
+    try:
+        return pendulum.parse(date_value).replace(tzinfo=local_tz)
+    except pendulum.parsing.ParserError:
+        # Try parsing as relative time string
+        rel_delta: timedelta = get_time_delta(date_value)
+        now: datetime = (
+            datetime.today()
+            .replace(hour=0, minute=0, second=0, microsecond=0)
+            .replace(tzinfo=local_tz)
+        )
+        if not rel_delta:
+            return now
+        return now - rel_delta
 
 
 def get_time_delta(time_string: str) -> timedelta:
