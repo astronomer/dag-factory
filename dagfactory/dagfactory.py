@@ -43,7 +43,7 @@ class DagFactory:
                 stream=open(config_filepath, "r"), Loader=yaml.FullLoader
             )
         except Exception as err:
-            raise "Invalid DAG Factory config file" from err
+            raise Exception("Invalid DAG Factory config file") from err
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
