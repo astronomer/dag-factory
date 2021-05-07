@@ -1,6 +1,6 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 import os
-from typing import Any, Dict, Union, List
+from typing import Any, Dict, Optional, Union, List
 
 import yaml
 from airflow.models import DAG
@@ -10,18 +10,28 @@ from dagfactory.dagbuilder import DagBuilder
 
 class DagFactory:
     """
-    Takes a YAML config and generates DAGs.
+    Takes a YAML config or a python dictionary and generates DAGs.
 
     :param config_filepath: the filepath of the DAG factory YAML config file.
-        Must be absolute path to file.
+        Must be absolute path to file. Cannot be used with `config`.
+    :type config_filepath: str
+    :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
+    :type config: dict
     """
 
-    def __init__(self, config_filepath: str) -> None:
+    def __init__(
+        self, config_filepath: Optional[str] = None, config: Optional[dict] = None
+    ) -> None:
+        assert bool(config_filepath) ^ bool(
+            config
+        ), "Either `config_filepath` or `config` should be provided"
+        if config_filepath:
         DagFactory._validate_config_filepath(config_filepath=config_filepath)
-        self.config_filepath: str = config_filepath
         self.config: Dict[str, Any] = DagFactory._load_config(
             config_filepath=config_filepath
         )
+        if config:
+            self.config: Dict[str, Any] = config
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
