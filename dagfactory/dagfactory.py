@@ -7,6 +7,9 @@ from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
 
+# these are params that cannot be a dag name
+SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
+
 
 class DagFactory:
     """
@@ -26,10 +29,10 @@ class DagFactory:
             config
         ), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
-        DagFactory._validate_config_filepath(config_filepath=config_filepath)
-        self.config: Dict[str, Any] = DagFactory._load_config(
-            config_filepath=config_filepath
-        )
+            DagFactory._validate_config_filepath(config_filepath=config_filepath)
+            self.config: Dict[str, Any] = DagFactory._load_config(
+                config_filepath=config_filepath
+            )
         if config:
             self.config: Dict[str, Any] = config
 
@@ -62,7 +65,11 @@ class DagFactory:
 
         :returns: dict with configuration for dags
         """
-        return {dag: self.config[dag] for dag in self.config.keys() if dag != "default"}
+        return {
+            dag: self.config[dag]
+            for dag in self.config.keys()
+            if dag not in SYSTEM_PARAMS
+        }
 
     def get_default_config(self) -> Dict[str, Any]:
         """

@@ -31,9 +31,16 @@ from packaging import version
 
 from dagfactory import utils
 
+# pylint: disable=ungrouped-imports
+# Disabling pylint's ungrouped-imports warning because this is a
+# conditional import and cannot be done within the import group above
+# TaskGroup is introduced in Airflow 2.0.0
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.utils.task_group import TaskGroup
+# pylint: disable=ungrouped-imports
 
 # these are params only used in the DAG factory, not in the tasks
-SYSTEM_PARAMS: List[str] = ["operator", "dependencies"]
+SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
 
 
 class DagBuilder:
@@ -231,6 +238,41 @@ class DagBuilder:
             raise Exception(f"Failed to create {operator_obj} task") from err
         return task
 
+    @staticmethod
+    def make_task_groups(task_groups: Dict[str, Any], dag: DAG) -> Dict[str, TaskGroup]:
+        """Takes a DAG and task group configurations. Creates TaskGroup instances.
+
+        :param task_groups: Task group configuration from the YAML configuration file.
+        :param dag: DAG instance that task groups to be added.
+        """
+        task_groups_dict: Dict[str, TaskGroup] = {}
+        if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+            for task_group_name, task_group_conf in task_groups.items():
+                task_group_conf["group_id"] = task_group_name
+                task_group_conf["dag"] = dag
+                task_group = TaskGroup(**task_group_conf)
+                task_groups_dict[task_group.group_id] = task_group
+        return task_groups_dict
+
+    @staticmethod
+    def set_dependencies(tasks_config, operators_dict):
+        """Take the task configurations in YAML file and operator
+        instances, then set the dependencies between tasks.
+        """
+        # if task is in a task group, group_id is prepended to its name
+        for task_name, task_conf in tasks_config.items():
+            if task_conf.get("task_group"):
+                group_id = task_conf["task_group"].group_id
+                task_name = f"{group_id}.{task_name}"
+            if task_conf.get("dependencies"):
+                source_task: BaseOperator = operators_dict[task_name]
+                for dep in task_conf["dependencies"]:
+                    if tasks_config[dep].get("task_group_name"):
+                        group_id = tasks_config[dep]["task_group"].group_id
+                        dep = f"{group_id}.{dep}"
+                    dep_task: BaseOperator = operators_dict[dep]
+                    source_task.set_upstream(dep_task)
+
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
         Generates a DAG from the DAG parameters.
@@ -300,12 +342,22 @@ class DagBuilder:
         # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
 
+        # create dictionary of task groups
+        task_groups_dict: Dict[str, TaskGroup] = self.make_task_groups(
+            dag_params["task_groups"], dag
+        )
+
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
         for task_name, task_conf in tasks.items():
             task_conf["task_id"]: str = task_name
             operator: str = task_conf["operator"]
             task_conf["dag"]: DAG = dag
+            # add task to task_group
+            if task_groups_dict and task_conf.get("task_group_name"):
+                task_conf["task_group"] = task_groups_dict[
+                    task_conf.get("task_group_name")
+                ]
             params: Dict[str, Any] = {
                 k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
             }
@@ -315,11 +367,6 @@ class DagBuilder:
             tasks_dict[task.task_id]: BaseOperator = task
 
         # set task dependencies after creating tasks
-        for task_name, task_conf in tasks.items():
-            if task_conf.get("dependencies"):
-                source_task: BaseOperator = tasks_dict[task_name]
-                for dep in task_conf["dependencies"]:
-                    dep_task: BaseOperator = tasks_dict[dep]
-                    source_task.set_upstream(dep_task)
+        self.set_dependencies(tasks, tasks_dict)
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
