@@ -250,28 +250,42 @@ class DagBuilder:
             for task_group_name, task_group_conf in task_groups.items():
                 task_group_conf["group_id"] = task_group_name
                 task_group_conf["dag"] = dag
-                task_group = TaskGroup(**task_group_conf)
+                task_group = TaskGroup(
+                    **{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS}
+                )
                 task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
 
     @staticmethod
-    def set_dependencies(tasks_config, operators_dict):
+    def set_dependencies(
+        tasks_config: Dict[str, Dict[str, Any]],
+        operators_dict: Dict[str, BaseOperator],
+        task_groups_config: Dict[str, Dict[str, Any]],
+        task_groups_dict: Dict[str, TaskGroup],
+    ):
         """Take the task configurations in YAML file and operator
         instances, then set the dependencies between tasks.
+
+        :param tasks_config: Raw task configuration from YAML file
+        :param operators_dict: Dictionary for operator instances
+        :param task_groups_config: Raw task group configuration from YAML file
+        :param task_groups_dict: Dictionary for task group instances
         """
-        # if task is in a task group, group_id is prepended to its name
-        for task_name, task_conf in tasks_config.items():
-            if task_conf.get("task_group"):
-                group_id = task_conf["task_group"].group_id
-                task_name = f"{group_id}.{task_name}"
-            if task_conf.get("dependencies"):
-                source_task: BaseOperator = operators_dict[task_name]
-                for dep in task_conf["dependencies"]:
-                    if tasks_config[dep].get("task_group_name"):
-                        group_id = tasks_config[dep]["task_group"].group_id
+        tasks_and_task_groups_config = {**tasks_config, **task_groups_config}
+        tasks_and_task_groups_instances = {**operators_dict, **task_groups_dict}
+        for name, conf in tasks_and_task_groups_config.items():
+            # if task is in a task group, group_id is prepended to its name
+            if conf.get("task_group"):
+                group_id = conf["task_group"].group_id
+                name = f"{group_id}.{name}"
+            if conf.get("dependencies"):
+                source: Union[BaseOperator, TaskGroup] = tasks_and_task_groups_instances[name]
+                for dep in conf["dependencies"]:
+                    if tasks_and_task_groups_config[dep].get("task_group_name"):
+                        group_id = tasks_and_task_groups_config[dep]["task_group"].group_id
                         dep = f"{group_id}.{dep}"
-                    dep_task: BaseOperator = operators_dict[dep]
-                    source_task.set_upstream(dep_task)
+                    dep: Union[BaseOperator, TaskGroup] = tasks_and_task_groups_instances[dep]
+                    source.set_upstream(dep)
 
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -367,6 +381,6 @@ class DagBuilder:
             tasks_dict[task.task_id]: BaseOperator = task
 
         # set task dependencies after creating tasks
-        self.set_dependencies(tasks, tasks_dict)
+        self.set_dependencies(tasks, tasks_dict, dag_params["task_groups"], task_groups_dict)
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
