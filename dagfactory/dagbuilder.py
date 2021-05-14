@@ -251,7 +251,11 @@ class DagBuilder:
                 task_group_conf["group_id"] = task_group_name
                 task_group_conf["dag"] = dag
                 task_group = TaskGroup(
-                    **{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS}
+                    **{
+                        k: v
+                        for k, v in task_group_conf.items()
+                        if k not in SYSTEM_PARAMS
+                    }
                 )
                 task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
@@ -279,12 +283,18 @@ class DagBuilder:
                 group_id = conf["task_group"].group_id
                 name = f"{group_id}.{name}"
             if conf.get("dependencies"):
-                source: Union[BaseOperator, TaskGroup] = tasks_and_task_groups_instances[name]
+                source: Union[
+                    BaseOperator, TaskGroup
+                ] = tasks_and_task_groups_instances[name]
                 for dep in conf["dependencies"]:
                     if tasks_and_task_groups_config[dep].get("task_group_name"):
-                        group_id = tasks_and_task_groups_config[dep]["task_group"].group_id
+                        group_id = tasks_and_task_groups_config[dep][
+                            "task_group"
+                        ].group_id
                         dep = f"{group_id}.{dep}"
-                    dep: Union[BaseOperator, TaskGroup] = tasks_and_task_groups_instances[dep]
+                    dep: Union[
+                        BaseOperator, TaskGroup
+                    ] = tasks_and_task_groups_instances[dep]
                     source.set_upstream(dep)
 
     def build(self) -> Dict[str, Union[str, DAG]]:
@@ -381,6 +391,8 @@ class DagBuilder:
             tasks_dict[task.task_id]: BaseOperator = task
 
         # set task dependencies after creating tasks
-        self.set_dependencies(tasks, tasks_dict, dag_params["task_groups"], task_groups_dict)
+        self.set_dependencies(
+            tasks, tasks_dict, dag_params["task_groups"], task_groups_dict
+        )
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
