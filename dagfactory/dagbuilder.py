@@ -239,13 +239,13 @@ class DagBuilder:
         return task
 
     @staticmethod
-    def make_task_groups(task_groups: Dict[str, Any], dag: DAG) -> Dict[str, TaskGroup]:
+    def make_task_groups(task_groups: Dict[str, Any], dag: DAG) -> Dict[str, "TaskGroup"]:
         """Takes a DAG and task group configurations. Creates TaskGroup instances.
 
         :param task_groups: Task group configuration from the YAML configuration file.
         :param dag: DAG instance that task groups to be added.
         """
-        task_groups_dict: Dict[str, TaskGroup] = {}
+        task_groups_dict: Dict[str, "TaskGroup"] = {}
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
             for task_group_name, task_group_conf in task_groups.items():
                 task_group_conf["group_id"] = task_group_name
@@ -265,7 +265,7 @@ class DagBuilder:
         tasks_config: Dict[str, Dict[str, Any]],
         operators_dict: Dict[str, BaseOperator],
         task_groups_config: Dict[str, Dict[str, Any]],
-        task_groups_dict: Dict[str, TaskGroup],
+        task_groups_dict: Dict[str, "TaskGroup"],
     ):
         """Take the task configurations in YAML file and operator
         instances, then set the dependencies between tasks.
@@ -284,7 +284,7 @@ class DagBuilder:
                 name = f"{group_id}.{name}"
             if conf.get("dependencies"):
                 source: Union[
-                    BaseOperator, TaskGroup
+                    BaseOperator, "TaskGroup"
                 ] = tasks_and_task_groups_instances[name]
                 for dep in conf["dependencies"]:
                     if tasks_and_task_groups_config[dep].get("task_group_name"):
@@ -293,7 +293,7 @@ class DagBuilder:
                         ].group_id
                         dep = f"{group_id}.{dep}"
                     dep: Union[
-                        BaseOperator, TaskGroup
+                        BaseOperator, "TaskGroup"
                     ] = tasks_and_task_groups_instances[dep]
                     source.set_upstream(dep)
 
@@ -367,6 +367,7 @@ class DagBuilder:
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary of task groups
+        task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(
             dag_params.get("task_groups", {}), dag
         )
 
