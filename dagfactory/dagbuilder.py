@@ -239,7 +239,9 @@ class DagBuilder:
         return task
 
     @staticmethod
-    def make_task_groups(task_groups: Dict[str, Any], dag: DAG) -> Dict[str, "TaskGroup"]:
+    def make_task_groups(
+        task_groups: Dict[str, Any], dag: DAG
+    ) -> Dict[str, "TaskGroup"]:
         """Takes a DAG and task group configurations. Creates TaskGroup instances.
 
         :param task_groups: Task group configuration from the YAML configuration file.
