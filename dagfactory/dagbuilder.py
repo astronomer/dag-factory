@@ -367,8 +367,7 @@ class DagBuilder:
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary of task groups
-        task_groups_dict: Dict[str, TaskGroup] = self.make_task_groups(
-            dag_params["task_groups"], dag
+            dag_params.get("task_groups", {}), dag
         )
 
         # create dictionary to track tasks and set dependencies
@@ -392,7 +391,7 @@ class DagBuilder:
 
         # set task dependencies after creating tasks
         self.set_dependencies(
-            tasks, tasks_dict, dag_params["task_groups"], task_groups_dict
+            tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict
         )
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
