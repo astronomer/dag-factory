@@ -141,3 +141,9 @@ def test_get_python_callable_invalid_path():
 
     with pytest.raises(Exception):
         utils.get_python_callable(python_callable_name, python_callable_file)
+
+
+def test_get_start_date_date_string():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
+    actual = utils.get_datetime("2018-02-01")
+    assert actual == expected

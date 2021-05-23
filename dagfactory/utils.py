@@ -37,7 +37,7 @@ def get_datetime(
     # Try parsing as date string
     try:
         return pendulum.parse(date_value).replace(tzinfo=local_tz)
-    except pendulum.parsing.ParserError:
+    except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
         now: datetime = (

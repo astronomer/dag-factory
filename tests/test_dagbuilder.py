@@ -62,7 +62,8 @@ DAG_CONFIG_TASK_GROUP = {
         },
         "task_group_2": {
             "dependencies": ["task_group_1"],
-        }
+        },
+        "task_group_3": {}
     },
     "tasks": {
         "task_1": {
@@ -216,26 +217,93 @@ def test_build():
         assert actual["dag"].tags == ["tag1","tag2"]
 
 
+def test_get_dag_params():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
+    expected = {
+        "default_args": {
+            "owner": "custom_owner",
+            "start_date": datetime.datetime(2018, 3, 1, 0, 0, tzinfo=UTC),
+            "end_date": datetime.datetime(2018, 3, 5, 0, 0, tzinfo=UTC),
+            "retries": 1,
+            "retry_delay": datetime.timedelta(seconds=300),
+        },
+        "schedule_interval": "0 3 * * *",
+        "task_groups": {
+            "task_group_1": {"tooltip": "this is a task group", "dependencies": ["task_1"]},
+            "task_group_2": {"dependencies": ["task_group_1"]},
+            "task_group_3": {},
+        },
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 1",
+            },
+            "task_2": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 2",
+                "task_group_name": "task_group_1",
+            },
+            "task_3": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 3",
+                "task_group_name": "task_group_1",
+                "dependencies": ["task_2"],
+            },
+            "task_4": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 4",
+                "dependencies": ["task_group_1"],
+            },
+            "task_5": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 5",
+                "task_group_name": "task_group_2",
+            },
+            "task_6": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 6",
+                "task_group_name": "task_group_2",
+                "dependencies": ["task_5"],
+            },
+        },
+        "concurrency": 1,
+        "max_active_runs": 1,
+        "dag_id": "test_dag",
+        "dagrun_timeout": datetime.timedelta(seconds=600),
+    }
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
+        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
+        with pytest.raises(Exception, match=error_message):
+            td.get_dag_params()
+    else:
+        assert td.get_dag_params() == expected
+
+
 def test_build_task_groups():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
-    actual = td.build()
-    task_group_1 = {t for t in actual["dag"].task_dict if t.startswith("task_group_1")}
-    task_group_2 = {t for t in actual["dag"].task_dict if t.startswith("task_group_2")}
-    assert actual["dag_id"] == "test_dag"
-    assert isinstance(actual["dag"], DAG)
-    assert len(actual["dag"].tasks) == 6
-    assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_group_1.task_2"}
-    assert actual["dag"].task_dict["task_group_1.task_2"].downstream_task_ids == {
-        "task_group_1.task_3"
-    }
-    assert actual["dag"].task_dict["task_group_1.task_3"].downstream_task_ids == {
-        "task_4", "task_group_2.task_5",
-    }
-    assert actual["dag"].task_dict["task_group_2.task_5"].downstream_task_ids == {
-        "task_group_2.task_6",
-    }
-    assert {"task_group_1.task_2", "task_group_1.task_3"} == task_group_1
-    assert {"task_group_2.task_5", "task_group_2.task_6"} == task_group_2
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
+        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
+        with pytest.raises(Exception, match=error_message):
+            td.build()
+    else:
+        actual = td.build()
+        task_group_1 = {t for t in actual["dag"].task_dict if t.startswith("task_group_1")}
+        task_group_2 = {t for t in actual["dag"].task_dict if t.startswith("task_group_2")}
+        assert actual["dag_id"] == "test_dag"
+        assert isinstance(actual["dag"], DAG)
+        assert len(actual["dag"].tasks) == 6
+        assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_group_1.task_2"}
+        assert actual["dag"].task_dict["task_group_1.task_2"].downstream_task_ids == {
+            "task_group_1.task_3"
+        }
+        assert actual["dag"].task_dict["task_group_1.task_3"].downstream_task_ids == {
+            "task_4", "task_group_2.task_5",
+        }
+        assert actual["dag"].task_dict["task_group_2.task_5"].downstream_task_ids == {
+            "task_group_2.task_6",
+        }
+        assert {"task_group_1.task_2", "task_group_1.task_3"} == task_group_1
+        assert {"task_group_2.task_5", "task_group_2.task_6"} == task_group_2
 
 
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)

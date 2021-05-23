@@ -31,13 +31,15 @@ from packaging import version
 
 from dagfactory import utils
 
-# pylint: disable=ungrouped-imports
+# pylint: disable=ungrouped-imports,invalid-name
 # Disabling pylint's ungrouped-imports warning because this is a
 # conditional import and cannot be done within the import group above
 # TaskGroup is introduced in Airflow 2.0.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.utils.task_group import TaskGroup
-# pylint: disable=ungrouped-imports
+else:
+    TaskGroup = None
+# pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
@@ -73,6 +75,11 @@ class DagBuilder:
         except Exception as err:
             raise Exception("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
+
+        if dag_params.get("task_groups") and version.parse(
+            AIRFLOW_VERSION
+        ) < version.parse("2.0.0"):
+            raise Exception("`task_groups` key can only be used with Airflow 2.x.x")
 
         if (
             utils.check_dict_key(dag_params, "schedule_interval")
@@ -289,7 +296,7 @@ class DagBuilder:
                     BaseOperator, "TaskGroup"
                 ] = tasks_and_task_groups_instances[name]
                 for dep in conf["dependencies"]:
-                    if tasks_and_task_groups_config[dep].get("task_group_name"):
+                    if tasks_and_task_groups_config[dep].get("task_group"):
                         group_id = tasks_and_task_groups_config[dep][
                             "task_group"
                         ].group_id

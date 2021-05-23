@@ -1,3 +1,4 @@
+from logging import error
 import os
 import datetime
 import pytest
@@ -17,6 +18,26 @@ DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_va
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
+
+DAG_FACTORY_CONFIG = {
+    "default": {
+        "default_args": {
+            "owner": "airflow",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-01",
+        },
+        "default_view": "graph",
+        "schedule_interval": "daily",
+    },
+    "example_dag": {
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 1",
+            },
+        },
+    },
+}
 
 @pytest.fixture(autouse=True)
 def build_path_for_doc_md():
@@ -267,3 +288,38 @@ def test_schedule_interval():
     td.generate_dags(globals())
     schedule_interval = globals()['example_dag2'].schedule_interval
     assert schedule_interval is None
+
+def test_dagfactory_dict():
+    td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
+    expected_default = {
+        "default_args": {
+            "owner": "airflow",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-01",
+        },
+        "default_view": "graph",
+        "schedule_interval": "daily",
+    }
+    expected_dag = {
+        "example_dag": {
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo 1",
+                },
+            },
+        },
+    }
+    actual_dag = td.get_dag_configs()
+    actual_default = td.get_default_config()
+    assert actual_dag == expected_dag
+    assert actual_default == expected_default
+
+def test_dagfactory_dict_and_yaml():
+    error_message = "Either `config_filepath` or `config` should be provided"
+    with pytest.raises(AssertionError, match=error_message):
+        dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
+
+def test_get_dag_configs_dict():
+    td = dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY)
+    assert not set(dagfactory.SYSTEM_PARAMS).issubset(set(td.get_dag_configs()))
