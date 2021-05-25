@@ -271,6 +271,7 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", None),
             doc_md=dag_params.get("doc_md", None),
+            params=dag_params.get("params", None),
         )
 
         if dag_params.get("doc_md_file_path"):
