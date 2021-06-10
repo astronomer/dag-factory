@@ -107,6 +107,38 @@ class DagBuilder:
             )
             del dag_params["default_args"]["retry_delay_sec"]
 
+        if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
+            dag_params["default_args"]["sla_miss_callback"]: Callable = import_string(
+                dag_params["default_args"]["sla_miss_callback"]
+            )
+
+        if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
+            dag_params["default_args"][
+                "on_success_callback"
+            ]: Callable = import_string(
+                dag_params["default_args"]["on_success_callback"]
+            )
+
+        if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
+            dag_params["default_args"]["on_failure_callback"]: Callable = import_string(
+                dag_params["default_args"]["on_failure_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "sla_miss_callback"):
+            dag_params["sla_miss_callback"]: Callable = import_string(
+                dag_params["sla_miss_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "on_success_callback"):
+            dag_params["on_success_callback"]: Callable = import_string(
+                dag_params["on_success_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "on_failure_callback"):
+            dag_params["on_failure_callback"]: Callable = import_string(
+                dag_params["on_failure_callback"]
+            )
+
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
         ) and utils.check_dict_key(dag_params, "on_success_callback_file"):
@@ -227,6 +259,26 @@ class DagBuilder:
                 )
                 del task_params["execution_date_fn_name"]
                 del task_params["execution_date_fn_file"]
+
+            if utils.check_dict_key(task_params, "on_execute_callback"):
+                task_params["on_execute_callback"]: Callable = import_string(
+                    task_params["on_execute_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_failure_callback"):
+                task_params["on_failure_callback"]: Callable = import_string(
+                    task_params["on_failure_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_success_callback"):
+                task_params["on_success_callback"]: Callable = import_string(
+                    task_params["on_success_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_retry_callback"):
+                task_params["on_retry_callback"]: Callable = import_string(
+                    task_params["on_retry_callback"]
+                )
 
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
