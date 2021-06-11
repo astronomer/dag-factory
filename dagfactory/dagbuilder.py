@@ -393,6 +393,7 @@ class DagBuilder:
                 "orientation",
                 configuration.conf.get("webserver", "dag_orientation"),
             ),
+            sla_miss_callback=dag_params.get("sla_miss_callback", None),
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", None),
