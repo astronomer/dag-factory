@@ -99,6 +99,51 @@ DAG_CONFIG_TASK_GROUP = {
         },
     },
 }
+DAG_CONFIG_CALLBACK = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+        "on_failure_callback": f"{__name__}.print_context_callback",
+        "on_success_callback": f"{__name__}.print_context_callback",
+        "on_execute_callback": f"{__name__}.print_context_callback",
+        "on_retry_callback": f"{__name__}.print_context_callback",
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags" : ["tag1","tag2"],
+    "on_failure_callback": f"{__name__}.print_context_callback",
+    "on_success_callback": f"{__name__}.print_context_callback",
+    "sla_miss_callback": f"{__name__}.print_context_callback",
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs" : 5,
+            "on_failure_callback": f"{__name__}.print_context_callback",
+            "on_success_callback": f"{__name__}.print_context_callback",
+            "on_execute_callback": f"{__name__}.print_context_callback",
+            "on_retry_callback": f"{__name__}.print_context_callback",
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "dependencies": ["task_1"],
+            "on_failure_callback": f"{__name__}.print_context_callback",
+            "on_success_callback": f"{__name__}.print_context_callback",
+            "on_execute_callback": f"{__name__}.print_context_callback",
+            "on_retry_callback": f"{__name__}.print_context_callback",
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "dependencies": ["task_1"],
+            "on_failure_callback": f"{__name__}.print_context_callback",
+            "on_success_callback": f"{__name__}.print_context_callback",
+            "on_execute_callback": f"{__name__}.print_context_callback",
+            "on_retry_callback": f"{__name__}.print_context_callback",
+        },
+    },
+}
 UTC = pendulum.timezone("UTC")
 
 
@@ -325,3 +370,32 @@ def test_make_task_groups():
 def test_make_task_groups_empty():
     task_groups = dagbuilder.DagBuilder.make_task_groups({}, None)
     assert task_groups == {}
+
+def print_context_callback(context, **kwargs):
+    print(context)
+
+
+def test_make_task_with_callback():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.operators.python_operator.PythonOperator"
+    task_params = {
+        "task_id": "test_task",
+        "python_callable_name": "print_test",
+        "python_callable_file": os.path.realpath(__file__),
+        "on_failure_callback": f"{__name__}.print_context_callback",
+        "on_success_callback": f"{__name__}.print_context_callback",
+        "on_execute_callback": f"{__name__}.print_context_callback",
+        "on_retry_callback": f"{__name__}.print_context_callback",
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert callable(actual.python_callable)
+    assert isinstance(actual, PythonOperator)
+    assert callable(actual.on_failure_callback)
+    assert callable(actual.on_success_callback)
+    assert callable(actual.on_execute_callback)
+    assert callable(actual.on_retry_callback)
+
+def test_make_dag_with_callback():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK, DEFAULT_CONFIG)
+    td.build()

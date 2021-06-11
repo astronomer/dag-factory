@@ -28,6 +28,7 @@ except ImportError:
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
 from kubernetes.client.models import V1Pod, V1Container
 from packaging import version
+from copy import deepcopy
 
 from dagfactory import utils
 
@@ -59,8 +60,8 @@ class DagBuilder:
         self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
     ) -> None:
         self.dag_name: str = dag_name
-        self.dag_config: Dict[str, Any] = dag_config
-        self.default_config: Dict[str, Any] = default_config
+        self.dag_config: Dict[str, Any] = deepcopy(dag_config)
+        self.default_config: Dict[str, Any] = deepcopy(default_config)
 
     def get_dag_params(self) -> Dict[str, Any]:
         """
@@ -113,9 +114,7 @@ class DagBuilder:
             )
 
         if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
-            dag_params["default_args"][
-                "on_success_callback"
-            ]: Callable = import_string(
+            dag_params["default_args"]["on_success_callback"]: Callable = import_string(
                 dag_params["default_args"]["on_success_callback"]
             )
 
