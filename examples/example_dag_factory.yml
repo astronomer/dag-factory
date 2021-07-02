@@ -83,7 +83,7 @@ example_dag4:
     task_3:
       operator: airflow.operators.python_operator.PythonOperator
       python_callable_name: print_hello
-      python_callable_file: /Users/buraky/Projects/dag-factory/examples/print_hello.py
+      python_callable_file: /usr/local/airflow/dags/print_hello.py
       task_group_name: task_group_1
       dependencies: [task_2]
     task_4:
