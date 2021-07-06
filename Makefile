@@ -15,7 +15,7 @@ venv/bin/activate: setup.py
 	@test -d venv || virtualenv -p python3 venv
 	@${PYTHON} -m pip install -U pip
 	@${PYTHON} -m pip install -e .[dev]
-	@${PYTHON} -m pip install cattrs==1.0.0
+	@${PYTHON} -m pip install cattrs==1.5.0
 	@touch venv/bin/activate
 
 .PHONY: clean
