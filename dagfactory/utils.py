@@ -141,4 +141,13 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :return: result to check
     :type: bool
     """
+    if "." in key:
+        keys = key.split(".")
+        key = keys[0]
+        if key in item_dict:
+            if isinstance(item_dict[key], dict):
+                return check_dict_key(item_dict[key], ".".join(keys[1:]))
+        else:
+            return False
+
     return bool(key in item_dict and item_dict[key] is not None)
