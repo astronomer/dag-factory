@@ -147,21 +147,3 @@ def test_get_start_date_date_string():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
     actual = utils.get_datetime("2018-02-01")
     assert actual == expected
-
-
-def test_check_dict_key():
-    dict_ = {
-        "thing": "value",
-        "nested": {
-            "thing2": "value2",
-        },
-    }
-    key = "thing"
-    nested_key = "nested.thing2"
-    not_found_key = "not_found"
-    not_found_nested_key = "nested.not_found"
-
-    assert utils.check_dict_key(dict_, key) == True
-    assert utils.check_dict_key(dict_, nested_key) == True
-    assert utils.check_dict_key(dict_, not_found_key) == False
-    assert utils.check_dict_key(dict_, not_found_nested_key) == False
