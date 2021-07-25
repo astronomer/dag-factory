@@ -3,10 +3,10 @@ from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
 import os
+from copy import deepcopy
 
 from airflow import DAG, configuration
 from airflow.models import Variable
-
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
@@ -59,9 +59,10 @@ class DagBuilder:
         self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]
     ) -> None:
         self.dag_name: str = dag_name
-        self.dag_config: Dict[str, Any] = dag_config
-        self.default_config: Dict[str, Any] = default_config
+        self.dag_config: Dict[str, Any] = deepcopy(dag_config)
+        self.default_config: Dict[str, Any] = deepcopy(default_config)
 
+    # pylint: disable=too-many-branches
     def get_dag_params(self) -> Dict[str, Any]:
         """
         Merges default config with dag config, sets dag_id, and extropolates dag_start_date
@@ -107,6 +108,36 @@ class DagBuilder:
             )
             del dag_params["default_args"]["retry_delay_sec"]
 
+        if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
+            dag_params["default_args"]["sla_miss_callback"]: Callable = import_string(
+                dag_params["default_args"]["sla_miss_callback"]
+            )
+
+        if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
+            dag_params["default_args"]["on_success_callback"]: Callable = import_string(
+                dag_params["default_args"]["on_success_callback"]
+            )
+
+        if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
+            dag_params["default_args"]["on_failure_callback"]: Callable = import_string(
+                dag_params["default_args"]["on_failure_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "sla_miss_callback"):
+            dag_params["sla_miss_callback"]: Callable = import_string(
+                dag_params["sla_miss_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "on_success_callback"):
+            dag_params["on_success_callback"]: Callable = import_string(
+                dag_params["on_success_callback"]
+            )
+
+        if utils.check_dict_key(dag_params, "on_failure_callback"):
+            dag_params["on_failure_callback"]: Callable = import_string(
+                dag_params["on_failure_callback"]
+            )
+
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
         ) and utils.check_dict_key(dag_params, "on_success_callback_file"):
@@ -134,6 +165,7 @@ class DagBuilder:
             raise Exception(f"{self.dag_name} config is missing start_date") from err
         return dag_params
 
+    # pylint: disable=too-many-branches
     @staticmethod
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
         """
@@ -227,6 +259,29 @@ class DagBuilder:
                 )
                 del task_params["execution_date_fn_name"]
                 del task_params["execution_date_fn_file"]
+
+            # on_execute_callback is an Airflow 2.0 feature
+            if utils.check_dict_key(
+                task_params, "on_execute_callback"
+            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+                task_params["on_execute_callback"]: Callable = import_string(
+                    task_params["on_execute_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_failure_callback"):
+                task_params["on_failure_callback"]: Callable = import_string(
+                    task_params["on_failure_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_success_callback"):
+                task_params["on_success_callback"]: Callable = import_string(
+                    task_params["on_success_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_retry_callback"):
+                task_params["on_retry_callback"]: Callable = import_string(
+                    task_params["on_retry_callback"]
+                )
 
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
@@ -342,6 +397,7 @@ class DagBuilder:
                 "orientation",
                 configuration.conf.get("webserver", "dag_orientation"),
             ),
+            sla_miss_callback=dag_params.get("sla_miss_callback", None),
             on_success_callback=dag_params.get("on_success_callback", None),
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", None),
