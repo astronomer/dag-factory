@@ -29,7 +29,6 @@ except ImportError:
 from kubernetes.client.models import V1Pod, V1Container
 from packaging import version
 
-
 from dagfactory import utils
 
 # pylint: disable=ungrouped-imports,invalid-name
