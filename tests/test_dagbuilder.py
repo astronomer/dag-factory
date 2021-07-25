@@ -393,7 +393,8 @@ def test_make_task_with_callback():
     assert isinstance(actual, PythonOperator)
     assert callable(actual.on_failure_callback)
     assert callable(actual.on_success_callback)
-    assert callable(actual.on_execute_callback)
+    if version.parse(AIRFLOW_VERSION) >= version.parse('2.0.0') :
+        assert callable(actual.on_execute_callback)
     assert callable(actual.on_retry_callback)
 
 def test_make_dag_with_callback():
