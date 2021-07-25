@@ -51,6 +51,7 @@ class DagFactory:
 
         :returns: dict from YAML config file
         """
+        # pylint: disable=consider-using-with
         try:
             config: Dict[str, Any] = yaml.load(
                 stream=open(config_filepath, "r"), Loader=yaml.FullLoader
