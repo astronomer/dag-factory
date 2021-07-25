@@ -109,3 +109,6 @@ pip-selfcheck.json
 
 # IntelliJ
 .idea/*
+
+# sqllite db
+*.db

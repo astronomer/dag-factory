@@ -7,7 +7,6 @@ from copy import deepcopy
 
 from airflow import DAG, configuration
 from airflow.models import Variable
-
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator
@@ -29,6 +28,7 @@ except ImportError:
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
 from kubernetes.client.models import V1Pod, V1Container
 from packaging import version
+
 
 from dagfactory import utils
 
@@ -63,6 +63,7 @@ class DagBuilder:
         self.dag_config: Dict[str, Any] = deepcopy(dag_config)
         self.default_config: Dict[str, Any] = deepcopy(default_config)
 
+    # pylint: disable=too-many-branches
     def get_dag_params(self) -> Dict[str, Any]:
         """
         Merges default config with dag config, sets dag_id, and extropolates dag_start_date
@@ -89,98 +90,54 @@ class DagBuilder:
             dag_params["schedule_interval"] = None
 
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
-        def mutate_dagrun_timeout_sec(params: Dict[str, Any]):
-            params["dagrun_timeout"]: timedelta = timedelta(
-                seconds=params["dagrun_timeout_sec"]
+        if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
+            dag_params["dagrun_timeout"]: timedelta = timedelta(
+                seconds=dag_params["dagrun_timeout_sec"]
             )
-            del params["dagrun_timeout_sec"]
+            del dag_params["dagrun_timeout_sec"]
 
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
-        def mutate_default_args_end_date(params: Dict[str, Any]):
-            params["default_args"]["end_date"]: datetime = utils.get_datetime(
-                date_value=params["default_args"]["end_date"],
-                timezone=params["default_args"].get("timezone", "UTC"),
+        if utils.check_dict_key(dag_params["default_args"], "end_date"):
+            dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["default_args"]["end_date"],
+                timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
 
-        def mutate_default_args_retry_delay_sec(params: Dict[str, Any]):
-            params["default_args"]["retry_delay"]: timedelta = timedelta(
-                seconds=params["default_args"]["retry_delay_sec"]
+        if utils.check_dict_key(dag_params["default_args"], "retry_delay_sec"):
+            dag_params["default_args"]["retry_delay"]: timedelta = timedelta(
+                seconds=dag_params["default_args"]["retry_delay_sec"]
             )
-            del params["default_args"]["retry_delay_sec"]
+            del dag_params["default_args"]["retry_delay_sec"]
 
-        def mutate_default_args_sla_miss_callback(params: Dict[str, Any]):
-            params["default_args"]["sla_miss_callback"]: Callable = import_string(
-                params["default_args"]["sla_miss_callback"]
-            )
-
-        def mutate_default_args_on_success_callback(params: Dict[str, Any]):
-            params["default_args"]["on_success_callback"]: Callable = import_string(
-                params["default_args"]["on_success_callback"]
+        if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
+            dag_params["default_args"]["sla_miss_callback"]: Callable = import_string(
+                dag_params["default_args"]["sla_miss_callback"]
             )
 
-        def mutate_default_args_on_failure_callback(params: Dict[str, Any]):
-            params["default_args"]["on_failure_callback"]: Callable = import_string(
-                params["default_args"]["on_failure_callback"]
+        if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
+            dag_params["default_args"]["on_success_callback"]: Callable = import_string(
+                dag_params["default_args"]["on_success_callback"]
             )
 
-        def mutate_sla_miss_callback(params: Dict[str, Any]):
-            params["sla_miss_callback"]: Callable = import_string(
-                params["sla_miss_callback"]
+        if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
+            dag_params["default_args"]["on_failure_callback"]: Callable = import_string(
+                dag_params["default_args"]["on_failure_callback"]
             )
 
-        def mutate_on_success_callback(params: Dict[str, Any]):
-            params["on_success_callback"]: Callable = import_string(
-                params["on_success_callback"]
+        if utils.check_dict_key(dag_params, "sla_miss_callback"):
+            dag_params["sla_miss_callback"]: Callable = import_string(
+                dag_params["sla_miss_callback"]
             )
 
-        def mutate_on_failure_callback(params: Dict[str, Any]):
-            params["on_failure_callback"]: Callable = import_string(
-                params["on_failure_callback"]
+        if utils.check_dict_key(dag_params, "on_success_callback"):
+            dag_params["on_success_callback"]: Callable = import_string(
+                dag_params["on_success_callback"]
             )
 
-        mutations = [
-            {
-                "handler": mutate_dagrun_timeout_sec,
-                "required_keys": ["dagrun_timeout_sec"],
-            },
-            {
-                "handler": mutate_default_args_end_date,
-                "required_keys": ["default_args.end_date"],
-            },
-            {
-                "handler": mutate_default_args_retry_delay_sec,
-                "required_keys": ["default_args.retry_delay_sec"],
-            },
-            {
-                "handler": mutate_default_args_sla_miss_callback,
-                "required_keys": ["default_args.sla_miss_callback"],
-            },
-            {
-                "handler": mutate_default_args_on_success_callback,
-                "required_keys": ["default_args.on_success_callback"],
-            },
-            {
-                "handler": mutate_default_args_on_failure_callback,
-                "required_keys": ["default_args.on_failure_callback"],
-            },
-            {
-                "handler": mutate_sla_miss_callback,
-                "required_keys": ["sla_miss_callback"],
-            },
-            {
-                "handler": mutate_on_success_callback,
-                "required_keys": ["on_success_callback"],
-            },
-            {
-                "handler": mutate_on_failure_callback,
-                "required_keys": ["on_failure_callback"],
-            },
-        ]
-
-        for mutation in mutations:
-            for required_key in mutation.get("required_keys"):
-                if utils.check_dict_key(dag_params, required_key):
-                    mutation["handler"](dag_params)
+        if utils.check_dict_key(dag_params, "on_failure_callback"):
+            dag_params["on_failure_callback"]: Callable = import_string(
+                dag_params["on_failure_callback"]
+            )
 
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
@@ -209,9 +166,9 @@ class DagBuilder:
             raise Exception(f"{self.dag_name} config is missing start_date") from err
         return dag_params
 
+    # pylint: disable=too-many-branches
     @staticmethod
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
-        # pylint: disable=too-many-locals
         """
         Takes an operator and params and creates an instance of that operator.
 
@@ -282,69 +239,17 @@ class DagBuilder:
                     else None
                 )
 
-            def mutate_execution_timeout_secs(params: Dict[str, Any]):
-                params["execution_timeout"]: timedelta = timedelta(
-                    seconds=params["execution_timeout_secs"]
+            if utils.check_dict_key(task_params, "execution_timeout_secs"):
+                task_params["execution_timeout"]: timedelta = timedelta(
+                    seconds=task_params["execution_timeout_secs"]
                 )
-                del params["execution_timeout_secs"]
+                del task_params["execution_timeout_secs"]
 
-            def mutate_execution_delta_secs(params: Dict[str, Any]):
-                params["execution_delta"]: timedelta = timedelta(
-                    seconds=params["execution_delta_secs"]
+            if utils.check_dict_key(task_params, "execution_delta_secs"):
+                task_params["execution_delta"]: timedelta = timedelta(
+                    seconds=task_params["execution_delta_secs"]
                 )
-                del params["execution_delta_secs"]
-
-            def mutate_on_execute_callback(params: Dict[str, Any]):
-                params["on_execute_callback"]: Callable = import_string(
-                    params["on_execute_callback"]
-                )
-
-            def mutate_on_success_callback(params: Dict[str, Any]):
-                params["on_success_callback"]: Callable = import_string(
-                    params["on_success_callback"]
-                )
-
-            def mutate_on_failure_callback(params: Dict[str, Any]):
-                params["on_failure_callback"]: Callable = import_string(
-                    params["on_failure_callback"]
-                )
-
-            def mutate_on_retry_callback(params: Dict[str, Any]):
-                params["on_retry_callback"]: Callable = import_string(
-                    params["on_retry_callback"]
-                )
-
-            mutations = [
-                {
-                    "handler": mutate_execution_timeout_secs,
-                    "required_keys": ["execution_timeout_secs"],
-                },
-                {
-                    "handler": mutate_execution_delta_secs,
-                    "required_keys": ["execution_delta_secs"],
-                },
-                {
-                    "handler": mutate_on_execute_callback,
-                    "required_keys": ["on_execute_callback"],
-                },
-                {
-                    "handler": mutate_on_success_callback,
-                    "required_keys": ["on_success_callback"],
-                },
-                {
-                    "handler": mutate_on_failure_callback,
-                    "required_keys": ["on_failure_callback"],
-                },
-                {
-                    "handler": mutate_on_retry_callback,
-                    "required_keys": ["on_retry_callback"],
-                },
-            ]
-
-            for mutation in mutations:
-                for required_key in mutation.get("required_keys"):
-                    if utils.check_dict_key(task_params, required_key):
-                        mutation["handler"](task_params)
+                del task_params["execution_delta_secs"]
 
             if utils.check_dict_key(
                 task_params, "execution_date_fn_name"
@@ -355,6 +260,26 @@ class DagBuilder:
                 )
                 del task_params["execution_date_fn_name"]
                 del task_params["execution_date_fn_file"]
+
+            if utils.check_dict_key(task_params, "on_execute_callback"):
+                task_params["on_execute_callback"]: Callable = import_string(
+                    task_params["on_execute_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_failure_callback"):
+                task_params["on_failure_callback"]: Callable = import_string(
+                    task_params["on_failure_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_success_callback"):
+                task_params["on_success_callback"]: Callable = import_string(
+                    task_params["on_success_callback"]
+                )
+
+            if utils.check_dict_key(task_params, "on_retry_callback"):
+                task_params["on_retry_callback"]: Callable = import_string(
+                    task_params["on_retry_callback"]
+                )
 
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
