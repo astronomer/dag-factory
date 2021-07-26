@@ -1,3 +1,4 @@
+from logging import error
 import os
 import datetime
 import pytest
@@ -17,6 +18,76 @@ DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_va
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
+
+DAG_FACTORY_CONFIG = {
+    "default": {
+        "default_args": {
+            "owner": "airflow",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-01",
+        },
+        "default_view": "graph",
+        "schedule_interval": "daily",
+    },
+    "example_dag": {
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 1",
+            },
+        },
+    },
+}
+
+DAG_FACTORY_CALLBACK_CONFIG = {
+    "example_dag": {
+        "doc_md": "##here is a doc md string",
+        "default_args": {
+            "owner": "custom_owner",
+            "start_date": "2020-01-01",
+            "on_failure_callback": f"{__name__}.print_context_callback",
+            "on_success_callback": f"{__name__}.print_context_callback",
+            "on_execute_callback": f"{__name__}.print_context_callback",
+            "on_retry_callback": f"{__name__}.print_context_callback",
+        },
+        "description": "this is an example dag",
+        "schedule_interval": "0 3 * * *",
+        "tags" : ["tag1","tag2"],
+        "on_failure_callback": f"{__name__}.print_context_callback",
+        "on_success_callback": f"{__name__}.print_context_callback",
+        "sla_miss_callback": f"{__name__}.print_context_callback",
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 1",
+                "execution_timeout_secs" : 5,
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+            "task_2": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 2",
+                "dependencies": ["task_1"],
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+            "task_3": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 3",
+                "dependencies": ["task_1"],
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+        },
+    }
+}
+
 
 @pytest.fixture(autouse=True)
 def build_path_for_doc_md():
@@ -267,3 +338,46 @@ def test_schedule_interval():
     td.generate_dags(globals())
     schedule_interval = globals()['example_dag2'].schedule_interval
     assert schedule_interval is None
+
+def test_dagfactory_dict():
+    td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
+    expected_default = {
+        "default_args": {
+            "owner": "airflow",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-01",
+        },
+        "default_view": "graph",
+        "schedule_interval": "daily",
+    }
+    expected_dag = {
+        "example_dag": {
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo 1",
+                },
+            },
+        },
+    }
+    actual_dag = td.get_dag_configs()
+    actual_default = td.get_default_config()
+    assert actual_dag == expected_dag
+    assert actual_default == expected_default
+
+def test_dagfactory_dict_and_yaml():
+    error_message = "Either `config_filepath` or `config` should be provided"
+    with pytest.raises(AssertionError, match=error_message):
+        dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
+
+def test_get_dag_configs_dict():
+    td = dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY)
+    assert not set(dagfactory.SYSTEM_PARAMS).issubset(set(td.get_dag_configs()))
+
+def print_context_callback(context, **kwargs):
+    print(context)
+
+def test_generate_dags_with_removal_valid_and_callback():
+    td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
+    td.clean_dags(globals())
+    td.generate_dags(globals())
