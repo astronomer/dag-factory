@@ -9,7 +9,7 @@ from airflow import DAG, configuration
 from airflow.models import Variable
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
@@ -191,13 +191,13 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
-            if operator_obj == PythonOperator:
+            if operator_obj in [PythonOperator, BranchPythonOperator]:
                 if not task_params.get("python_callable_name") and not task_params.get(
                     "python_callable_file"
                 ):
                     raise Exception(
-                        "Failed to create task. PythonOperator requires `python_callable_name` \
-                        and `python_callable_file` parameters."
+                        "Failed to create task. PythonOperator and BranchPythonOperator requires \
+                        `python_callable_name` and `python_callable_file` parameters."
                     )
                 task_params["python_callable"]: Callable = utils.get_python_callable(
                     task_params["python_callable_name"],

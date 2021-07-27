@@ -13,8 +13,12 @@ from dagfactory import dagfactory
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
-DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
-DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
+DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(
+    here, "fixtures/dag_factory_kubernetes_pod_operator.yml"
+)
+DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(
+    here, "fixtures/dag_factory_variables_as_arguments.yml"
+)
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
@@ -52,7 +56,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         },
         "description": "this is an example dag",
         "schedule_interval": "0 3 * * *",
-        "tags" : ["tag1","tag2"],
+        "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
         "sla_miss_callback": f"{__name__}.print_context_callback",
@@ -60,7 +64,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
             "task_1": {
                 "operator": "airflow.operators.bash_operator.BashOperator",
                 "bash_command": "echo 1",
-                "execution_timeout_secs" : 5,
+                "execution_timeout_secs": 5,
                 "on_failure_callback": f"{__name__}.print_context_callback",
                 "on_success_callback": f"{__name__}.print_context_callback",
                 "on_execute_callback": f"{__name__}.print_context_callback",
@@ -91,14 +95,15 @@ DAG_FACTORY_CALLBACK_CONFIG = {
 
 @pytest.fixture(autouse=True)
 def build_path_for_doc_md():
-    with open(TEST_DAG_FACTORY,'r') as f:
+    with open(TEST_DAG_FACTORY, "r") as f:
         oldText = f.read()
-        newText = oldText.replace('{here}', here)
-    with open(TEST_DAG_FACTORY,'w') as f:
+        newText = oldText.replace("{here}", here)
+    with open(TEST_DAG_FACTORY, "w") as f:
         f.write(newText)
     yield
-    with open(TEST_DAG_FACTORY,'w') as f:
+    with open(TEST_DAG_FACTORY, "w") as f:
         f.write(oldText)
+
 
 def test_validate_config_filepath_valid():
     dagfactory.DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
@@ -149,7 +154,7 @@ def test_load_config_valid():
             },
         },
         "example_dag2": {
-            "doc_md_file_path" : DOC_MD_FIXTURE_FILE,
+            "doc_md_file_path": DOC_MD_FIXTURE_FILE,
             "schedule_interval": "None",
             "tasks": {
                 "task_1": {
@@ -166,10 +171,10 @@ def test_load_config_valid():
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            }
+            },
         },
         "example_dag3": {
-            "doc_md_python_callable_name" : "mydocmdbuilder",
+            "doc_md_python_callable_name": "mydocmdbuilder",
             "doc_md_python_callable_file": DOC_MD_PYTHON_CALLABLE_FILE,
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
@@ -177,12 +182,12 @@ def test_load_config_valid():
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 1",
                 },
-            }
+            },
         },
     }
     actual = dagfactory.DagFactory._load_config(TEST_DAG_FACTORY)
-    actual['example_dag2']['doc_md_file_path'] = DOC_MD_FIXTURE_FILE
-    actual['example_dag3']['doc_md_python_callable_file'] = DOC_MD_PYTHON_CALLABLE_FILE
+    actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
+    actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
@@ -234,7 +239,7 @@ def test_get_dag_configs():
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            }
+            },
         },
         "example_dag3": {
             "doc_md_python_callable_name": "mydocmdbuilder",
@@ -245,12 +250,12 @@ def test_get_dag_configs():
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 1",
                 },
-            }
+            },
         },
     }
     actual = td.get_dag_configs()
-    actual['example_dag2']['doc_md_file_path'] = DOC_MD_FIXTURE_FILE
-    actual['example_dag3']['doc_md_python_callable_file'] = DOC_MD_PYTHON_CALLABLE_FILE
+    actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
+    actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
@@ -282,6 +287,7 @@ def test_generate_dags_valid():
     assert "example_dag2" in globals()
     assert "fake_example_dag" not in globals()
 
+
 def test_generate_dags_with_removal_valid():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
@@ -289,55 +295,65 @@ def test_generate_dags_with_removal_valid():
     assert "example_dag2" in globals()
     assert "fake_example_dag" not in globals()
 
-    del td.config['example_dag']
-    del td.config['example_dag2']
+    del td.config["example_dag"]
+    del td.config["example_dag2"]
     td.clean_dags(globals())
     assert "example_dag" not in globals()
     assert "example_dag2" not in globals()
     assert "fake_example_dag" not in globals()
+
 
 def test_generate_dags_invalid():
     td = dagfactory.DagFactory(INVALID_DAG_FACTORY)
     with pytest.raises(Exception):
         td.generate_dags(globals())
 
+
 def test_kubernetes_pod_operator_dag():
     td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR)
     td.generate_dags(globals())
     assert "example_dag" in globals()
 
+
 def test_variables_as_arguments_dag():
-    override_command = 'value_from_variable'
+    override_command = "value_from_variable"
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
-        os.environ['AIRFLOW_VAR_VAR1'] = override_command
+        os.environ["AIRFLOW_VAR_VAR1"] = override_command
     else:
-        Variable.set("var1",override_command)
+        Variable.set("var1", override_command)
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     td.generate_dags(globals())
-    tasks = globals()['example_dag'].tasks
+    tasks = globals()["example_dag"].tasks
     for task in tasks:
         if task.task_id == "task_3":
             assert task.bash_command == override_command
 
+
 def test_doc_md_file_path():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    generated_doc_md = globals()['example_dag2'].doc_md
-    with open(DOC_MD_FIXTURE_FILE,"r") as file:
+    generated_doc_md = globals()["example_dag2"].doc_md
+    with open(DOC_MD_FIXTURE_FILE, "r") as file:
         expected_doc_md = file.read()
     assert generated_doc_md == expected_doc_md
+
 
 def test_doc_md_callable():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    expected_doc_md = globals()['example_dag3'].doc_md
-    assert str(td.get_dag_configs()['example_dag3']['doc_md_python_arguments']) == expected_doc_md
+    expected_doc_md = globals()["example_dag3"].doc_md
+    assert (
+        str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"])
+        == expected_doc_md
+    )
+
 
 def test_schedule_interval():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    schedule_interval = globals()['example_dag2'].schedule_interval
+    schedule_interval = globals()["example_dag2"].schedule_interval
     assert schedule_interval is None
+
 
 def test_dagfactory_dict():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
@@ -365,17 +381,23 @@ def test_dagfactory_dict():
     assert actual_dag == expected_dag
     assert actual_default == expected_default
 
+
 def test_dagfactory_dict_and_yaml():
     error_message = "Either `config_filepath` or `config` should be provided"
     with pytest.raises(AssertionError, match=error_message):
-        dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
+        dagfactory.DagFactory(
+            config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG
+        )
+
 
 def test_get_dag_configs_dict():
     td = dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY)
     assert not set(dagfactory.SYSTEM_PARAMS).issubset(set(td.get_dag_configs()))
 
+
 def print_context_callback(context, **kwargs):
     print(context)
+
 
 def test_generate_dags_with_removal_valid_and_callback():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)

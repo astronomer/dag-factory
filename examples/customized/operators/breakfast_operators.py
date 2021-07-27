@@ -2,7 +2,7 @@ from airflow.models import BaseOperator
 
 
 class MakeBreadOperator(BaseOperator):
-    template_fields = ('bread_type',)
+    template_fields = ("bread_type",)
 
     def __init__(self, bread_type, *args, **kwargs):
         super(MakeBreadOperator, self).__init__(*args, **kwargs)
@@ -13,7 +13,7 @@ class MakeBreadOperator(BaseOperator):
 
 
 class MakeCoffeeOperator(BaseOperator):
-    template_fields = ('coffee_type',)
+    template_fields = ("coffee_type",)
 
     def __init__(self, coffee_type, *args, **kwargs):
         super(MakeCoffeeOperator, self).__init__(*args, **kwargs)
