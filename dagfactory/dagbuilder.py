@@ -109,34 +109,46 @@ class DagBuilder:
             del dag_params["default_args"]["retry_delay_sec"]
 
         if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
-            dag_params["default_args"]["sla_miss_callback"]: Callable = import_string(
-                dag_params["default_args"]["sla_miss_callback"]
-            )
+            if isinstance(dag_params["default_args"]["sla_miss_callback"], str):
+                dag_params["default_args"][
+                    "sla_miss_callback"
+                ]: Callable = import_string(
+                    dag_params["default_args"]["sla_miss_callback"]
+                )
 
         if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
-            dag_params["default_args"]["on_success_callback"]: Callable = import_string(
-                dag_params["default_args"]["on_success_callback"]
-            )
+            if isinstance(dag_params["default_args"]["on_success_callback"], str):
+                dag_params["default_args"][
+                    "on_success_callback"
+                ]: Callable = import_string(
+                    dag_params["default_args"]["on_success_callback"]
+                )
 
         if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
-            dag_params["default_args"]["on_failure_callback"]: Callable = import_string(
-                dag_params["default_args"]["on_failure_callback"]
-            )
+            if isinstance(dag_params["default_args"]["on_failure_callback"], str):
+                dag_params["default_args"][
+                    "on_failure_callback"
+                ]: Callable = import_string(
+                    dag_params["default_args"]["on_failure_callback"]
+                )
 
         if utils.check_dict_key(dag_params, "sla_miss_callback"):
-            dag_params["sla_miss_callback"]: Callable = import_string(
-                dag_params["sla_miss_callback"]
-            )
+            if isinstance(dag_params["sla_miss_callback"], str):
+                dag_params["sla_miss_callback"]: Callable = import_string(
+                    dag_params["sla_miss_callback"]
+                )
 
         if utils.check_dict_key(dag_params, "on_success_callback"):
-            dag_params["on_success_callback"]: Callable = import_string(
-                dag_params["on_success_callback"]
-            )
+            if isinstance(dag_params["on_success_callback"], str):
+                dag_params["on_success_callback"]: Callable = import_string(
+                    dag_params["on_success_callback"]
+                )
 
         if utils.check_dict_key(dag_params, "on_failure_callback"):
-            dag_params["on_failure_callback"]: Callable = import_string(
-                dag_params["on_failure_callback"]
-            )
+            if isinstance(dag_params["on_failure_callback"], str):
+                dag_params["on_failure_callback"]: Callable = import_string(
+                    dag_params["on_failure_callback"]
+                )
 
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
