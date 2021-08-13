@@ -10,6 +10,7 @@ from airflow.models import Variable
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.sensors.http_sensor import HttpSensor
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
@@ -207,6 +208,23 @@ class DagBuilder:
                 # Airflow 2.0 doesn't allow these to be passed to operator
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
+
+            if operator_obj in [HttpSensor]:
+                if not task_params.get("response_check_name") and not task_params.get(
+                    "response_check_file"
+                ):
+                    raise Exception(
+                        "Failed to create task. HttpSensor requires \
+                        `response_check_name` and `response_check_file` parameters."
+                    )
+                task_params["response_check"]: Callable = utils.get_python_callable(
+                    task_params["response_check_name"],
+                    task_params["response_check_file"],
+                )
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
+                del task_params["response_check_name"]
+                del task_params["response_check_file"]
 
             # KubernetesPodOperator
             if operator_obj == KubernetesPodOperator:
