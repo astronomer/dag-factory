@@ -179,6 +179,7 @@ class DagBuilder:
         return dag_params
 
     # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     @staticmethod
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
         """
