@@ -3,6 +3,8 @@ import importlib.util
 import os
 import re
 import sys
+import ast
+import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
@@ -126,6 +128,27 @@ def get_python_callable(python_callable_name, python_callable_file):
     spec.loader.exec_module(module)
     sys.modules[module_name] = module
     python_callable = getattr(module, python_callable_name)
+
+    return python_callable
+
+def get_python_callable_lambda(lambda_expr):
+    """
+    Uses lambda expression in a string to create a valid callable
+    for use in operators/sensors.
+
+    :param lambda_expr: the lambda expression to be converted
+    :type lambda_expr:  str
+    :returns: python callable
+    :type: callable
+    """
+
+    tree = ast.parse(source)
+    print(type(tree.body[0]))
+    if len(tree.body) != 1 or not isinstance(tree.body[0], ast.Expr):
+        raise Exception('`lambda_expr` must be a single lambda')
+    # the second parameter below is used only for logging
+    co = compile(tree, 'lambda_expr_to_callable.py', 'exec')
+    python_callable = types.LambdaType(co.co_consts[0], {})
 
     return python_callable
 
