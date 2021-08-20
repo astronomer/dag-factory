@@ -143,6 +143,57 @@ def test_get_python_callable_invalid_path():
         utils.get_python_callable(python_callable_name, python_callable_file)
 
 
+def test_get_python_callable_missing_param_file():
+    python_callable_file = None
+    python_callable_name = "print_test"
+
+    with pytest.raises(Exception):
+        utils.get_python_callable(python_callable_name, python_callable_file)
+
+
+def test_get_python_callable_missing_param_name():
+    python_callable_file = "/not/absolute/path"
+    python_callable_name = None
+
+    with pytest.raises(Exception):
+        utils.get_python_callable(python_callable_name, python_callable_file)
+
+
+def test_get_python_callable_lambda_valid():
+    lambda_expr = "lambda a: a"
+
+    python_callable = utils.get_python_callable_lambda(
+        lambda_expr
+    )
+
+    assert callable(python_callable)
+
+
+def test_get_python_callable_lambda_works():
+    lambda_expr = "lambda a: a"
+
+    python_callable = utils.get_python_callable_lambda(
+        lambda_expr
+    )
+
+    assert callable(python_callable)
+    assert python_callable("xyz") == "xyz"
+    assert python_callable(5) == 5
+
+
+def test_get_python_callable_lambda_invalid_expr():
+    lambda_expr = "invalid lambda expr"
+
+    with pytest.raises(Exception):
+        utils.get_python_callable_lambda(lambda_expr)
+
+
+def test_get_python_callable_lambda_missing_param():
+    lambda_expr = None
+
+    with pytest.raises(Exception):
+        utils.get_python_callable_lambda(lambda_expr)
+
 def test_get_start_date_date_string():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
     actual = utils.get_datetime("2018-02-01")

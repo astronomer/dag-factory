@@ -142,7 +142,7 @@ def get_python_callable_lambda(lambda_expr):
     :type: callable
     """
 
-    tree = ast.parse(source)
+    tree = ast.parse(lambda_expr)
     print(type(tree.body[0]))
     if len(tree.body) != 1 or not isinstance(tree.body[0], ast.Expr):
         raise Exception('`lambda_expr` must be a single lambda')
