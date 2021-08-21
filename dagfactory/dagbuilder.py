@@ -211,21 +211,33 @@ class DagBuilder:
                 del task_params["python_callable_file"]
 
             if operator_obj in [HttpSensor]:
-                if not task_params.get("response_check_name") and not task_params.get(
-                    "response_check_file"
-                ):
+                if not (
+                    task_params.get("response_check_name")
+                    and task_params.get("response_check_file")
+                ) and not task_params.get("response_check_lambda"):
                     raise Exception(
                         "Failed to create task. HttpSensor requires \
-                        `response_check_name` and `response_check_file` parameters."
+                        `response_check_name` and `response_check_file` parameters \
+                        or `response_check_lambda` parameter."
                     )
-                task_params["response_check"]: Callable = utils.get_python_callable(
-                    task_params["response_check_name"],
-                    task_params["response_check_file"],
-                )
-                # remove dag-factory specific parameters
-                # Airflow 2.0 doesn't allow these to be passed to operator
-                del task_params["response_check_name"]
-                del task_params["response_check_file"]
+                if task_params.get("response_check_file"):
+                    task_params["response_check"]: Callable = utils.get_python_callable(
+                        task_params["response_check_name"],
+                        task_params["response_check_file"],
+                    )
+                    # remove dag-factory specific parameters
+                    # Airflow 2.0 doesn't allow these to be passed to operator
+                    del task_params["response_check_name"]
+                    del task_params["response_check_file"]
+                else:
+                    task_params[
+                        "response_check"
+                    ]: Callable = utils.get_python_callable_lambda(
+                        task_params["response_check_lambda"],
+                    )
+                    # remove dag-factory specific parameters
+                    # Airflow 2.0 doesn't allow these to be passed to operator
+                    del task_params["response_check_lambda"]
 
             # KubernetesPodOperator
             if operator_obj == KubernetesPodOperator:
@@ -439,7 +451,9 @@ class DagBuilder:
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
                 raise Exception("`doc_md_file_path` must be absolute path")
 
-            with open(dag_params.get("doc_md_file_path"), "r") as file:
+            with open(
+                dag_params.get("doc_md_file_path"), "r", encoding="utf-8"
+            ) as file:
                 dag.doc_md = file.read()
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get(

@@ -7,6 +7,7 @@ import pytest
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.sensors.http_sensor import HttpSensor
 from airflow import __version__ as AIRFLOW_VERSION
 from packaging import version
 
@@ -251,6 +252,59 @@ def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
     task_params = {"task_id": "test_task", "python_callable_name": "print_test"}
+    with pytest.raises(Exception):
+        td.make_task(operator, task_params)
+
+def test_make_python_operator_missing_params():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.operators.python_operator.PythonOperator"
+    task_params = {"task_id": "test_task"}
+    with pytest.raises(Exception):
+        td.make_task(operator, task_params)
+        
+
+def test_make_http_sensor():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.http_sensor.HttpSensor"
+    task_params = {
+        "task_id": "test_task",
+        "http_conn_id": "test-http",
+        "method": "GET",
+        "endpoint": "",
+        "response_check_name": "print_test",
+        "response_check_file": os.path.realpath(__file__),
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert callable(actual.response_check)
+    assert isinstance(actual, HttpSensor)
+
+def test_make_http_sensor_lambda():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.http_sensor.HttpSensor"
+    task_params = {
+        "task_id": "test_task",
+        "http_conn_id": "test-http",
+        "method": "GET",
+        "endpoint": "",
+        "response_check_lambda": 'lambda response: "ok" in response.text',
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert callable(actual.response_check)
+    assert isinstance(actual, HttpSensor)
+
+
+def test_make_http_sensor_missing_param():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.http_sensor.HttpSensor"
+    task_params = {
+        "task_id": "test_task",
+        "http_conn_id": "test-http",
+        "method": "GET",
+        "endpoint": "",
+        "response_check_name": "print_test",
+    }
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
 

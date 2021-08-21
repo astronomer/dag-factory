@@ -69,6 +69,35 @@ And this DAG will be generated and ready to run in Airflow!
 
 ![screenshot](/img/example_dag.png)
 
+## Notes
+
+### HttpSensor (since 0.10.0)
+
+The package `airflow.sensors.http_sensor` works with all supported versions of Airflow. In Airflow 2.0+, the new package name can be used in the operator value: `airflow.providers.http.sensors.http`
+
+The following example shows `response_check` logic in a python file:
+
+```yaml
+task_2:
+      operator: airflow.sensors.http_sensor.HttpSensor
+      http_conn_id: 'test-http'
+      method: 'GET'
+      response_check_name: check_sensor
+      response_check_file: /path/to/example1/http_conn.py
+      dependencies: [task_1]
+```
+
+The `response_check` logic can also be provided as a lambda:
+
+```yaml
+task_2:
+      operator: airflow.sensors.http_sensor.HttpSensor
+      http_conn_id: 'test-http'
+      method: 'GET'
+      response_check_lambda: 'lambda response: "ok" in reponse.text'
+      dependencies: [task_1]
+```
+
 ## Benefits
 
 * Construct DAGs without knowing Python
