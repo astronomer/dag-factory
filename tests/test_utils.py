@@ -136,7 +136,7 @@ def test_get_python_callable_valid():
 
 
 def test_get_python_callable_invalid_path():
-    python_callable_file = "/not/absolute/path"
+    python_callable_file = "not/absolute/path"
     python_callable_name = "print_test"
 
     with pytest.raises(Exception):
@@ -183,6 +183,15 @@ def test_get_python_callable_lambda_works():
 
 def test_get_python_callable_lambda_invalid_expr():
     lambda_expr = "invalid lambda expr"
+
+    with pytest.raises(Exception):
+        utils.get_python_callable_lambda(lambda_expr)
+
+def test_get_python_callable_non_lambda_valid_expr():
+    lambda_expr = """
+    def fun():
+        print('hello')
+    """
 
     with pytest.raises(Exception):
         utils.get_python_callable_lambda(lambda_expr)
