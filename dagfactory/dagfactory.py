@@ -54,7 +54,8 @@ class DagFactory:
         # pylint: disable=consider-using-with
         try:
             config: Dict[str, Any] = yaml.load(
-                stream=open(config_filepath, "r"), Loader=yaml.FullLoader
+                stream=open(config_filepath, "r", encoding="utf-8"),
+                Loader=yaml.FullLoader,
             )
         except Exception as err:
             raise Exception("Invalid DAG Factory config file") from err

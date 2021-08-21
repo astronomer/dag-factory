@@ -451,7 +451,9 @@ class DagBuilder:
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
                 raise Exception("`doc_md_file_path` must be absolute path")
 
-            with open(dag_params.get("doc_md_file_path"), "r") as file:
+            with open(
+                dag_params.get("doc_md_file_path"), "r", encoding="utf-8"
+            ) as file:
                 dag.doc_md = file.read()
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get(
