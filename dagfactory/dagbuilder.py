@@ -211,10 +211,10 @@ class DagBuilder:
                 del task_params["python_callable_file"]
 
             if operator_obj in [HttpSensor]:
-                if not (task_params.get("response_check_name") and task_params.get(
-                    "response_check_file")) and not task_params.get(
-                        "response_check_lambda"
-                    ):
+                if not (
+                    task_params.get("response_check_name")
+                    and task_params.get("response_check_file")
+                ) and not task_params.get("response_check_lambda"):
                     raise Exception(
                         "Failed to create task. HttpSensor requires \
                         `response_check_name` and `response_check_file` parameters \
@@ -230,7 +230,9 @@ class DagBuilder:
                     del task_params["response_check_name"]
                     del task_params["response_check_file"]
                 else:
-                    task_params["response_check"]: Callable = utils.get_python_callable_lambda(
+                    task_params[
+                        "response_check"
+                    ]: Callable = utils.get_python_callable_lambda(
                         task_params["response_check_lambda"],
                     )
                     # remove dag-factory specific parameters

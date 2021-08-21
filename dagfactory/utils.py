@@ -131,6 +131,7 @@ def get_python_callable(python_callable_name, python_callable_file):
 
     return python_callable
 
+
 def get_python_callable_lambda(lambda_expr):
     """
     Uses lambda expression in a string to create a valid callable
@@ -143,12 +144,11 @@ def get_python_callable_lambda(lambda_expr):
     """
 
     tree = ast.parse(lambda_expr)
-    print(type(tree.body[0]))
     if len(tree.body) != 1 or not isinstance(tree.body[0], ast.Expr):
-        raise Exception('`lambda_expr` must be a single lambda')
+        raise Exception("`lambda_expr` must be a single lambda")
     # the second parameter below is used only for logging
-    co = compile(tree, 'lambda_expr_to_callable.py', 'exec')
-    python_callable = types.LambdaType(co.co_consts[0], {})
+    code = compile(tree, "lambda_expr_to_callable.py", "exec")
+    python_callable = types.LambdaType(code.co_consts[0], {})
 
     return python_callable
 
