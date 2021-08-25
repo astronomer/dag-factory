@@ -211,10 +211,11 @@ class DagBuilder:
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
 
-            # Check for the custom success and failure callables in SqlSensor. These are considered optional,
-            # so no failures in case they aren't found. Note: there's no reason to declare both a callable file and a
-            # lambda function for success/failure parameter. If both are found the object will not throw and error,
-            # instead callable file will take precedence over the lambda function
+            # Check for the custom success and failure callables in SqlSensor. These are considered
+            # optional, so no failures in case they aren't found. Note: there's no reason to
+            # declare both a callable file and a lambda function for success/failure parameter.
+            # If both are found the object will not throw and error, instead callable file will
+            # take precedence over the lambda function
             if operator_obj in [SqlSensor]:
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get(
