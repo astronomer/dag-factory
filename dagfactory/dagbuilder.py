@@ -11,6 +11,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.sql_sensor import SqlSensor
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
@@ -209,6 +210,43 @@ class DagBuilder:
                 # Airflow 2.0 doesn't allow these to be passed to operator
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
+
+            # Check for the custom success and failure callables in SqlSensor. These are considered
+            # optional, so no failures in case they aren't found. Note: there's no reason to
+            # declare both a callable file and a lambda function for success/failure parameter.
+            # If both are found the object will not throw and error, instead callable file will
+            # take precedence over the lambda function
+            if operator_obj in [SqlSensor]:
+                # Success checks
+                if task_params.get("success_check_file") and task_params.get(
+                    "success_check_name"
+                ):
+                    task_params["success"]: Callable = utils.get_python_callable(
+                        task_params["success_check_name"],
+                        task_params["success_check_file"],
+                    )
+                    del task_params["success_check_name"]
+                    del task_params["success_check_file"]
+                elif task_params.get("success_check_lambda"):
+                    task_params["success"]: Callable = utils.get_python_callable_lambda(
+                        task_params["success_check_lambda"],
+                    )
+                    del task_params["success_check_lambda"]
+                # Failure checks
+                if task_params.get("failure_check_file") and task_params.get(
+                    "failure_check_name"
+                ):
+                    task_params["failure"]: Callable = utils.get_python_callable(
+                        task_params["failure_check_name"],
+                        task_params["failure_check_file"],
+                    )
+                    del task_params["failure_check_name"]
+                    del task_params["failure_check_file"]
+                elif task_params.get("failure_check_lambda"):
+                    task_params["failure"]: Callable = utils.get_python_callable_lambda(
+                        task_params["failure_check_lambda"],
+                    )
+                    del task_params["failure_check_lambda"]
 
             if operator_obj in [HttpSensor]:
                 if not (
@@ -445,6 +483,7 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", None),
             doc_md=dag_params.get("doc_md", None),
+            params=dag_params.get("params", None),
         )
 
         if dag_params.get("doc_md_file_path"):

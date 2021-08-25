@@ -8,13 +8,13 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.sql_sensor import SqlSensor
 from airflow import __version__ as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory import dagbuilder
 
 here = os.path.dirname(__file__)
-
 
 DEFAULT_CONFIG = {
     "default_args": {
@@ -255,13 +255,14 @@ def test_make_python_operator_missing_param():
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
 
+
 def test_make_python_operator_missing_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
-        
+
 
 def test_make_http_sensor():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
@@ -279,6 +280,7 @@ def test_make_http_sensor():
     assert callable(actual.response_check)
     assert isinstance(actual, HttpSensor)
 
+
 def test_make_http_sensor_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.sensors.http_sensor.HttpSensor"
@@ -293,6 +295,70 @@ def test_make_http_sensor_lambda():
     assert actual.task_id == "test_task"
     assert callable(actual.response_check)
     assert isinstance(actual, HttpSensor)
+
+
+def test_make_sql_sensor_success():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    task_params = {
+        "task_id": "test_task",
+        "conn_id": "test-sql",
+        "sql": "SELECT 1 AS status;",
+        "success_check_name": "print_test",
+        "success_check_file": os.path.realpath(__file__),
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert callable(actual.success)
+    assert isinstance(actual, SqlSensor)
+
+
+def test_make_sql_sensor_success_lambda():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    task_params = {
+        "task_id": "test_task",
+        "conn_id": "test-sql",
+        "sql": "SELECT 1 AS status;",
+        "success_check_lambda": 'lambda res: res > 0',
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert callable(actual.success)
+    assert isinstance(actual, SqlSensor)
+
+
+def test_make_sql_sensor_failure():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    task_params = {
+        "task_id": "test_task",
+        "conn_id": "test-sql",
+        "sql": "SELECT 1 AS status;",
+        "failure_check_name": "print_test",
+        "failure_check_file": os.path.realpath(__file__),
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert not callable(actual.success)
+    assert callable(actual.failure)
+    assert isinstance(actual, SqlSensor)
+
+
+def test_make_sql_sensor_failure_lambda():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    task_params = {
+        "task_id": "test_task",
+        "conn_id": "test-sql",
+        "sql": "SELECT 1 AS status;",
+        "failure_check_lambda": 'lambda res: res > 0',
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert not callable(actual.success)
+    assert callable(actual.failure)
+    assert isinstance(actual, SqlSensor)
 
 
 def test_make_http_sensor_missing_param():
