@@ -11,7 +11,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.sensors.http_sensor import HttpSensor
-from airflow.sensors.sql import SqlSensor
+from airflow.sensors.sql_sensor import SqlSensor
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
