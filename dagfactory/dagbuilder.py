@@ -11,6 +11,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.sql import SqlSensor
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
@@ -196,7 +197,7 @@ class DagBuilder:
             if operator_obj in [PythonOperator, BranchPythonOperator]:
                 if not task_params.get("python_callable_name") and not task_params.get(
                     "python_callable_file"
-                ): 
+                ):
                     raise Exception(
                         "Failed to create task. PythonOperator and BranchPythonOperator requires \
                         `python_callable_name` and `python_callable_file` parameters."
@@ -209,6 +210,42 @@ class DagBuilder:
                 # Airflow 2.0 doesn't allow these to be passed to operator
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
+
+            # Check for the custom success and failure callables in SqlSensor. These are considered optional,
+            # so no failures in case they aren't found. Note: there's no reason to declare both a callable file and a
+            # lambda function for success/failure parameter. If both are found the object will not throw and error,
+            # instead callable file will take precedence over the lambda function
+            if operator_obj in [SqlSensor]:
+                # Success checks
+                if task_params.get("success_check_file") and task_params.get(
+                    "success_check_name"
+                ):
+                    task_params["success"]: Callable = utils.get_python_callable(
+                        task_params["success_check_name"],
+                        task_params["success_check_file"],
+                    )
+                    del task_params["success_check_name"]
+                    del task_params["success_check_file"]
+                elif task_params.get("success_check_lambda"):
+                    task_params["success"]: Callable = utils.get_python_callable_lambda(
+                        task_params["success_check_lambda"],
+                    )
+                    del task_params["success_check_lambda"]
+                # Failure checks
+                if task_params.get("failure_check_file") and task_params.get(
+                    "failure_check_name"
+                ):
+                    task_params["failure"]: Callable = utils.get_python_callable(
+                        task_params["failure_check_name"],
+                        task_params["failure_check_file"],
+                    )
+                    del task_params["failure_check_name"]
+                    del task_params["failure_check_file"]
+                elif task_params.get("failure_check_lambda"):
+                    task_params["failure"]: Callable = utils.get_python_callable_lambda(
+                        task_params["failure_check_lambda"],
+                    )
+                    del task_params["failure_check_lambda"]
 
             if operator_obj in [HttpSensor]:
                 if not (
