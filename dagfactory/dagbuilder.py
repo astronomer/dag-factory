@@ -196,7 +196,7 @@ class DagBuilder:
             if operator_obj in [PythonOperator, BranchPythonOperator]:
                 if not task_params.get("python_callable_name") and not task_params.get(
                     "python_callable_file"
-                ):
+                ): 
                     raise Exception(
                         "Failed to create task. PythonOperator and BranchPythonOperator requires \
                         `python_callable_name` and `python_callable_file` parameters."
@@ -445,6 +445,7 @@ class DagBuilder:
             on_failure_callback=dag_params.get("on_failure_callback", None),
             default_args=dag_params.get("default_args", None),
             doc_md=dag_params.get("doc_md", None),
+            params=dag_params.get("params", None),
         )
 
         if dag_params.get("doc_md_file_path"):
