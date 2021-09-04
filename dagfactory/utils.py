@@ -7,7 +7,7 @@ import ast
 import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List
 
 import pendulum
 
@@ -165,3 +165,22 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :type: bool
     """
     return bool(key in item_dict and item_dict[key] is not None)
+
+
+def check_template_searchpath(template_searchpath: List[str]) -> bool:
+    """
+    Check if the key is included in given dictionary, and has a valid value.
+
+    :param item_dict: a dictionary to test
+    :type item_dict: Dict[str, Any]
+    :param key: a key to test
+    :type key: str
+    :return: result to check
+    :type: bool
+    """
+    for path in template_searchpath:
+        if not os.path.isabs(path):
+            raise Exception("template_searchpath must be absolute paths")
+        if not os.path.isdir(path):
+            raise Exception("template_searchpath must be existing paths")
+    True 
