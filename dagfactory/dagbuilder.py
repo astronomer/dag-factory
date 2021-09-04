@@ -171,7 +171,7 @@ class DagBuilder:
         if utils.check_dict_key(dag_params, "template_searchpath"):
             if isinstance(dag_params["template_searchpath"], list) and utils.check_template_searchpath(
                 dag_params["template_searchpath"]):
-                dag_params["template_searchpath"]: List = dag_params["template_searchpath"]
+                dag_params["template_searchpath"]: List[str] = dag_params["template_searchpath"]
             else:
                 raise Exception("template_searchpath must be a list")
 

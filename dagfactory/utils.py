@@ -169,12 +169,9 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
 
 def check_template_searchpath(template_searchpath: List[str]) -> bool:
     """
-    Check if the key is included in given dictionary, and has a valid value.
-
-    :param item_dict: a dictionary to test
-    :type item_dict: Dict[str, Any]
-    :param key: a key to test
-    :type key: str
+    Check if template_searchpath is valid
+    :param template_searchpath: a list to test
+    :type template_searchpath: List[str]
     :return: result to check
     :type: bool
     """

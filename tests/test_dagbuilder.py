@@ -540,18 +540,17 @@ def test_make_dag_with_callback():
     td.build()
 
 def test_get_dag_params_with_template_searchpath():
-    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "111111"}, DEFAULT_CONFIG)
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "sql"}, DEFAULT_CONFIG)
     error_message="template_searchpath must be a list"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
-
-def test_get_dag_params_with_template_searchpath_sss():
-    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["./asassa"]}, DEFAULT_CONFIG)
+    
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["./sql"]}, DEFAULT_CONFIG)
     error_message="template_searchpath must be absolute paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
     
-    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["/asassa"]}, DEFAULT_CONFIG)
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["/sql"]}, DEFAULT_CONFIG)
     error_message="template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
