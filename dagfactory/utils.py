@@ -180,4 +180,4 @@ def check_template_searchpath(template_searchpath: List[str]) -> bool:
             raise Exception("template_searchpath must be absolute paths")
         if not os.path.isdir(path):
             raise Exception("template_searchpath must be existing paths")
-    True 
+    return True 
