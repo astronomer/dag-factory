@@ -325,6 +325,12 @@ class DagBuilder:
                 )
                 del task_params["execution_timeout_secs"]
 
+            if utils.check_dict_key(task_params, "sla_secs"):
+                task_params["sla"]: timedelta = timedelta(
+                    seconds=task_params["sla_secs"]
+                )
+                del task_params["sla_secs"]
+
             if utils.check_dict_key(task_params, "execution_delta_secs"):
                 task_params["execution_delta"]: timedelta = timedelta(
                     seconds=task_params["execution_delta_secs"]
