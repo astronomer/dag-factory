@@ -456,42 +456,51 @@ class DagBuilder:
         :type: Dict[str, Union[str, DAG]]
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
-        dag: DAG = DAG(
-            dag_id=dag_params["dag_id"],
-            schedule_interval=dag_params.get("schedule_interval", timedelta(days=1)),
-            description=(
-                dag_params.get("description", None)
-                if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11")
-                else dag_params.get("description", "")
-            ),
-            concurrency=dag_params.get(
-                "concurrency",
-                configuration.conf.getint("core", "dag_concurrency"),
-            ),
-            catchup=dag_params.get(
-                "catchup",
-                configuration.conf.getboolean("scheduler", "catchup_by_default"),
-            ),
-            max_active_runs=dag_params.get(
-                "max_active_runs",
-                configuration.conf.getint("core", "max_active_runs_per_dag"),
-            ),
-            dagrun_timeout=dag_params.get("dagrun_timeout", None),
-            default_view=dag_params.get(
-                "default_view", configuration.conf.get("webserver", "dag_default_view")
-            ),
-            orientation=dag_params.get(
-                "orientation",
-                configuration.conf.get("webserver", "dag_orientation"),
-            ),
-            sla_miss_callback=dag_params.get("sla_miss_callback", None),
-            on_success_callback=dag_params.get("on_success_callback", None),
-            on_failure_callback=dag_params.get("on_failure_callback", None),
-            default_args=dag_params.get("default_args", None),
-            doc_md=dag_params.get("doc_md", None),
-            params=dag_params.get("params", None),
-        )
+            
+        dag_kwargs: Dict[str, Any] = {}
 
+        dag_kwargs["dag_id"] = dag_params["dag_id"]
+
+        dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
+
+        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
+            dag_kwargs["description"] = dag_params.get("description", None)
+        else:
+            dag_kwargs["description"] = dag_params.get("description", "")
+
+        if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+            dag_kwargs["max_active_tasks"] = dag_params.get("max_active_tasks", 
+                                                            configuration.conf.getint("core", "max_active_tasks_per_dag"))
+        else:
+            dag_kwargs["concurrency"] = dag_params.get("concurrency", 
+                                                       configuration.conf.getint("core", "dag_concurrency"))
+
+        dag_kwargs["catchup"] = dag_params.get("catchup", 
+                                               configuration.conf.getboolean("scheduler", "catchup_by_default"))
+
+        dag_kwargs["max_active_runs"] = dag_params.get("max_active_runs", 
+                                                       configuration.conf.getint("core", "max_active_runs_per_dag"))
+
+        dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
+
+        dag_kwargs["default_view"] = dag_params.get("default_view", 
+                                                    configuration.conf.get("webserver", "dag_default_view"))
+        
+        dag_kwargs["orientation"] = dag_params.get("orientation", 
+                                                   configuration.conf.get("webserver", "dag_orientation"))
+        
+        dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
+        
+        dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
+        
+        dag_kwargs["on_failure_callback"] = dag_params.get("on_failure_callback", None)
+        
+        dag_kwargs["default_args"] = dag_params.get("default_args", None)
+        
+        dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
+
+        dag: DAG = DAG(**dag_kwargs)    
+        
         if dag_params.get("doc_md_file_path"):
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
                 raise Exception("`doc_md_file_path` must be absolute path")
