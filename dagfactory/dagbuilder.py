@@ -229,7 +229,7 @@ class DagBuilder:
                     del task_params["success_check_file"]
                 elif task_params.get("success_check_lambda"):
                     task_params["success"]: Callable = utils.get_python_callable_lambda(
-                        task_params["success_check_lambda"],
+                        task_params["success_check_lambda"]
                     )
                     del task_params["success_check_lambda"]
                 # Failure checks
@@ -244,7 +244,7 @@ class DagBuilder:
                     del task_params["failure_check_file"]
                 elif task_params.get("failure_check_lambda"):
                     task_params["failure"]: Callable = utils.get_python_callable_lambda(
-                        task_params["failure_check_lambda"],
+                        task_params["failure_check_lambda"]
                     )
                     del task_params["failure_check_lambda"]
 
@@ -271,7 +271,7 @@ class DagBuilder:
                     task_params[
                         "response_check"
                     ]: Callable = utils.get_python_callable_lambda(
-                        task_params["response_check_lambda"],
+                        task_params["response_check_lambda"]
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -456,12 +456,14 @@ class DagBuilder:
         :type: Dict[str, Union[str, DAG]]
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
-            
+
         dag_kwargs: Dict[str, Any] = {}
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
 
-        dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
+        dag_kwargs["schedule_interval"] = dag_params.get(
+            "schedule_interval", timedelta(days=1)
+        )
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
             dag_kwargs["description"] = dag_params.get("description", None)
@@ -469,38 +471,46 @@ class DagBuilder:
             dag_kwargs["description"] = dag_params.get("description", "")
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
-            dag_kwargs["max_active_tasks"] = dag_params.get("max_active_tasks", 
-                                                            configuration.conf.getint("core", "max_active_tasks_per_dag"))
+            dag_kwargs["max_active_tasks"] = dag_params.get(
+                "max_active_tasks",
+                configuration.conf.getint("core", "max_active_tasks_per_dag"),
+            )
         else:
-            dag_kwargs["concurrency"] = dag_params.get("concurrency", 
-                                                       configuration.conf.getint("core", "dag_concurrency"))
+            dag_kwargs["concurrency"] = dag_params.get(
+                "concurrency", configuration.conf.getint("core", "dag_concurrency")
+            )
 
-        dag_kwargs["catchup"] = dag_params.get("catchup", 
-                                               configuration.conf.getboolean("scheduler", "catchup_by_default"))
+        dag_kwargs["catchup"] = dag_params.get(
+            "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
+        )
 
-        dag_kwargs["max_active_runs"] = dag_params.get("max_active_runs", 
-                                                       configuration.conf.getint("core", "max_active_runs_per_dag"))
+        dag_kwargs["max_active_runs"] = dag_params.get(
+            "max_active_runs",
+            configuration.conf.getint("core", "max_active_runs_per_dag"),
+        )
 
         dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
 
-        dag_kwargs["default_view"] = dag_params.get("default_view", 
-                                                    configuration.conf.get("webserver", "dag_default_view"))
-        
-        dag_kwargs["orientation"] = dag_params.get("orientation", 
-                                                   configuration.conf.get("webserver", "dag_orientation"))
-        
+        dag_kwargs["default_view"] = dag_params.get(
+            "default_view", configuration.conf.get("webserver", "dag_default_view")
+        )
+
+        dag_kwargs["orientation"] = dag_params.get(
+            "orientation", configuration.conf.get("webserver", "dag_orientation")
+        )
+
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
-        
+
         dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
-        
+
         dag_kwargs["on_failure_callback"] = dag_params.get("on_failure_callback", None)
-        
+
         dag_kwargs["default_args"] = dag_params.get("default_args", None)
-        
+
         dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
 
-        dag: DAG = DAG(**dag_kwargs)    
-        
+        dag: DAG = DAG(**dag_kwargs)
+
         if dag_params.get("doc_md_file_path"):
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
                 raise Exception("`doc_md_file_path` must be absolute path")
