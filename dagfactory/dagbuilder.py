@@ -509,6 +509,8 @@ class DagBuilder:
 
         dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
 
+        dag_kwargs["access_control"] = dag_params.get("access_control", None)
+
         dag: DAG = DAG(**dag_kwargs)
 
         if dag_params.get("doc_md_file_path"):
