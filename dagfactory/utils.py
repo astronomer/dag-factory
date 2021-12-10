@@ -118,6 +118,8 @@ def get_python_callable(python_callable_name, python_callable_file):
     :type: callable
     """
 
+    python_callable_file = os.path.expandvars(python_callable_file)
+
     if not os.path.isabs(python_callable_file):
         raise Exception("`python_callable_file` must be absolute path")
 
