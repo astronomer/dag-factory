@@ -511,7 +511,9 @@ class DagBuilder:
 
         dag_kwargs["access_control"] = dag_params.get("access_control", None)
 
-        dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
+        dag_kwargs["is_paused_upon_creation"] = dag_params.get(
+            "is_paused_upon_creation", None
+        )
 
         dag: DAG = DAG(**dag_kwargs)
 
