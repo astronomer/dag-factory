@@ -195,21 +195,25 @@ class DagBuilder:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
             if operator_obj in [PythonOperator, BranchPythonOperator]:
-                if not task_params.get("python_callable_name") and not task_params.get(
-                    "python_callable_file"
-                ):
+                if not task_params.get("python_callable") and not \
+                    task_params.get("python_callable_name") and not \
+                    task_params.get("python_callable_file"):
                     raise Exception(
                         "Failed to create task. PythonOperator and BranchPythonOperator requires \
-                        `python_callable_name` and `python_callable_file` parameters."
+                        `python_callable_name` and `python_callable_file` "
+                        "parameters.\nOptionally you can load python_callable "
+                        "from a file. with the special pyyaml notation:\n"
+                        "  python_callable_file: !!python/name:my_module.my_func"
                     )
-                task_params["python_callable"]: Callable = utils.get_python_callable(
-                    task_params["python_callable_name"],
-                    task_params["python_callable_file"],
-                )
-                # remove dag-factory specific parameters
-                # Airflow 2.0 doesn't allow these to be passed to operator
-                del task_params["python_callable_name"]
-                del task_params["python_callable_file"]
+                if not task_params.get("python_callable"): 
+                    task_params["python_callable"]: Callable = utils.get_python_callable(
+                        task_params["python_callable_name"],
+                        task_params["python_callable_file"],
+                    )
+                    # remove dag-factory specific parameters
+                    # Airflow 2.0 doesn't allow these to be passed to operator
+                    del task_params["python_callable_name"]
+                    del task_params["python_callable_file"]
 
             # Check for the custom success and failure callables in SqlSensor. These are considered
             # optional, so no failures in case they aren't found. Note: there's no reason to
