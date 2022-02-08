@@ -523,6 +523,8 @@ class DagBuilder:
             "is_paused_upon_creation", None
         )
 
+        dag_kwargs["params"] = dag_params.get("params", None)
+
         dag: DAG = DAG(**dag_kwargs)
 
         if dag_params.get("doc_md_file_path"):
