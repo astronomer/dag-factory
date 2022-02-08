@@ -195,9 +195,11 @@ class DagBuilder:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
             if operator_obj in [PythonOperator, BranchPythonOperator]:
-                if not task_params.get("python_callable") and not \
-                    task_params.get("python_callable_name") and not \
-                    task_params.get("python_callable_file"):
+                if (
+                    not task_params.get("python_callable")
+                    and not task_params.get("python_callable_name")
+                    and not task_params.get("python_callable_file")
+                ):
                     raise Exception(
                         "Failed to create task. PythonOperator and BranchPythonOperator requires \
                         `python_callable_name` and `python_callable_file` "
@@ -205,8 +207,10 @@ class DagBuilder:
                         "from a file. with the special pyyaml notation:\n"
                         "  python_callable_file: !!python/name:my_module.my_func"
                     )
-                if not task_params.get("python_callable"): 
-                    task_params["python_callable"]: Callable = utils.get_python_callable(
+                if not task_params.get("python_callable"):
+                    task_params[
+                        "python_callable"
+                    ]: Callable = utils.get_python_callable(
                         task_params["python_callable_name"],
                         task_params["python_callable_file"],
                     )
