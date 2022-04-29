@@ -195,7 +195,7 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
-            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor ]:
+            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
                 if (
                     not task_params.get("python_callable")
                     and not task_params.get("python_callable_name")
