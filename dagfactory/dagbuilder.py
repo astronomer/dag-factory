@@ -201,6 +201,7 @@ class DagBuilder:
                     and not task_params.get("python_callable_name")
                     and not task_params.get("python_callable_file")
                 ):
+                    # pylint: disable=line-too-long
                     raise Exception(
                         "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
                         `python_callable_name` and `python_callable_file` "
