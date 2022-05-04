@@ -38,9 +38,11 @@ from dagfactory import utils
 # conditional import and cannot be done within the import group above
 # TaskGroup is introduced in Airflow 2.0.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.sensors.python import PythonSensor
     from airflow.utils.task_group import TaskGroup
 else:
     TaskGroup = None
+    PythonSensor = None
 # pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
@@ -194,14 +196,15 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
-            if operator_obj in [PythonOperator, BranchPythonOperator]:
+            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
                 if (
                     not task_params.get("python_callable")
                     and not task_params.get("python_callable_name")
                     and not task_params.get("python_callable_file")
                 ):
+                    # pylint: disable=line-too-long
                     raise Exception(
-                        "Failed to create task. PythonOperator and BranchPythonOperator requires \
+                        "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
                         `python_callable_name` and `python_callable_file` "
                         "parameters.\nOptionally you can load python_callable "
                         "from a file. with the special pyyaml notation:\n"

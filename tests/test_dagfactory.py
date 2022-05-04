@@ -404,7 +404,10 @@ def test_generate_dags_with_removal_valid_and_callback():
     td.clean_dags(globals())
     td.generate_dags(globals())
 
+
 def test_set_callback_after_loading_config():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
-    td.config["default"]["default_args"]["on_success_callback"] = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG).build_dags
+    td.config["default"]["default_args"]["on_success_callback"] = dagfactory.DagFactory(
+        config=DAG_FACTORY_CONFIG
+    ).build_dags
     td.generate_dags(globals())

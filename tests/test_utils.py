@@ -162,9 +162,7 @@ def test_get_python_callable_missing_param_name():
 def test_get_python_callable_lambda_valid():
     lambda_expr = "lambda a: a"
 
-    python_callable = utils.get_python_callable_lambda(
-        lambda_expr
-    )
+    python_callable = utils.get_python_callable_lambda(lambda_expr)
 
     assert callable(python_callable)
 
@@ -172,9 +170,7 @@ def test_get_python_callable_lambda_valid():
 def test_get_python_callable_lambda_works():
     lambda_expr = "lambda a: a"
 
-    python_callable = utils.get_python_callable_lambda(
-        lambda_expr
-    )
+    python_callable = utils.get_python_callable_lambda(lambda_expr)
 
     assert callable(python_callable)
     assert python_callable("xyz") == "xyz"
@@ -186,6 +182,7 @@ def test_get_python_callable_lambda_invalid_expr():
 
     with pytest.raises(Exception):
         utils.get_python_callable_lambda(lambda_expr)
+
 
 def test_get_python_callable_non_lambda_valid_expr():
     lambda_expr = """
@@ -202,6 +199,7 @@ def test_get_python_callable_lambda_missing_param():
 
     with pytest.raises(Exception):
         utils.get_python_callable_lambda(lambda_expr)
+
 
 def test_get_start_date_date_string():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
