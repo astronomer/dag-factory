@@ -42,6 +42,7 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.utils.task_group import TaskGroup
 else:
     TaskGroup = None
+    PythonSensor = None
 # pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
