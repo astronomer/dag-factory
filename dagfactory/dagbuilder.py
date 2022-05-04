@@ -39,6 +39,7 @@ from dagfactory import utils
 # conditional import and cannot be done within the import group above
 # TaskGroup is introduced in Airflow 2.0.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.sensors.python import PythonSensor
     from airflow.utils.task_group import TaskGroup
 else:
     TaskGroup = None
