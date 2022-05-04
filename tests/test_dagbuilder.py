@@ -320,7 +320,7 @@ def test_make_sql_sensor_success_lambda():
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
-        "success_check_lambda": 'lambda res: res > 0',
+        "success_check_lambda": "lambda res: res > 0",
     }
     actual = td.make_task(operator, task_params)
     assert actual.task_id == "test_task"
@@ -352,7 +352,7 @@ def test_make_sql_sensor_failure_lambda():
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
-        "failure_check_lambda": 'lambda res: res > 0',
+        "failure_check_lambda": "lambda res: res > 0",
     }
     actual = td.make_task(operator, task_params)
     assert actual.task_id == "test_task"
