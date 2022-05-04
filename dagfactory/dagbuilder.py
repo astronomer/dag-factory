@@ -10,7 +10,6 @@ from airflow.models import Variable
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.sensors.python import PythonSensor
 from airflow.sensors.http_sensor import HttpSensor
 from airflow.sensors.sql_sensor import SqlSensor
 from airflow.utils.module_loading import import_string
@@ -40,8 +39,11 @@ from dagfactory import utils
 # TaskGroup is introduced in Airflow 2.0.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.utils.task_group import TaskGroup
+    from airflow.sensors.python import PythonSensor
+
 else:
     TaskGroup = None
+    PythonSensor = None
 # pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
