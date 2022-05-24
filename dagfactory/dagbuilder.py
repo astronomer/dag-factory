@@ -507,11 +507,12 @@ class DagBuilder:
                 configuration.conf.getint("core", "max_active_tasks_per_dag"),
             )
 
-            timetable_args = dag_params.get("timetable")
-            dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                timetable_args.get("callable"),
-                timetable_args.get("params")
-            )
+            if dag_params.get("timetable"):
+                timetable_args = dag_params.get("timetable")
+                dag_kwargs["timetable"] = DagBuilder.make_timetable(
+                    timetable_args.get("callable"),
+                    timetable_args.get("params")
+                )
         else:
             dag_kwargs["concurrency"] = dag_params.get(
                 "concurrency", configuration.conf.getint("core", "dag_concurrency")
