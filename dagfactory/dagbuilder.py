@@ -193,7 +193,9 @@ class DagBuilder:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             timetable_obj: Callable[..., Timetable] = import_string(timetable)
         except Exception as err:
-            raise Exception(f"Failed to import timetable {timetable} due to: {err}") from err
+            raise Exception(
+                f"Failed to import timetable {timetable} due to: {err}"
+            ) from err
         try:
             schedule: Timetable = timetable_obj(**timetable_params)
         except Exception as err:
@@ -510,8 +512,7 @@ class DagBuilder:
             if dag_params.get("timetable"):
                 timetable_args = dag_params.get("timetable")
                 dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                    timetable_args.get("callable"),
-                    timetable_args.get("params")
+                    timetable_args.get("callable"), timetable_args.get("params")
                 )
         else:
             dag_kwargs["concurrency"] = dag_params.get(
