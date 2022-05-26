@@ -12,7 +12,6 @@ from airflow.models import BaseOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.sensors.http_sensor import HttpSensor
 from airflow.sensors.sql_sensor import SqlSensor
-from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
@@ -182,25 +181,28 @@ class DagBuilder:
             raise Exception(f"{self.dag_name} config is missing start_date") from err
         return dag_params
 
-    @staticmethod
-    def make_timetable(timetable: str, timetable_params: Dict[str, Any]) -> Timetable:
-        """
-        Takes a custom timetable and params and creates an instance of that timetable.
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+        from airflow.timetables.base import Timetable
 
-        :returns instance of timetable object
-        """
-        try:
-            # class is a Callable https://stackoverflow.com/a/34578836/3679900
-            timetable_obj: Callable[..., Timetable] = import_string(timetable)
-        except Exception as err:
-            raise Exception(
-                f"Failed to import timetable {timetable} due to: {err}"
-            ) from err
-        try:
-            schedule: Timetable = timetable_obj(**timetable_params)
-        except Exception as err:
-            raise Exception(f"Failed to create {timetable_obj} due to: {err}") from err
-        return schedule
+        @staticmethod
+        def make_timetable(timetable: str, timetable_params: Dict[str, Any]) -> Timetable:
+            """
+            Takes a custom timetable and params and creates an instance of that timetable.
+
+            :returns instance of timetable object
+            """
+            try:
+                # class is a Callable https://stackoverflow.com/a/34578836/3679900
+                timetable_obj: Callable[..., Timetable] = import_string(timetable)
+            except Exception as err:
+                raise Exception(
+                    f"Failed to import timetable {timetable} due to: {err}"
+                ) from err
+            try:
+                schedule: Timetable = timetable_obj(**timetable_params)
+            except Exception as err:
+                raise Exception(f"Failed to create {timetable_obj} due to: {err}") from err
+            return schedule
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
