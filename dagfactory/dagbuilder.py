@@ -40,10 +40,15 @@ from dagfactory import utils
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.sensors.python import PythonSensor
     from airflow.utils.task_group import TaskGroup
-    from airflow.timetables.base import Timetable
 else:
     TaskGroup = None
     PythonSensor = None
+# pylint: disable=ungrouped-imports,invalid-name
+
+# TimeTable is introduced in Airflow 2.2.0
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+    from airflow.timetables.base import Timetable
+else:
     Timetable = None
 # pylint: disable=ungrouped-imports,invalid-name
 

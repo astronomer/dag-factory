@@ -9,11 +9,16 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.sensors.http_sensor import HttpSensor
 from airflow.sensors.sql_sensor import SqlSensor
-from airflow.timetables.interval import CronDataIntervalTimetable
 from airflow import __version__ as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory import dagbuilder
+
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.timetables.interval import CronDataIntervalTimetable
+else:
+    Timetable = None
+# pylint: disable=ungrouped-imports,invalid-name
 
 here = os.path.dirname(__file__)
 
@@ -537,15 +542,16 @@ def test_make_task_with_callback():
 
 
 def test_make_timetable():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
-    timetable_params = {
-        "cron": "0 8,16 * * 1-5",
-        "timezone": "UTC"
-    }
-    actual = td.make_timetable(timetable, timetable_params)
-    assert actual.periodic
-    assert actual.can_run
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+        timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
+        timetable_params = {
+            "cron": "0 8,16 * * 1-5",
+            "timezone": "UTC"
+        }
+        actual = td.make_timetable(timetable, timetable_params)
+        assert actual.periodic
+        assert actual.can_run
 
 
 def test_make_dag_with_callback():
