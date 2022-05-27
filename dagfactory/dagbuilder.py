@@ -45,6 +45,13 @@ else:
     PythonSensor = None
 # pylint: disable=ungrouped-imports,invalid-name
 
+# TimeTable is introduced in Airflow 2.2.0
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+    from airflow.timetables.base import Timetable
+else:
+    Timetable = None
+# pylint: disable=ungrouped-imports,invalid-name
+
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
 
@@ -180,6 +187,26 @@ class DagBuilder:
         except KeyError as err:
             raise Exception(f"{self.dag_name} config is missing start_date") from err
         return dag_params
+
+    @staticmethod
+    def make_timetable(timetable: str, timetable_params: Dict[str, Any]) -> Timetable:
+        """
+        Takes a custom timetable and params and creates an instance of that timetable.
+
+        :returns instance of timetable object
+        """
+        try:
+            # class is a Callable https://stackoverflow.com/a/34578836/3679900
+            timetable_obj: Callable[..., Timetable] = import_string(timetable)
+        except Exception as err:
+            raise Exception(
+                f"Failed to import timetable {timetable} due to: {err}"
+            ) from err
+        try:
+            schedule: Timetable = timetable_obj(**timetable_params)
+        except Exception as err:
+            raise Exception(f"Failed to create {timetable_obj} due to: {err}") from err
+        return schedule
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
@@ -472,9 +499,10 @@ class DagBuilder:
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
 
-        dag_kwargs["schedule_interval"] = dag_params.get(
-            "schedule_interval", timedelta(days=1)
-        )
+        if not dag_params.get("timetable"):
+            dag_kwargs["schedule_interval"] = dag_params.get(
+                "schedule_interval", timedelta(days=1)
+            )
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
             dag_kwargs["description"] = dag_params.get("description", None)
@@ -486,6 +514,12 @@ class DagBuilder:
                 "max_active_tasks",
                 configuration.conf.getint("core", "max_active_tasks_per_dag"),
             )
+
+            if dag_params.get("timetable"):
+                timetable_args = dag_params.get("timetable")
+                dag_kwargs["timetable"] = DagBuilder.make_timetable(
+                    timetable_args.get("callable"), timetable_args.get("params")
+                )
         else:
             dag_kwargs["concurrency"] = dag_params.get(
                 "concurrency", configuration.conf.getint("core", "dag_concurrency")

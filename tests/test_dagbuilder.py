@@ -14,6 +14,12 @@ from packaging import version
 
 from dagfactory import dagbuilder
 
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.timetables.interval import CronDataIntervalTimetable
+else:
+    Timetable = None
+# pylint: disable=ungrouped-imports,invalid-name
+
 here = os.path.dirname(__file__)
 
 DEFAULT_CONFIG = {
@@ -533,6 +539,19 @@ def test_make_task_with_callback():
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
         assert callable(actual.on_execute_callback)
     assert callable(actual.on_retry_callback)
+
+
+def test_make_timetable():
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+        timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
+        timetable_params = {
+            "cron": "0 8,16 * * 1-5",
+            "timezone": "UTC"
+        }
+        actual = td.make_timetable(timetable, timetable_params)
+        assert actual.periodic
+        assert actual.can_run
 
 
 def test_make_dag_with_callback():
