@@ -143,6 +143,14 @@ class DagBuilder:
                     dag_params["default_args"]["on_failure_callback"]
                 )
 
+        if utils.check_dict_key(dag_params["default_args"], "on_retry_callback"):
+            if isinstance(dag_params["default_args"]["on_retry_callback"], str):
+                dag_params["default_args"][
+                    "on_retry_callback"
+                ]: Callable = import_string(
+                    dag_params["default_args"]["on_retry_callback"]
+                )
+
         if utils.check_dict_key(dag_params, "sla_miss_callback"):
             if isinstance(dag_params["sla_miss_callback"], str):
                 dag_params["sla_miss_callback"]: Callable = import_string(
