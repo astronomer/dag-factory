@@ -570,64 +570,70 @@ class DagBuilder:
 
         dag_kwargs["params"] = dag_params.get("params", None)
 
-        dag: DAG = DAG(**dag_kwargs)
-
-        if dag_params.get("doc_md_file_path"):
-            if not os.path.isabs(dag_params.get("doc_md_file_path")):
-                raise Exception("`doc_md_file_path` must be absolute path")
-
-            with open(
-                dag_params.get("doc_md_file_path"), "r", encoding="utf-8"
-            ) as file:
-                dag.doc_md = file.read()
-
-        if dag_params.get("doc_md_python_callable_file") and dag_params.get(
-            "doc_md_python_callable_name"
-        ):
-            doc_md_callable = utils.get_python_callable(
-                dag_params.get("doc_md_python_callable_name"),
-                dag_params.get("doc_md_python_callable_file"),
-            )
-            dag.doc_md = doc_md_callable(
-                **dag_params.get("doc_md_python_arguments", {})
+        dag_class: Callable = DAG
+        if utils.check_dict_key(dag_params, "dag_class"):
+            dag_class: Callable = import_string(
+                dag_params["dag_class"]
             )
 
-        # tags parameter introduced in Airflow 1.10.8
-        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-            dag.tags = dag_params.get("tags", None)
+        with dag_class(**dag_kwargs) as dag:
 
-        tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
+            if dag_params.get("doc_md_file_path"):
+                if not os.path.isabs(dag_params.get("doc_md_file_path")):
+                    raise Exception("`doc_md_file_path` must be absolute path")
 
-        # add a property to mark this dag as an auto-generated on
-        dag.is_dagfactory_auto_generated = True
+                with open(
+                    dag_params.get("doc_md_file_path"), "r", encoding="utf-8"
+                ) as file:
+                    dag.doc_md = file.read()
 
-        # create dictionary of task groups
-        task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(
-            dag_params.get("task_groups", {}), dag
-        )
+            if dag_params.get("doc_md_python_callable_file") and dag_params.get(
+                "doc_md_python_callable_name"
+            ):
+                doc_md_callable = utils.get_python_callable(
+                    dag_params.get("doc_md_python_callable_name"),
+                    dag_params.get("doc_md_python_callable_file"),
+                )
+                dag.doc_md = doc_md_callable(
+                    **dag_params.get("doc_md_python_arguments", {})
+                )
 
-        # create dictionary to track tasks and set dependencies
-        tasks_dict: Dict[str, BaseOperator] = {}
-        for task_name, task_conf in tasks.items():
-            task_conf["task_id"]: str = task_name
-            operator: str = task_conf["operator"]
-            task_conf["dag"]: DAG = dag
-            # add task to task_group
-            if task_groups_dict and task_conf.get("task_group_name"):
-                task_conf["task_group"] = task_groups_dict[
-                    task_conf.get("task_group_name")
-                ]
-            params: Dict[str, Any] = {
-                k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
-            }
-            task: BaseOperator = DagBuilder.make_task(
-                operator=operator, task_params=params
+            # tags parameter introduced in Airflow 1.10.8
+            if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
+                dag.tags = dag_params.get("tags", None)
+
+            tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
+
+            # add a property to mark this dag as an auto-generated on
+            dag.is_dagfactory_auto_generated = True
+
+            # create dictionary of task groups
+            task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(
+                dag_params.get("task_groups", {}), dag
             )
-            tasks_dict[task.task_id]: BaseOperator = task
 
-        # set task dependencies after creating tasks
-        self.set_dependencies(
-            tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict
-        )
+            # create dictionary to track tasks and set dependencies
+            tasks_dict: Dict[str, BaseOperator] = {}
+            for task_name, task_conf in tasks.items():
+                task_conf["task_id"]: str = task_name
+                operator: str = task_conf["operator"]
+                task_conf["dag"]: DAG = dag
+                # add task to task_group
+                if task_groups_dict and task_conf.get("task_group_name"):
+                    task_conf["task_group"] = task_groups_dict[
+                        task_conf.get("task_group_name")
+                    ]
+                params: Dict[str, Any] = {
+                    k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
+                }
+                task: BaseOperator = DagBuilder.make_task(
+                    operator=operator, task_params=params
+                )
+                tasks_dict[task.task_id]: BaseOperator = task
+
+            # set task dependencies after creating tasks
+            self.set_dependencies(
+                tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict
+            )
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
