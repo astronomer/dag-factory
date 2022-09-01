@@ -12,12 +12,12 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = "dag-factory"
+NAME = "data-engineering-dag-factory"
 PKG_NAME = "dagfactory"
 DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
-URL = "https://github.com/ajbosco/dag-factory"
-EMAIL = "adam@boscarino.me"
-AUTHOR = "Adam Boscarino"
+URL = "https://github.com/pelotoncycle/dag-factory"
+EMAIL = "data-engineering@onepeloton.com"
+AUTHOR = "Data Engineering Team"
 REQUIRES_PYTHON = ">=3.6.0"
 VERSION = None
 
@@ -68,12 +68,12 @@ class UploadCommand(Command):
         self.status("Building Source and Wheel (universal) distribution…")
         os.system("{0} setup.py sdist bdist_wheel --universal".format(sys.executable))
 
-        self.status("Uploading the package to PyPI via Twine…")
-        os.system("twine upload dist/*")
-
-        self.status("Pushing git tags…")
-        os.system("git tag v{0}".format(about["__version__"]))
-        os.system("git push --tags")
+        # self.status("Uploading the package to PyPI via Twine…")
+        # os.system("twine upload dist/*")
+        #
+        # self.status("Pushing git tags…")
+        # os.system("git tag v{0}".format(about["__version__"]))
+        # os.system("git push --tags")
 
         sys.exit()
 
