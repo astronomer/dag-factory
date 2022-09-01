@@ -575,6 +575,12 @@ class DagBuilder:
             dag_class: Callable = import_string(
                 dag_params["dag_class"]
             )
+            dag_kwargs["depend_on_dags"] = dag_params.get("depend_on_dags", None)
+            dag_kwargs["wait_on_dags"] = dag_params.get("wait_on_dags", None)
+            dag_kwargs["depend_on_tasks"] = dag_params.get("depends_on_tasks", None)
+            dag_kwargs["wait_on_tasks"] = dag_params.get("wait_on_tasks", None)
+            dag_kwargs["alert_on_start"] = dag_params.get("alert_on_start", None)
+            dag_kwargs["alert_on_finish"] = dag_params.get("alert_on_finish", None)
 
         with dag_class(**dag_kwargs) as dag:
 
