@@ -9,6 +9,7 @@ from dagfactory.dagbuilder import DagBuilder
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
+ALLOWED_CONFIG_FILE_SUFFIX: List[str] = ["yaml", "yml"]
 
 
 class DagFactory:
@@ -35,6 +36,23 @@ class DagFactory:
             )
         if config:
             self.config: Dict[str, Any] = config
+
+    @classmethod
+    def from_directory(cls, config_dir):
+        """
+        Make instances of DagFactory for each yaml configuration files within a directory
+        """
+        cls._validate_config_filepath(config_dir)
+        subs = os.listdir(config_dir)
+        subs_fpath = [os.path.join(config_dir, sub) for sub in subs]
+
+        for sub_fpath in subs_fpath:
+            if os.path.isdir(sub_fpath):
+                cls.from_directory(sub_fpath)
+            elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
+                dag_factory = cls(config_filepath=sub_fpath)
+                dag_factory.clean_dags(globals())
+                dag_factory.generate_dags(globals())
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
