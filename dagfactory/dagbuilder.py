@@ -575,6 +575,8 @@ class DagBuilder:
             dag_class: Callable = import_string(
                 dag_params["dag_class"]
             )
+
+        if dag_class.__name__ == "PelotonDepDag":
             dag_kwargs["depend_on_dags"] = dag_params.get("depend_on_dags", None)
             dag_kwargs["wait_on_dags"] = dag_params.get("wait_on_dags", None)
             dag_kwargs["depend_on_tasks"] = dag_params.get("depends_on_tasks", None)
