@@ -1,6 +1,5 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 import datetime
-import json
 import os
 import traceback
 from typing import Any, Dict, Optional, Union, List
@@ -8,17 +7,10 @@ from typing import Any, Dict, Optional, Union, List
 import pendulum
 import yaml
 from airflow.configuration import conf
-from airflow.exceptions import AirflowException
-from airflow.models import DAG, errors
+from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
-from airflow.utils import timezone
-import subprocess
-
-from sqlalchemy.orm.session import Session
-from airflow.utils.session import provide_session
 
 from dagfactory.dagbuilder import DagBuilder
-from airflow.www.utils import UIAlert
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -40,11 +32,15 @@ class DagFactory:
     DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH = conf.getint('core', 'dagbag_import_error_traceback_depth')
 
     def __init__(
-        self, config_filepath: Optional[str] = None, config: Optional[dict] = None
+            self,
+            config_filepath: Optional[str] = None,
+            default_config: Optional[dict] = None,
+            config: Optional[dict] = None
     ) -> None:
         assert bool(config_filepath) ^ bool(
             config
         ), "Either `config_filepath` or `config` should be provided"
+        self.default_config = default_config
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = DagFactory._load_config(
@@ -54,23 +50,38 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     @classmethod
-    @provide_session
-    def from_directory(cls, config_dir, globals: Dict[str, Any], session: Session = None):
+    def from_directory(cls, config_dir, globals: Dict[str, Any], root_default_config: Optional[Dict[str, Any]] = None):
         """
         Make instances of DagFactory for each yaml configuration files within a directory
         """
         cls._validate_config_filepath(config_dir)
         subs = os.listdir(config_dir)
-        subs_fpath = [os.path.join(config_dir, sub) for sub in subs]
 
+        # get default configurations if exist
+        allowed_default_filename = ['default.' + sfx for sfx in ALLOWED_CONFIG_FILE_SUFFIX]
+        maybe_default_file = [sub for sub in subs if sub in allowed_default_filename]
+
+        # get the configurations that are not default
+        subs_fpath = [os.path.join(config_dir, sub) for sub in subs if sub not in maybe_default_file]
+
+        # if there is no default.yaml in current sub folder, use the defaults from the parent folder
+        default_config = root_default_config
+        if len(maybe_default_file) > 0:
+            default_file = maybe_default_file[0]
+            default_fpath = os.path.join(config_dir, default_file)
+            default_config = cls._load_config(
+                config_filepath=default_fpath
+            )
+
+        # load dags from each yaml configuration files
         import_failures = {}
         for sub_fpath in subs_fpath:
             if os.path.isdir(sub_fpath):
-                cls.from_directory(sub_fpath, globals)
+                cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
                 # catch the errors so the rest of the dags can still be imported
                 try:
-                    dag_factory = cls(config_filepath=sub_fpath)
+                    dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
                     dag_factory.generate_dags(globals)
                 except Exception as e:
                     if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
@@ -150,6 +161,8 @@ class DagFactory:
 
         :returns: dict with default configuration
         """
+        if self.default_config:
+            return self.default_config
         return self.config.get("default", {})
 
     def build_dags(self) -> Dict[str, DAG]:
