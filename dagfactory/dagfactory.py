@@ -56,9 +56,9 @@ class DagFactory:
 
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
-                return ''.join([str(i) for i in seq])
+                return "".join([str(i) for i in seq])
 
-            yaml.add_constructor('!join', __join, yaml.FullLoader)
+            yaml.add_constructor("!join", __join, yaml.FullLoader)
 
             config: Dict[str, Any] = yaml.load(
                 stream=open(config_filepath, "r", encoding="utf-8"),
