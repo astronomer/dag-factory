@@ -53,6 +53,13 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
+
+            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return ''.join([str(i) for i in seq])
+
+            yaml.add_constructor('!join', __join, yaml.FullLoader)
+
             config: Dict[str, Any] = yaml.load(
                 stream=open(config_filepath, "r", encoding="utf-8"),
                 Loader=yaml.FullLoader,
