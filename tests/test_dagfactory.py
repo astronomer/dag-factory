@@ -184,6 +184,15 @@ def test_load_config_valid():
                 },
             },
         },
+        "example_dag4": {
+            "vars": {'arg1': 'hello', 'arg2': 'hello world'},
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo hello world",
+                },
+            },
+        },
     }
     actual = dagfactory.DagFactory._load_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
@@ -249,6 +258,15 @@ def test_get_dag_configs():
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
                     "bash_command": "echo 1",
+                },
+            },
+        },
+        "example_dag4": {
+            "vars": {'arg1': 'hello', 'arg2': 'hello world'},
+            "tasks": {
+                "task_1": {
+                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "bash_command": "echo hello world",
                 },
             },
         },
