@@ -1,11 +1,24 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
+import datetime
+import json
 import os
+import traceback
 from typing import Any, Dict, Optional, Union, List
 
+import pendulum
 import yaml
-from airflow.models import DAG
+from airflow.configuration import conf
+from airflow.exceptions import AirflowException
+from airflow.models import DAG, errors
+from airflow.operators.dummy import DummyOperator
+from airflow.utils import timezone
+import subprocess
+
+from sqlalchemy.orm.session import Session
+from airflow.utils.session import provide_session
 
 from dagfactory.dagbuilder import DagBuilder
+from airflow.www.utils import UIAlert
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -23,6 +36,9 @@ class DagFactory:
     :type config: dict
     """
 
+    DAGBAG_IMPORT_ERROR_TRACEBACKS = conf.getboolean('core', 'dagbag_import_error_tracebacks')
+    DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH = conf.getint('core', 'dagbag_import_error_traceback_depth')
+
     def __init__(
         self, config_filepath: Optional[str] = None, config: Optional[dict] = None
     ) -> None:
@@ -38,7 +54,8 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     @classmethod
-    def from_directory(cls, config_dir):
+    @provide_session
+    def from_directory(cls, config_dir, globals: Dict[str, Any], session: Session = None):
         """
         Make instances of DagFactory for each yaml configuration files within a directory
         """
@@ -46,13 +63,49 @@ class DagFactory:
         subs = os.listdir(config_dir)
         subs_fpath = [os.path.join(config_dir, sub) for sub in subs]
 
+        import_failures = {}
         for sub_fpath in subs_fpath:
             if os.path.isdir(sub_fpath):
-                cls.from_directory(sub_fpath)
+                cls.from_directory(sub_fpath, globals)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
-                dag_factory = cls(config_filepath=sub_fpath)
-                dag_factory.clean_dags(globals())
-                dag_factory.generate_dags(globals())
+                # catch the errors so the rest of the dags can still be imported
+                try:
+                    dag_factory = cls(config_filepath=sub_fpath)
+                    dag_factory.generate_dags(globals)
+                except Exception as e:
+                    if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
+                        import_failures[sub_fpath] = traceback.format_exc(
+                            limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
+                        )
+                    else:
+                        import_failures[sub_fpath] = str(e)
+
+        # in the end we want to surface the error messages if there's any
+        if import_failures:
+            # reformat import_failures so they are reader friendly
+            import_failures_reformatted = ''
+            for import_loc, import_trc in import_failures.items():
+                import_failures_reformatted += '\n' + f'Failed to generate dag from {import_loc}' + \
+                                               '-'*100 + '\n' + import_trc + '\n'
+
+            alert_dag_id = (os.path.split(os.path.abspath(globals['__file__']))[-1]).split('.')[0] + \
+                           '_dag_factory_import_error_messenger'
+            with DAG(
+                dag_id=alert_dag_id,
+                schedule_interval="@once",
+                default_args={
+                    "depends_on_past": False,
+                    "start_date": datetime.datetime(
+                        2020, 1, 1, tzinfo=pendulum.timezone("America/New_York")
+                    )
+                },
+                tags=[f"dag_factory_import_errors"]
+            ) as alert_dag:
+                DummyOperator(
+                    task_id='import_error_messenger',
+                    doc_json=import_failures_reformatted
+                )
+            globals[alert_dag_id] = alert_dag
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
