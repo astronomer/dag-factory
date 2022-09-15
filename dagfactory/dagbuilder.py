@@ -2,9 +2,6 @@
 from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
 
-import boto3
-import os
-import requests
 from copy import deepcopy
 
 from airflow import DAG, configuration
@@ -370,36 +367,17 @@ class DagBuilder:
 
             # AirbyteTriggerSyncOperator
             if operator_obj == AirbyteTriggerSyncOperator:
-                airbyte_api = "https://airbyte.airbyte.prod.k8s.pelotime.com/api"
-                secret_name = "prod/data-engineering/airbyte/cli-credentials"
-                region_name = "us-east-1"
-
-                session = boto3.session.Session()
-                client = session.client(
-                    service_name='secretsmanager',
-                    region_name=region_name
+                task_params["connection_id"] = (
+                    task_params.get("connection_id")
+                    if task_params.get("connection_id") is not None
+                    else None
                 )
 
-                get_secret_value_response = client.get_secret_value(
-                    SecretId=secret_name
+                task_params["connection_name"] = (
+                    task_params.get("connection_name")
+                    if task_params.get("connection_name") is not None
+                    else None
                 )
-
-                secret = get_secret_value_response['SecretString']
-                token = secret.split(':')[2].strip()
-
-                connection_name = task_params.get("connection_name")
-                url = airbyte_api + "/v1/connections/search"
-
-                headers = {"Authorization": token}
-
-                body = {
-                    "namespaceDefinition": "customformat",
-                    "name": connection_name
-                }
-
-                resp = requests.post(url=url, json=body, headers=headers)
-                data = resp.json()
-                task_params["connection_id"] = data['connections'][0]["connectionId"]
 
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
