@@ -88,7 +88,7 @@ class DagBuilder:
             )
         except Exception as err:
             raise Exception("Failed to merge config with default config") from err
-        dag_params["dag_id"]: str = self.dag_name
+        dag_params["dag_id"]: str = dag_params.get("dag_id_prefix", "") + self.dag_name
 
         if dag_params.get("task_groups") and version.parse(
             AIRFLOW_VERSION
