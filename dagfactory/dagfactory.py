@@ -73,6 +73,9 @@ class DagFactory:
                 config_filepath=default_fpath
             )
 
+        # skip importing if the env is wrong
+        if "env" in default_config and default_config["env"] != os.environ["ENV"]:
+            return
         # load dags from each yaml configuration files
         import_failures = {}
         for sub_fpath in subs_fpath:
