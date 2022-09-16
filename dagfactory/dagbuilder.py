@@ -1,6 +1,6 @@
 """Module contains code for generating tasks and constructing a DAG"""
 from datetime import timedelta, datetime
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, Optional
 
 import os
 from copy import deepcopy
@@ -16,6 +16,8 @@ from airflow.utils.module_loading import import_string
 from airflow import __version__ as AIRFLOW_VERSION
 
 # kubernetes operator
+from dagfactory.utils import merge_configs
+
 try:
     from airflow.kubernetes.secret import Secret
     from airflow.kubernetes.pod import Port
@@ -86,7 +88,7 @@ class DagBuilder:
             )
         except Exception as err:
             raise Exception("Failed to merge config with default config") from err
-        dag_params["dag_id"]: str = self.dag_name
+        dag_params["dag_id"]: str = dag_params.get("dag_id_prefix", "") + self.dag_name
 
         if dag_params.get("task_groups") and version.parse(
             AIRFLOW_VERSION
@@ -584,6 +586,10 @@ class DagBuilder:
             dag_kwargs["alert_on_start"] = dag_params.get("alert_on_start", None)
             dag_kwargs["alert_on_finish"] = dag_params.get("alert_on_finish", None)
 
+        operator_defaults: Optional[Dict] = None
+        if utils.check_dict_key(dag_params, "operator_defaults"):
+            operator_defaults = dag_params["operator_defaults"]
+
         with dag_class(**dag_kwargs) as dag:
 
             if dag_params.get("doc_md_file_path"):
@@ -631,6 +637,10 @@ class DagBuilder:
                     task_conf["task_group"] = task_groups_dict[
                         task_conf.get("task_group_name")
                     ]
+                # merge task configs with global task configs if there's any
+                if operator_defaults and operator in set(operator_defaults.keys()):
+                    task_conf = merge_configs(task_conf, operator_defaults[operator])
+
                 params: Dict[str, Any] = {
                     k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
                 }
