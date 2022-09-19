@@ -120,6 +120,14 @@ def test_merge_configs_nested_configs():
     assert actual == expected
 
 
+def test_merge_configs_combines_lists():
+    dag_config = {"thing": ["value2", "value3"]}
+    default_config = {"thing": ["value1"]}
+    expected = {"thing": ["value1", "value2", "value3"]}
+    actual = utils.merge_configs(dag_config, default_config)
+    assert actual == expected
+
+
 def print_test():
     print("test")
 

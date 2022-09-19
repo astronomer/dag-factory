@@ -100,6 +100,9 @@ def merge_configs(
         if key in config:
             if isinstance(config[key], dict) and isinstance(default_config[key], dict):
                 merge_configs(config[key], default_config[key])
+            elif isinstance(config[key], list) and isinstance(default_config[key], list):
+                combined_list = list(set(config[key]).union(set(default_config[key])))
+                config[key] = combined_list
         else:
             config[key]: Any = default_config[key]
     return config
