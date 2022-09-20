@@ -131,7 +131,8 @@ def test_merge_configs_combines_specified_lists():
         "tags": ["tag2"]
     }
     actual = utils.merge_configs(dag_config, default_config, combine_key_values=["thing"])
-    assert actual == expected
+    for k in expected.keys():
+        assert sorted(actual[k]) == sorted(expected[k])
 
 
 def print_test():
