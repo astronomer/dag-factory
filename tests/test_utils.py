@@ -120,6 +120,21 @@ def test_merge_configs_nested_configs():
     assert actual == expected
 
 
+def test_merge_configs_combines_specified_lists():
+    dag_config = {
+        "thing": ["value2", "value3"],
+        "tags": ["tag2"]
+    }
+    default_config = {"thing": ["value1"], "tags": ["tag1"]}
+    expected = {
+        "thing": ["value1", "value2", "value3"],
+        "tags": ["tag2"]
+    }
+    actual = utils.merge_configs(dag_config, default_config, combine_key_values=["thing"])
+    for k in expected.keys():
+        assert sorted(actual[k]) == sorted(expected[k])
+
+
 def print_test():
     print("test")
 
