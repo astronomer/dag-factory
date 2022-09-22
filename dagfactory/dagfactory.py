@@ -69,7 +69,9 @@ class DagFactory:
         subs_fpath = [os.path.join(config_dir, sub) for sub in subs if sub not in maybe_default_file]
 
         # if there is no default.yaml in current sub folder, use the defaults from the parent folder
-        default_config = parent_default_config
+        # if there is, merge the defaults
+        default_config = parent_default_config or {}
+
         if len(maybe_default_file) > 0:
             default_file = maybe_default_file[0]
             default_fpath = os.path.join(config_dir, default_file)
@@ -77,7 +79,7 @@ class DagFactory:
                 cls._load_config(
                     config_filepath=default_fpath
                 ),
-                parent_default_config
+                default_config
             )
 
         # load dags from each yaml configuration files
