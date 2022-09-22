@@ -1,5 +1,6 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 import datetime
+import logging
 import os
 import traceback
 from typing import Any, Dict, Optional, Union, List
@@ -13,9 +14,12 @@ from airflow.operators.dummy import DummyOperator
 from dagfactory.dagbuilder import DagBuilder
 
 # these are params that cannot be a dag name
+from dagfactory.utils import merge_configs
+
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 ALLOWED_CONFIG_FILE_SUFFIX: List[str] = ["yaml", "yml"]
 
+logger = logging.getLogger(__file__)
 
 class DagFactory:
     """
@@ -50,7 +54,7 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     @classmethod
-    def from_directory(cls, config_dir, globals: Dict[str, Any], root_default_config: Optional[Dict[str, Any]] = None):
+    def from_directory(cls, config_dir, globals: Dict[str, Any], parent_default_config: Optional[Dict[str, Any]] = None):
         """
         Make instances of DagFactory for each yaml configuration files within a directory
         """
@@ -65,17 +69,19 @@ class DagFactory:
         subs_fpath = [os.path.join(config_dir, sub) for sub in subs if sub not in maybe_default_file]
 
         # if there is no default.yaml in current sub folder, use the defaults from the parent folder
-        default_config = root_default_config
+        # if there is, merge the defaults
+        default_config = parent_default_config or {}
+
         if len(maybe_default_file) > 0:
             default_file = maybe_default_file[0]
             default_fpath = os.path.join(config_dir, default_file)
-            default_config = cls._load_config(
-                config_filepath=default_fpath
+            default_config = merge_configs(
+                cls._load_config(
+                    config_filepath=default_fpath
+                ),
+                default_config
             )
 
-        # skip importing if the env is wrong
-        if "env" in default_config and default_config["env"] != os.environ["ENV"]:
-            return
         # load dags from each yaml configuration files
         import_failures = {}
         for sub_fpath in subs_fpath:
@@ -191,7 +197,10 @@ class DagFactory:
             )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-                dags[dag["dag_id"]]: DAG = dag["dag"]
+                if isinstance(dag["dag"], DAG):
+                    dags[dag["dag_id"]]: DAG = dag["dag"]
+                elif isinstance(dag["dag"], str):
+                    logger.info(f"dag {dag['dag_id']} was not imported. reason: {dag['dag']}")
             except Exception as err:
                 raise Exception(
                     f"Failed to generate dag {dag_name}. verify config is correct"
