@@ -504,10 +504,11 @@ class DagBuilder:
         :type: Dict[str, Union[str, DAG]]
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
+        env_var_name = dag_params.get("env_var_name", "NOT_SPECIFIED")
 
         # skip importing if the env is wrong
         if "allowed_envs" in dag_params:
-            if os.environ.get("ENV") not in dag_params["allowed_envs"]:
+            if os.environ.get("ENV", os.environ.get(env_var_name)) not in dag_params["allowed_envs"]:
                 return {"dag_id": dag_params["dag_id"], "dag": "wrong env, import skipped"}
 
         # skip importing if the namespace is wrong
