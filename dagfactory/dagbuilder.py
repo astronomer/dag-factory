@@ -505,6 +505,16 @@ class DagBuilder:
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
 
+        # skip importing if the env is wrong
+        if "allowed_envs" in dag_params:
+            if os.environ.get("ENV") not in dag_params["allowed_envs"]:
+                return {"dag_id": dag_params["dag_id"], "dag": "wrong env, import skipped"}
+
+        # skip importing if the namespace is wrong
+        if "allowed_namespaces" in dag_params:
+            if os.environ.get("AIRFLOW__KUBERNETES__NAMESPACE") not in dag_params["allowed_namespaces"]:
+                return {"dag_id": dag_params["dag_id"], "dag": "wrong namespace, import skipped"}
+
         dag_kwargs: Dict[str, Any] = {}
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
