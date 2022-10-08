@@ -434,8 +434,60 @@ class DagBuilder:
         return task
 
     @staticmethod
+    def make_nested_task_groups(
+            task_group_name: str,
+            task_group_conf: Any,
+            task_groups_dict: Dict[str, "TaskGroup"],
+            task_groups: Dict[str, Any],
+            circularity_check_queue: List[str],
+            dag: DAG
+    ):
+        """Takes a DAG and task group configurations. Creates nested TaskGroup instances.
+
+        :param task_group_name:
+        :param task_group_conf:
+        :param task_groups_dict
+        :param task_groups: Task group configuration from the YAML configuration file.
+        :param circularity_check_queue:
+        :param dag: DAG instance that task groups to be added.
+        """
+        if task_group_name in task_groups_dict:
+            return
+
+        if task_group_name in circularity_check_queue:
+            error_string = "Circular dependency detected:\n"
+            index = circularity_check_queue.index(task_group_name)
+            while index < len(circularity_check_queue):
+                error_string += f"{circularity_check_queue[index]} depends on\n"
+                index += 1
+            error_string += f"{task_group_name}"
+            raise Exception(error_string)
+
+        circularity_check_queue.append(task_group_name)
+
+        if task_group_conf.get("parent_group_name"):
+            parent_group_name = task_group_conf["parent_group_name"]
+            parent_group_conf = task_groups[parent_group_name]
+            DagBuilder.make_nested_task_groups(
+                parent_group_name, parent_group_conf, task_groups_dict, task_groups, circularity_check_queue, dag
+            )
+            task_group_conf["parent_group"] = task_groups_dict[parent_group_name]
+
+        task_group_conf["group_id"] = task_group_name
+        task_group_conf["dag"] = dag
+
+        task_group = TaskGroup(
+            **{
+                k: v
+                for k, v in task_group_conf.items()
+                if k not in SYSTEM_PARAMS
+            }
+        )
+        task_groups_dict[task_group_name] = task_group
+
+    @staticmethod
     def make_task_groups(
-        task_groups: Dict[str, Any], dag: DAG
+            task_groups: Dict[str, Any], dag: DAG
     ) -> Dict[str, "TaskGroup"]:
         """Takes a DAG and task group configurations. Creates TaskGroup instances.
 
@@ -445,16 +497,10 @@ class DagBuilder:
         task_groups_dict: Dict[str, "TaskGroup"] = {}
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
             for task_group_name, task_group_conf in task_groups.items():
-                task_group_conf["group_id"] = task_group_name
-                task_group_conf["dag"] = dag
-                task_group = TaskGroup(
-                    **{
-                        k: v
-                        for k, v in task_group_conf.items()
-                        if k not in SYSTEM_PARAMS
-                    }
+                circularity_check_queue = []
+                DagBuilder.make_nested_task_groups(
+                    task_group_name, task_group_conf, task_groups_dict, task_groups, circularity_check_queue, dag
                 )
-                task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
 
     @staticmethod
