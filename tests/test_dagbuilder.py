@@ -532,8 +532,7 @@ def test_make_nested_task_groups():
             tooltip="this is a task group", group_id="task_group", dag=dag
         ),
         "sub_task_group": MockTaskGroup(
-            tooltip="this is a sub task group", group_id="sub_task_group",
-            parent_group_name="task_group", dag=dag
+            tooltip="this is a sub task group", group_id="sub_task_group", dag=dag
         ),
     }
 
