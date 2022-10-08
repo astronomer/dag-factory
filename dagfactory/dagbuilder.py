@@ -53,7 +53,7 @@ else:
 # pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
-SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
+SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 
 
 class DagBuilder:
