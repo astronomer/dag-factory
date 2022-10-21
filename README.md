@@ -67,6 +67,15 @@ dag_factory.generate_dags(globals())
 
 And this DAG will be generated and ready to run in Airflow!
 
+If you have several configuration files you can improt them like this:
+
+```python
+# 'airflow' word is required for the dagbag to parse this file
+from dagfactory import load_yaml_dags
+
+load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
+```
+
 ![screenshot](/img/example_dag.png)
 
 ## Notes
