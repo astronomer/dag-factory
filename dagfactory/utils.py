@@ -1,15 +1,20 @@
 """Module contains various utilities used by dag-factory"""
+import ast
 import importlib.util
 import os
 import re
 import sys
-import ast
 import types
+import logging
 from datetime import date, datetime, timedelta
-from pathlib import Path
+from itertools import chain
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
+from pathlib import Path
+from airflow.configuration import conf as airflow_conf
 
 import pendulum
+
+from dagfactory import DagFactory
 
 
 def get_datetime(
@@ -181,13 +186,15 @@ def load_yaml_dags(
     And the prefix is set to yaml/yml by default. However, it can be
     interesting to load only a subset by setting a different suffix.
 
-    :param globals: The globals() from the file used to generate DAGs. The dag_id
+    :param globals: The globals() from the file used to generate DAGs. The
+    dag_id
         must be passed into globals() for Airflow to import
-    :dags_folder: Path to the folder you want to get recursively scanned for DAGs
+    :dags_folder: Path to the folder you want to get recursively scanned for
+    DAGs
     :suffix: file suffis to filter `in` what files to scan for dags
     xº"""
     # chain all file suffixes in a single iterator
-    logging.info(f"Loading DAGs from {dags_folder}")
+    logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
@@ -197,9 +204,6 @@ def load_yaml_dags(
         )
 
     for config_file_path in candidate_dag_files:
-        try:
-            config_file_abs_path = str(config_file_path.absolute())
-            DagFactory(config_file_abs_path).generate_dags(globals_dict)
-            logging.info(f"DAG loaded: {config_file_path}")
-        except BaseException as err:
-            raise AirflowException(f"Failed to load {config_file_path} — {err}")
+        config_file_abs_path = str(config_file_path.absolute())
+        DagFactory(config_file_abs_path).generate_dags(globals_dict)
+        logging.info("DAG loaded: %s", config_file_path)
