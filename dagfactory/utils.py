@@ -180,28 +180,26 @@ def load_yaml_dags(
     The dags folder is defaulted to the airflow dags folder if unspecified.
     And the prefix is set to yaml/yml by default. However, it can be
     interesting to load only a subset by setting a different suffix.
-    
+
     :param globals: The globals() from the file used to generate DAGs. The dag_id
         must be passed into globals() for Airflow to import
     :dags_folder: Path to the folder you want to get recursively scanned for DAGs
     :suffix: file suffis to filter `in` what files to scan for dags
     xº"""
     # chain all file suffixes in a single iterator
-    logging.info(f'Loading DAGs from {dags_folder}')
+    logging.info(f"Loading DAGs from {dags_folder}")
     if suffix is None:
-        suffix = ['.yaml', '.yml']
+        suffix = [".yaml", ".yml"]
     candidate_dag_files = []
     for suf in suffix:
         candidate_dag_files = chain(
-            candidate_dag_files,
-            Path(dags_folder).rglob(f'*{suf}')
+            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
         )
 
     for config_file_path in candidate_dag_files:
         try:
             config_file_abs_path = str(config_file_path.absolute())
             DagFactory(config_file_abs_path).generate_dags(globals_dict)
-            logging.info(f'DAG loaded: {config_file_path}')
+            logging.info(f"DAG loaded: {config_file_path}")
         except BaseException as err:
-            raise AirflowException(
-                f"Failed to load {config_file_path} — {err}")
+            raise AirflowException(f"Failed to load {config_file_path} — {err}")
