@@ -5,12 +5,34 @@ from unittest.mock import patch
 import pendulum
 import pytest
 from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonOperator
-from airflow.sensors.http_sensor import HttpSensor
-from airflow.sensors.sql_sensor import SqlSensor
-from airflow import __version__ as AIRFLOW_VERSION
+
 from packaging import version
+
+try:
+    from airflow.providers.http.sensors.http import HttpSensor
+except ImportError:
+    from airflow.sensors.http_sensor import HttpSensor
+
+try:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
+except ImportError:
+    from airflow.sensors.sql_sensor import SqlSensor
+
+try:
+    from airflow.operators.bash import BashOperator
+except ImportError:
+    from airflow.operators.bash_operator import BashOperator
+
+try:
+    from airflow.operators.python import PythonOperator
+except ImportError:
+    from airflow.operators.python_operator import PythonOperator
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:
+    from airflow import __version__ as AIRFLOW_VERSION
+
 
 from dagfactory import dagbuilder
 
