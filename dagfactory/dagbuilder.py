@@ -42,7 +42,9 @@ try:
     from airflow.kubernetes.volume_mount import VolumeMount
     from airflow.kubernetes.volume import Volume
     from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
-    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+        KubernetesPodOperator,
+    )
 except ImportError:
     from airflow.contrib.kubernetes.secret import Secret
     from airflow.contrib.kubernetes.pod import Port
