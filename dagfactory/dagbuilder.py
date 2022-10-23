@@ -30,9 +30,9 @@ except ImportError:
 
 # sql sensor was moved in 2.4
 try:
-    from airflow.providers.common.sql.sensors.sql import SqlSensor
-except ImportError:
     from airflow.sensors.sql_sensor import SqlSensor
+except ImportError:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
 
 # kubernetes operator
 try:
