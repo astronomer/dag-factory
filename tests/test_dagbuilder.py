@@ -327,7 +327,10 @@ def test_make_http_sensor_lambda():
 
 def test_make_sql_sensor_success():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        operator = "airflow.providers.common.sql.sensors.sql.SqlSensor"
+    else:
+        operator = "airflow.sensors.sql_sensor.SqlSensor"
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -343,7 +346,10 @@ def test_make_sql_sensor_success():
 
 def test_make_sql_sensor_success_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        operator = "airflow.providers.common.sql.sensors.sql.SqlSensor"
+    else:
+        operator = "airflow.sensors.sql_sensor.SqlSensor"
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -358,7 +364,10 @@ def test_make_sql_sensor_success_lambda():
 
 def test_make_sql_sensor_failure():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        operator = "airflow.providers.common.sql.sensors.sql.SqlSensor"
+    else:
+        operator = "airflow.sensors.sql_sensor.SqlSensor"
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -375,7 +384,10 @@ def test_make_sql_sensor_failure():
 
 def test_make_sql_sensor_failure_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+        operator = "airflow.providers.common.sql.sensors.sql.SqlSensor"
+    else:
+        operator = "airflow.sensors.sql_sensor.SqlSensor"
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
