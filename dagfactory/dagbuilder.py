@@ -11,10 +11,9 @@ from airflow.models import BaseOperator
 from airflow.utils.module_loading import import_string
 
 try:
-    from airflow import version as AIRFLOW_VERSION
+    from airflow.version import version as AIRFLOW_VERSION
 except ImportError:
     from airflow import __version__ as AIRFLOW_VERSION
-
 
 # python operators were moved in 2.4
 try:
