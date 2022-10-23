@@ -7,13 +7,33 @@ from copy import deepcopy
 
 from airflow import DAG, configuration
 from airflow.models import Variable
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.sensors.http_sensor import HttpSensor
-from airflow.sensors.sql_sensor import SqlSensor
 from airflow.utils.module_loading import import_string
-from airflow import __version__ as AIRFLOW_VERSION
+
+try:
+    from airflow import version as AIRFLOW_VERSION
+except ImportError:
+    from airflow import __version__ as AIRFLOW_VERSION
+
+
+# python operators were moved in 2.4
+try:
+    from airflow.operators.python import PythonOperator, BranchPythonOperator
+except ImportError:
+    from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+
+
+# http sensor was moved in 2.4
+try:
+    from airflow.providers.http.sensors.http import HttpSensor
+except ImportError:
+    from airflow.sensors.http_sensor import HttpSensor
+
+# sql sensor was moved in 2.4
+try:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
+except ImportError:
+    from airflow.sensors.sql_sensor import SqlSensor
 
 # kubernetes operator
 try:
@@ -22,12 +42,14 @@ try:
     from airflow.kubernetes.volume_mount import VolumeMount
     from airflow.kubernetes.volume import Volume
     from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 except ImportError:
     from airflow.contrib.kubernetes.secret import Secret
     from airflow.contrib.kubernetes.pod import Port
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.kubernetes.volume import Volume
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from kubernetes.client.models import V1Pod, V1Container
 from packaging import version
 
