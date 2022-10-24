@@ -179,7 +179,7 @@ def load_yaml_dags(
     :param globals_dict: The globals() from the file used to generate DAGs
     :dags_folder: Path to the folder you want to get recursively scanned
     :suffix: file suffix to filter `in` what files to scan for dags
-    xº"""
+    """
     # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
@@ -194,4 +194,3 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         DagFactory(config_file_abs_path).generate_dags(globals_dict)
         logging.info("DAG loaded: %s", config_file_path)
-
