@@ -5,16 +5,11 @@ import os
 import re
 import sys
 import types
-import logging
 from datetime import date, datetime, timedelta
-from itertools import chain
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 from pathlib import Path
-from airflow.configuration import conf as airflow_conf
 
 import pendulum
-
-from dagfactory import DagFactory
 
 
 def get_datetime(
@@ -172,38 +167,3 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :type: bool
     """
     return bool(key in item_dict and item_dict[key] is not None)
-
-
-def load_yaml_dags(
-    globals_dict: Dict[str, Any],
-    dags_folder: str = airflow_conf.get("core", "dags_folder"),
-    suffix=None,
-):
-    """
-    Loads all the yaml/yml files in the dags folder
-
-    The dags folder is defaulted to the airflow dags folder if unspecified.
-    And the prefix is set to yaml/yml by default. However, it can be
-    interesting to load only a subset by setting a different suffix.
-
-    :param globals: The globals() from the file used to generate DAGs. The
-    dag_id
-        must be passed into globals() for Airflow to import
-    :dags_folder: Path to the folder you want to get recursively scanned for
-    DAGs
-    :suffix: file suffis to filter `in` what files to scan for dags
-    xº"""
-    # chain all file suffixes in a single iterator
-    logging.info("Loading DAGs from %s", dags_folder)
-    if suffix is None:
-        suffix = [".yaml", ".yml"]
-    candidate_dag_files = []
-    for suf in suffix:
-        candidate_dag_files = chain(
-            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
-        )
-
-    for config_file_path in candidate_dag_files:
-        config_file_abs_path = str(config_file_path.absolute())
-        DagFactory(config_file_abs_path).generate_dags(globals_dict)
-        logging.info("DAG loaded: %s", config_file_path)
