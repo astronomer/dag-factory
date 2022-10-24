@@ -112,9 +112,9 @@ def get_python_callable(python_callable_name, python_callable_file):
 
     :param python_callable_name: name of python callable to be imported
     :type python_callable_name:  str
-    :param python_callable_file: aboslute path of python file with callable
+    :param python_callable_file: absolute path of python file with callable
     :type python_callable_file: str
-    :returns: python calllable
+    :returns: python callable
     :type: callable
     """
 
