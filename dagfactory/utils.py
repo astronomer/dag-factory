@@ -1,13 +1,13 @@
 """Module contains various utilities used by dag-factory"""
+import ast
 import importlib.util
 import os
 import re
 import sys
-import ast
 import types
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
+from pathlib import Path
 
 import pendulum
 
@@ -112,9 +112,9 @@ def get_python_callable(python_callable_name, python_callable_file):
 
     :param python_callable_name: name of python callable to be imported
     :type python_callable_name:  str
-    :param python_callable_file: aboslute path of python file with callable
+    :param python_callable_file: absolute path of python file with callable
     :type python_callable_file: str
-    :returns: python calllable
+    :returns: python callable
     :type: callable
     """
 
