@@ -575,6 +575,8 @@ class DagBuilder:
 
         dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
 
+        dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
+
         dag_kwargs["access_control"] = dag_params.get("access_control", None)
 
         dag_kwargs["is_paused_upon_creation"] = dag_params.get(
