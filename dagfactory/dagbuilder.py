@@ -136,6 +136,12 @@ class DagBuilder:
                 ]: Callable = import_string(
                     dag_params["default_args"]["on_success_callback"]
                 )
+                if utils.check_dict_key(dag_params["default_args"], "on_success_callback_kwargs"):
+                    on_success_callback_kwargs = dag_params["default_args"]["on_success_callback_kwargs"]
+                    dag_params["default_args"][
+                        "on_success_callback"
+                    ]: Callable = dag_params["default_args"]["on_success_callback"](**on_success_callback_kwargs)
+                    del dag_params["default_args"]["on_success_callback_kwargs"]
 
         if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
             if isinstance(dag_params["default_args"]["on_failure_callback"], str):
@@ -144,6 +150,12 @@ class DagBuilder:
                 ]: Callable = import_string(
                     dag_params["default_args"]["on_failure_callback"]
                 )
+                if utils.check_dict_key(dag_params["default_args"], "on_failure_callback_kwargs"):
+                    on_failure_callback_kwargs = dag_params["default_args"]["on_failure_callback_kwargs"]
+                    dag_params["default_args"][
+                        "on_failure_callback"
+                    ]: Callable = dag_params["default_args"]["on_failure_callback"](**on_failure_callback_kwargs)
+                    del dag_params["default_args"]["on_failure_callback_kwargs"]
 
         if utils.check_dict_key(dag_params["default_args"], "on_retry_callback"):
             if isinstance(dag_params["default_args"]["on_retry_callback"], str):
@@ -164,12 +176,24 @@ class DagBuilder:
                 dag_params["on_success_callback"]: Callable = import_string(
                     dag_params["on_success_callback"]
                 )
+                if utils.check_dict_key(dag_params, "on_success_callback_kwargs"):
+                    on_success_callback_kwargs = dag_params["on_success_callback_kwargs"]
+                    dag_params["on_success_callback"]: Callable = dag_params["on_success_callback"](
+                        **on_success_callback_kwargs
+                    )
+                    del dag_params["on_success_callback_kwargs"]
 
         if utils.check_dict_key(dag_params, "on_failure_callback"):
             if isinstance(dag_params["on_failure_callback"], str):
                 dag_params["on_failure_callback"]: Callable = import_string(
                     dag_params["on_failure_callback"]
                 )
+                if utils.check_dict_key(dag_params, "on_failure_callback_kwargs"):
+                    on_failure_callback_kwargs = dag_params["on_failure_callback_kwargs"]
+                    dag_params["on_failure_callback"]: Callable = dag_params["on_failure_callback"](
+                        **on_failure_callback_kwargs
+                    )
+                    del dag_params["on_failure_callback_kwargs"]
 
         if utils.check_dict_key(
             dag_params, "on_success_callback_name"
@@ -407,11 +431,22 @@ class DagBuilder:
                 task_params["on_failure_callback"]: Callable = import_string(
                     task_params["on_failure_callback"]
                 )
+                if utils.check_dict_key(task_params, "on_failure_callback_kwargs"):
+                    on_failure_callback_kwargs = task_params["on_failure_callback_kwargs"]
+                    task_params["on_failure_callback"]: Callable = task_params["on_failure_callback"](
+                        **on_failure_callback_kwargs)
+                    del task_params["on_failure_callback_kwargs"]
 
             if utils.check_dict_key(task_params, "on_success_callback"):
                 task_params["on_success_callback"]: Callable = import_string(
                     task_params["on_success_callback"]
                 )
+                if utils.check_dict_key(task_params, "on_success_callback_kwargs"):
+                    on_success_callback_kwargs = task_params["on_success_callback_kwargs"]
+                    task_params["on_success_callback"]: Callable = task_params["on_success_callback"](
+                        **on_success_callback_kwargs
+                    )
+                    del task_params["on_success_callback_kwargs"]
 
             if utils.check_dict_key(task_params, "on_retry_callback"):
                 task_params["on_retry_callback"]: Callable = import_string(
