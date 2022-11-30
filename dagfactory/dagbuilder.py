@@ -142,6 +142,12 @@ class DagBuilder:
             )
             del dag_params["default_args"]["retry_delay_sec"]
 
+        if utils.check_dict_key(dag_params["default_args"], "sla_secs"):
+            dag_params["default_args"]["sla"]: timedelta = timedelta(
+                seconds=dag_params["default_args"]["sla_secs"]
+            )
+            del dag_params["default_args"]["sla_secs"]
+
         if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
             if isinstance(dag_params["default_args"]["sla_miss_callback"], str):
                 dag_params["default_args"][
