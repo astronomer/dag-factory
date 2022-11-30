@@ -9,7 +9,7 @@ from airflow import DAG, configuration
 from airflow.models import Variable
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.models import BaseOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator, ShortCircuitOperator
 from airflow.sensors.http_sensor import HttpSensor
 from airflow.sensors.sql_sensor import SqlSensor
 from airflow.utils.module_loading import import_string
@@ -257,7 +257,7 @@ class DagBuilder:
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
         try:
-            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
+            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor, ShortCircuitOperator]:
                 if (
                     not task_params.get("python_callable")
                     and not task_params.get("python_callable_name")
@@ -265,7 +265,7 @@ class DagBuilder:
                 ):
                     # pylint: disable=line-too-long
                     raise Exception(
-                        "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
+                        "Failed to create task. PythonOperator, BranchPythonOperator, PythonSensor and ShortCircuitOperator requires \
                         `python_callable_name` and `python_callable_file` "
                         "parameters.\nOptionally you can load python_callable "
                         "from a file. with the special pyyaml notation:\n"
