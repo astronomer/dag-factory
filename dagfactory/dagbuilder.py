@@ -1,6 +1,7 @@
 """Module contains code for generating tasks and constructing a DAG"""
 from datetime import timedelta, datetime
 from typing import Any, Callable, Dict, List, Union
+from packaging import version
 
 import os
 from copy import deepcopy
@@ -36,11 +37,21 @@ except ImportError:
 
 # kubernetes operator
 try:
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.5.0"):
+        from kubernetes.client.models import (
+            V1ContainerPort as Port,
+            V1VolumeMount as VolumeMount,
+            V1Volume,
+            V1EnvVar,
+            V1EnvVarSource,
+            V1ObjectFieldSelector,
+        )
+    else:
+        from airflow.kubernetes.pod import Port
+        from airflow.kubernetes.volume_mount import VolumeMount
+        from airflow.kubernetes.volume import Volume
+        from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.kubernetes.secret import Secret
-    from airflow.kubernetes.pod import Port
-    from airflow.kubernetes.volume_mount import VolumeMount
-    from airflow.kubernetes.volume import Volume
-    from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
         KubernetesPodOperator,
     )
@@ -52,7 +63,6 @@ except ImportError:
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from kubernetes.client.models import V1Pod, V1Container
-from packaging import version
 
 from dagfactory import utils
 
@@ -370,19 +380,51 @@ class DagBuilder:
                     if task_params.get("volume_mounts") is not None
                     else None
                 )
-                task_params["volumes"] = (
-                    [Volume(**v) for v in task_params.get("volumes")]
-                    if task_params.get("volumes") is not None
-                    else None
-                )
-                task_params["pod_runtime_info_envs"] = (
-                    [
-                        PodRuntimeInfoEnv(**v)
-                        for v in task_params.get("pod_runtime_info_envs")
-                    ]
-                    if task_params.get("pod_runtime_info_envs") is not None
-                    else None
-                )
+                if version.parse(AIRFLOW_VERSION) >= version.parse("2.5.0"):
+                    if task_params.get("volumes") is not None:
+                        task_params_volumes = []
+                        for vol in task_params.get("volumes"):
+                            resp = V1Volume(name=vol.get("name"))
+                            for k, v in vol["configs"].items():
+                                snake_key = utils.convert_to_snake_case(k)
+                                if hasattr(resp, snake_key):
+                                    setattr(resp, snake_key, v)
+                                else:
+                                    raise Exception(
+                                        f"Volume for KubernetesPodOperator \
+                                        does not have attribute {k}"
+                                    )
+                            task_params_volumes.append(resp)
+                        task_params["volumes"] = task_params_volumes
+                    else:
+                        task_params["volumes"] = None
+
+                    task_params["pod_runtime_info_envs"] = (
+                        [
+                            V1EnvVar(
+                                name=v.get("name"),
+                                value_from=V1EnvVarSource(
+                                    field_ref=V1ObjectFieldSelector(field_path=v.get("field_path")))
+                            )
+                            for v in task_params.get("pod_runtime_info_envs")
+                        ]
+                        if task_params.get("pod_runtime_info_envs") is not None
+                        else None
+                    )
+                else:
+                    task_params["volumes"] = (
+                        [Volume(**v) for v in task_params.get("volumes")]
+                        if task_params.get("volumes") is not None
+                        else None
+                    )
+                    task_params["pod_runtime_info_envs"] = (
+                        [
+                            PodRuntimeInfoEnv(**v)
+                            for v in task_params.get("pod_runtime_info_envs")
+                        ]
+                        if task_params.get("pod_runtime_info_envs") is not None
+                        else None
+                    )
                 task_params["full_pod_spec"] = (
                     V1Pod(**task_params.get("full_pod_spec"))
                     if task_params.get("full_pod_spec") is not None
