@@ -1,15 +1,14 @@
 """Module contains code for generating tasks and constructing a DAG"""
-from datetime import timedelta, datetime
-from typing import Any, Callable, Dict, List, Union
-from packaging import version
-
+# pylint: disable=ungrouped-imports
 import os
 from copy import deepcopy
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
-from airflow.models import Variable
-from airflow.models import BaseOperator
+from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
+from packaging import version
 
 try:
     from airflow.version import version as AIRFLOW_VERSION
@@ -18,9 +17,9 @@ except ImportError:
 
 # python operators were moved in 2.4
 try:
-    from airflow.operators.python import PythonOperator, BranchPythonOperator
+    from airflow.operators.python import BranchPythonOperator, PythonOperator
 except ImportError:
-    from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+    from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
 
 # http sensor was moved in 2.4
@@ -38,14 +37,14 @@ except ImportError:
 # kubernetes operator
 try:
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.5.0"):
+        from kubernetes.client.models import V1ContainerPort as Port
         from kubernetes.client.models import (
-            V1ContainerPort as Port,
-            V1VolumeMount as VolumeMount,
-            V1Volume,
             V1EnvVar,
             V1EnvVarSource,
             V1ObjectFieldSelector,
+            V1Volume,
         )
+        from kubernetes.client.models import V1VolumeMount as VolumeMount
     else:
         from airflow.kubernetes.pod import Port
         from airflow.kubernetes.volume_mount import VolumeMount
@@ -62,7 +61,8 @@ except ImportError:
     from airflow.contrib.kubernetes.volume import Volume
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from kubernetes.client.models import V1Pod, V1Container
+
+from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import utils
 
@@ -269,6 +269,7 @@ class DagBuilder:
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
+        # pylint: disable=too-many-nested-blocks
         try:
             if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
                 if (
