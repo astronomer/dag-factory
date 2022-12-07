@@ -167,3 +167,19 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :type: bool
     """
     return bool(key in item_dict and item_dict[key] is not None)
+
+
+def convert_to_snake_case(input_string: str) -> str:
+    """
+    Converts the string to snake case if camel case.
+
+    :param input_string: the string to be converted
+    :type input_string: str
+    :return: string converted to snake case
+    :type: str
+    """
+    # pylint: disable=line-too-long
+    # source: https://www.geeksforgeeks.org/python-program-to-convert-camel-case-string-to-snake-case/
+    return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip(
+        "_"
+    )
