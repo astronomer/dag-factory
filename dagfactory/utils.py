@@ -178,8 +178,8 @@ def convert_to_snake_case(input_string: str) -> str:
     :return: string converted to snake case
     :type: str
     """
-    # source: https://www.geeksforgeeks.org/python-program-to-convert-camel-case-string-to-snake-case/
     # pylint: disable=line-too-long
+    # source: https://www.geeksforgeeks.org/python-program-to-convert-camel-case-string-to-snake-case/
     return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip(
         "_"
     )
