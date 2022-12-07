@@ -404,7 +404,10 @@ class DagBuilder:
                             V1EnvVar(
                                 name=v.get("name"),
                                 value_from=V1EnvVarSource(
-                                    field_ref=V1ObjectFieldSelector(field_path=v.get("field_path")))
+                                    field_ref=V1ObjectFieldSelector(
+                                        field_path=v.get("field_path")
+                                    )
+                                ),
                             )
                             for v in task_params.get("pod_runtime_info_envs")
                         ]
