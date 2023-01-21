@@ -34,9 +34,22 @@ try:
 except ImportError:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
+# k8s libraries are moved in v5.0.0
+try:
+    from airflow.providers.cncf.kubernetes import get_provider_info
+
+    K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
+except ImportError:
+    K8S_PROVIDER_VERSION = "0"
+
 # kubernetes operator
 try:
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.5.0"):
+    if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
+        from airflow.kubernetes.pod import Port
+        from airflow.kubernetes.volume_mount import VolumeMount
+        from airflow.kubernetes.volume import Volume
+        from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    else:
         from kubernetes.client.models import V1ContainerPort as Port
         from kubernetes.client.models import (
             V1EnvVar,
@@ -45,11 +58,6 @@ try:
             V1Volume,
         )
         from kubernetes.client.models import V1VolumeMount as VolumeMount
-    else:
-        from airflow.kubernetes.pod import Port
-        from airflow.kubernetes.volume_mount import VolumeMount
-        from airflow.kubernetes.volume import Volume
-        from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.kubernetes.secret import Secret
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
         KubernetesPodOperator,
@@ -381,7 +389,21 @@ class DagBuilder:
                     if task_params.get("volume_mounts") is not None
                     else None
                 )
-                if version.parse(AIRFLOW_VERSION) >= version.parse("2.5.0"):
+                if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
+                    task_params["volumes"] = (
+                        [Volume(**v) for v in task_params.get("volumes")]
+                        if task_params.get("volumes") is not None
+                        else None
+                    )
+                    task_params["pod_runtime_info_envs"] = (
+                        [
+                            PodRuntimeInfoEnv(**v)
+                            for v in task_params.get("pod_runtime_info_envs")
+                        ]
+                        if task_params.get("pod_runtime_info_envs") is not None
+                        else None
+                    )
+                else:
                     if task_params.get("volumes") is not None:
                         task_params_volumes = []
                         for vol in task_params.get("volumes"):
@@ -410,20 +432,6 @@ class DagBuilder:
                                     )
                                 ),
                             )
-                            for v in task_params.get("pod_runtime_info_envs")
-                        ]
-                        if task_params.get("pod_runtime_info_envs") is not None
-                        else None
-                    )
-                else:
-                    task_params["volumes"] = (
-                        [Volume(**v) for v in task_params.get("volumes")]
-                        if task_params.get("volumes") is not None
-                        else None
-                    )
-                    task_params["pod_runtime_info_envs"] = (
-                        [
-                            PodRuntimeInfoEnv(**v)
                             for v in task_params.get("pod_runtime_info_envs")
                         ]
                         if task_params.get("pod_runtime_info_envs") is not None
