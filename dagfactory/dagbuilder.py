@@ -37,7 +37,8 @@ except ImportError:
 # k8s libraries are moved in v5.0.0
 try:
     import airflow.providers.cncf.kubernetes.get_provider_info as get_provider_info
-    K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()['versions'][0]
+
+    K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
 except ImportError:
     K8S_PROVIDER_VERSION = "0"
 
