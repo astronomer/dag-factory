@@ -18,7 +18,7 @@ DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
 URL = "https://github.com/pelotoncycle/dag-factory"
 EMAIL = "data-engineering@onepeloton.com"
 AUTHOR = "Data Engineering Team"
-REQUIRES_PYTHON = ">=3.6.0"
+REQUIRES_PYTHON = ">=3.7.0"
 VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))

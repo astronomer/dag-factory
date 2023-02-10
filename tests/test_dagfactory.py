@@ -1,6 +1,6 @@
-from logging import error
 import os
 import datetime
+
 import pytest
 from airflow.models.variable import Variable
 from packaging import version
@@ -8,7 +8,7 @@ from airflow import __version__ as AIRFLOW_VERSION
 
 here = os.path.dirname(__file__)
 
-from dagfactory import dagfactory
+from dagfactory import dagfactory, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
@@ -429,3 +429,20 @@ def test_set_callback_after_loading_config():
         config=DAG_FACTORY_CONFIG
     ).build_dags
     td.generate_dags(globals())
+
+
+def test_load_yaml_dags_fail():
+    with pytest.raises(Exception):
+        load_yaml_dags(
+            globals_dict= globals(),
+            dags_folder="tests/fixtures",
+            suffix=["invalid_yaml.yml"],
+        )
+
+
+def test_load_yaml_dags_succeed():
+    load_yaml_dags(
+        globals_dict= globals(),
+        dags_folder="tests/fixtures",
+        suffix=["dag_factory_variables_as_arguments.yml"],
+    )

@@ -1,37 +1,78 @@
 """Module contains code for generating tasks and constructing a DAG"""
-from datetime import timedelta, datetime
-from typing import Any, Callable, Dict, List, Union, Optional
-
+# pylint: disable=ungrouped-imports
 import os
 from copy import deepcopy
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Union, Optional
 
 from airflow import DAG, configuration
-from airflow.models import Variable
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.models import BaseOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator, ShortCircuitOperator
-from airflow.sensors.http_sensor import HttpSensor
-from airflow.sensors.sql_sensor import SqlSensor
+from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
-from airflow import __version__ as AIRFLOW_VERSION
+from packaging import version
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:
+    from airflow import __version__ as AIRFLOW_VERSION
+
+# python operators were moved in 2.4
+try:
+    from airflow.operators.python import BranchPythonOperator, PythonOperator, ShortCircuitOperator
+except ImportError:
+    from airflow.operators.python_operator import BranchPythonOperator, PythonOperator, ShortCircuitOperator
+
+
+# http sensor was moved in 2.4
+try:
+    from airflow.providers.http.sensors.http import HttpSensor
+except ImportError:
+    from airflow.sensors.http_sensor import HttpSensor
+
+# sql sensor was moved in 2.4
+try:
+    from airflow.sensors.sql_sensor import SqlSensor
+except ImportError:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
+
+# k8s libraries are moved in v5.0.0
+try:
+    from airflow.providers.cncf.kubernetes import get_provider_info
+
+    K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
+except ImportError:
+    K8S_PROVIDER_VERSION = "0"
 
 # kubernetes operator
 from dagfactory.utils import merge_configs
 
 try:
+    if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
+        from airflow.kubernetes.pod import Port
+        from airflow.kubernetes.volume_mount import VolumeMount
+        from airflow.kubernetes.volume import Volume
+        from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    else:
+        from kubernetes.client.models import V1ContainerPort as Port
+        from kubernetes.client.models import (
+            V1EnvVar,
+            V1EnvVarSource,
+            V1ObjectFieldSelector,
+            V1Volume,
+        )
+        from kubernetes.client.models import V1VolumeMount as VolumeMount
     from airflow.kubernetes.secret import Secret
-    from airflow.kubernetes.pod import Port
-    from airflow.kubernetes.volume_mount import VolumeMount
-    from airflow.kubernetes.volume import Volume
-    from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+        KubernetesPodOperator,
+    )
 except ImportError:
     from airflow.contrib.kubernetes.secret import Secret
     from airflow.contrib.kubernetes.pod import Port
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.kubernetes.volume import Volume
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
-from kubernetes.client.models import V1Pod, V1Container
-from packaging import version
+    from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+
+from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import utils
 
@@ -120,6 +161,12 @@ class DagBuilder:
                 seconds=dag_params["default_args"]["retry_delay_sec"]
             )
             del dag_params["default_args"]["retry_delay_sec"]
+
+        if utils.check_dict_key(dag_params["default_args"], "sla_secs"):
+            dag_params["default_args"]["sla"]: timedelta = timedelta(
+                seconds=dag_params["default_args"]["sla_secs"]
+            )
+            del dag_params["default_args"]["sla_secs"]
 
         if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
             if isinstance(dag_params["default_args"]["sla_miss_callback"], str):
@@ -256,6 +303,7 @@ class DagBuilder:
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
         except Exception as err:
             raise Exception(f"Failed to import operator: {operator}") from err
+        # pylint: disable=too-many-nested-blocks
         try:
             if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor, ShortCircuitOperator]:
                 if (
@@ -367,19 +415,54 @@ class DagBuilder:
                     if task_params.get("volume_mounts") is not None
                     else None
                 )
-                task_params["volumes"] = (
-                    [Volume(**v) for v in task_params.get("volumes")]
-                    if task_params.get("volumes") is not None
-                    else None
-                )
-                task_params["pod_runtime_info_envs"] = (
-                    [
-                        PodRuntimeInfoEnv(**v)
-                        for v in task_params.get("pod_runtime_info_envs")
-                    ]
-                    if task_params.get("pod_runtime_info_envs") is not None
-                    else None
-                )
+                if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
+                    task_params["volumes"] = (
+                        [Volume(**v) for v in task_params.get("volumes")]
+                        if task_params.get("volumes") is not None
+                        else None
+                    )
+                    task_params["pod_runtime_info_envs"] = (
+                        [
+                            PodRuntimeInfoEnv(**v)
+                            for v in task_params.get("pod_runtime_info_envs")
+                        ]
+                        if task_params.get("pod_runtime_info_envs") is not None
+                        else None
+                    )
+                else:
+                    if task_params.get("volumes") is not None:
+                        task_params_volumes = []
+                        for vol in task_params.get("volumes"):
+                            resp = V1Volume(name=vol.get("name"))
+                            for k, v in vol["configs"].items():
+                                snake_key = utils.convert_to_snake_case(k)
+                                if hasattr(resp, snake_key):
+                                    setattr(resp, snake_key, v)
+                                else:
+                                    raise Exception(
+                                        f"Volume for KubernetesPodOperator \
+                                        does not have attribute {k}"
+                                    )
+                            task_params_volumes.append(resp)
+                        task_params["volumes"] = task_params_volumes
+                    else:
+                        task_params["volumes"] = None
+
+                    task_params["pod_runtime_info_envs"] = (
+                        [
+                            V1EnvVar(
+                                name=v.get("name"),
+                                value_from=V1EnvVarSource(
+                                    field_ref=V1ObjectFieldSelector(
+                                        field_path=v.get("field_path")
+                                    )
+                                ),
+                            )
+                            for v in task_params.get("pod_runtime_info_envs")
+                        ]
+                        if task_params.get("pod_runtime_info_envs") is not None
+                        else None
+                    )
                 task_params["full_pod_spec"] = (
                     V1Pod(**task_params.get("full_pod_spec"))
                     if task_params.get("full_pod_spec") is not None

@@ -1,13 +1,13 @@
 """Module contains various utilities used by dag-factory"""
+import ast
 import importlib.util
 import os
 import re
 import sys
-import ast
 import types
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
+from pathlib import Path
 
 import pendulum
 
@@ -115,9 +115,9 @@ def get_python_callable(python_callable_name, python_callable_file):
 
     :param python_callable_name: name of python callable to be imported
     :type python_callable_name:  str
-    :param python_callable_file: aboslute path of python file with callable
+    :param python_callable_file: absolute path of python file with callable
     :type python_callable_file: str
-    :returns: python calllable
+    :returns: python callable
     :type: callable
     """
 
@@ -170,3 +170,19 @@ def check_dict_key(item_dict: Dict[str, Any], key: str) -> bool:
     :type: bool
     """
     return bool(key in item_dict and item_dict[key] is not None)
+
+
+def convert_to_snake_case(input_string: str) -> str:
+    """
+    Converts the string to snake case if camel case.
+
+    :param input_string: the string to be converted
+    :type input_string: str
+    :return: string converted to snake case
+    :type: str
+    """
+    # pylint: disable=line-too-long
+    # source: https://www.geeksforgeeks.org/python-program-to-convert-camel-case-string-to-snake-case/
+    return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip(
+        "_"
+    )

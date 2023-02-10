@@ -14,7 +14,7 @@
   
 ## Installation
 
-To install *dag-factory* run `pip install dag-factory`. It requires Python 3.6.0+ and Apache Airflow 1.10+.
+To install *dag-factory* run `pip install dag-factory`. It requires Python 3.6.0+ and Apache Airflow 2.0+.
 
 ## Usage
 
@@ -66,6 +66,15 @@ dag_factory.generate_dags(globals())
 ```
 
 And this DAG will be generated and ready to run in Airflow!
+
+If you have several configuration files you can import them like this:
+
+```python
+# 'airflow' word is required for the dagbag to parse this file
+from dagfactory import load_yaml_dags
+
+load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
+```
 
 ![screenshot](/img/example_dag.png)
 

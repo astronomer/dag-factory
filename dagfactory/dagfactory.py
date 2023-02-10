@@ -1,17 +1,20 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 import datetime
+import traceback
 import logging
 import os
-import traceback
-from typing import Any, Dict, Optional, Union, List
+from itertools import chain
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import pendulum
 import yaml
-from airflow.configuration import conf
+from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
 
 from dagfactory.dagbuilder import DagBuilder
+
 
 # these are params that cannot be a dag name
 from dagfactory.utils import merge_configs
@@ -32,8 +35,8 @@ class DagFactory:
     :type config: dict
     """
 
-    DAGBAG_IMPORT_ERROR_TRACEBACKS = conf.getboolean('core', 'dagbag_import_error_tracebacks')
-    DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH = conf.getint('core', 'dagbag_import_error_traceback_depth')
+    DAGBAG_IMPORT_ERROR_TRACEBACKS = airflow_conf.getboolean('core', 'dagbag_import_error_tracebacks')
+    DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH = airflow_conf.getint('core', 'dagbag_import_error_traceback_depth')
 
     def __init__(
             self,
@@ -253,3 +256,35 @@ class DagFactory:
             del globals[dag_to_remove]
 
     # pylint: enable=redefined-builtin
+
+
+def load_yaml_dags(
+    globals_dict: Dict[str, Any],
+    dags_folder: str = airflow_conf.get("core", "dags_folder"),
+    suffix=None,
+):
+    """
+    Loads all the yaml/yml files in the dags folder
+
+    The dags folder is defaulted to the airflow dags folder if unspecified.
+    And the prefix is set to yaml/yml by default. However, it can be
+    interesting to load only a subset by setting a different suffix.
+
+    :param globals_dict: The globals() from the file used to generate DAGs
+    :dags_folder: Path to the folder you want to get recursively scanned
+    :suffix: file suffix to filter `in` what files to scan for dags
+    """
+    # chain all file suffixes in a single iterator
+    logging.info("Loading DAGs from %s", dags_folder)
+    if suffix is None:
+        suffix = [".yaml", ".yml"]
+    candidate_dag_files = []
+    for suf in suffix:
+        candidate_dag_files = chain(
+            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
+        )
+
+    for config_file_path in candidate_dag_files:
+        config_file_abs_path = str(config_file_path.absolute())
+        DagFactory(config_file_abs_path).generate_dags(globals_dict)
+        logging.info("DAG loaded: %s", config_file_path)
