@@ -127,13 +127,17 @@ class DagBuilder:
                 self.dag_config, self.default_config
             )
         except Exception as err:
-            raise DagFactoryConfigException("Failed to merge config with default config") from err
+            raise DagFactoryConfigException(
+                "Failed to merge config with default config"
+            ) from err
         dag_params["dag_id"]: str = self.dag_name
 
         if dag_params.get("task_groups") and version.parse(
             AIRFLOW_VERSION
         ) < version.parse("2.0.0"):
-            raise DagFactoryConfigException("`task_groups` key can only be used with Airflow 2.x.x")
+            raise DagFactoryConfigException(
+                "`task_groups` key can only be used with Airflow 2.x.x"
+            )
 
         if (
             utils.check_dict_key(dag_params, "schedule_interval")
@@ -242,7 +246,9 @@ class DagBuilder:
             )
         except KeyError as err:
             # pylint: disable=line-too-long
-            raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
+            raise DagFactoryConfigException(
+                f"{self.dag_name} config is missing start_date"
+            ) from err
         return dag_params
 
     @staticmethod
@@ -262,7 +268,9 @@ class DagBuilder:
         try:
             schedule: Timetable = timetable_obj(**timetable_params)
         except Exception as err:
-            raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
+            raise DagFactoryException(
+                f"Failed to create {timetable_obj} due to: {err}"
+            ) from err
         return schedule
 
     # pylint: disable=too-many-branches

@@ -48,7 +48,9 @@ class DagFactory:
         Validates config file path is absolute
         """
         if not os.path.isabs(config_filepath):
-            raise DagFactoryConfigException("DAG Factory `config_filepath` must be absolute path")
+            raise DagFactoryConfigException(
+                "DAG Factory `config_filepath` must be absolute path"
+            )
 
     @staticmethod
     def _load_config(config_filepath: str) -> Dict[str, Any]:
