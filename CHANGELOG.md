@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.2] - 2023-03-26
+### Changed
+- Allow inheritance of `KubernetesPodOperator`
+
 ## [0.17.1] - 2023-01-21
 ### Changed
 - Changed imports to support Kubernetes Provider > 5.0.0
@@ -165,7 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2018-11-20
 - Initial release
 
-[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.17.2...HEAD
+[0.17.2]: https://github.com/ajbosco/dag-factory/compare/v0.17.1...v0.17.2
 [0.17.1]: https://github.com/ajbosco/dag-factory/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/ajbosco/dag-factory/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ajbosco/dag-factory/compare/v0.15.0...v0.16.0
