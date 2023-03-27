@@ -6,10 +6,12 @@ import re
 import sys
 import types
 from datetime import date, datetime, timedelta
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 from pathlib import Path
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
 
 import pendulum
+
+from dagfactory.exceptions import DagFactoryException
 
 
 def get_datetime(
@@ -29,7 +31,7 @@ def get_datetime(
     try:
         local_tz: pendulum.timezone = pendulum.timezone(timezone)
     except Exception as err:
-        raise Exception("Failed to create timezone") from err
+        raise DagFactoryException("Failed to create timezone") from err
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
@@ -70,12 +72,12 @@ def get_time_delta(time_string: str) -> timedelta:
     )
     parts: Optional[Match[AnyStr]] = rel_time.match(string=time_string)
     if not parts:
-        raise Exception(f"Invalid relative time: {time_string}")
+        raise DagFactoryException(f"Invalid relative time: {time_string}")
     # https://docs.python.org/3/library/re.html#re.Match.groupdict
     parts: Dict[str, str] = parts.groupdict()
     time_params = {}
     if all(value is None for value in parts.values()):
-        raise Exception(f"Invalid relative time: {time_string}")
+        raise DagFactoryException(f"Invalid relative time: {time_string}")
     for time_unit, magnitude in parts.items():
         if magnitude:
             time_params[time_unit]: int = int(magnitude)
@@ -121,7 +123,7 @@ def get_python_callable(python_callable_name, python_callable_file):
     python_callable_file = os.path.expandvars(python_callable_file)
 
     if not os.path.isabs(python_callable_file):
-        raise Exception("`python_callable_file` must be absolute path")
+        raise DagFactoryException("`python_callable_file` must be absolute path")
 
     python_file_path = Path(python_callable_file).resolve()
     module_name = python_file_path.stem
@@ -147,7 +149,7 @@ def get_python_callable_lambda(lambda_expr):
 
     tree = ast.parse(lambda_expr)
     if len(tree.body) != 1 or not isinstance(tree.body[0], ast.Expr):
-        raise Exception("`lambda_expr` must be a single lambda")
+        raise DagFactoryException("`lambda_expr` must be a single lambda")
     # the second parameter below is used only for logging
     code = compile(tree, "lambda_expr_to_callable.py", "exec")
     python_callable = types.LambdaType(code.co_consts[0], {})
