@@ -382,7 +382,7 @@ class DagBuilder:
                     del task_params["response_check_lambda"]
 
             # KubernetesPodOperator
-            if isinstance(operator_obj, KubernetesPodOperator):
+            if operator_obj == KubernetesPodOperator:
                 task_params["secrets"] = (
                     [Secret(**v) for v in task_params.get("secrets")]
                     if task_params.get("secrets") is not None
