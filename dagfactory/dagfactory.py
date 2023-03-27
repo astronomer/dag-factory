@@ -10,6 +10,7 @@ from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
+from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
 
 
 # these are params that cannot be a dag name
@@ -47,7 +48,7 @@ class DagFactory:
         Validates config file path is absolute
         """
         if not os.path.isabs(config_filepath):
-            raise Exception("DAG Factory `config_filepath` must be absolute path")
+            raise DagFactoryConfigException("DAG Factory `config_filepath` must be absolute path")
 
     @staticmethod
     def _load_config(config_filepath: str) -> Dict[str, Any]:
@@ -70,7 +71,7 @@ class DagFactory:
                 Loader=yaml.FullLoader,
             )
         except Exception as err:
-            raise Exception("Invalid DAG Factory config file") from err
+            raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
@@ -111,7 +112,7 @@ class DagFactory:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as err:
-                raise Exception(
+                raise DagFactoryException(
                     f"Failed to generate dag {dag_name}. verify config is correct"
                 ) from err
 

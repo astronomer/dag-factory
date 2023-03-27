@@ -72,6 +72,7 @@ except ImportError:
 
 from kubernetes.client.models import V1Container, V1Pod
 
+from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
 from dagfactory import utils
 
 # pylint: disable=ungrouped-imports,invalid-name
@@ -126,13 +127,13 @@ class DagBuilder:
                 self.dag_config, self.default_config
             )
         except Exception as err:
-            raise Exception("Failed to merge config with default config") from err
+            raise DagFactoryConfigException("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
 
         if dag_params.get("task_groups") and version.parse(
             AIRFLOW_VERSION
         ) < version.parse("2.0.0"):
-            raise Exception("`task_groups` key can only be used with Airflow 2.x.x")
+            raise DagFactoryConfigException("`task_groups` key can only be used with Airflow 2.x.x")
 
         if (
             utils.check_dict_key(dag_params, "schedule_interval")
@@ -240,7 +241,8 @@ class DagBuilder:
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
         except KeyError as err:
-            raise Exception(f"{self.dag_name} config is missing start_date") from err
+            # pylint: disable=line-too-long
+            raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
         return dag_params
 
     @staticmethod
@@ -254,13 +256,13 @@ class DagBuilder:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             timetable_obj: Callable[..., Timetable] = import_string(timetable)
         except Exception as err:
-            raise Exception(
+            raise DagFactoryException(
                 f"Failed to import timetable {timetable} due to: {err}"
             ) from err
         try:
             schedule: Timetable = timetable_obj(**timetable_params)
         except Exception as err:
-            raise Exception(f"Failed to create {timetable_obj} due to: {err}") from err
+            raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
         return schedule
 
     # pylint: disable=too-many-branches
@@ -276,7 +278,7 @@ class DagBuilder:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
         except Exception as err:
-            raise Exception(f"Failed to import operator: {operator}") from err
+            raise DagFactoryException(f"Failed to import operator: {operator}") from err
         # pylint: disable=too-many-nested-blocks
         try:
             if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
@@ -286,7 +288,7 @@ class DagBuilder:
                     and not task_params.get("python_callable_file")
                 ):
                     # pylint: disable=line-too-long
-                    raise Exception(
+                    raise DagFactoryException(
                         "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
                         `python_callable_name` and `python_callable_file` "
                         "parameters.\nOptionally you can load python_callable "
@@ -347,7 +349,7 @@ class DagBuilder:
                     task_params.get("response_check_name")
                     and task_params.get("response_check_file")
                 ) and not task_params.get("response_check_lambda"):
-                    raise Exception(
+                    raise DagFactoryException(
                         "Failed to create task. HttpSensor requires \
                         `response_check_name` and `response_check_file` parameters \
                         or `response_check_lambda` parameter."
@@ -413,7 +415,7 @@ class DagBuilder:
                                 if hasattr(resp, snake_key):
                                     setattr(resp, snake_key, v)
                                 else:
-                                    raise Exception(
+                                    raise DagFactoryException(
                                         f"Volume for KubernetesPodOperator \
                                         does not have attribute {k}"
                                     )
@@ -513,7 +515,7 @@ class DagBuilder:
 
             task: BaseOperator = operator_obj(**task_params)
         except Exception as err:
-            raise Exception(f"Failed to create {operator_obj} task") from err
+            raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
 
     @staticmethod
@@ -657,7 +659,7 @@ class DagBuilder:
 
         if dag_params.get("doc_md_file_path"):
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
-                raise Exception("`doc_md_file_path` must be absolute path")
+                raise DagFactoryException("`doc_md_file_path` must be absolute path")
 
             with open(
                 dag_params.get("doc_md_file_path"), "r", encoding="utf-8"
