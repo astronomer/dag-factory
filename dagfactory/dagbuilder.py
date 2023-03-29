@@ -289,7 +289,7 @@ class DagBuilder:
             raise DagFactoryException(f"Failed to import operator: {operator}") from err
         # pylint: disable=too-many-nested-blocks
         try:
-            if operator_obj in [PythonOperator, BranchPythonOperator, PythonSensor]:
+            if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
                 if (
                     not task_params.get("python_callable")
                     and not task_params.get("python_callable_name")
@@ -320,7 +320,7 @@ class DagBuilder:
             # declare both a callable file and a lambda function for success/failure parameter.
             # If both are found the object will not throw and error, instead callable file will
             # take precedence over the lambda function
-            if operator_obj in [SqlSensor]:
+            if issubclass(operator_obj, SqlSensor):
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get(
                     "success_check_name"
@@ -352,7 +352,7 @@ class DagBuilder:
                     )
                     del task_params["failure_check_lambda"]
 
-            if operator_obj in [HttpSensor]:
+            if issubclass(operator_obj, HttpSensor):
                 if not (
                     task_params.get("response_check_name")
                     and task_params.get("response_check_file")
@@ -382,7 +382,7 @@ class DagBuilder:
                     del task_params["response_check_lambda"]
 
             # KubernetesPodOperator
-            if operator_obj == KubernetesPodOperator:
+            if issubclass(operator_obj, KubernetesPodOperator):
                 task_params["secrets"] = (
                     [Secret(**v) for v in task_params.get("secrets")]
                     if task_params.get("secrets") is not None
