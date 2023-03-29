@@ -289,7 +289,9 @@ class DagBuilder:
             raise DagFactoryException(f"Failed to import operator: {operator}") from err
         # pylint: disable=too-many-nested-blocks
         try:
-            if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
+            if issubclass(
+                operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)
+            ):
                 if (
                     not task_params.get("python_callable")
                     and not task_params.get("python_callable_name")
