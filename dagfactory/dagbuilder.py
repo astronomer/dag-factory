@@ -237,6 +237,13 @@ class DagBuilder:
                 dag_params["on_failure_callback_file"],
             )
 
+        if utils.check_dict_key(dag_params, "template_searchpath"):
+            if isinstance(dag_params["template_searchpath"], list) and utils.check_template_searchpath(
+                    dag_params["template_searchpath"]):
+                dag_params["template_searchpath"]: List[str] = dag_params["template_searchpath"]
+            else:
+                raise DagFactoryException("template_searchpath must be a list")
+
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone
@@ -644,6 +651,8 @@ class DagBuilder:
         dag_kwargs["orientation"] = dag_params.get(
             "orientation", configuration.conf.get("webserver", "dag_orientation")
         )
+
+        dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
 
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 

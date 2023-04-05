@@ -7,7 +7,7 @@ import sys
 import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List
 
 import pendulum
 
@@ -185,3 +185,19 @@ def convert_to_snake_case(input_string: str) -> str:
     return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip(
         "_"
     )
+
+
+def check_template_searchpath(template_searchpath: List[str]) -> bool:
+    """
+    Check if template_searchpath is valid
+    :param template_searchpath: a list to test
+    :type template_searchpath: List[str]
+    :return: result to check
+    :type: bool
+    """
+    for path in template_searchpath:
+        if not os.path.isabs(path):
+            raise DagFactoryException("template_searchpath must be absolute paths")
+        if not os.path.isdir(path):
+            raise DagFactoryException("template_searchpath must be existing paths")
+    return True
