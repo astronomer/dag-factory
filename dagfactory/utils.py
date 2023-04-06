@@ -197,9 +197,9 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
     """
     if isinstance(template_searchpath, str):
         if not os.path.isabs(template_searchpath):
-            raise DagFactoryException("template_searchpath must be absolute path")
+            raise DagFactoryException("template_searchpath must be absolute paths")
         if not os.path.isdir(template_searchpath):
-            raise DagFactoryException("template_searchpath must be existing path")
+            raise DagFactoryException("template_searchpath must be existing paths")
         return True
     if isinstance(template_searchpath, list):
         for path in template_searchpath:
