@@ -187,17 +187,24 @@ def convert_to_snake_case(input_string: str) -> str:
     )
 
 
-def check_template_searchpath(template_searchpath: List[str]) -> bool:
+def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> bool:
     """
     Check if template_searchpath is valid
-    :param template_searchpath: a list to test
-    :type template_searchpath: List[str]
+    :param template_searchpath: a list or str to test
+    :type template_searchpath: Union[str, List[str]]
     :return: result to check
     :type: bool
     """
-    for path in template_searchpath:
-        if not os.path.isabs(path):
-            raise DagFactoryException("template_searchpath must be absolute paths")
-        if not os.path.isdir(path):
-            raise DagFactoryException("template_searchpath must be existing paths")
-    return True
+    if isinstance(template_searchpath, str):
+        if not os.path.isabs(template_searchpath):
+            raise DagFactoryException("template_searchpath must be absolute path")
+        if not os.path.isdir(template_searchpath):
+            raise DagFactoryException("template_searchpath must be existing path")
+        return True
+    if isinstance(template_searchpath, list):
+        for path in template_searchpath:
+            if not os.path.isabs(path):
+                raise DagFactoryException("template_searchpath must be absolute paths")
+            if not os.path.isdir(path):
+                raise DagFactoryException("template_searchpath must be existing paths")
+        return True

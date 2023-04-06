@@ -238,11 +238,11 @@ class DagBuilder:
             )
 
         if utils.check_dict_key(dag_params, "template_searchpath"):
-            if isinstance(dag_params["template_searchpath"], list) and utils.check_template_searchpath(
+            if isinstance(dag_params["template_searchpath"], (list, str)) and utils.check_template_searchpath(
                     dag_params["template_searchpath"]):
-                dag_params["template_searchpath"]: List[str] = dag_params["template_searchpath"]
+                dag_params["template_searchpath"]: Union[str, List[str]] = dag_params["template_searchpath"]
             else:
-                raise DagFactoryException("template_searchpath must be a list")
+                raise DagFactoryException("template_searchpath is not valid!")
 
         try:
             # ensure that default_args dictionary contains key "start_date"
