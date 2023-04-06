@@ -208,3 +208,4 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
             if not os.path.isdir(path):
                 raise DagFactoryException("template_searchpath must be existing paths")
         return True
+    return False
