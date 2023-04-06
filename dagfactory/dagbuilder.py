@@ -115,7 +115,7 @@ class DagBuilder:
         self.dag_config: Dict[str, Any] = deepcopy(dag_config)
         self.default_config: Dict[str, Any] = deepcopy(default_config)
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     def get_dag_params(self) -> Dict[str, Any]:
         """
         Merges default config with dag config, sets dag_id, and extropolates dag_start_date
