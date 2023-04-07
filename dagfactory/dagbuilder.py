@@ -1,6 +1,7 @@
 """Module contains code for generating tasks and constructing a DAG"""
 # pylint: disable=ungrouped-imports
 import os
+import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Union
@@ -8,6 +9,7 @@ from typing import Any, Callable, Dict, List, Union
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
+from airflow.models.xcom_arg import XComArg
 from packaging import version
 
 try:
@@ -93,6 +95,11 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
 else:
     Timetable = None
 # pylint: disable=ungrouped-imports,invalid-name
+
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+    from airflow.models import MappedOperator
+else:
+    MappedOperator = None
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
@@ -285,6 +292,7 @@ class DagBuilder:
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
+    # pylint: disable=too-many-locals
     @staticmethod
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
         """
@@ -467,7 +475,6 @@ class DagBuilder:
                     if task_params.get("init_containers") is not None
                     else None
                 )
-
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
                     seconds=task_params["execution_timeout_secs"]
@@ -531,7 +538,29 @@ class DagBuilder:
                         )
                 del task_params["variables_as_arguments"]
 
-            task: BaseOperator = operator_obj(**task_params)
+            expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+            partial_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+            # expand available only in airflow >= 2.3.0
+            if utils.check_dict_key(task_params, "expand") and version.parse(
+                AIRFLOW_VERSION
+            ) >= version.parse("2.3.0"):
+                for expand_key, expand_value in task_params["expand"].items():
+                    expand_kwargs[expand_key] = expand_value
+                # remove dag-factory specific parameter
+                del task_params["expand"]
+                if utils.check_dict_key(task_params, "partial"):
+                    for partial_key, partial_value in task_params["partial"].items():
+                        partial_kwargs[partial_key] = partial_value
+                    del task_params["partial"]
+
+            if partial_kwargs:
+                task_params.update(partial_kwargs)
+
+            task: Union[BaseOperator, MappedOperator] = (
+                operator_obj(**task_params)
+                if not expand_kwargs
+                else operator_obj.partial(**task_params).expand(**expand_kwargs)
+            )
         except Exception as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
@@ -577,6 +606,8 @@ class DagBuilder:
         """
         tasks_and_task_groups_config = {**tasks_config, **task_groups_config}
         tasks_and_task_groups_instances = {**operators_dict, **task_groups_dict}
+        print(tasks_and_task_groups_config)
+        print(tasks_and_task_groups_instances)
         for name, conf in tasks_and_task_groups_config.items():
             # if task is in a task group, group_id is prepended to its name
             if conf.get("task_group"):
@@ -597,6 +628,7 @@ class DagBuilder:
                     ] = tasks_and_task_groups_instances[dep]
                     source.set_upstream(dep)
 
+    # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
         Generates a DAG from the DAG parameters.
@@ -722,14 +754,35 @@ class DagBuilder:
                 task_conf["task_group"] = task_groups_dict[
                     task_conf.get("task_group_name")
                 ]
+            # Dynamic task mapping available only in Airflow >= 2.3.0
+            if task_conf.get("expand") and version.parse(
+                AIRFLOW_VERSION
+            ) < version.parse("2.3.0"):
+                raise DagFactoryConfigException(
+                    "Dynamic task mapping available only in Airflow >= 2.3.0"
+                )
+
+            # replace 'task_id.output' or 'XComArg(task_id)' with XComArg(task_instance) object
+            if task_conf.get("expand") and version.parse(
+                AIRFLOW_VERSION
+            ) >= version.parse("2.3.0"):
+                for expand_key, expand_value in task_conf["expand"].items():
+                    # replace this check with function:
+                    if ".output" in expand_value:
+                        task_conf["expand"][expand_key] = XComArg(
+                            tasks_dict[expand_value.split(".output")[0]]
+                        )
+                    if "XcomArg" in expand_value:
+                        task_conf["expand"][expand_key] = XComArg(
+                            tasks_dict[re.findall(r"\(+(.*?)\)", expand_value)[0]]
+                        )
             params: Dict[str, Any] = {
                 k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
             }
-            task: BaseOperator = DagBuilder.make_task(
+            task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(
                 operator=operator, task_params=params
             )
             tasks_dict[task.task_id]: BaseOperator = task
-
         # set task dependencies after creating tasks
         self.set_dependencies(
             tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict

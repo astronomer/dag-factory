@@ -1,0 +1,23 @@
+test_expand:
+  default_args:
+    owner: "custom_owner"
+    start_date: 2 days
+  description: "test expand"
+  schedule_interval: "0 3 * * *"
+  default_view: "graph"
+  tasks:
+    request:
+      operator: airflow.operators.python.PythonOperator
+      python_callable_name: example_task_mapping
+      python_callable_file: /usr/local/airflow/dags/expand_tasks.py
+    process:
+      operator: airflow.operators.python_operator.PythonOperator
+      python_callable_name: expand_task
+      python_callable_file: /usr/local/airflow/dags/expand_tasks.py
+      partial:
+        op_kwargs:
+          test_id: "test"
+      expand:
+        op_args:
+          request.output
+      dependencies: [request]
