@@ -591,3 +591,14 @@ def test_get_dag_params_with_template_searchpath():
     error_message = "template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
+
+
+def test_make_task_with_duplicated_partial_kwargs():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = "airflow.operators.bash_operator.BashOperator"
+    task_params = {"task_id": "task_bash",
+                   "bash_command": "echo 2",
+                   "partial": {"bash_command": "echo 4"}
+                   }
+    with pytest.raises(Exception):
+        td.make_task(operator, task_params)
