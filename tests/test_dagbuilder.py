@@ -583,6 +583,7 @@ def test_make_dag_with_callback():
 
 
 def test_get_dag_params_with_template_searchpath():
+    from dagfactory import utils
     td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["./sql"]}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be absolute paths"
     with pytest.raises(Exception, match=error_message):
@@ -602,6 +603,10 @@ def test_get_dag_params_with_template_searchpath():
     error_message = "template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
+
+    assert utils.check_template_searchpath(123) == False
+    assert utils.check_template_searchpath("/usr/local/airflow/dags") == True
+    assert utils.check_template_searchpath(["/usr/local/airflow/dags"]) == True
 
 
 def test_get_dag_params_with_render_template_as_native_obj():
