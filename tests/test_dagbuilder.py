@@ -593,6 +593,16 @@ def test_get_dag_params_with_template_searchpath():
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "./sql"}, DEFAULT_CONFIG)
+    error_message = "template_searchpath must be absolute paths"
+    with pytest.raises(Exception, match=error_message):
+        td.get_dag_params()
+
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "/sql"}, DEFAULT_CONFIG)
+    error_message = "template_searchpath must be absolute paths"
+    with pytest.raises(Exception, match=error_message):
+        td.get_dag_params()
+
 
 def test_get_dag_params_with_render_template_as_native_obj():
     td = dagbuilder.DagBuilder("test_dag", {"render_template_as_native_obj": "true"}, DEFAULT_CONFIG)
