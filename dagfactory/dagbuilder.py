@@ -247,6 +247,16 @@ class DagBuilder:
             else:
                 raise DagFactoryException("template_searchpath is not valid!")
 
+        if utils.check_dict_key(dag_params, "render_template_as_native_obj"):
+            if isinstance(dag_params["render_template_as_native_obj"], bool):
+                dag_params["render_template_as_native_obj"]: bool = dag_params[
+                    "render_template_as_native_obj"
+                ]
+            else:
+                raise DagFactoryException(
+                    "render_template_as_native_obj should be bool type!"
+                )
+
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone
@@ -656,6 +666,10 @@ class DagBuilder:
         )
 
         dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
+
+        dag_kwargs["render_template_as_native_obj"] = dag_params.get(
+            "render_template_as_native_obj", None
+        )
 
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 

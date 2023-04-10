@@ -33,7 +33,6 @@ try:
 except ImportError:
     from airflow import __version__ as AIRFLOW_VERSION
 
-
 from dagfactory import dagbuilder
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
@@ -63,6 +62,7 @@ DAG_CONFIG = {
     "description": "this is an example dag",
     "schedule_interval": "0 3 * * *",
     "tags": ["tag1", "tag2"],
+    "render_template_as_native_obj": True,
     "tasks": {
         "task_1": {
             "operator": "airflow.operators.bash_operator.BashOperator",
@@ -199,6 +199,7 @@ def test_get_dag_params():
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
+        "render_template_as_native_obj": True,
         "tags": ["tag1", "tag2"],
         "tasks": {
             "task_1": {
@@ -589,5 +590,18 @@ def test_get_dag_params_with_template_searchpath():
 
     td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["/sql"]}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be existing paths"
+    with pytest.raises(Exception, match=error_message):
+        td.get_dag_params()
+
+
+def test_get_dag_params_with_render_template_as_native_obj():
+    td = dagbuilder.DagBuilder("test_dag", {"render_template_as_native_obj": "true"}, DEFAULT_CONFIG)
+    error_message = "render_template_as_native_obj should be bool type!"
+    with pytest.raises(Exception, match=error_message):
+        td.get_dag_params()
+
+    false = lambda x: print(x)
+    td = dagbuilder.DagBuilder("test_dag", {"render_template_as_native_obj": false}, DEFAULT_CONFIG)
+    error_message = "render_template_as_native_obj should be bool type!"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
