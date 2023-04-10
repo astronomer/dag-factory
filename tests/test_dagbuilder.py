@@ -605,8 +605,8 @@ def test_get_dag_params_with_template_searchpath():
         td.get_dag_params()
 
     assert utils.check_template_searchpath(123) == False
-    assert utils.check_template_searchpath("/usr/local/airflow/dags") == True
-    assert utils.check_template_searchpath(["/usr/local/airflow/dags"]) == True
+    assert utils.check_template_searchpath("/home/runner/work") == True
+    assert utils.check_template_searchpath(["/home/runner/work"]) == True
 
 
 def test_get_dag_params_with_render_template_as_native_obj():
