@@ -558,8 +558,10 @@ class DagBuilder:
                 if utils.check_dict_key(task_params, "partial"):
                     for partial_key, partial_value in task_params["partial"].items():
                         partial_kwargs[partial_key] = partial_value
+                    # remove dag-factory specific parameter
                     del task_params["partial"]
 
+            # If there are partial_kwargs we should merge them with existing task_params
             if partial_kwargs:
                 task_params.update(partial_kwargs)
 
@@ -613,8 +615,6 @@ class DagBuilder:
         """
         tasks_and_task_groups_config = {**tasks_config, **task_groups_config}
         tasks_and_task_groups_instances = {**operators_dict, **task_groups_dict}
-        print(tasks_and_task_groups_config)
-        print(tasks_and_task_groups_instances)
         for name, conf in tasks_and_task_groups_config.items():
             # if task is in a task group, group_id is prepended to its name
             if conf.get("task_group"):
