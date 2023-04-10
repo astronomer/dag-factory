@@ -101,6 +101,13 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
 else:
     MappedOperator = None
 
+# XComArg is introduced in Airflow 2.0.0
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.models.xcom_arg import XComArg
+else:
+    XComArg = None
+# pylint: disable=ungrouped-imports,invalid-name
+
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
 
