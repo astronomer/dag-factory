@@ -672,10 +672,6 @@ class DagBuilder:
             dag_kwargs["render_template_as_native_obj"] = dag_params.get(
                 "render_template_as_native_obj", None
             )
-        else:
-            raise DagFactoryException(
-                "render_template_as_native_obj supported only in Airflow version >= 2.1.0"
-            )
 
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 
