@@ -554,6 +554,14 @@ class DagBuilder:
                         )
                 del task_params["variables_as_arguments"]
 
+            if (
+                utils.check_dict_key(task_params, "expand")
+                or utils.check_dict_key(task_params, "partial")
+            ) and version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+                raise DagFactoryConfigException(
+                    "Dynamic task mapping available only in Airflow >= 2.3.0"
+                )
+
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
             # expand available only in airflow >= 2.3.0
             if (
