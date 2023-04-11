@@ -42,6 +42,12 @@ else:
     Timetable = None
 # pylint: disable=ungrouped-imports,invalid-name
 
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+    from airflow.models import MappedOperator
+else:
+    MappedOperator = None
+# pylint: disable=ungrouped-imports,invalid-name
+
 here = os.path.dirname(__file__)
 
 DEFAULT_CONFIG = {
@@ -128,6 +134,33 @@ DAG_CONFIG_TASK_GROUP = {
         },
     },
 }
+DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
+    "default_args": {"owner": "custom_owner"},
+    "description": "This is an example dag with dynamic task mapping",
+    "schedule_interval": "0 4 * * *",
+    "tasks": {
+        "request": {
+            "operator": "airflow.operators.python_operator.PythonOperator",
+            "python_callable_name": "example_task_mapping",
+            "python_callable_file": "/usr/local/airflow/dags/expand_tasks.py"
+        },
+        "process_1": {
+            "operator": "airflow.operators.python_operator.PythonOperator",
+            "python_callable_name": "expand_task",
+            "python_callable_file": "/Users/matveykortsev/dag-factory-mine/examples/expand_tasks.py",
+            "partial": {
+                "op_kwargs": {
+                    "test_id": "test"
+                }
+            },
+            "expand": {
+                "op_args": "request.output"
+            }
+        },
+    },
+}
+
+
 DAG_CONFIG_CALLBACK = {
     "doc_md": "##here is a doc md string",
     "default_args": {
@@ -260,6 +293,12 @@ def test_make_task_missing_required_param():
 
 def print_test():
     print("test")
+
+
+def expand_task(x, test_id):
+    print(test_id)
+    print(x)
+    return [x]
 
 
 def test_make_python_operator():
@@ -602,3 +641,27 @@ def test_make_task_with_duplicated_partial_kwargs():
                    }
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
+
+
+def test_dynamic_task_mapping():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+        with pytest.raises(Exception):
+            td.build()
+    else:
+        operator = "airflow.operators.python_operator.PythonOperator"
+        task_params = {
+            "task_id": "process",
+            "python_callable_name": "expand_task",
+            "python_callable_file": os.path.realpath(__file__),
+            "partial": {
+                "op_kwargs": {
+                    "test_id": "test"
+                }
+            },
+            "expand": {
+                "op_args": "request.output"
+            }
+        }
+        actual = td.make_task(operator, task_params)
+        assert isinstance(actual, MappedOperator)

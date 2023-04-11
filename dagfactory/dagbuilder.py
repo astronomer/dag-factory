@@ -9,7 +9,6 @@ from typing import Any, Callable, Dict, List, Union
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
-from airflow.models.xcom_arg import XComArg
 from packaging import version
 
 try:
@@ -546,29 +545,26 @@ class DagBuilder:
                 del task_params["variables_as_arguments"]
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            partial_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
             # expand available only in airflow >= 2.3.0
-            print(task_params)
             if utils.check_dict_key(task_params, "expand") and version.parse(
                 AIRFLOW_VERSION
             ) >= version.parse("2.3.0"):
-                for expand_key, expand_value in task_params["expand"].items():
-                    expand_kwargs[expand_key] = expand_value
-                # remove dag-factory specific parameter
-                del task_params["expand"]
-                if utils.check_dict_key(task_params, "partial"):
-                    for partial_key, partial_value in task_params["partial"].items():
-                        partial_kwargs[partial_key] = partial_value
-                    # remove dag-factory specific parameter
-                    del task_params["partial"]
+                # Getting expand and partial kwargs from task_params
+                (
+                    task_params,
+                    expand_kwargs,
+                    partial_kwargs,
+                ) = utils.get_expand_partial_kwargs(task_params)
 
-            # If there are partial_kwargs we should merge them with existing task_params
-            if partial_kwargs:
-                for key in partial_kwargs.keys():
-                    task_duplicated_kwarg = task_params.get(key, None)
-                    if task_duplicated_kwarg:
-                        raise DagFactoryException("Duplicated partial kwarg! It's already in task_params.")
-                task_params.update(partial_kwargs)
+                # If there are partial_kwargs we should merge them with existing task_params
+                if partial_kwargs:
+                    for key in partial_kwargs:
+                        task_duplicated_kwarg = task_params.get(key, None)
+                        if task_duplicated_kwarg:
+                            raise DagFactoryException(
+                                "Duplicated partial kwarg! It's already in task_params."
+                            )
+                    task_params.update(partial_kwargs)
 
             task: Union[BaseOperator, MappedOperator] = (
                 operator_obj(**task_params)
