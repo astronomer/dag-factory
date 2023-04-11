@@ -41,6 +41,12 @@ else:
     Timetable = None
 # pylint: disable=ungrouped-imports,invalid-name
 
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+    from airflow.models import MappedOperator
+else:
+    MappedOperator = None
+# pylint: disable=ungrouped-imports,invalid-name
+
 here = os.path.dirname(__file__)
 
 DEFAULT_CONFIG = {
@@ -128,6 +134,33 @@ DAG_CONFIG_TASK_GROUP = {
         },
     },
 }
+DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
+    "default_args": {"owner": "custom_owner"},
+    "description": "This is an example dag with dynamic task mapping",
+    "schedule_interval": "0 4 * * *",
+    "tasks": {
+        "request": {
+            "operator": "airflow.operators.python_operator.PythonOperator",
+            "python_callable_name": "example_task_mapping",
+            "python_callable_file": os.path.realpath(__file__)
+        },
+        "process_1": {
+            "operator": "airflow.operators.python_operator.PythonOperator",
+            "python_callable_name": "expand_task",
+            "python_callable_file": os.path.realpath(__file__),
+            "partial": {
+                "op_kwargs": {
+                    "test_id": "test"
+                }
+            },
+            "expand": {
+                "op_args": "request.output"
+            }
+        },
+    },
+}
+
+
 DAG_CONFIG_CALLBACK = {
     "doc_md": "##here is a doc md string",
     "default_args": {
@@ -180,6 +213,12 @@ class MockTaskGroup:
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+
+class MockPythonOperator(MockTaskGroup):
+    """
+    Mock PythonOperator
+    """
 
 
 def test_get_dag_params():
@@ -261,6 +300,16 @@ def test_make_task_missing_required_param():
 
 def print_test():
     print("test")
+
+
+def expand_task(x, test_id):
+    print(test_id)
+    print(x)
+    return [x]
+
+
+def example_task_mapping():
+    return [[1], [2], [3]]
 
 
 def test_make_python_operator():
@@ -593,7 +642,7 @@ def test_get_dag_params_with_template_searchpath():
     error_message = "template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
-
+        
     td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "./sql"}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be absolute paths"
     with pytest.raises(Exception, match=error_message):
@@ -620,3 +669,56 @@ def test_get_dag_params_with_render_template_as_native_obj():
     error_message = "render_template_as_native_obj should be bool type!"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
+
+
+def test_make_task_with_duplicated_partial_kwargs():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    operator = "airflow.operators.bash_operator.BashOperator"
+    task_params = {"task_id": "task_bash",
+                   "bash_command": "echo 2",
+                   "partial": {"bash_command": "echo 4"}
+                   }
+    with pytest.raises(Exception):
+        td.make_task(operator, task_params)
+
+
+def test_dynamic_task_mapping():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+        error_message = "Dynamic task mapping available only in Airflow >= 2.3.0"
+        with pytest.raises(Exception, match=error_message):
+            td.build()
+    else:
+        operator = "airflow.operators.python_operator.PythonOperator"
+        task_params = {
+            "task_id": "process",
+            "python_callable_name": "expand_task",
+            "python_callable_file": os.path.realpath(__file__),
+            "partial": {
+                "op_kwargs": {
+                    "test_id": "test"
+                }
+            },
+            "expand": {
+                "op_args": "request.output"
+            }
+        }
+        actual = td.make_task(operator, task_params)
+        assert isinstance(actual, MappedOperator)
+
+
+@patch("dagfactory.dagbuilder.PythonOperator", new=MockPythonOperator)
+def test_replace_expand_string_with_xcom():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+        with pytest.raises(Exception):
+            td.build()
+    else:
+        from airflow.models.xcom_arg import XComArg
+        task_conf_output = {"expand": {"key_1": "task_1.output"}}
+        task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
+        tasks_dict = {"task_1": MockPythonOperator()}
+        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
+        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
+        assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])

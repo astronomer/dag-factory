@@ -1,6 +1,7 @@
 """Module contains code for generating tasks and constructing a DAG"""
 # pylint: disable=ungrouped-imports
 import os
+import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Union
@@ -92,6 +93,18 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
     from airflow.timetables.base import Timetable
 else:
     Timetable = None
+# pylint: disable=ungrouped-imports,invalid-name
+
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+    from airflow.models import MappedOperator
+else:
+    MappedOperator = None
+
+# XComArg is introduced in Airflow 2.0.0
+if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
+    from airflow.models.xcom_arg import XComArg
+else:
+    XComArg = None
 # pylint: disable=ungrouped-imports,invalid-name
 
 # these are params only used in the DAG factory, not in the tasks
@@ -295,6 +308,7 @@ class DagBuilder:
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
+    # pylint: disable=too-many-locals
     @staticmethod
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
         """
@@ -477,7 +491,6 @@ class DagBuilder:
                     if task_params.get("init_containers") is not None
                     else None
                 )
-
             if utils.check_dict_key(task_params, "execution_timeout_secs"):
                 task_params["execution_timeout"]: timedelta = timedelta(
                     seconds=task_params["execution_timeout_secs"]
@@ -541,7 +554,38 @@ class DagBuilder:
                         )
                 del task_params["variables_as_arguments"]
 
-            task: BaseOperator = operator_obj(**task_params)
+            if (
+                utils.check_dict_key(task_params, "expand")
+                or utils.check_dict_key(task_params, "partial")
+            ) and version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+                raise DagFactoryConfigException(
+                    "Dynamic task mapping available only in Airflow >= 2.3.0"
+                )
+
+            expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+            # expand available only in airflow >= 2.3.0
+            if (
+                utils.check_dict_key(task_params, "expand")
+                or utils.check_dict_key(task_params, "partial")
+            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+                # Getting expand and partial kwargs from task_params
+                (
+                    task_params,
+                    expand_kwargs,
+                    partial_kwargs,
+                ) = utils.get_expand_partial_kwargs(task_params)
+
+                # If there are partial_kwargs we should merge them with existing task_params
+                if partial_kwargs and not utils.is_partial_duplicated(
+                    partial_kwargs, task_params
+                ):
+                    task_params.update(partial_kwargs)
+
+            task: Union[BaseOperator, MappedOperator] = (
+                operator_obj(**task_params)
+                if not expand_kwargs
+                else operator_obj.partial(**task_params).expand(**expand_kwargs)
+            )
         except Exception as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
@@ -607,6 +651,31 @@ class DagBuilder:
                     ] = tasks_and_task_groups_instances[dep]
                     source.set_upstream(dep)
 
+    @staticmethod
+    def replace_expand_values(task_conf: Dict, tasks_dict: Dict[str, BaseOperator]):
+        """
+        Replaces any expand values in the task configuration with their corresponding XComArg value.
+        :param: task_conf: the configuration dictionary for the task.
+        :type: Dict
+        :param: tasks_dict: a dictionary containing the tasks for the current DAG run.
+        :type: Dict[str, BaseOperator]
+
+        :returns: updated conf dict with expanded values replaced with their XComArg values.
+        :type: Dict
+        """
+
+        for expand_key, expand_value in task_conf["expand"].items():
+            if ".output" in expand_value:
+                task_id = expand_value.split(".output")[0]
+                if task_id in tasks_dict:
+                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+            elif "XcomArg" in expand_value:
+                task_id = re.findall(r"\(+(.*?)\)", expand_value)[0]
+                if task_id in tasks_dict:
+                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+        return task_conf
+
+    # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
         Generates a DAG from the DAG parameters.
@@ -738,14 +807,26 @@ class DagBuilder:
                 task_conf["task_group"] = task_groups_dict[
                     task_conf.get("task_group_name")
                 ]
+            # Dynamic task mapping available only in Airflow >= 2.3.0
+            if (task_conf.get("expand") or task_conf.get("partial")) and version.parse(
+                AIRFLOW_VERSION
+            ) < version.parse("2.3.0"):
+                raise DagFactoryConfigException(
+                    "Dynamic task mapping available only in Airflow >= 2.3.0"
+                )
+
+            # replace 'task_id.output' or 'XComArg(task_id)' with XComArg(task_instance) object
+            if task_conf.get("expand") and version.parse(
+                AIRFLOW_VERSION
+            ) >= version.parse("2.3.0"):
+                task_conf = self.replace_expand_values(task_conf, tasks_dict)
             params: Dict[str, Any] = {
                 k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
             }
-            task: BaseOperator = DagBuilder.make_task(
+            task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(
                 operator=operator, task_params=params
             )
             tasks_dict[task.task_id]: BaseOperator = task
-
         # set task dependencies after creating tasks
         self.set_dependencies(
             tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict

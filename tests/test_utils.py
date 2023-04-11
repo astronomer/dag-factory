@@ -205,3 +205,46 @@ def test_get_start_date_date_string():
     expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=UTC)
     actual = utils.get_datetime("2018-02-01")
     assert actual == expected
+
+
+def test_get_expand_partial_kwargs_with_expand_and_partial():
+    task_params = {
+        "task_id": "my_task",
+        "expand": {"key_1": "value_1"},
+        "partial": {"key_2": {"nested_key_1": "nested_value_1"}}
+    }
+    expected_expand_kwargs = {"key_1": "value_1"}
+    expected_partial_kwargs = {"key_2": {"nested_key_1": "nested_value_1"}}
+    expected_task_params = {"task_id": "my_task"}
+
+    result_task_params, result_expand_kwargs, result_partial_kwargs = utils.get_expand_partial_kwargs(task_params)
+    assert result_expand_kwargs == expected_expand_kwargs
+    assert result_partial_kwargs == expected_partial_kwargs
+    assert result_task_params == expected_task_params
+
+
+def test_get_expand_partial_kwargs_without_partial():
+    task_params = {
+        "task_id": "task2",
+        "expand": {"param1": "value1", "param2": "value2"}
+    }
+    expected_result = (
+        {"task_id": "task2"},
+        {"param1": "value1", "param2": "value2"},
+        {}
+    )
+    assert utils.get_expand_partial_kwargs(task_params) == expected_result
+
+
+def test_is_partial_duplicated():
+    partial_kwargs = {"key_1": "value_1", "key_2": "value_2"}
+    task_params = {"key_3": "value_3", "key_4": "value_4"}
+
+    assert utils.is_partial_duplicated(partial_kwargs, task_params) == False
+
+    partial_kwargs = {"key_1": "value1", "key_3": "value3"}
+    task_params = {"key_3": "value3", "key_4": "value4"}
+    try:
+        utils.is_partial_duplicated(partial_kwargs, task_params)
+    except Exception as e:
+        assert str(e) == "Duplicated partial kwarg! It's already in task_params."

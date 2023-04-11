@@ -7,7 +7,7 @@ import sys
 import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List
+from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List, Tuple
 
 import pendulum
 
@@ -208,4 +208,58 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
             if not os.path.isdir(path):
                 raise DagFactoryException("template_searchpath must be existing paths")
         return True
+    return False
+
+
+def get_expand_partial_kwargs(
+    task_params: Dict[str, Any]
+) -> Tuple[
+    Dict[str, Any],
+    Dict[str, Union[Dict[str, Any], Any]],
+    Dict[str, Union[Dict[str, Any], Any]],
+]:
+    """
+    Getting expand and partial kwargs if existed from task_params
+    :param task_params: a dictionary with original task params from yaml
+    :type task_params: Dict[str, Any]
+    :return: dictionaries with task parameters
+    :type: Tuple[
+    Dict[str, Any],
+    Dict[str, Union[Dict[str, Any], Any]],
+    Dict[str, Union[Dict[str, Any], Any]],
+    """
+
+    expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+    partial_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+    for expand_key, expand_value in task_params["expand"].items():
+        expand_kwargs[expand_key] = expand_value
+    # remove dag-factory specific parameter
+    del task_params["expand"]
+    if check_dict_key(task_params, "partial"):
+        for partial_key, partial_value in task_params["partial"].items():
+            partial_kwargs[partial_key] = partial_value
+        # remove dag-factory specific parameter
+        del task_params["partial"]
+    return task_params, expand_kwargs, partial_kwargs
+
+
+def is_partial_duplicated(
+    partial_kwargs: Dict[str, Any], task_params: Dict[str, Any]
+) -> bool:
+    """
+    Check if there are duplicated keys in partial_kwargs and task_params
+    :param partial_kwargs: a partial kwargs to check duplicates in
+    :type partial_kwargs: Dict[str, Any]
+    :param task_params: a task params kwargs to check duplicates
+    :type task_params: Dict[str, Any]
+    :return: is there are duplicates
+    :type: bool
+    """
+
+    for key in partial_kwargs:
+        task_duplicated_kwarg = task_params.get(key, None)
+    if task_duplicated_kwarg is not None:
+        raise DagFactoryException(
+            "Duplicated partial kwarg! It's already in task_params."
+        )
     return False
