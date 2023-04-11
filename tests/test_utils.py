@@ -234,3 +234,17 @@ def test_get_expand_partial_kwargs_without_partial():
         {}
     )
     assert utils.get_expand_partial_kwargs(task_params) == expected_result
+
+
+def test_is_partial_duplicated():
+    partial_kwargs = {"key_1": "value_1", "key_2": "value_2"}
+    task_params = {"key_3": "value_3", "key_4": "value_4"}
+
+    assert utils.is_partial_duplicated(partial_kwargs, task_params) == False
+
+    partial_kwargs = {"key_1": "value1", "key_3": "value3"}
+    task_params = {"key_3": "value3", "key_4": "value4"}
+    try:
+        utils.is_partial_duplicated(partial_kwargs, task_params)
+    except Exception as e:
+        assert str(e) == "Duplicated partial kwarg! It's already in task_params."

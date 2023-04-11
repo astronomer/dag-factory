@@ -668,19 +668,15 @@ def test_make_task_with_duplicated_partial_kwargs():
                    "bash_command": "echo 2",
                    "partial": {"bash_command": "echo 4"}
                    }
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        with pytest.raises(Exception):
-            td.build()
-    else:
-        error_message = "Duplicated partial kwarg! It's already in task_params."
-        with pytest.raises(Exception, match=error_message):
-            td.make_task(operator, task_params)
+    with pytest.raises(Exception):
+        td.make_task(operator, task_params)
 
 
 def test_dynamic_task_mapping():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        with pytest.raises(Exception):
+        error_message = "Dynamic task mapping available only in Airflow >= 2.3.0"
+        with pytest.raises(Exception, match=error_message):
             td.build()
     else:
         operator = "airflow.operators.python_operator.PythonOperator"

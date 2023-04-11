@@ -568,13 +568,9 @@ class DagBuilder:
                 ) = utils.get_expand_partial_kwargs(task_params)
 
                 # If there are partial_kwargs we should merge them with existing task_params
-                if partial_kwargs:
-                    for key in partial_kwargs:
-                        task_duplicated_kwarg = task_params.get(key, None)
-                        if task_duplicated_kwarg:
-                            raise DagFactoryException(
-                                "Duplicated partial kwarg! It's already in task_params."
-                            )
+                if partial_kwargs and not utils.is_partial_duplicated(
+                    partial_kwargs, task_params
+                ):
                     task_params.update(partial_kwargs)
 
             task: Union[BaseOperator, MappedOperator] = (

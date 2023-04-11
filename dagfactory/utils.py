@@ -241,3 +241,25 @@ def get_expand_partial_kwargs(
         # remove dag-factory specific parameter
         del task_params["partial"]
     return task_params, expand_kwargs, partial_kwargs
+
+
+def is_partial_duplicated(
+    partial_kwargs: Dict[str, Any], task_params: Dict[str, Any]
+) -> bool:
+    """
+    Check if there are duplicated keys in partial_kwargs and task_params
+    :param partial_kwargs: a partial kwargs to check duplicates in
+    :type partial_kwargs: Dict[str, Any]
+    :param task_params: a task params kwargs to check duplicates
+    :type task_params: Dict[str, Any]
+    :return: is there are duplicates
+    :type: bool
+    """
+
+    for key in partial_kwargs:
+        task_duplicated_kwarg = task_params.get(key, None)
+    if task_duplicated_kwarg is not None:
+        raise DagFactoryException(
+            "Duplicated partial kwarg! It's already in task_params."
+        )
+    return False
