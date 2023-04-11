@@ -672,7 +672,8 @@ def test_make_task_with_duplicated_partial_kwargs():
         with pytest.raises(Exception):
             td.build()
     else:
-        with pytest.raises(Exception):
+        error_message = "Duplicated partial kwarg! It's already in task_params."
+        with pytest.raises(Exception, match=error_message):
             td.make_task(operator, task_params)
 
 
