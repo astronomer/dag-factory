@@ -142,12 +142,12 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
         "request": {
             "operator": "airflow.operators.python_operator.PythonOperator",
             "python_callable_name": "example_task_mapping",
-            "python_callable_file": "/usr/local/airflow/dags/expand_tasks.py"
+            "python_callable_file": os.path.realpath(__file__)
         },
         "process_1": {
             "operator": "airflow.operators.python_operator.PythonOperator",
             "python_callable_name": "expand_task",
-            "python_callable_file": "/Users/matveykortsev/dag-factory-mine/examples/expand_tasks.py",
+            "python_callable_file": os.path.realpath(__file__),
             "partial": {
                 "op_kwargs": {
                     "test_id": "test"
@@ -300,6 +300,10 @@ def expand_task(x, test_id):
     print(test_id)
     print(x)
     return [x]
+
+
+def example_task_mapping():
+    return [[1], [2], [3]]
 
 
 def test_make_python_operator():
