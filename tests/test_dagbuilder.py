@@ -215,6 +215,12 @@ class MockTaskGroup:
             setattr(self, key, value)
 
 
+class MockPythonOperator(MockTaskGroup):
+    """
+    Mock PythonOperator
+    """
+
+
 def test_get_dag_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     expected = {
@@ -701,3 +707,18 @@ def test_dynamic_task_mapping():
         assert isinstance(actual, MappedOperator)
 
 
+@patch("dagfactory.dagbuilder.PythonOperator", new=MockPythonOperator)
+def test_replace_expand_string_with_xcom():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+        with pytest.raises(Exception):
+            td.build()
+    else:
+        from airflow.models.xcom_arg import XComArg
+        task_conf_output = {"expand": {"key_1": "task_1.output"}}
+        task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
+        tasks_dict = {"task_1": MockPythonOperator()}
+        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
+        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
+        assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])

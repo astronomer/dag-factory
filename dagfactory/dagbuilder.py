@@ -651,6 +651,30 @@ class DagBuilder:
                     ] = tasks_and_task_groups_instances[dep]
                     source.set_upstream(dep)
 
+    @staticmethod
+    def replace_expand_values(task_conf: Dict, tasks_dict: Dict[str, BaseOperator]):
+        """
+        Replaces any expand values in the task configuration with their corresponding XComArg value.
+        :param: task_conf: the configuration dictionary for the task.
+        :type: Dict
+        :param: tasks_dict: a dictionary containing the tasks for the current DAG run.
+        :type: Dict[str, BaseOperator]
+
+        :returns: updated conf dict with expanded values replaced with their XComArg values.
+        :type: Dict
+        """
+
+        for expand_key, expand_value in task_conf["expand"].items():
+            if ".output" in expand_value:
+                task_id = expand_value.split(".output")[0]
+                if task_id in tasks_dict:
+                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+            elif "XcomArg" in expand_value:
+                task_id = re.findall(r"\(+(.*?)\)", expand_value)[0]
+                if task_id in tasks_dict:
+                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+        return task_conf
+
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -795,16 +819,7 @@ class DagBuilder:
             if task_conf.get("expand") and version.parse(
                 AIRFLOW_VERSION
             ) >= version.parse("2.3.0"):
-                for expand_key, expand_value in task_conf["expand"].items():
-                    # replace this check with function:
-                    if ".output" in expand_value:
-                        task_conf["expand"][expand_key] = XComArg(
-                            tasks_dict[expand_value.split(".output")[0]]
-                        )
-                    if "XcomArg" in expand_value:
-                        task_conf["expand"][expand_key] = XComArg(
-                            tasks_dict[re.findall(r"\(+(.*?)\)", expand_value)[0]]
-                        )
+                task_conf = self.replace_expand_values(task_conf, tasks_dict)
             params: Dict[str, Any] = {
                 k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS
             }
