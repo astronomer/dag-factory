@@ -662,14 +662,18 @@ def test_get_dag_params_with_render_template_as_native_obj():
 
 
 def test_make_task_with_duplicated_partial_kwargs():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     operator = "airflow.operators.bash_operator.BashOperator"
     task_params = {"task_id": "task_bash",
                    "bash_command": "echo 2",
                    "partial": {"bash_command": "echo 4"}
                    }
-    with pytest.raises(Exception):
-        td.make_task(operator, task_params)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+        with pytest.raises(Exception):
+            td.build()
+    else:
+        with pytest.raises(Exception):
+            td.make_task(operator, task_params)
 
 
 def test_dynamic_task_mapping():

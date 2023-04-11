@@ -779,7 +779,7 @@ class DagBuilder:
                     task_conf.get("task_group_name")
                 ]
             # Dynamic task mapping available only in Airflow >= 2.3.0
-            if task_conf.get("expand") and version.parse(
+            if (task_conf.get("expand") or task_conf.get("partial")) and version.parse(
                 AIRFLOW_VERSION
             ) < version.parse("2.3.0"):
                 raise DagFactoryConfigException(
