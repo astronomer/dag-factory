@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Setup python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: Install dependencies
@@ -28,7 +28,7 @@ jobs:
     - name: Test with tox
       run: make test
     - name: Upload coverage to Codecov  
-      uses: codecov/codecov-action@v1.0.3
+      uses: codecov/codecov-action@v3
       with:
         token: ${{secrets.CODECOV_TOKEN}}
         file: ./coverage.xml
