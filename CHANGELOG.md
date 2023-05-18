@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2023-04-28
+### Fixed
+- Set default value for `render_template_as_native_obj` to False
+
 ## [0.18.0] - 2023-04-11
 ### Added
 - Support for dynamic task mapping
@@ -182,7 +186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2018-11-20
 - Initial release
 
-[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.18.1...HEAD
+[0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.17.3...v0.18.0
 [0.17.3]: https://github.com/ajbosco/dag-factory/compare/v0.17.2...v0.17.3
 [0.17.2]: https://github.com/ajbosco/dag-factory/compare/v0.17.1...v0.17.2
