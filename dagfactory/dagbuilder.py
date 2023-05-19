@@ -35,6 +35,13 @@ try:
 except ImportError:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
+# python sensor was moved in Airflow 2.0.0
+try:
+    from airflow.sensors.python import PythonSensor
+except ImportError:
+    from airflow.contrib.sensors.python_sensor import PythonSensor
+
+
 # k8s libraries are moved in v5.0.0
 try:
     from airflow.providers.cncf.kubernetes import get_provider_info
@@ -84,14 +91,6 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.utils.task_group import TaskGroup
 else:
     TaskGroup = None
-# pylint: disable=ungrouped-imports,invalid-name
-
-# pylint: disable=ungrouped-imports,invalid-name
-# python sensors were moved in new airflow
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-    from airflow.sensors.python import PythonSensor
-else:
-    from airflow.contrib.sensors.python_sensor import PythonSensor
 # pylint: disable=ungrouped-imports,invalid-name
 
 # TimeTable is introduced in Airflow 2.2.0
