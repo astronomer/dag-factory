@@ -86,11 +86,13 @@ else:
     TaskGroup = None
 # pylint: disable=ungrouped-imports,invalid-name
 
+# pylint: disable=ungrouped-imports,invalid-name
 # python sensors were moved in new airflow
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.sensors.python import PythonSensor
 else:
     from airflow.contrib.sensors.python_sensor import PythonSensor
+# pylint: disable=ungrouped-imports,invalid-name
 
 # TimeTable is introduced in Airflow 2.2.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
