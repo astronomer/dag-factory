@@ -91,7 +91,7 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
     from airflow.sensors.python import PythonSensor
 else:
     from airflow.contrib.sensors.python_sensor import PythonSensor
-    
+
 # TimeTable is introduced in Airflow 2.2.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
     from airflow.timetables.base import Timetable
