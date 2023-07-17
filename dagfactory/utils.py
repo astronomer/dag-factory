@@ -8,6 +8,7 @@ import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List, Tuple
+import yaml
 
 import pendulum
 
@@ -263,3 +264,29 @@ def is_partial_duplicated(
             "Duplicated partial kwarg! It's already in task_params."
         )
     return False
+
+def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str]:
+    """
+    Retrieves the URIs of datasets from a YAML file based on a given filter.
+
+    :param file_path: The path to the YAML file.
+    :type file_path: str
+    :param datasets_filter: A list of dataset names to filter the results.
+    :type datasets_filter: List[str]
+    :return: A list of dataset URIs that match the filter.
+    :rtype: List[str]
+    """
+    try:            
+        with open(file_path, 'r') as file:
+            data = yaml.safe_load(file)
+
+            datasets = data.get('datasets', [])
+            datasets_result_uri = [dataset['uri'] for dataset in datasets
+                                if dataset['name'] in datasets_filter and 'uri' in dataset]
+            return datasets_result_uri
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+    except yaml.YAMLError as e:
+        print(f"Error: Failed to load YAML file '{file_path}'. {str(e)}")
+
+    return []
