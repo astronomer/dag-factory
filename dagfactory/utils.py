@@ -289,8 +289,6 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
             ]
             return datasets_result_uri
     except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
+        raise FileNotFoundError(f"Error: File '{file_path}' not found.")
     except yaml.YAMLError as error:
-        print(f"Error: Failed to load YAML file '{file_path}'. {str(error)}")
-
-    return []
+        raise error
