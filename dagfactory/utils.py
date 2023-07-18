@@ -265,6 +265,7 @@ def is_partial_duplicated(
         )
     return False
 
+
 def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str]:
     """
     Retrieves the URIs of datasets from a YAML file based on a given filter.
@@ -276,17 +277,20 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
     :return: A list of dataset URIs that match the filter.
     :rtype: List[str]
     """
-    try:            
-        with open(file_path, 'r') as file:
+    try:
+        with open(file_path, "r", encoding='UTF-8') as file:
             data = yaml.safe_load(file)
 
-            datasets = data.get('datasets', [])
-            datasets_result_uri = [dataset['uri'] for dataset in datasets
-                                if dataset['name'] in datasets_filter and 'uri' in dataset]
+            datasets = data.get("datasets", [])
+            datasets_result_uri = [
+                dataset["uri"]
+                for dataset in datasets
+                if dataset["name"] in datasets_filter and "uri" in dataset
+            ]
             return datasets_result_uri
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
-    except yaml.YAMLError as e:
-        print(f"Error: Failed to load YAML file '{file_path}'. {str(e)}")
+    except yaml.YAMLError as error:
+        print(f"Error: Failed to load YAML file '{file_path}'. {str(error)}")
 
     return []

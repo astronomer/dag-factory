@@ -593,23 +593,25 @@ class DagBuilder:
                     partial_kwargs, task_params
                 ):
                     task_params.update(partial_kwargs)
-                
-            if (utils.check_dict_key(task_params, "outlets")
-                    and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
-            ):
-                if (utils.check_dict_key(task_params["outlets"], "file")
-                    and utils.check_dict_key(task_params["outlets"], "datasets")
-                ):
+
+            if utils.check_dict_key(task_params, "outlets") and version.parse(
+                AIRFLOW_VERSION
+            ) >= version.parse("2.4.0"):
+                if utils.check_dict_key(
+                    task_params["outlets"], "file"
+                ) and utils.check_dict_key(task_params["outlets"], "datasets"):
                     file = task_params["outlets"]["file"]
                     datasets_filter = task_params["outlets"]["datasets"]
-                    datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+                    datasets_uri = utils.get_datasets_uri_yaml_file(
+                        file, datasets_filter
+                    )
 
                     del task_params["outlets"]["file"]
                     del task_params["outlets"]["datasets"]
                 else:
-                    datasets_uri = task_params['outlets']
+                    datasets_uri = task_params["outlets"]
 
-                task_params['outlets'] = [Dataset(uri) for uri in datasets_uri]
+                task_params["outlets"] = [Dataset(uri) for uri in datasets_uri]
 
             task: Union[BaseOperator, MappedOperator] = (
                 operator_obj(**task_params)
@@ -719,9 +721,9 @@ class DagBuilder:
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
 
-        if (not dag_params.get("timetable") 
-                and not utils.check_dict_key(dag_params, "schedule")
-            ):
+        if not dag_params.get("timetable") and not utils.check_dict_key(
+            dag_params, "schedule"
+        ):
             dag_kwargs["schedule_interval"] = dag_params.get(
                 "schedule_interval", timedelta(days=1)
             )
@@ -790,13 +792,14 @@ class DagBuilder:
             "is_paused_upon_creation", None
         )
 
-        if (utils.check_dict_key(dag_params, "schedule")
+        if (
+            utils.check_dict_key(dag_params, "schedule")
             and not utils.check_dict_key(dag_params, "schedule_interval")
             and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
         ):
-            if (utils.check_dict_key(dag_params["schedule"], "file")
-                    and utils.check_dict_key(dag_params["schedule"], "datasets")
-            ):
+            if utils.check_dict_key(
+                dag_params["schedule"], "file"
+            ) and utils.check_dict_key(dag_params["schedule"], "datasets"):
                 file = dag_params["schedule"]["file"]
                 datasets_filter = dag_params["schedule"]["datasets"]
                 datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
@@ -804,7 +807,7 @@ class DagBuilder:
                 del dag_params["schedule"]["file"]
                 del dag_params["schedule"]["datasets"]
             else:
-                datasets_uri = dag_params['schedule']
+                datasets_uri = dag_params["schedule"]
 
             dag_kwargs["schedule"] = [Dataset(uri) for uri in datasets_uri]
 
