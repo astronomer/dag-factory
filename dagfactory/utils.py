@@ -278,7 +278,7 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
     :rtype: List[str]
     """
     try:
-        with open(file_path, "r", encoding='UTF-8') as file:
+        with open(file_path, "r", encoding="UTF-8") as file:
             data = yaml.safe_load(file)
 
             datasets = data.get("datasets", [])
