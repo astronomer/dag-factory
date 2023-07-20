@@ -248,3 +248,20 @@ def test_is_partial_duplicated():
         utils.is_partial_duplicated(partial_kwargs, task_params)
     except Exception as e:
         assert str(e) == "Duplicated partial kwarg! It's already in task_params."
+
+def test_open_and_filter_yaml_config_datasets():
+    datasets_names = ['dataset_custom_1', 'dataset_custom_2']
+    file_path = 'examples/datasets/example_config_datasets.yml'
+
+    actual = utils.get_datasets_uri_yaml_file(file_path, datasets_names)
+    expected = ['s3://bucket-cjmm/raw/dataset_custom_1', 's3://bucket-cjmm/raw/dataset_custom_2']
+    
+    assert actual == expected
+
+def test_open_and_filter_yaml_config_datasets_file_notfound():
+    datasets_names = ['dataset_custom_1', 'dataset_custom_2']
+    file_path = 'examples/datasets/not_found_example_config_datasets.yml'
+
+    with pytest.raises(Exception):
+        utils.get_datasets_uri_yaml_file(file_path, datasets_names)
+ 
