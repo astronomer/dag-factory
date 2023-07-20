@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2023-07-19
+### Added
+- Support for Airflow Datasets (data-aware scheduling)
+- Support for inherited Operators
+
 ## [0.18.1] - 2023-04-28
 ### Fixed
 - Set default value for `render_template_as_native_obj` to False
@@ -186,8 +191,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2018-11-20
 - Initial release
 
-[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.18.1...HEAD
-[0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...v0.18.1
+[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/ajbosco/dag-factory/compare/v0.18.1...v0.19.0
+[0.18.1]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.17.3...v0.18.0
 [0.17.3]: https://github.com/ajbosco/dag-factory/compare/v0.17.2...v0.17.3
 [0.17.2]: https://github.com/ajbosco/dag-factory/compare/v0.17.1...v0.17.2
