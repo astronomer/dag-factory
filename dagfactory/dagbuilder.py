@@ -636,13 +636,50 @@ class DagBuilder:
             for task_group_name, task_group_conf in task_groups.items():
                 task_group_conf["group_id"] = task_group_name
                 task_group_conf["dag"] = dag
-                task_group = TaskGroup(
-                    **{
-                        k: v
-                        for k, v in task_group_conf.items()
-                        if k not in SYSTEM_PARAMS
-                    }
-                )
+
+                if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+                    # https://github.com/apache/airflow/pull/16557
+                    if isinstance(task_group_conf.get("default_args"), dict):
+                        if utils.check_dict_key(task_group_conf["default_args"], "on_success_callback"):
+                            if isinstance(task_group_conf["default_args"]["on_success_callback"], str):
+                                task_group_conf["default_args"][
+                                    "on_success_callback"
+                                ]: Callable = import_string(
+                                    task_group_conf["default_args"]["on_success_callback"]
+                                )
+                                print(task_group_conf["default_args"]["on_success_callback"])
+
+                        if utils.check_dict_key(task_group_conf["default_args"], "on_execute_callback"):
+                            if isinstance(task_group_conf["default_args"]["on_execute_callback"], str):
+                                task_group_conf["default_args"][
+                                    "on_execute_callback"
+                                ]: Callable = import_string(
+                                    task_group_conf["default_args"]["on_execute_callback"]
+                                )
+
+                        if utils.check_dict_key(task_group_conf["default_args"], "on_failure_callback"):
+                            if isinstance(task_group_conf["default_args"]["on_failure_callback"], str):
+                                task_group_conf["default_args"][
+                                    "on_failure_callback"
+                                ]: Callable = import_string(
+                                    task_group_conf["default_args"]["on_failure_callback"]
+                                )
+
+                        if utils.check_dict_key(task_group_conf["default_args"], "on_retry_callback"):
+                            if isinstance(task_group_conf["default_args"]["on_retry_callback"], str):
+                                task_group_conf["default_args"][
+                                    "on_retry_callback"
+                                ]: Callable = import_string(
+                                    task_group_conf["default_args"]["on_retry_callback"]
+                                )
+
+                    task_group = TaskGroup(
+                        **{
+                            k: v
+                            for k, v in task_group_conf.items()
+                            if k not in SYSTEM_PARAMS
+                        }
+                    )
                 task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
 
