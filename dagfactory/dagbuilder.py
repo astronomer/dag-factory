@@ -647,7 +647,6 @@ class DagBuilder:
                                 ]: Callable = import_string(
                                     task_group_conf["default_args"]["on_success_callback"]
                                 )
-                                print(task_group_conf["default_args"]["on_success_callback"])
 
                         if utils.check_dict_key(task_group_conf["default_args"], "on_execute_callback"):
                             if isinstance(task_group_conf["default_args"]["on_execute_callback"], str):
