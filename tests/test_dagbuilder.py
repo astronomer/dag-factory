@@ -603,7 +603,7 @@ def test_build_task_groups():
 def test_build_task_groups_with_callbacks():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
-        error_message = "`task_groups` key can only be used with Airflow 2.2.x"
+        error_message = "`task_groups` with `default_args` key can only be used with Airflow 2.2.x"
         with pytest.raises(Exception, match=error_message):
             td.build()
     else:
