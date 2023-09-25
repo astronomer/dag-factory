@@ -693,13 +693,13 @@ class DagBuilder:
                                 task_group_conf["default_args"]["on_retry_callback"]
                             )
 
-                    task_group = TaskGroup(
-                        **{
-                            k: v
-                            for k, v in task_group_conf.items()
-                            if k not in SYSTEM_PARAMS
-                        }
-                    )
+                task_group = TaskGroup(
+                    **{
+                        k: v
+                        for k, v in task_group_conf.items()
+                        if k not in SYSTEM_PARAMS
+                    }
+                )
                 task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
 
