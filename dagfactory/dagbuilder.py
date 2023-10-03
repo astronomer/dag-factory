@@ -351,6 +351,24 @@ class DagBuilder:
                         "  python_callable_file: !!python/name:my_module.my_func"
                     )
                 if not task_params.get("python_callable"):
+                    if not os.path.isabs(task_params.get("python_callable_file")):
+                        if os.path.isabs(
+                            os.environ.get("AIRFLOW_HOME")
+                            + "/"
+                            + task_params.get("python_callable_file")
+                        ):
+                            task_params.get("python_callable_file") = (
+                                os.environ.get("AIRFLOW_HOME")
+                                + "/"
+                                + task_params.get("python_callable_file")
+                            )
+                        else:
+                            raise DagFactoryException(
+                                "Failed to create task. \
+                                PythonOperator, BranchPythonOperator and PythonSensor \
+                                requires python_callable_file \
+                                should be an absolute path or relative path from AIRFLOW_HOME."
+                            )
                     task_params[
                         "python_callable"
                     ]: Callable = utils.get_python_callable(
