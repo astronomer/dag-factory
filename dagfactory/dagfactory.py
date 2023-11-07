@@ -270,9 +270,9 @@ class DagFactory:
 
 
 def load_yaml_dags(
-        globals_dict: Dict[str, Any],
-        dags_folder: str = airflow_conf.get("core", "dags_folder"),
-        suffix=None,
+    globals_dict: Dict[str, Any],
+    dags_folder: str = airflow_conf.get("core", "dags_folder"),
+    suffix=None,
 ):
     """
     Loads all the yaml/yml files in the dags folder
@@ -299,6 +299,3 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         DagFactory(config_file_abs_path).generate_dags(globals_dict)
         logging.info("DAG loaded: %s", config_file_path)
-
-new_dag = DagFactory()
-new_dag.from_directory("/git/repo/dags/data_engineering/ingest", globals())
