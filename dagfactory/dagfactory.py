@@ -53,6 +53,14 @@ class DagFactory:
             self.config: Dict[str, Any] = DagFactory._load_config(
                 config_filepath=config_filepath
             )
+            dag_id = list(self.config.keys())[0]
+            if '/git/repo' in config_filepath:
+                git_filepath = config_filepath.replace('/git/repo', 'https://github.com/pelotoncycle/data-engineering-airflow-dags/tree/master')
+                file_loc = f'file loc: [Git Link]({git_filepath}).'
+                if 'doc_md' in self.config[dag_id]:
+                    self.config[dag_id]['doc_md'] = ''.join([self.config[dag_id]['doc_md'], file_loc])
+                else:
+                    self.config[dag_id]['doc_md'] = file_loc
         if config:
             self.config: Dict[str, Any] = config
 
@@ -91,6 +99,9 @@ class DagFactory:
             if os.path.isdir(sub_fpath):
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
+                if 'owner' not in default_config['default_args']:
+                    default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                    default_config['tags'] = sub_fpath.split("/")[5:7]
                 # catch the errors so the rest of the dags can still be imported
                 try:
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
@@ -259,9 +270,9 @@ class DagFactory:
 
 
 def load_yaml_dags(
-    globals_dict: Dict[str, Any],
-    dags_folder: str = airflow_conf.get("core", "dags_folder"),
-    suffix=None,
+        globals_dict: Dict[str, Any],
+        dags_folder: str = airflow_conf.get("core", "dags_folder"),
+        suffix=None,
 ):
     """
     Loads all the yaml/yml files in the dags folder
@@ -288,3 +299,6 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         DagFactory(config_file_abs_path).generate_dags(globals_dict)
         logging.info("DAG loaded: %s", config_file_path)
+
+new_dag = DagFactory()
+new_dag.from_directory("/git/repo/dags/data_engineering/ingest", globals())
