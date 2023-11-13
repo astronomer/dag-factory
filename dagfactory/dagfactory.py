@@ -108,8 +108,9 @@ class DagFactory:
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
                 if 'owner' not in default_config['default_args']:
-                    default_config['default_args']['owner'] = sub_fpath.split("/")[4]
-                    default_config['tags'] = sub_fpath.split("/")[5:7]
+                    if 'git/repo' in sub_fpath:
+                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                        default_config['tags'] = sub_fpath.split("/")[5:7]
                 # catch the errors so the rest of the dags can still be imported
                 try:
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
