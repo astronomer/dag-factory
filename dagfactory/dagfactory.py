@@ -54,13 +54,21 @@ class DagFactory:
                 config_filepath=config_filepath
             )
             dag_id = list(self.config.keys())[0]
-            if '/git/repo' in config_filepath:
+            if 'git/repo' in config_filepath:
                 git_filepath = config_filepath.replace('/git/repo', 'https://github.com/pelotoncycle/data-engineering-airflow-dags/tree/master')
-                file_loc = f'file loc: [Git Link]({git_filepath}).'
-                if 'doc_md' in self.config[dag_id]:
-                    self.config[dag_id]['doc_md'] = ''.join([self.config[dag_id]['doc_md'], file_loc])
-                else:
-                    self.config[dag_id]['doc_md'] = file_loc
+            elif 'ds-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/ds-dbt', 'https://github.com/pelotoncycle/ds-dbt/tree/master')
+            elif 'cdw-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/cdw-dbt', 'https://github.com/pelotoncycle/cdw-dbt/tree/master')
+            elif 'data-engineering-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/data-engineering-dbt', 'https://github.com/pelotoncycle/data-engineering-dbt/tree/master')
+            else:
+                git_filepath = config_filepath
+            file_loc = f'file loc: [Git Link]({git_filepath}).'
+            if 'doc_md' in self.config[dag_id]:
+                self.config[dag_id]['doc_md'] = ''.join([self.config[dag_id]['doc_md'], file_loc])
+            else:
+                self.config[dag_id]['doc_md'] = file_loc
         if config:
             self.config: Dict[str, Any] = config
 
