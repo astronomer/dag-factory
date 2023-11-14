@@ -53,6 +53,22 @@ class DagFactory:
             self.config: Dict[str, Any] = DagFactory._load_config(
                 config_filepath=config_filepath
             )
+            dag_id = list(self.config.keys())[0]
+            if 'git/repo' in config_filepath:
+                git_filepath = config_filepath.replace('/git/repo', 'https://github.com/pelotoncycle/data-engineering-airflow-dags/tree/master')
+            elif 'ds-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/ds-dbt', 'https://github.com/pelotoncycle/ds-dbt/tree/master')
+            elif 'cdw-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/cdw-dbt', 'https://github.com/pelotoncycle/cdw-dbt/tree/master')
+            elif 'data-engineering-dbt' in config_filepath:
+                git_filepath = config_filepath.replace('/dbt-airflow/data-engineering-dbt', 'https://github.com/pelotoncycle/data-engineering-dbt/tree/master')
+            else:
+                git_filepath = config_filepath
+            file_loc = f'Code: [Github Link]({git_filepath}).'
+            if 'doc_md' in self.config[dag_id]:
+                self.config[dag_id]['doc_md'] = ''.join([self.config[dag_id]['doc_md'], file_loc])
+            else:
+                self.config[dag_id]['doc_md'] = file_loc
         if config:
             self.config: Dict[str, Any] = config
 
@@ -91,6 +107,10 @@ class DagFactory:
             if os.path.isdir(sub_fpath):
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
+                if 'owner' not in default_config['default_args']:
+                    if 'git/repo' in sub_fpath:
+                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                        default_config['tags'] = sub_fpath.split("/")[5:7]
                 # catch the errors so the rest of the dags can still be imported
                 try:
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
