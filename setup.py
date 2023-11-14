@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# To generate new tag, update version in __version__.py and run python setup.py upload
+# To generate new tag, update tag name in __version__.py and run python setup.py upload
 # Note: To use the 'upload' functionality of this file, you must:
 #   $ pip install twine
 
