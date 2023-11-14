@@ -64,7 +64,7 @@ class DagFactory:
                 git_filepath = config_filepath.replace('/dbt-airflow/data-engineering-dbt', 'https://github.com/pelotoncycle/data-engineering-dbt/tree/master')
             else:
                 git_filepath = config_filepath
-            file_loc = f'file loc: [Git Link]({git_filepath}).'
+            file_loc = f'Code: [Github Link]({git_filepath}).'
             if 'doc_md' in self.config[dag_id]:
                 self.config[dag_id]['doc_md'] = ''.join([self.config[dag_id]['doc_md'], file_loc])
             else:
