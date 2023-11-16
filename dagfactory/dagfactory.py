@@ -109,35 +109,25 @@ class DagFactory:
             if os.path.isdir(sub_fpath):
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
-                if 'git/repo' in sub_fpath and CONFIG_FILENAME_REGEX.match(sub_fpath.split("/")[-1]):
-                    if 'owner' not in default_config['default_args']:
-                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
-                        default_config['tags'] = sub_fpath.split("/")[5:7]
-                    # catch the errors so the rest of the dags can still be imported
-                    try:
-                        dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
-                        dag_factory.generate_dags(globals)
-                    except Exception as e:
-                        if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
-                            import_failures[sub_fpath] = traceback.format_exc(
-                                limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
-                            )
-                        else:
-                            import_failures[sub_fpath] = str(e)
-                elif 'dbt-airflow' in sub_fpath:
-                    # catch the errors so the rest of the dags can still be imported
-                    try:
-                        dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
-                        dag_factory.generate_dags(globals)
-                    except Exception as e:
-                        if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
-                            import_failures[sub_fpath] = traceback.format_exc(
-                                limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
-                            )
-                        else:
-                            import_failures[sub_fpath] = str(e)
-                else:
-                    continue
+                if 'git/repo' in sub_fpath:
+                    if CONFIG_FILENAME_REGEX.match(sub_fpath.split("/")[-1]):
+                        if 'owner' not in default_config['default_args']:
+                            default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                            default_config['tags'] = sub_fpath.split("/")[5:7]
+                    else:
+                        continue
+
+                # catch the errors so the rest of the dags can still be imported
+                try:
+                    dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
+                    dag_factory.generate_dags(globals)
+                except Exception as e:
+                    if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
+                        import_failures[sub_fpath] = traceback.format_exc(
+                            limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
+                        )
+                    else:
+                        import_failures[sub_fpath] = str(e)
 
 
         # in the end we want to surface the error messages if there's any
