@@ -22,7 +22,7 @@ from dagfactory.utils import merge_configs
 
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 ALLOWED_CONFIG_FILE_SUFFIX: List[str] = ["yaml", "yml"]
-CONFIG_FILENAME_REGEX = re.compile(r"_jc__*", flags=re.IGNORECASE)
+CONFIG_FILENAME_REGEX = re.compile(r"_jc__.*", flags=re.IGNORECASE)
 
 logger = logging.getLogger(__file__)
 
@@ -110,37 +110,36 @@ class DagFactory:
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
                 if 'git/repo/dags/data_engineering' in sub_fpath:
+                    print("sub_fpath=" + sub_fpath)
                     if CONFIG_FILENAME_REGEX.match(sub_fpath.split("/")[-1]):
+                        print("config_filename=" + sub_fpath.split("/")[-1])
                         if 'owner' not in default_config['default_args']:
+                            print("owner="+sub_fpath.split("/")[4])
+                            print("tag="+sub_fpath.split("/")[5:7])
                             default_config['default_args']['owner'] = sub_fpath.split("/")[4]
                             default_config['tags'] = sub_fpath.split("/")[5:7]
-                        # catch the errors so the rest of the dags can still be imported
-                        try:
-                            dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
-                            dag_factory.generate_dags(globals)
-                        except Exception as e:
-                            if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
-                                import_failures[sub_fpath] = traceback.format_exc(
-                                    limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
-                                )
-                            else:
-                                import_failures[sub_fpath] = str(e)
-                else:
-                    # catch the errors so the rest of the dags can still be imported
-                    try:
-                        dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
-                        dag_factory.generate_dags(globals)
-                    except Exception as e:
-                        if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
-                            import_failures[sub_fpath] = traceback.format_exc(
-                                limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
-                            )
-                        else:
-                            import_failures[sub_fpath] = str(e)
+                    else:
+                        print("ignored_file="+sub_fpath)
+                        continue
+
+                # catch the errors so the rest of the dags can still be imported
+                try:
+                    print("yaml_filepath="+sub_fpath)
+                    print("config_info="+default_config)
+                    dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
+                    dag_factory.generate_dags(globals)
+                except Exception as e:
+                    if cls.DAGBAG_IMPORT_ERROR_TRACEBACKS:
+                        import_failures[sub_fpath] = traceback.format_exc(
+                            limit=-cls.DAGBAG_IMPORT_ERROR_TRACEBACK_DEPTH
+                        )
+                    else:
+                        import_failures[sub_fpath] = str(e)
 
 
         # in the end we want to surface the error messages if there's any
         if import_failures:
+            print("import_failure="+import_failures)
             # reformat import_failures so they are reader friendly
             import_failures_reformatted = ''
             for import_loc, import_trc in import_failures.items():
