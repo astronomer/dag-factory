@@ -124,7 +124,6 @@ class DagFactory:
                 # catch the errors so the rest of the dags can still be imported
                 try:
                     print("yaml_filepath="+sub_fpath)
-                    print("config_info="+default_config)
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
                     dag_factory.generate_dags(globals)
                 except Exception as e:
