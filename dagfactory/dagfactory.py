@@ -111,11 +111,9 @@ class DagFactory:
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
                 if 'git/repo/dags/data_engineering' in sub_fpath:
                     print("sub_fpath="+sub_fpath)
-                    print(default_config['default_args'])
-                    if 'owner' not in default_config['default_args']:
-                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
-                        default_config['tags'] = sub_fpath.split("/")[5:7]
-                        print(default_config)
+                    default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                    default_config['tags'] = sub_fpath.split("/")[5:7]
+                    print(default_config)
                 # catch the errors so the rest of the dags can still be imported
                 try:
                     print("config_filepath="+sub_fpath)
