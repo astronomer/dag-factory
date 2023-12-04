@@ -117,7 +117,7 @@ class DagFactory:
                         default_config['tags'] = sub_fpath.split("/")[5:7]
                 # catch the errors so the rest of the dags can still be imported
                 try:
-                    print("config_filepath="+config_filepath)
+                    print("config_filepath="+sub_fpath)
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
                     dag_factory.generate_dags(globals)
                 except Exception as e:
