@@ -111,10 +111,8 @@ class DagFactory:
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
                 if 'git/repo/dags/data_engineering' in sub_fpath:
                     if CONFIG_FILENAME_REGEX.match(sub_fpath.split("/")[-1]):
-                        print("sub_fpath="+sub_fpath)
                         default_config['default_args']['owner'] = sub_fpath.split("/")[4]
                         default_config['tags'] = sub_fpath.split("/")[5:7]
-                        print(default_config)
                     else:
                         print("ingored file="+sub_fpath)
                         continue
