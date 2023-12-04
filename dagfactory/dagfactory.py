@@ -109,21 +109,15 @@ class DagFactory:
             if os.path.isdir(sub_fpath):
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
-                print("sub_fpath=" + sub_fpath)
                 if 'owner' not in default_config['default_args']:
+                    print("sub_fpath="+sub_fpath)
                     if 'git/repo/dags/data_engineering' in sub_fpath:
-                        print("config_filename=" + sub_fpath.split("/")[-1])
-                        if 'owner' not in default_config['default_args']:
-                            print("set up owner and tags")
-                            default_config['default_args']['owner'] = sub_fpath.split("/")[4]
-                            default_config['tags'] = sub_fpath.split("/")[5:7]
-                    else:
-                        print("ignored_file="+sub_fpath)
-                        continue
-
+                        print("set up owner and tags")
+                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
+                        default_config['tags'] = sub_fpath.split("/")[5:7]
                 # catch the errors so the rest of the dags can still be imported
                 try:
-                    print("yaml_filepath="+sub_fpath)
+                    print("config_filepath="+config_filepath)
                     dag_factory = cls(config_filepath=sub_fpath, default_config=default_config)
                     dag_factory.generate_dags(globals)
                 except Exception as e:
