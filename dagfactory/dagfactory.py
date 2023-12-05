@@ -113,7 +113,7 @@ class DagFactory:
                         default_config['default_args']['owner'] = sub_fpath.split("/")[4]
                         default_config['tags'] = sub_fpath.split("/")[5:7]
                     else:
-                        logger.info(f"Ingored invalid dag config file: {sub_fpath} ")
+                        logger.info(f"Ignored invalid dag config file: {sub_fpath} ")
                         continue
                 # catch the errors so the rest of the dags can still be imported
                 try:
