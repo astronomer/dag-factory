@@ -108,10 +108,12 @@ class DagFactory:
             if os.path.isdir(sub_fpath):
                 cls.from_directory(sub_fpath, globals, default_config)
             elif os.path.isfile(sub_fpath) and sub_fpath.split('.')[-1] in ALLOWED_CONFIG_FILE_SUFFIX:
-                if 'git/repo/dags/data_engineering' in sub_fpath:
+                if 'git/repo/dags/' in sub_fpath:
                     if sub_fpath.split("/")[-1].startswith("_jc__"):
-                        default_config['default_args']['owner'] = sub_fpath.split("/")[4]
-                        default_config['tags'] = sub_fpath.split("/")[5:7]
+                        owner = sub_fpath.split("/")[4]
+                        default_config['default_args']['owner'] = owner
+                        if owner == 'data_engineering':
+                            default_config['tags'] = sub_fpath.split("/")[5:7]
                     else:
                         logger.info(f"Ignored invalid dag config file: {sub_fpath} ")
                         continue
