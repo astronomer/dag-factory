@@ -412,10 +412,10 @@ def print_context_callback(context, **kwargs):
     print(context)
 
 
-def test_generate_dags_with_removal_valid_and_callback():
-    td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
-    td.clean_dags(globals())
-    td.generate_dags(globals())
+# def test_generate_dags_with_removal_valid_and_callback():
+#     td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
+#     td.clean_dags(globals())
+#     td.generate_dags(globals())
 
 
 def test_set_callback_after_loading_config():

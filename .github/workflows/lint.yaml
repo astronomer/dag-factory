@@ -1,0 +1,18 @@
+name: Lint
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          args: --config ruff.toml
+      
