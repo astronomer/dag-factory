@@ -1,4 +1,5 @@
 """Module contains various utilities used by dag-factory"""
+
 import ast
 import importlib.util
 import os
@@ -7,10 +8,10 @@ import sys
 import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List, Tuple
-import yaml
+from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
 import pendulum
+import yaml
 
 from dagfactory.exceptions import DagFactoryException
 
@@ -213,7 +214,7 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
 
 
 def get_expand_partial_kwargs(
-    task_params: Dict[str, Any]
+    task_params: Dict[str, Any],
 ) -> Tuple[
     Dict[str, Any],
     Dict[str, Union[Dict[str, Any], Any]],
