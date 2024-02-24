@@ -5,7 +5,7 @@ default:
     retries: 1
     retry_delay_sec: 300
     start_date: 2018-03-01
-  default_view: tree
+  default_view: "tree"
   max_active_runs: 1
   orientation: LR
   schedule_interval: 0 1 * * *

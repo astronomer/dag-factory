@@ -1,4 +1,5 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
+
 import logging
 import os
 from itertools import chain
@@ -10,8 +11,7 @@ from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
-from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
-
+from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]

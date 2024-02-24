@@ -10,6 +10,7 @@ from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
 from packaging import version
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 try:
     from airflow.version import version as AIRFLOW_VERSION
@@ -54,9 +55,9 @@ except ImportError:
 try:
     if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
         from airflow.kubernetes.pod import Port
-        from airflow.kubernetes.volume_mount import VolumeMount
-        from airflow.kubernetes.volume import Volume
         from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+        from airflow.kubernetes.volume import Volume
+        from airflow.kubernetes.volume_mount import VolumeMount
     else:
         from kubernetes.client.models import V1ContainerPort as Port
         from kubernetes.client.models import (
@@ -71,17 +72,17 @@ try:
         KubernetesPodOperator,
     )
 except ImportError:
-    from airflow.contrib.kubernetes.secret import Secret
     from airflow.contrib.kubernetes.pod import Port
-    from airflow.contrib.kubernetes.volume_mount import VolumeMount
-    from airflow.contrib.kubernetes.volume import Volume
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    from airflow.contrib.kubernetes.secret import Secret
+    from airflow.contrib.kubernetes.volume import Volume
+    from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from kubernetes.client.models import V1Container, V1Pod
 
-from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
 from dagfactory import utils
+from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 # pylint: disable=ungrouped-imports,invalid-name
 # Disabling pylint's ungrouped-imports warning because this is a
@@ -321,6 +322,12 @@ class DagBuilder:
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
     @staticmethod
+    # retry, but not too hard
+    @retry(
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type(DagFactoryException),
+        stop=stop_after_attempt(3),
+    )
     def make_task(operator: str, task_params: Dict[str, Any]) -> BaseOperator:
         """
         Takes an operator and params and creates an instance of that operator.

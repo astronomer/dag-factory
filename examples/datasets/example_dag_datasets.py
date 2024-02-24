@@ -1,4 +1,3 @@
-from airflow import DAG
 import dagfactory
 
 

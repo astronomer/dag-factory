@@ -9,7 +9,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command
+from setuptools import Command, find_packages, setup
 
 # Package meta-data.
 NAME = "dag-factory"
@@ -18,12 +18,18 @@ DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
 URL = "https://github.com/ajbosco/dag-factory"
 EMAIL = "adam@boscarino.me"
 AUTHOR = "Adam Boscarino"
-REQUIRES_PYTHON = ">=3.7.0"
+REQUIRES_PYTHON = ">=3.11.0"
 VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = ["apache-airflow[http,kubernetes]>=1.10.0", "pyyaml", "packaging"]
+REQUIRED = [
+    "apache-airflow[http,kubernetes]>=1.10.0",
+    "pyyaml",
+    "packaging",
+    "tenacity",
+    "pendulum",
+]
 DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov", "tox"]
 
 try:
@@ -100,7 +106,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],

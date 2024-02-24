@@ -1,12 +1,17 @@
 name: build
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
 
 jobs:
   build:
     strategy:
       matrix:
-        python: ['3.7', '3.8', '3.9', '3.10']
+        python: ['3.11']
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@master
@@ -27,8 +32,4 @@ jobs:
       run: make lint
     - name: Test with tox
       run: make test
-    - name: Upload coverage to Codecov  
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{secrets.CODECOV_TOKEN}}
-        file: ./coverage.xml
+

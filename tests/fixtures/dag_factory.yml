@@ -7,7 +7,7 @@ default:
     retries: 1
     retry_delay_sec: 300
     start_date: 2018-03-01
-  default_view: tree
+  default_view: "tree"
   max_active_runs: 1
   orientation: LR
   schedule_interval: 0 1 * * *
@@ -33,7 +33,7 @@ example_dag:
       - task_1
       operator: airflow.operators.bash_operator.BashOperator
 example_dag2:
-  doc_md_file_path: {here}/fixtures/mydocfile.md
+  doc_md_file_path: /Users/bensonlee/dev/dag-factory/tests/fixtures/mydocfile.md
   schedule_interval: None
   tasks:
     task_1:
@@ -53,7 +53,7 @@ example_dag3:
   doc_md_python_arguments:
     arg1: arg1
     arg2: arg2
-  doc_md_python_callable_file: {here}/fixtures/doc_md_builder.py
+  doc_md_python_callable_file: /Users/bensonlee/dev/dag-factory/tests/fixtures/doc_md_builder.py
   doc_md_python_callable_name: mydocmdbuilder
   tasks:
     task_1:

@@ -1,4 +1,3 @@
-from airflow import DAG
 import dagfactory
 
 config_file = "/usr/local/airflow/dags/example_dag_factory.yml"
