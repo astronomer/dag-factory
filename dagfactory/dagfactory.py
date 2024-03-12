@@ -181,7 +181,6 @@ def load_yaml_dags(
         candidate_dag_files = list(chain(
             candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
         ))
-    logging.info(candidate_dag_files)
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
         logging.info(f"Loading {config_file_abs_path}")
