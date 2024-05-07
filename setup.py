@@ -15,15 +15,15 @@ from setuptools import find_packages, setup, Command
 NAME = "dag-factory"
 PKG_NAME = "dagfactory"
 DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
-URL = "https://github.com/ajbosco/dag-factory"
-EMAIL = "adam@boscarino.me"
-AUTHOR = "Adam Boscarino"
-REQUIRES_PYTHON = ">=3.7.0"
+URL = "https://github.com/quydx/dag-factory"
+EMAIL = "quybulu@gmail.com"
+AUTHOR = "Quy Do"
+REQUIRES_PYTHON = ">=3.10.0"
 VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = ["apache-airflow[http,kubernetes]>=1.10.0", "pyyaml", "packaging"]
+REQUIRED = ["apache-airflow[http,kubernetes]>=2.7.2", "pyyaml", "packaging"]
 DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov", "tox"]
 
 try:
@@ -100,7 +100,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
