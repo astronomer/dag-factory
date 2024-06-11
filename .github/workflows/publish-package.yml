@@ -4,32 +4,14 @@ on:
     branches:
       - 'master'
       - 'main'
+permissions:
+  contents: 'read'
+  id-token: 'write'
+  
 jobs:
-  Publish:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: |
-          python -m pip install twine build
-          python -m pip install keyrings.google-artifactregistry-auth
-      - name: Capture build tag
-        run: |
-          echo "COMMIT_TAG=$(git rev-parse --short  HEAD)"  >> $GITHUB_ENV
-
-      - name: Make dists
-        run: |
-          python -m build
-      - name: Show output
-        run: tree .
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v0.6.0
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: ganymede-core-dev
-          export_default_credentials: true
-      - name: Publish package
-        run: |
-          python3 -m twine upload --verbose --repository-url https://us-central1-python.pkg.dev/ganymede-core-dev/ganymede-py/ dist/*
-    
+  publish_package:
+    uses: Ganymede-Bio/common-gh-workflows/.github/workflows/publish-python-package.yaml@publish-python-package
+    with:
+      GCP_PROJECT: ganymede-core-dev
+      WORKLOAD_IDENTITY_PROVIDER: projects/248644630671/locations/global/workloadIdentityPools/ganymede-core-dev-pool/providers/ganymede-core-dev-provider
+      WORKLOAD_IDENTITY_SERVICE_ACCOUNT: py-upload
