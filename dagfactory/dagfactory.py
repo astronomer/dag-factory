@@ -29,7 +29,10 @@ class DagFactory:
     """
 
     def __init__(
-        self, config_filepath: Optional[str] = None, config: Optional[dict] = None
+        self,
+        config_filepath: Optional[str] = None,
+        config: Optional[dict] = None,
+        default_config: Optional[dict] = None
     ) -> None:
         assert bool(config_filepath) ^ bool(
             config
@@ -41,6 +44,9 @@ class DagFactory:
             )
         if config:
             self.config: Dict[str, Any] = config
+
+        if default_config and not self.config.get("default"):
+            self.config["default"] = default_config
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
@@ -100,6 +106,7 @@ class DagFactory:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         default_config: Dict[str, Any] = self.get_default_config()
+        print(default_config)
 
         dags: Dict[str, Any] = {}
 
@@ -171,6 +178,7 @@ def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
     suffix=None,
+    default_config=None
 ):
     """
     Loads all the yaml/yml files in the dags folder
@@ -195,5 +203,5 @@ def load_yaml_dags(
 
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
-        DagFactory(config_file_abs_path).generate_dags(globals_dict)
+        DagFactory(config_file_abs_path, default_config=default_config).generate_dags(globals_dict)
         logging.info("DAG loaded: %s", config_file_path)

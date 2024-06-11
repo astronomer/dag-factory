@@ -92,6 +92,22 @@ DAG_FACTORY_CALLBACK_CONFIG = {
     }
 }
 
+CUSTOM_DEFAULT_CONFIG = {
+        "default_args": {
+            "owner": "new_default_owner",
+            "start_date": datetime.date(2018, 3, 1),
+            "end_date": datetime.date(2018, 3, 5),
+            "retries": 2,
+            "retry_delay_sec": 300,
+        },
+        "concurrency": 2,
+        "max_active_runs": 2,
+        "dagrun_timeout_sec": 600,
+        "default_view": "tree",
+        "orientation": "LR",
+        "schedule_interval": "0 1 * * *",
+    }
+
 
 @pytest.fixture(autouse=True)
 def build_path_for_doc_md():
@@ -297,6 +313,40 @@ def test_get_default_config():
     actual = td.get_default_config()
     assert actual == expected
 
+def test_custom_skip_default_config():
+    td = dagfactory.DagFactory(TEST_DAG_FACTORY, default_config=CUSTOM_DEFAULT_CONFIG)
+
+    expected = {
+        "default_args": {
+            "owner": "default_owner",
+            "start_date": datetime.date(2018, 3, 1),
+            "end_date": datetime.date(2018, 3, 5),
+            "retries": 1,
+            "retry_delay_sec": 300,
+        },
+        "concurrency": 1,
+        "max_active_runs": 1,
+        "dagrun_timeout_sec": 600,
+        "default_view": "tree",
+        "orientation": "LR",
+        "schedule_interval": "0 1 * * *",
+    }
+    actual = td.get_default_config()
+    assert actual == expected
+
+
+def test_custom_default_config():
+    td = dagfactory.DagFactory(config={"example_dag": {
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash_operator.BashOperator",
+                "bash_command": "echo 1",
+            },
+        },
+    }}, default_config=CUSTOM_DEFAULT_CONFIG)
+
+    actual = td.get_default_config()
+    assert actual == CUSTOM_DEFAULT_CONFIG
 
 def test_generate_dags_valid():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
@@ -441,3 +491,12 @@ def test_load_yaml_dags_succeed():
         dags_folder="tests/fixtures",
         suffix=["dag_factory_variables_as_arguments.yml"],
     )
+
+def test_load_yaml_dags__with_default_succeed():
+    load_yaml_dags(
+        globals_dict=globals(),
+        dags_folder="tests/fixtures",
+        suffix=["dag_factory_variables_as_arguments.yml"],
+        default_config=CUSTOM_DEFAULT_CONFIG
+    )
+    globals()['example_dag']
