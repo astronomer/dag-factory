@@ -104,7 +104,7 @@ CUSTOM_DEFAULT_CONFIG = {
         "max_active_runs": 2,
         "dagrun_timeout_sec": 600,
         "default_view": "tree",
-        "orientation": "LR",
+        "orientation": "BT",
         "schedule_interval": "0 1 * * *",
     }
 
@@ -492,10 +492,15 @@ def test_load_yaml_dags_succeed():
         suffix=["dag_factory_variables_as_arguments.yml"],
     )
 
-def test_load_yaml_dags__with_default_succeed():
+def test_load_yaml_dags_with_default_succeed():
+    # only override missing default variables
+    g = globals()
     load_yaml_dags(
-        globals_dict=globals(),
+        globals_dict=g,
         dags_folder="tests/fixtures",
         suffix=["dag_factory_variables_as_arguments.yml"],
         default_config=CUSTOM_DEFAULT_CONFIG
     )
+
+    assert g['example_dag'].owner == 'custom_owner'
+    assert g['example_dag'].orientation == "BT"

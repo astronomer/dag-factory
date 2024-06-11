@@ -12,6 +12,7 @@ from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
+from dagfactory.utils import merge_configs
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -45,8 +46,9 @@ class DagFactory:
         if config:
             self.config: Dict[str, Any] = config
 
-        if default_config and not self.config.get("default"):
-            self.config["default"] = default_config
+        self.config["default"] = merge_configs(
+                self.config.get("default", {}), default_config or {}
+            )
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
