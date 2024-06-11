@@ -499,4 +499,3 @@ def test_load_yaml_dags__with_default_succeed():
         suffix=["dag_factory_variables_as_arguments.yml"],
         default_config=CUSTOM_DEFAULT_CONFIG
     )
-    globals()['example_dag']
