@@ -10,7 +10,7 @@ permissions:
   
 jobs:
   publish_package:
-    uses: Ganymede-Bio/common-gh-workflows/.github/workflows/publish-python-package.yaml@publish-python-package
+    uses: Ganymede-Bio/common-gh-workflows/.github/workflows/publish-python-package.yaml@main
     with:
       GCP_PROJECT: ganymede-core-dev
       WORKLOAD_IDENTITY_PROVIDER: projects/248644630671/locations/global/workloadIdentityPools/ganymede-core-dev-pool/providers/ganymede-core-dev-provider
