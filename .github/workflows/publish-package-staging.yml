@@ -7,9 +7,30 @@ permissions:
   id-token: 'write'
   
 jobs:
-  publish_package:
-    uses: Ganymede-Bio/common-gh-workflows/.github/workflows/publish-python-package.yaml@main
-    with:
-      GCP_PROJECT: ganymede-core-staging
-      WORKLOAD_IDENTITY_PROVIDER: projects/980665281034/locations/global/workloadIdentityPools/ganymede-core-staging-pool/providers/ganymede-core-staging-provider
-      WORKLOAD_IDENTITY_SERVICE_ACCOUNT: py-upload
+  Publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        python -m pip install twine build
+        python -m pip install keyrings.google-artifactregistry-auth
+    - name: Make dists
+      run: |
+        python -m build
+    - name: Show output
+      run: tree .
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2.1.0'
+      with:
+          workload_identity_provider: projects/980665281034/locations/global/workloadIdentityPools/ganymede-core-staging-pool/providers/ganymede-core-staging-provider
+          service_account: "py-upload@ganymede-core-staging.iam.gserviceaccount.com"
+          create_credentials_file: true 
+          export_environment_variables: true
+
+    - name: Publish package
+      run: |
+        python3 -m twine upload --verbose --repository-url https://us-central1-python.pkg.dev/ganymede-core-staging/ganymede-py/ dist/*
