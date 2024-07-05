@@ -1,4 +1,5 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
+
 import logging
 import os
 from itertools import chain
