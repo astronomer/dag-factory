@@ -1,4 +1,5 @@
 """Module contains various utilities used by dag-factory"""
+
 import ast
 import importlib.util
 import os
@@ -212,9 +213,7 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
     return False
 
 
-def get_expand_partial_kwargs(
-    task_params: Dict[str, Any]
-) -> Tuple[
+def get_expand_partial_kwargs(task_params: Dict[str, Any]) -> Tuple[
     Dict[str, Any],
     Dict[str, Union[Dict[str, Any], Any]],
     Dict[str, Union[Dict[str, Any], Any]],
