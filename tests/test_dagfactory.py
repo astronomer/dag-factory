@@ -185,7 +185,7 @@ def test_load_config_valid():
             },
         },
         "example_dag4": {
-            "vars": {'arg1': 'hello', 'arg2': 'hello world'},
+            "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -262,7 +262,7 @@ def test_get_dag_configs():
             },
         },
         "example_dag4": {
-            "vars": {'arg1': 'hello', 'arg2': 'hello world'},
+            "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -434,7 +434,7 @@ def test_set_callback_after_loading_config():
 def test_load_yaml_dags_fail():
     with pytest.raises(Exception):
         load_yaml_dags(
-            globals_dict= globals(),
+            globals_dict=globals(),
             dags_folder="tests/fixtures",
             suffix=["invalid_yaml.yml"],
         )
@@ -442,7 +442,7 @@ def test_load_yaml_dags_fail():
 
 def test_load_yaml_dags_succeed():
     load_yaml_dags(
-        globals_dict= globals(),
+        globals_dict=globals(),
         dags_folder="tests/fixtures",
         suffix=["dag_factory_variables_as_arguments.yml"],
     )
