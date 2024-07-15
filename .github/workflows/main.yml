@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python: [3.8', '3.9', '3.10']
+        python: ['3.8', '3.9', '3.10']
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@master
