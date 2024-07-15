@@ -9,7 +9,7 @@
 Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow](https://github.com/apache/incubator-airflow) to construct DAGs declaratively via configuration files. 
 
 The minimum requirements for **dag-factory** are:
-- Python 3.6.0+
+- Python 3.8.0+
 - Apache Airflow 2.0+
 
 For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the [examples](/examples) folder.

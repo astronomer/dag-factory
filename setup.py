@@ -15,10 +15,10 @@ from setuptools import find_packages, setup, Command
 NAME = "dag-factory"
 PKG_NAME = "dagfactory"
 DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
-URL = "https://github.com/ajbosco/dag-factory"
-EMAIL = "adam@boscarino.me"
+URL = "https://github.com/astronomer/dag-factory"
+EMAIL = "humans@astronomer.io"
 AUTHOR = "Adam Boscarino"
-REQUIRES_PYTHON = ">=3.7.0"
+REQUIRES_PYTHON = ">=3.8.0"
 VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
