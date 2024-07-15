@@ -1,4 +1,5 @@
 """Module contains code for generating tasks and constructing a DAG"""
+
 # pylint: disable=ungrouped-imports
 import os
 import re
@@ -197,34 +198,26 @@ class DagBuilder:
 
         if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
             if isinstance(dag_params["default_args"]["sla_miss_callback"], str):
-                dag_params["default_args"][
-                    "sla_miss_callback"
-                ]: Callable = import_string(
-                    dag_params["default_args"]["sla_miss_callback"]
+                dag_params["default_args"]["sla_miss_callback"]: Callable = (
+                    import_string(dag_params["default_args"]["sla_miss_callback"])
                 )
 
         if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
             if isinstance(dag_params["default_args"]["on_success_callback"], str):
-                dag_params["default_args"][
-                    "on_success_callback"
-                ]: Callable = import_string(
-                    dag_params["default_args"]["on_success_callback"]
+                dag_params["default_args"]["on_success_callback"]: Callable = (
+                    import_string(dag_params["default_args"]["on_success_callback"])
                 )
 
         if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
             if isinstance(dag_params["default_args"]["on_failure_callback"], str):
-                dag_params["default_args"][
-                    "on_failure_callback"
-                ]: Callable = import_string(
-                    dag_params["default_args"]["on_failure_callback"]
+                dag_params["default_args"]["on_failure_callback"]: Callable = (
+                    import_string(dag_params["default_args"]["on_failure_callback"])
                 )
 
         if utils.check_dict_key(dag_params["default_args"], "on_retry_callback"):
             if isinstance(dag_params["default_args"]["on_retry_callback"], str):
-                dag_params["default_args"][
-                    "on_retry_callback"
-                ]: Callable = import_string(
-                    dag_params["default_args"]["on_retry_callback"]
+                dag_params["default_args"]["on_retry_callback"]: Callable = (
+                    import_string(dag_params["default_args"]["on_retry_callback"])
                 )
 
         if utils.check_dict_key(dag_params, "sla_miss_callback"):
@@ -351,11 +344,11 @@ class DagBuilder:
                         "  python_callable_file: !!python/name:my_module.my_func"
                     )
                 if not task_params.get("python_callable"):
-                    task_params[
-                        "python_callable"
-                    ]: Callable = utils.get_python_callable(
-                        task_params["python_callable_name"],
-                        task_params["python_callable_file"],
+                    task_params["python_callable"]: Callable = (
+                        utils.get_python_callable(
+                            task_params["python_callable_name"],
+                            task_params["python_callable_file"],
+                        )
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -419,10 +412,10 @@ class DagBuilder:
                     del task_params["response_check_name"]
                     del task_params["response_check_file"]
                 else:
-                    task_params[
-                        "response_check"
-                    ]: Callable = utils.get_python_callable_lambda(
-                        task_params["response_check_lambda"]
+                    task_params["response_check"]: Callable = (
+                        utils.get_python_callable_lambda(
+                            task_params["response_check_lambda"]
+                        )
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -669,18 +662,18 @@ class DagBuilder:
                 group_id = conf["task_group"].group_id
                 name = f"{group_id}.{name}"
             if conf.get("dependencies"):
-                source: Union[
-                    BaseOperator, "TaskGroup"
-                ] = tasks_and_task_groups_instances[name]
+                source: Union[BaseOperator, "TaskGroup"] = (
+                    tasks_and_task_groups_instances[name]
+                )
                 for dep in conf["dependencies"]:
                     if tasks_and_task_groups_config[dep].get("task_group"):
                         group_id = tasks_and_task_groups_config[dep][
                             "task_group"
                         ].group_id
                         dep = f"{group_id}.{dep}"
-                    dep: Union[
-                        BaseOperator, "TaskGroup"
-                    ] = tasks_and_task_groups_instances[dep]
+                    dep: Union[BaseOperator, "TaskGroup"] = (
+                        tasks_and_task_groups_instances[dep]
+                    )
                     source.set_upstream(dep)
 
     @staticmethod

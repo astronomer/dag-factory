@@ -211,13 +211,15 @@ def test_get_expand_partial_kwargs_with_expand_and_partial():
     task_params = {
         "task_id": "my_task",
         "expand": {"key_1": "value_1"},
-        "partial": {"key_2": {"nested_key_1": "nested_value_1"}}
+        "partial": {"key_2": {"nested_key_1": "nested_value_1"}},
     }
     expected_expand_kwargs = {"key_1": "value_1"}
     expected_partial_kwargs = {"key_2": {"nested_key_1": "nested_value_1"}}
     expected_task_params = {"task_id": "my_task"}
 
-    result_task_params, result_expand_kwargs, result_partial_kwargs = utils.get_expand_partial_kwargs(task_params)
+    result_task_params, result_expand_kwargs, result_partial_kwargs = (
+        utils.get_expand_partial_kwargs(task_params)
+    )
     assert result_expand_kwargs == expected_expand_kwargs
     assert result_partial_kwargs == expected_partial_kwargs
     assert result_task_params == expected_task_params
@@ -226,12 +228,12 @@ def test_get_expand_partial_kwargs_with_expand_and_partial():
 def test_get_expand_partial_kwargs_without_partial():
     task_params = {
         "task_id": "task2",
-        "expand": {"param1": "value1", "param2": "value2"}
+        "expand": {"param1": "value1", "param2": "value2"},
     }
     expected_result = (
         {"task_id": "task2"},
         {"param1": "value1", "param2": "value2"},
-        {}
+        {},
     )
     assert utils.get_expand_partial_kwargs(task_params) == expected_result
 
@@ -249,19 +251,23 @@ def test_is_partial_duplicated():
     except Exception as e:
         assert str(e) == "Duplicated partial kwarg! It's already in task_params."
 
+
 def test_open_and_filter_yaml_config_datasets():
-    datasets_names = ['dataset_custom_1', 'dataset_custom_2']
-    file_path = 'examples/datasets/example_config_datasets.yml'
+    datasets_names = ["dataset_custom_1", "dataset_custom_2"]
+    file_path = "examples/datasets/example_config_datasets.yml"
 
     actual = utils.get_datasets_uri_yaml_file(file_path, datasets_names)
-    expected = ['s3://bucket-cjmm/raw/dataset_custom_1', 's3://bucket-cjmm/raw/dataset_custom_2']
-    
+    expected = [
+        "s3://bucket-cjmm/raw/dataset_custom_1",
+        "s3://bucket-cjmm/raw/dataset_custom_2",
+    ]
+
     assert actual == expected
 
+
 def test_open_and_filter_yaml_config_datasets_file_notfound():
-    datasets_names = ['dataset_custom_1', 'dataset_custom_2']
-    file_path = 'examples/datasets/not_found_example_config_datasets.yml'
+    datasets_names = ["dataset_custom_1", "dataset_custom_2"]
+    file_path = "examples/datasets/not_found_example_config_datasets.yml"
 
     with pytest.raises(Exception):
         utils.get_datasets_uri_yaml_file(file_path, datasets_names)
- 
