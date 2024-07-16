@@ -6,11 +6,11 @@
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
 
-Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow](https://github.com/apache/incubator-airflow) to construct DAGs declaratively via configuration files. 
+Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files. 
 
 The minimum requirements for **dag-factory** are:
 - Python 3.8.0+
-- Apache Airflow 2.0+
+- [Apache Airflow®](https://airflow.apache.org) 2.0+
 
 For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the [examples](/examples) folder.
 
@@ -32,12 +32,12 @@ These tasks will be leveraging the `BashOperator` to execute simple bash command
 
 ![screenshot](/img/quickstart_dag.png)
 
-1. To install *dag-factory*, run the following pip command in your Airflow environment:
+1. To install *dag-factory*, run the following pip command in your [Apache Airflow®](https://airflow.apache.org) environment:
 ```bash
 pip install dag-factory
 ```
 
-2. Create a YAML configuration file called `config_file.yml` and save it within your airflow dags folder:
+2. Create a YAML configuration file called `config_file.yml` and save it within your dags folder:
 ```yaml
 example_dag1:
   default_args:
@@ -77,7 +77,7 @@ dag_factory.clean_dags(globals())
 dag_factory.generate_dags(globals())
 ```
 
-After a few moments, the DAG will be generated and ready to run in Airflow. Unpause the DAG in the Airflow UI and watch the tasks execute!
+After a few moments, the DAG will be generated and ready to run in Airflow. Unpause the DAG in the [Apache Airflow®](https://airflow.apache.org) UI and watch the tasks execute!
 
 ![screenshot](/img/quickstart_gantt.png)
 
