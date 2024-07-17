@@ -17,13 +17,13 @@ PKG_NAME = "dagfactory"
 DESCRIPTION = "Dynamically build Airflow DAGs from YAML files"
 URL = "https://github.com/astronomer/dag-factory"
 EMAIL = "humans@astronomer.io"
-AUTHOR = "Adam Boscarino"
+AUTHOR = "Astronomer"
 REQUIRES_PYTHON = ">=3.8.0"
 VERSION = None
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-REQUIRED = ["apache-airflow[http,kubernetes]>=1.10.0", "pyyaml", "packaging"]
+REQUIRED = ["apache-airflow[http,kubernetes]>=2.0.0", "pyyaml", "packaging"]
 DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov", "tox"]
 
 try:
@@ -100,7 +100,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
