@@ -138,7 +138,6 @@ producer_dag:
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 1"
       outlets: [ 's3://bucket_example/raw/dataset1.json' ]
-    task_2:![custom_operators.png](..%2F..%2FDesktop%2Fcustom_operators.png)
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 2"
       dependencies: [ task_1 ]
