@@ -11,7 +11,7 @@ setup-dev: ## Setup development environment
 
 .PHONY: venv
 venv: venv/bin/activate
-venv/bin/activate: setup.py
+venv/bin/activate: pyproject.toml
 	@test -d venv || virtualenv -p python3 venv
 	@${PYTHON} -m pip install -U pip
 	@${PYTHON} -m pip install -e .[dev]
