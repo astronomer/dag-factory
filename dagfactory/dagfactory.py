@@ -178,14 +178,14 @@ def load_yaml_dags(
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
     for suf in suffix:
-        candidate_dag_files = list(chain(
-            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
-        ))
+        candidate_dag_files = list(
+            chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}"))
+        )
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
-        logging.info(f"Loading {config_file_abs_path}")
+        logging.info("Loading %s", config_file_abs_path)
         try:
             DagFactory(config_file_abs_path).generate_dags(globals_dict)
             logging.info("DAG loaded: %s", config_file_path)
         except Exception as e:
-            logging.warning(f"Failed to load dag from {config_file_path}: {e}")
+            logging.exception("Failed to load dag from %s", config_file_path)
