@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dag-factory"
+dynamic = ["version"]
+description = "Dynamically build Apache Airflow DAGs from YAML files"
+authors = [{ name = "Astronomer", email = "humans@astronomer.io" }]
+readme = "README.md"
+license = "Apache-2.0"
+license-files = { paths = ["LICENSE"] }
+requires-python = ">=3.8"
+keywords = ["airflow", "apache-airflow", "provider", "astronomer", "dag"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Database",
+    "Framework :: Apache Airflow",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "apache-airflow>=2.0",
+    "apache-airflow-providers-http",
+    "apache-airflow-providers-cncf-kubernetes",
+    "pyyaml",
+    "packaging",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black",
+    "pylint",
+    "pytest-cov",
+    "tox",
+]
+
+[project.urls]
+Source = "https://github.com/astronomer/dag-factory"
+
+[tool.hatch.version]
+path = "dagfactory/__version__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["dagfactory"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["dagfactory"]
