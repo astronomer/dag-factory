@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-ARG AIRFLOW_VERSION=2.6.3
 ARG AIRFLOW_HOME=/usr/local/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
@@ -33,7 +32,7 @@ RUN set -ex \
     /usr/share/doc \
     /usr/share/doc-base
 
-RUN pip install apache-airflow[http]==${AIRFLOW_VERSION}
+RUN pip install apache-airflow[http]
 ADD . /
 RUN pip install -e .
 
