@@ -9,10 +9,8 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
-      - uses: actions/checkout@v3
-
-      - name: ruff
-        uses: chartboost/ruff-action@v1
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
         with:
-          args: --config ruff.toml
+          args: 'check --config ruff.toml'
       
