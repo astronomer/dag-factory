@@ -187,5 +187,5 @@ def load_yaml_dags(
         try:
             DagFactory(config_file_abs_path).generate_dags(globals_dict)
             logging.info("DAG loaded: %s", config_file_path)
-        except Exception as e:
+        except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)
