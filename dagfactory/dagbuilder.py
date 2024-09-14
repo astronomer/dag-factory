@@ -237,6 +237,26 @@ class DagBuilder:
                 dag_params["on_failure_callback_file"],
             )
 
+        if utils.check_dict_key(
+            dag_params["default_args"], "on_success_callback_name"
+        ) and utils.check_dict_key(
+            dag_params["default_args"], "on_success_callback_file"):
+
+            dag_params["default_args"]["on_success_callback"]: Callable = utils.get_python_callable(
+                dag_params["default_args"]["on_success_callback_name"],
+                dag_params["default_args"]["on_success_callback_file"],
+            )
+
+        if utils.check_dict_key(
+            dag_params["default_args"], "on_failure_callback_name"
+        ) and utils.check_dict_key(
+            dag_params["default_args"], "on_failure_callback_file"):
+
+            dag_params["default_args"]["on_failure_callback"]: Callable = utils.get_python_callable(
+                dag_params["default_args"]["on_failure_callback_name"],
+                dag_params["default_args"]["on_failure_callback_file"],
+            )
+
         if utils.check_dict_key(dag_params, "template_searchpath"):
             if isinstance(dag_params["template_searchpath"], (list, str)) and utils.check_template_searchpath(
                 dag_params["template_searchpath"]

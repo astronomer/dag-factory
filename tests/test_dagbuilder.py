@@ -196,6 +196,69 @@ DAG_CONFIG_CALLBACK = {
         },
     },
 }
+
+DAG_CONFIG_CALLBACK_NAME_AND_FILE = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "on_failure_callback_name": "print_context_callback",
+    "on_failure_callback_file": __file__,
+    "on_success_callback_name": "print_context_callback",
+    "on_success_callback_file": __file__,
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5,
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "dependencies": ["task_1"],
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "dependencies": ["task_1"],
+        },
+    },
+}
+
+DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+        "on_failure_callback_name": "print_context_callback",
+        "on_failure_callback_file": __file__,
+        "on_success_callback_name": "print_context_callback",
+        "on_success_callback_file": __file__,
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5,
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "dependencies": ["task_1"],
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "dependencies": ["task_1"],
+        },
+    },
+}
+
 UTC = pendulum.timezone("UTC")
 
 DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
@@ -654,6 +717,46 @@ def test_make_task_with_callback():
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
         assert callable(actual.on_execute_callback)
     assert callable(actual.on_retry_callback)
+
+
+def test_dag_with_callback_name_and_file():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE, DEFAULT_CONFIG)
+    dag = td.build().get("dag")
+
+    # Verify that the callbacks have been set up properly per DAG after specifying:
+    # - 'on_success_callback_file' & 'on_success_callback_name' for 'on_success_callback'
+    # - 'on_failure_callback_file' & 'on_failure_callback_name' for 'on_failure_callback'
+    assert "on_success_callback" in td.dag_config
+    assert "on_failure_callback" in td.dag_config
+    assert callable(td.dag_config["on_success_callback"])
+    assert callable(td.dag_config["on_failure_callback"])
+    assert td.dag_config["on_success_callback"].__name__ == "print_context_callback"
+    assert td.dag_config["on_success_callback"].__name__ == "print_context_callback"
+
+    # Ensure that no callbacks were directly provided at the task level.
+    for td_task_id, td_task in dag.task_dict.items():
+        assert not callable(td_task.on_success_callback)
+        assert not callable(td_task.on_failure_callback)
+
+
+def test_dag_with_callback_name_and_file_default_args():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS, DEFAULT_CONFIG)
+    dag = td.build().get("dag")
+
+    # Verify that the callbacks have been set up properly per DAG and tasks after specifying through default_args:
+    # - 'on_success_callback_file' & 'on_success_callback_name' for 'on_success_callback'
+    # - 'on_failure_callback_file' & 'on_failure_callback_name' for 'on_failure_callback'
+    td_default_args = td.dag_config.get("default_args")
+    assert "on_success_callback" in td_default_args
+    assert "on_failure_callback" in td_default_args
+    assert callable(td_default_args["on_success_callback"])
+    assert callable(td_default_args["on_failure_callback"])
+
+    for td_task_id, td_task in dag.task_dict.items():
+        assert callable(td_task.on_success_callback)
+        assert callable(td_task.on_failure_callback)
+        assert td_task.on_success_callback.__name__ == "print_context_callback"
+        assert td_task.on_success_callback.__name__ == "print_context_callback"
 
 
 def test_make_timetable():
