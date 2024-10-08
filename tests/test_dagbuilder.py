@@ -1,3 +1,4 @@
+import functools
 import os
 import datetime
 from pathlib import Path
@@ -203,6 +204,27 @@ DAG_CONFIG_CALLBACK = {
         },
     },
 }
+
+DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {"owner": "custom_owner",},
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "on_failure_callback": {
+        "callable": f"{__name__}.dummy_callback_with_params",
+        "param_1": "value_1",
+        "param_2": "value_2"
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5
+        },
+    }
+}
+
 UTC = pendulum.timezone("UTC")
 
 
@@ -587,6 +609,11 @@ def print_context_callback(context, **kwargs):
     print(context)
 
 
+def dummy_callback_with_params(param_1, param_2, **kwargs):
+    print(param_1)
+    print(param_2)
+
+
 def test_make_task_with_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
@@ -739,3 +766,13 @@ def test_replace_expand_string_with_xcom():
         assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(
             tasks_dict["task_1"]
         )
+
+
+def test_on_failure_callback():
+    # Import the DAG using the callback config that was build above
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+    td.build()
+
+    # Assert different parts of the
+    assert "on_failure_callback" in td.dag_config
+    assert isinstance(td.dag_config["on_failure_callback"], functools.partial)
