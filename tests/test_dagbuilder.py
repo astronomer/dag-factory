@@ -1,5 +1,6 @@
 import os
 import datetime
+from pathlib import Path
 from unittest.mock import patch
 
 import pendulum
@@ -47,7 +48,9 @@ else:
     MappedOperator = None
 # pylint: disable=ungrouped-imports,invalid-name
 
-here = os.path.dirname(__file__)
+here = Path(__file__).parent
+
+PROJECT_ROOT_PATH = str(here.parent)
 
 DEFAULT_CONFIG = {
     "default_args": {
@@ -654,8 +657,8 @@ def test_get_dag_params_with_template_searchpath():
         td.get_dag_params()
 
     assert utils.check_template_searchpath(123) == False
-    assert utils.check_template_searchpath("/home/runner/work") == True
-    assert utils.check_template_searchpath(["/home/runner/work"]) == True
+    assert utils.check_template_searchpath(PROJECT_ROOT_PATH) == True
+    assert utils.check_template_searchpath([PROJECT_ROOT_PATH]) == True
 
 
 def test_get_dag_params_with_render_template_as_native_obj():
