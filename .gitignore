@@ -112,3 +112,6 @@ pip-selfcheck.json
 
 # sqllite db
 *.db
+
+# VIM
+*.sw[a-z]
