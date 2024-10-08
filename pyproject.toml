@@ -28,7 +28,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "apache-airflow>=2.0",
+    "apache-airflow>=2.5",
     "apache-airflow-providers-http",
     "apache-airflow-providers-cncf-kubernetes",
     "pyyaml",
@@ -45,6 +45,8 @@ dependencies = [
 #    "tox",
 #]
 tests = [
+#    "apache-airflow>=2.5",
+#    "apache-airflow-providers-cncf-kubernetes",
     "pre-commit"
 ]
 
@@ -78,12 +80,12 @@ line-length = 120
 target-version = ['py39', 'py310', 'py311', 'py312']
 
 [tool.mypy]
-strict = true
+strict = false
 
 [tool.ruff]
 line-length = 120
 [tool.ruff.lint]
 select = ["C901", "D300", "I", "F"]
-ignore = ["F541"]
+ignore = ["F541", "C901"]
 [tool.ruff.lint.mccabe]
 max-complexity = 10

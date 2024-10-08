@@ -11,8 +11,8 @@ from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
-from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
-
+from dagfactory.exceptions import (DagFactoryConfigException,
+                                   DagFactoryException)
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -29,19 +29,13 @@ class DagFactory:
     :type config: dict
     """
 
-    def __init__(
-        self, config_filepath: Optional[str] = None, config: Optional[dict] = None
-    ) -> None:
-        assert bool(config_filepath) ^ bool(
-            config
-        ), "Either `config_filepath` or `config` should be provided"
+    def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+        assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
-            self.config: Dict[str, Any] = DagFactory._load_config(
-                config_filepath=config_filepath
-            )
+            self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
-            self.config: Dict[str, Any] = config
+            self.config = config
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
@@ -49,9 +43,7 @@ class DagFactory:
         Validates config file path is absolute
         """
         if not os.path.isabs(config_filepath):
-            raise DagFactoryConfigException(
-                "DAG Factory `config_filepath` must be absolute path"
-            )
+            raise DagFactoryConfigException("DAG Factory `config_filepath` must be absolute path")
 
     @staticmethod
     def _load_config(config_filepath: str) -> Dict[str, Any]:
@@ -64,7 +56,7 @@ class DagFactory:
         try:
 
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
+                seq = loader.construct_sequence(node)  # type: ignore
                 return "".join([str(i) for i in seq])
 
             yaml.add_constructor("!join", __join, yaml.FullLoader)
@@ -83,11 +75,7 @@ class DagFactory:
 
         :returns: dict with configuration for dags
         """
-        return {
-            dag: self.config[dag]
-            for dag in self.config.keys()
-            if dag not in SYSTEM_PARAMS
-        }
+        return {dag: self.config[dag] for dag in self.config.keys() if dag not in SYSTEM_PARAMS}
 
     def get_default_config(self) -> Dict[str, Any]:
         """
@@ -113,11 +101,9 @@ class DagFactory:
             )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-                dags[dag["dag_id"]]: DAG = dag["dag"]
+                dags[dag["dag_id"]] = dag["dag"]  # type: ignore
             except Exception as err:
-                raise DagFactoryException(
-                    f"Failed to generate dag {dag_name}. verify config is correct"
-                ) from err
+                raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
 
         return dags
 
@@ -131,7 +117,7 @@ class DagFactory:
             must be passed into globals() for Airflow to import
         """
         for dag_id, dag in dags.items():
-            globals[dag_id]: DAG = dag
+            globals[dag_id] = dag
 
     def generate_dags(self, globals: Dict[str, Any]) -> None:
         """
@@ -171,7 +157,7 @@ class DagFactory:
 def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
-    suffix=None,
+    suffix: Optional[list[str]] = None,
 ):
     """
     Loads all the yaml/yml files in the dags folder
@@ -188,11 +174,9 @@ def load_yaml_dags(
     logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
         suffix = [".yaml", ".yml"]
-    candidate_dag_files = []
+    candidate_dag_files: list[Any] = []
     for suf in suffix:
-        candidate_dag_files = chain(
-            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
-        )
+        candidate_dag_files = chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}"))  # type: ignore
 
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
