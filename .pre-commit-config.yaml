@@ -7,3 +7,43 @@ repos:
       - id: ruff
         args:
           - --fix
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+        args:
+          - --unsafe
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: pretty-format-json
+        args: [ "--autofix" ]
+      - id: trailing-whitespace
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: [ "--config", "./pyproject.toml" ]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.11.2"
+    hooks:
+      - id: mypy
+        name: mypy-python
+        args: [ --config-file, "./pyproject.toml" ]
+        additional_dependencies:
+          [
+            types-PyYAML,
+            types-attrs,
+            attrs,
+            types-pytz,
+            types-requests,
+            types-python-dateutil,
+            apache-airflow,
+          ]
+        files: ^dagfactory

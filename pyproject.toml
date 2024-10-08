@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
 ]
+
 dependencies = [
     "apache-airflow>=2.0",
     "apache-airflow-providers-http",
@@ -36,13 +37,21 @@ dependencies = [
 
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=6.0",
-    "black",
-    "pylint",
-    "pytest-cov",
-    "tox",
+#dev = [
+#    "pytest>=6.0",
+#    "black",
+#    "pylint",
+#    "pytest-cov",
+#    "tox",
+#]
+tests = [
+    "pre-commit"
 ]
+
+[tool.hatch.envs.tests]
+dependencies = [
+    "dag-factory[tests]"
+    ]
 
 [project.urls]
 Source = "https://github.com/astronomer/dag-factory"
@@ -62,3 +71,19 @@ airflow = ["2.8", "2.9", "2.10"]
 
 [tool.hatch.envs.tests.scripts]
 type-check = " pre-commit run mypy --files dagfactory/*"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+line-length = 120
+[tool.ruff.lint]
+select = ["C901", "D300", "I", "F"]
+ignore = ["F541"]
+[tool.ruff.lint.mccabe]
+max-complexity = 10
