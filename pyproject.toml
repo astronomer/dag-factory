@@ -43,6 +43,14 @@ dev = [
     "pytest-cov",
     "tox",
 ]
+tests = [
+    "pre-commit"
+]
+
+[tool.hatch.envs.tests]
+dependencies = [
+    "dag-factory[tests]"
+    ]
 
 [project.urls]
 Source = "https://github.com/astronomer/dag-factory"
@@ -55,3 +63,22 @@ include = ["dagfactory"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["dagfactory"]
+
+[[tool.hatch.envs.tests.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
+airflow = ["2.8", "2.9", "2.10"]
+
+[tool.hatch.envs.tests.scripts]
+static-check = " pre-commit run --files dagfactory/*"
+
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 120
+[tool.ruff.lint]
+select = ["C901", "D300", "I", "F"]
+ignore = ["F541", "C901"]
+[tool.ruff.lint.mccabe]
+max-complexity = 10
