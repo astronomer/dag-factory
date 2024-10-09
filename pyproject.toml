@@ -37,16 +37,9 @@ dependencies = [
 
 
 [project.optional-dependencies]
-#dev = [
-#    "pytest>=6.0",
-#    "black",
-#    "pylint",
-#    "pytest-cov",
-#    "tox",
-#]
 tests = [
-#    "apache-airflow>=2.5",
-#    "apache-airflow-providers-cncf-kubernetes",
+    "pytest",
+    "pytest-cov",
     "pre-commit"
 ]
 
@@ -73,6 +66,8 @@ airflow = ["2.8", "2.9", "2.10"]
 
 [tool.hatch.envs.tests.scripts]
 type-check = " pre-commit run mypy --files dagfactory/*"
+test = 'sh scripts/test/unit.sh'
+test-cov = 'sh scripts/test/unit-cov.sh'
 
 
 [tool.black]
