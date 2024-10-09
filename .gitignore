@@ -112,3 +112,10 @@ pip-selfcheck.json
 
 # sqllite db
 *.db
+
+# Airflow logs
+
+logs/
+
+# MacOS DS_Store
+*.DS_Store
