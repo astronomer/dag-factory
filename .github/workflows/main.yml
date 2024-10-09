@@ -2,7 +2,7 @@ name: build
 
 on:
   push: # Run on pushes to the default branch
-    branches: [main]
+    branches: [main,add-py-3_11-3_12-to-ci-test]
   pull_request_target: # Also run on pull requests originated from forks
     branches: [main]
 
