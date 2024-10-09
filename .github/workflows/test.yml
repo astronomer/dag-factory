@@ -4,7 +4,7 @@ on:
   push: # Run on pushes to the default branch
     branches: [main, pre-commit]
   pull_request_target: # Also run on pull requests originated from forks
-    branches: [main, pre-commit]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
