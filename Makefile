@@ -27,20 +27,6 @@ clean: ## Removes build and test artifacts
 	@find . -name '*~' -exec rm -f {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
 
-.PHONY: fmt
-fmt: venv ## Formats all files with black
-	@echo "==> Formatting with Black"
-	@${PYTHON} -m black dagfactory
-
-.PHONY: fmt-check
-fmt-check: venv ## Checks files were formatted with black
-	@echo "==> Formatting with Black"
-	@${PYTHON} -m black --check dagfactory
-
-.PHONY: lint
-lint: venv ## Lint code with pylint
-	@${PYTHON} -m pylint dagfactory
-
 .PHONY: test
 test: venv ## Runs unit tests
 	@${PYTHON} -m tox

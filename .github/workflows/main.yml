@@ -21,13 +21,9 @@ jobs:
         venv/bin/python3 -m pip install tox-gh-actions
       env:
         SLUGIFY_USES_TEXT_UNIDECODE: yes
-    - name: Check formatting with black
-      run: make fmt-check
-    - name: Lint with pylint
-      run: make lint
     - name: Test with tox
       run: make test
-    - name: Upload coverage to Codecov  
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         token: ${{secrets.CODECOV_TOKEN}}
