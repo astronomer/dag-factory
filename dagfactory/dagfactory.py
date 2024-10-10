@@ -178,9 +178,7 @@ def load_yaml_dags(
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
     for suf in suffix:
-        candidate_dag_files = list(
-            chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}"))
-        )
+        candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
         logging.info("Loading %s", config_file_abs_path)
