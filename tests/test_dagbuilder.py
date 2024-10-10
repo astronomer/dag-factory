@@ -35,12 +35,6 @@ except ImportError:
 
 from dagfactory import dagbuilder
 
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-    pass
-else:
-    Timetable = None
-# pylint: disable=ungrouped-imports,invalid-name
-
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
     from airflow.models import MappedOperator
 else:
