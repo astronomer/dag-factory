@@ -40,13 +40,13 @@ example_custom_config_dataset_producer_dag:
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 1"
       outlets:
-        file: /usr/local/airflow/dags/datasets/example_config_datasets.yml
+        file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
         datasets: ['dataset_custom_1', 'dataset_custom_2']
 
 example_custom_config_dataset_consumer_dag:
   description: "Example DAG consumer custom config datasets"
   schedule:
-    file: /usr/local/airflow/dags/datasets/example_config_datasets.yml
+    file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: ['dataset_custom_1', 'dataset_custom_2']
   tasks:
     task_1:
