@@ -60,10 +60,13 @@ class DagFactory:
 
             yaml.add_constructor("!join", __join, yaml.FullLoader)
 
-            config: Dict[str, Any] = yaml.load(
-                stream=open(config_filepath, "r", encoding="utf-8"),
-                Loader=yaml.FullLoader,
-            )
+            with open(config_filepath, "r", encoding="utf-8") as fp:
+                yaml.add_constructor("!join", __join, yaml.FullLoader)
+                config_with_env = os.path.expandvars(fp.read())
+                config: Dict[str, Any] = yaml.load(
+                    stream=config_with_env,
+                    Loader=yaml.FullLoader,
+                )
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config

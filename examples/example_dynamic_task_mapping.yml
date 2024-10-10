@@ -9,11 +9,11 @@ test_expand:
     request:
       operator: airflow.operators.python.PythonOperator
       python_callable_name: example_task_mapping
-      python_callable_file: /usr/local/airflow/dags/expand_tasks.py
+      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
     process:
       operator: airflow.operators.python_operator.PythonOperator
       python_callable_name: expand_task
-      python_callable_file: /usr/local/airflow/dags/expand_tasks.py
+      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
       partial:
         op_kwargs:
           test_id: "test"

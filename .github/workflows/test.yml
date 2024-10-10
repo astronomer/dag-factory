@@ -32,4 +32,4 @@ jobs:
           architecture: "x64"
 
       - run: pip3 install hatch
-      - run: hatch run tests.py3.12-2.10:static-check
+      - run: CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py3.12-2.10:static-check
