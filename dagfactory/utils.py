@@ -8,17 +8,15 @@ import sys
 import types
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, AnyStr, Dict, Match, Optional, Pattern, Union, List, Tuple
-import yaml
+from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
 import pendulum
+import yaml
 
 from dagfactory.exceptions import DagFactoryException
 
 
-def get_datetime(
-    date_value: Union[str, datetime, date], timezone: str = "UTC"
-) -> datetime:
+def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
     """
     Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
@@ -37,20 +35,14 @@ def get_datetime(
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
-        return datetime.combine(date=date_value, time=datetime.min.time()).replace(
-            tzinfo=local_tz
-        )
+        return datetime.combine(date=date_value, time=datetime.min.time()).replace(tzinfo=local_tz)
     # Try parsing as date string
     try:
         return pendulum.parse(date_value).replace(tzinfo=local_tz)
     except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
-        now: datetime = (
-            datetime.today()
-            .replace(hour=0, minute=0, second=0, microsecond=0)
-            .replace(tzinfo=local_tz)
-        )
+        now: datetime = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0).replace(tzinfo=local_tz)
         if not rel_delta:
             return now
         return now - rel_delta
@@ -86,9 +78,7 @@ def get_time_delta(time_string: str) -> timedelta:
     return timedelta(**time_params)
 
 
-def merge_configs(
-    config: Dict[str, Any], default_config: Dict[str, Any]
-) -> Dict[str, Any]:
+def merge_configs(config: Dict[str, Any], default_config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merges a `default` config with DAG config. Used to set default values
     for a group of DAGs.
@@ -184,9 +174,7 @@ def convert_to_snake_case(input_string: str) -> str:
     """
     # pylint: disable=line-too-long
     # source: https://www.geeksforgeeks.org/python-program-to-convert-camel-case-string-to-snake-case/
-    return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip(
-        "_"
-    )
+    return "".join("_" + i.lower() if i.isupper() else i for i in input_string).lstrip("_")
 
 
 def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> bool:
@@ -243,9 +231,7 @@ def get_expand_partial_kwargs(task_params: Dict[str, Any]) -> Tuple[
     return task_params, expand_kwargs, partial_kwargs
 
 
-def is_partial_duplicated(
-    partial_kwargs: Dict[str, Any], task_params: Dict[str, Any]
-) -> bool:
+def is_partial_duplicated(partial_kwargs: Dict[str, Any], task_params: Dict[str, Any]) -> bool:
     """
     Check if there are duplicated keys in partial_kwargs and task_params
     :param partial_kwargs: a partial kwargs to check duplicates in
@@ -259,9 +245,7 @@ def is_partial_duplicated(
     for key in partial_kwargs:
         task_duplicated_kwarg = task_params.get(key, None)
     if task_duplicated_kwarg is not None:
-        raise DagFactoryException(
-            "Duplicated partial kwarg! It's already in task_params."
-        )
+        raise DagFactoryException("Duplicated partial kwarg! It's already in task_params.")
     return False
 
 
@@ -282,9 +266,7 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
 
             datasets = data.get("datasets", [])
             datasets_result_uri = [
-                dataset["uri"]
-                for dataset in datasets
-                if dataset["name"] in datasets_filter and "uri" in dataset
+                dataset["uri"] for dataset in datasets if dataset["name"] in datasets_filter and "uri" in dataset
             ]
             return datasets_result_uri
     except FileNotFoundError as err:

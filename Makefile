@@ -11,7 +11,7 @@ setup-dev: ## Setup development environment
 
 .PHONY: venv
 venv: venv/bin/activate
-venv/bin/activate: setup.py
+venv/bin/activate: pyproject.toml
 	@test -d venv || virtualenv -p python3 venv
 	@${PYTHON} -m pip install -U pip
 	@${PYTHON} -m pip install -e .[dev]
@@ -26,20 +26,6 @@ clean: ## Removes build and test artifacts
 	@find . -name '*.pyo' -exec rm -f {} +
 	@find . -name '*~' -exec rm -f {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
-
-.PHONY: fmt
-fmt: venv ## Formats all files with black
-	@echo "==> Formatting with Black"
-	@${PYTHON} -m black dagfactory
-
-.PHONY: fmt-check
-fmt-check: venv ## Checks files were formatted with black
-	@echo "==> Formatting with Black"
-	@${PYTHON} -m black --check dagfactory
-
-.PHONY: lint
-lint: venv ## Lint code with pylint
-	@${PYTHON} -m pylint dagfactory
 
 .PHONY: test
 test: venv ## Runs unit tests
