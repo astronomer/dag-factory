@@ -130,44 +130,6 @@ DAG_CONFIG_TASK_GROUP = {
         },
     },
 }
-DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
-    "default_args": {"owner": "custom_owner"},
-    "schedule_interval": "0 3 * * *",
-    "task_groups": {
-        "task_group_1": {
-            "tooltip": "this is a task group",
-            "default_args": {
-                "on_failure_callback": f"{__name__}.print_context_callback",
-                "on_success_callback": f"{__name__}.print_context_callback",
-                "on_execute_callback": f"{__name__}.print_context_callback",
-                "on_retry_callback": f"{__name__}.print_context_callback",
-            },
-        },
-    },
-    "tasks": {
-        "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
-            "bash_command": "echo 1",
-            "task_group_name": "task_group_1",
-        },
-        "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
-            "bash_command": "echo 2",
-            "task_group_name": "task_group_1",
-        },
-        "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
-            "bash_command": "echo 3",
-            "task_group_name": "task_group_1",
-            "dependencies": ["task_2"],
-        },
-        "task_4": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
-            "bash_command": "echo 4",
-            "dependencies": ["task_group_1"],
-        },
-    },
-}
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
@@ -235,6 +197,45 @@ DAG_CONFIG_CALLBACK = {
     },
 }
 UTC = pendulum.timezone("UTC")
+
+DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
+    "default_args": {"owner": "custom_owner"},
+    "schedule_interval": "0 3 * * *",
+    "task_groups": {
+        "task_group_1": {
+            "tooltip": "this is a task group",
+            "default_args": {
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+        },
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "task_group_name": "task_group_1",
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "task_group_name": "task_group_1",
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "task_group_name": "task_group_1",
+            "dependencies": ["task_2"],
+        },
+        "task_4": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 4",
+            "dependencies": ["task_group_1"],
+        },
+    },
+}
 
 
 class MockTaskGroup:
