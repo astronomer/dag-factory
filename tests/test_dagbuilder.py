@@ -454,7 +454,7 @@ def test_build():
         assert actual["dag"].tags == ["tag1", "tag2"]
 
 
-def test_get_dag_params_default_args():
+def test_get_dag_params_dag_with_task_group():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
     expected = {
         "default_args": {
