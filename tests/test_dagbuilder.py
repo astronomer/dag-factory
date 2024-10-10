@@ -130,6 +130,44 @@ DAG_CONFIG_TASK_GROUP = {
         },
     },
 }
+DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
+    "default_args": {"owner": "custom_owner"},
+    "schedule_interval": "0 3 * * *",
+    "task_groups": {
+        "task_group_1": {
+            "tooltip": "this is a task group",
+            "default_args": {
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+        },
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "task_group_name": "task_group_1",
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "task_group_name": "task_group_1",
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "task_group_name": "task_group_1",
+            "dependencies": ["task_2"],
+        },
+        "task_4": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 4",
+            "dependencies": ["task_group_1"],
+        },
+    },
+}
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
@@ -453,7 +491,6 @@ def test_build():
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
         assert actual["dag"].tags == ["tag1", "tag2"]
 
-
 def test_get_dag_params_dag_with_task_group():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
     expected = {
@@ -543,6 +580,30 @@ def test_build_task_groups():
         }
         assert {"task_group_1.task_2", "task_group_1.task_3"} == task_group_1
         assert {"task_group_2.task_5", "task_group_2.task_6"} == task_group_2
+
+
+def test_build_task_groups_with_callbacks():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
+        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
+        with pytest.raises(Exception, match=error_message):
+            td.build()
+    else:
+        actual = td.build()
+        assert actual["dag_id"] == "test_dag"
+        assert isinstance(actual["dag"], DAG)
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_failure_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_execute_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_success_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_retry_callback"]
+        )
 
 
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
