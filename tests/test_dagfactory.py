@@ -1,5 +1,6 @@
 import os
 import datetime
+import logging
 
 import pytest
 from airflow.models.variable import Variable
@@ -431,13 +432,14 @@ def test_set_callback_after_loading_config():
     td.generate_dags(globals())
 
 
-def test_load_yaml_dags_fail():
-    with pytest.raises(Exception):
-        load_yaml_dags(
-            globals_dict=globals(),
-            dags_folder="tests/fixtures",
-            suffix=["invalid_yaml.yml"],
-        )
+def test_load_invalid_yaml_logs_error(caplog):
+    caplog.set_level(logging.ERROR)
+    load_yaml_dags(
+        globals_dict=globals(),
+        dags_folder="tests/fixtures",
+        suffix=["invalid_yaml.yml"],
+    )
+    assert caplog.messages == ['Failed to load dag from tests/fixtures/invalid_yaml.yml']
 
 
 def test_load_yaml_dags_succeed():
