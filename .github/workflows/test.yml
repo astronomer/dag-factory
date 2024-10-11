@@ -37,6 +37,7 @@ jobs:
   Run-Unit-Tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
         airflow-version: [ "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
