@@ -123,3 +123,5 @@ logs/
 # VIM
 *.sw[a-z]
 
+# Airflow
+examples/.airflowignore

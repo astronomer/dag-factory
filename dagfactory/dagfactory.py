@@ -178,9 +178,12 @@ def load_yaml_dags(
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
     for suf in suffix:
-        candidate_dag_files = chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}"))
-
+        candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
-        DagFactory(config_file_abs_path).generate_dags(globals_dict)
-        logging.info("DAG loaded: %s", config_file_path)
+        logging.info("Loading %s", config_file_abs_path)
+        try:
+            DagFactory(config_file_abs_path).generate_dags(globals_dict)
+            logging.info("DAG loaded: %s", config_file_path)
+        except Exception:  # pylint: disable=broad-except
+            logging.exception("Failed to load dag from %s", config_file_path)
