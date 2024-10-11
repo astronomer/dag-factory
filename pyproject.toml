@@ -100,6 +100,10 @@ packages = ["dagfactory"]
 python = ["3.9", "3.10", "3.11", "3.12"]
 airflow = ["2.8", "2.9", "2.10"]
 
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning"]
+minversion = "6.0"
+
 ######################################
 # THIRD PARTY TOOLS
 ######################################
