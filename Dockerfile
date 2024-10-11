@@ -3,6 +3,7 @@ FROM python:3.8-slim
 ARG AIRFLOW_VERSION=2.0.0
 ARG AIRFLOW_HOME=/usr/local/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
+ENV CONFIG_ROOT_DIR=/usr/local/airflow/dags/
 
 RUN set -ex \
     && buildDeps=' \
