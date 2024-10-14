@@ -145,7 +145,7 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": "request.output"},
+            "expand": {"op_args": {"request_output": "request.output"}},
         },
     },
 }
@@ -736,7 +736,7 @@ def test_dynamic_task_mapping():
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": "request.output"},
+            "expand": {"op_args": {"request_output": "request.output"}},
         }
         actual = td.make_task(operator, task_params)
         assert isinstance(actual, MappedOperator)
