@@ -662,7 +662,11 @@ def test_make_timetable():
         timetable_params = {"cron": "0 8,16 * * 1-5", "timezone": "UTC"}
         actual = td.make_timetable(timetable, timetable_params)
         assert actual.periodic
-        assert actual.can_run
+        try:
+            assert actual.can_run
+        except AttributeError:
+            # can_run attribute was removed and replaced with can_be_scheduled in later versions of Airflow.
+            assert actual.can_be_scheduled
 
 
 def test_make_dag_with_callback():
