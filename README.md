@@ -7,7 +7,7 @@
 [![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
 
-Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files. 
+Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files.
 
 The minimum requirements for **dag-factory** are:
 - Python 3.8.0+
@@ -25,10 +25,10 @@ For a gentle introduction, please take a look at our [Quickstart Guide](#quickst
 - [Notes](#notes)
   - [HttpSensor (since 0.10.0)](#httpsensor-since-0100)
 - [Contributing](#contributing)
-  
+
 ## Quickstart
 
-The following example demonstrates how to create a simple DAG using *dag-factory*. We will be generating a DAG with three tasks, where `task_2` and `task_3` depend on `task_1`. 
+The following example demonstrates how to create a simple DAG using *dag-factory*. We will be generating a DAG with three tasks, where `task_2` and `task_3` depend on `task_1`.
 These tasks will be leveraging the `BashOperator` to execute simple bash commands.
 
 ![screenshot](/img/quickstart_dag.png)
@@ -63,7 +63,7 @@ example_dag1:
 ```
 We are setting the execution order of the tasks by specifying the `dependencies` key.
 
-3. In the same folder, create a python file called `generate_dags.py`. This file is responsible for generating the DAGs from the configuration file and is a one-time setup. 
+3. In the same folder, create a python file called `generate_dags.py`. This file is responsible for generating the DAGs from the configuration file and is a one-time setup.
 You won't need to modify this file unless you want to add more configuration files or change the configuration file name.
 
 ```python
@@ -96,7 +96,7 @@ load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
 ```
 
 ### Dynamically Mapped Tasks
-If you want to create a dynamic number of tasks, you can use the `mapped_tasks` key in the configuration file. The `mapped_tasks` key is a list of dictionaries, where each dictionary represents a task. 
+If you want to create a dynamic number of tasks, you can use the `mapped_tasks` key in the configuration file. The `mapped_tasks` key is a list of dictionaries, where each dictionary represents a task.
 
 ```yaml
 ...
@@ -123,7 +123,7 @@ If you want to create a dynamic number of tasks, you can use the `mapped_tasks` 
 **dag-factory** supports scheduling DAGs via [Apache Airflow Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
 
 To leverage, you need to specify the `Dataset` in the `outlets` key in the configuration file. The `outlets` key is a list of strings that represent the dataset locations.
-In the `schedule` key of the consumer dag, you can set the `Dataset` you would like to schedule against. The key is a list of strings that represent the dataset locations. 
+In the `schedule` key of the consumer dag, you can set the `Dataset` you would like to schedule against. The key is a list of strings that represent the dataset locations.
 The consumer dag will run when all the datasets are available.
 
 ```yaml
@@ -157,7 +157,7 @@ consumer_dag:
       bash_command: "echo 'consumer datasets'"
 ```
 ![datasets_example.png](img/datasets_example.png)
- 
+
 ### Custom Operators
 **dag-factory** supports using custom operators. To leverage, set the path to the custom operator within the `operator` key in the configuration file. You can add any additional parameters that the custom operator requires.
 

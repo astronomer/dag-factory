@@ -1,11 +1,11 @@
-import os
 import datetime
 import logging
+import os
 
 import pytest
+from airflow import __version__ as AIRFLOW_VERSION
 from airflow.models.variable import Variable
 from packaging import version
-from airflow import __version__ as AIRFLOW_VERSION
 
 here = os.path.dirname(__file__)
 
@@ -14,12 +14,8 @@ from dagfactory import dagfactory, load_yaml_dags
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
-DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(
-    here, "fixtures/dag_factory_kubernetes_pod_operator.yml"
-)
-DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(
-    here, "fixtures/dag_factory_variables_as_arguments.yml"
-)
+DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
+DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
@@ -361,10 +357,7 @@ def test_doc_md_callable():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     expected_doc_md = globals()["example_dag3"].doc_md
-    assert (
-        str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"])
-        == expected_doc_md
-    )
+    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) == expected_doc_md
 
 
 def test_schedule_interval():
@@ -404,9 +397,7 @@ def test_dagfactory_dict():
 def test_dagfactory_dict_and_yaml():
     error_message = "Either `config_filepath` or `config` should be provided"
     with pytest.raises(AssertionError, match=error_message):
-        dagfactory.DagFactory(
-            config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG
-        )
+        dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
 
 
 def test_get_dag_configs_dict():
@@ -439,7 +430,7 @@ def test_load_invalid_yaml_logs_error(caplog):
         dags_folder="tests/fixtures",
         suffix=["invalid_yaml.yml"],
     )
-    assert caplog.messages == ['Failed to load dag from tests/fixtures/invalid_yaml.yml']
+    assert caplog.messages == ["Failed to load dag from tests/fixtures/invalid_yaml.yml"]
 
 
 def test_load_yaml_dags_succeed():

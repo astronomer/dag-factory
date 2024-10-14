@@ -6,7 +6,6 @@ import pytest
 
 from dagfactory import utils
 
-
 NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 CET = pendulum.timezone("Europe/Amsterdam")
 UTC = pendulum.timezone("UTC")
@@ -128,9 +127,7 @@ def test_get_python_callable_valid():
     python_callable_file = os.path.realpath(__file__)
     python_callable_name = "print_test"
 
-    python_callable = utils.get_python_callable(
-        python_callable_name, python_callable_file
-    )
+    python_callable = utils.get_python_callable(python_callable_name, python_callable_file)
 
     assert callable(python_callable)
 
@@ -217,9 +214,7 @@ def test_get_expand_partial_kwargs_with_expand_and_partial():
     expected_partial_kwargs = {"key_2": {"nested_key_1": "nested_value_1"}}
     expected_task_params = {"task_id": "my_task"}
 
-    result_task_params, result_expand_kwargs, result_partial_kwargs = (
-        utils.get_expand_partial_kwargs(task_params)
-    )
+    result_task_params, result_expand_kwargs, result_partial_kwargs = utils.get_expand_partial_kwargs(task_params)
     assert result_expand_kwargs == expected_expand_kwargs
     assert result_partial_kwargs == expected_partial_kwargs
     assert result_task_params == expected_task_params
