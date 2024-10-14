@@ -22,4 +22,5 @@ mv /tmp/constraint.txt.tmp /tmp/constraint.txt
 pip install uv
 uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
 
+pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 rm /tmp/constraint.txt
