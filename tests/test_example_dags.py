@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 from pathlib import Path
 
 import airflow
 from airflow.models.dagbag import DagBag
 from packaging.version import Version
-
 
 EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "examples"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
