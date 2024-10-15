@@ -27,10 +27,6 @@ clean: ## Removes build and test artifacts
 	@find . -name '*~' -exec rm -f {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
 
-.PHONY: test
-test: venv ## Runs unit tests
-	@${PYTHON} -m tox
-
 .PHONY: docker-build
 docker-build:
 	@echo "==> Building docker image for local testing"
