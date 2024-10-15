@@ -1,2 +1,2 @@
-TELEMETRY_URL = "http://astronomer.gateway.scarf.sh/dagfactory"
+TELEMETRY_URL = "https://astronomer.gateway.scarf.sh/dag-factory/{version}"
 TELEMETRY_TIMEOUT = 5.0

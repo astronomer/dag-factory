@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import platform
 from urllib.parse import urlencode
 
@@ -10,6 +11,8 @@ from packaging.version import parse
 import dagfactory
 from dagfactory import constants
 from dagfactory import settings
+
+CUSTOM_METRICS_KEY = "dagfactory"
 
 
 def should_emit() -> bool:
@@ -24,7 +27,7 @@ def collect_standard_usage_metrics() -> dict[str, object]:
     Return standard telemetry metrics.
     """
     metrics = {
-        "dagfactory": {
+        CUSTOM_METRICS_KEY: {
             "version": dagfactory.__version__
         },
         "system": {
@@ -43,8 +46,20 @@ def emit_usage_metrics(metrics):
     Emit desired telemetry metrics to remote telemetry endpoint.
     """
     query_string = urlencode(metrics)
-    scarf_url = f"{constants.TELEMETRY_URL}?{query_string}"
-    httpx.get(scarf_url, timeout=constants.TELEMETRY_TIMEOUT)
+    telemetry_url = constants.TELEMETRY_URL.format(version=dagfactory.__version__) + f"?{query_string}"
+    logging.debug(
+        "Emitting the following usage metrics to %s: %s",
+        telemetry_url,
+        metrics
+    )
+    response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT)
+    if not response.is_success:
+        logging.warning(
+            "Unable to emit usage metrics to %s. Status code: %s. Message: %s",
+            telemetry_url,
+            response.status_code,
+            response.text
+        )
 
 
 def emit_usage_metrics_if_enabled(additional_metrics):
@@ -54,5 +69,11 @@ def emit_usage_metrics_if_enabled(additional_metrics):
     """
     if should_emit():
         metrics = collect_standard_usage_metrics()
-        metrics["dagfactory"].update(additional_metrics)
+        metrics[CUSTOM_METRICS_KEY].update(additional_metrics)
         emit_usage_metrics(metrics)
+        return True
+    else:
+        logging.debug(
+            "Telemetry is disabled"
+        )
+        return False
