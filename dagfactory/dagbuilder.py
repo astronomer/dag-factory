@@ -59,14 +59,14 @@ try:
         from airflow.kubernetes.volume import Volume
         from airflow.kubernetes.volume_mount import VolumeMount
     else:
-        from kubernetes.client.models import V1ContainerPort as Port
         from kubernetes.client.models import (
+            V1ContainerPort as Port,
             V1EnvVar,
             V1EnvVarSource,
             V1ObjectFieldSelector,
             V1Volume,
+            V1VolumeMount as VolumeMount,
         )
-        from kubernetes.client.models import V1VolumeMount as VolumeMount
     from airflow.kubernetes.secret import Secret
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 except ImportError:
