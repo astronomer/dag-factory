@@ -10,8 +10,10 @@ import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
+from dagfactory import telemetry
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
+
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -27,6 +29,9 @@ class DagFactory:
     :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
     :type config: dict
     """
+    dags_count: int = 0
+    tasks_count: int = 0
+    taskgroups_count: int = 0
 
     def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
@@ -53,7 +58,6 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
-
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
@@ -106,6 +110,9 @@ class DagFactory:
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as err:
                 raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
+            else:
+                self.taskgroups_count = dag_builder.taskgroups_count
+                self.tasks_count = dag_builder.tasks_count
 
         return dags
 
@@ -130,6 +137,7 @@ class DagFactory:
         """
         dags: Dict[str, Any] = self.build_dags()
         self.register_dags(dags, globals)
+        self.dags_count = len(dags)
 
     def clean_dags(self, globals: Dict[str, Any]) -> None:
         """
@@ -183,7 +191,15 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         logging.info("Loading %s", config_file_abs_path)
         try:
-            DagFactory(config_file_abs_path).generate_dags(globals_dict)
-            logging.info("DAG loaded: %s", config_file_path)
+            factory = DagFactory(config_file_abs_path)
+            factory.generate_dags(globals_dict)
         except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)
+        else:
+            additional_telemetry_metrics = {
+                "dags_count": factory.dags_count,
+                "tasks_count": factory.tasks_count,
+                "taskgroups_count": factory.taskgroups_count
+            }
+            telemetry.emit_usage_metrics_if_enabled(additional_telemetry_metrics)
+            logging.info("DAG loaded: %s", config_file_path)
