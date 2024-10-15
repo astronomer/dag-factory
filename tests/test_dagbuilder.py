@@ -492,6 +492,7 @@ def test_build():
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
         assert actual["dag"].tags == ["tag1", "tag2"]
 
+
 def test_get_dag_params_dag_with_task_group():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
     expected = {
