@@ -108,3 +108,35 @@ jobs:
           name: coverage-unit-test-${{ matrix.python-version }}-${{ matrix.airflow-version }}
           path: .coverage
           include-hidden-files: true
+
+  Code-Coverage:
+    if: github.event.action != 'labeled'
+    needs:
+      - Run-Unit-Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install coverage
+        run: |
+          pip3 install coverage
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./coverage
+      - name: Combine coverage
+        run: |
+          coverage combine ./coverage/coverage*/.coverage
+          coverage report
+          coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
