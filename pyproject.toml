@@ -45,11 +45,7 @@ dev = [
 ]
 tests = [
     "pytest>=6.0",
-    "pytest-split",
-    "pytest-dotenv",
-    "requests-mock",
     "pytest-cov",
-    "pytest-describe",
     "pre-commit"
 ]
 
@@ -103,14 +99,16 @@ minversion = "6.0"
 line-length = 120
 target-version = ['py39', 'py310', 'py311', 'py312']
 
-[tool.isort]
-profile = "black"
-known_third_party = ["airflow", "jinja2"]
-
 [tool.ruff]
 line-length = 120
+
 [tool.ruff.lint]
 select = ["C901", "D300", "I", "F"]
 ignore = ["F541", "C901"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["dagfactory", "tests"]
+
 [tool.ruff.lint.mccabe]
 max-complexity = 10
