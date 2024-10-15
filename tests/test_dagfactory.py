@@ -28,7 +28,7 @@ DAG_FACTORY_CONFIG = {
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "daily",
+        "schedule_interval": "@daily",
     },
     "example_dag": {
         "tasks": {
@@ -376,7 +376,7 @@ def test_dagfactory_dict():
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "daily",
+        "schedule_interval": "@daily",
     }
     expected_dag = {
         "example_dag": {

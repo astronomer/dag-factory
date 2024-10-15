@@ -44,13 +44,36 @@ dev = [
     "tox",
 ]
 tests = [
+    "pytest>=6.0",
+    "pytest-cov",
     "pre-commit"
 ]
 
+######################################
+# TESTING
+######################################
+
 [tool.hatch.envs.tests]
 dependencies = [
-    "dag-factory[tests]"
-    ]
+    "dag-factory[tests]",
+    "apache-airflow~={matrix:airflow}.0,!=2.9.0,!=2.9.1",  # https://github.com/apache/airflow/pull/39670
+]
+pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
+
+[[tool.hatch.envs.tests.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+airflow = ["2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
+
+[tool.hatch.envs.tests.overrides]
+matrix.airflow.dependencies = [
+    { value = "typing_extensions<4.6", if = ["2.6"] },
+]
+
+[tool.hatch.envs.tests.scripts]
+freeze = "pip freeze"
+static-check = " pre-commit run --files dagfactory/*"
+test = 'sh scripts/test/unit.sh'
+test-cov = 'sh scripts/test/unit-cov.sh'
 
 [project.urls]
 Source = "https://github.com/astronomer/dag-factory"
@@ -64,12 +87,13 @@ include = ["dagfactory"]
 [tool.hatch.build.targets.wheel]
 packages = ["dagfactory"]
 
-[[tool.hatch.envs.tests.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
-airflow = ["2.8", "2.9", "2.10"]
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning"]
+minversion = "6.0"
 
-[tool.hatch.envs.tests.scripts]
-static-check = " pre-commit run --files dagfactory/*"
+######################################
+# THIRD PARTY TOOLS
+######################################
 
 [tool.black]
 line-length = 120
@@ -77,8 +101,14 @@ target-version = ['py39', 'py310', 'py311', 'py312']
 
 [tool.ruff]
 line-length = 120
+
 [tool.ruff.lint]
 select = ["C901", "D300", "I", "F"]
 ignore = ["F541", "C901"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["dagfactory", "tests"]
+
 [tool.ruff.lint.mccabe]
 max-complexity = 10

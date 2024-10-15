@@ -22,14 +22,121 @@ jobs:
   Static-Check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           architecture: "x64"
 
       - run: pip3 install hatch
       - run: CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py3.12-2.10:static-check
+
+  Run-Unit-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        airflow-version: [ "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        exclude:
+          # Apache Airflow versions prior to 2.3.0 have not been tested with Python 3.10
+          # See: https://airflow.apache.org/docs/apache-airflow/2.2.0/installation/prerequisites.html
+          - python-version: "3.10"
+            airflow-version: "2.2"
+          # Apache Airflow versions prior to 2.6.2 have not been tested with Python 3.11
+          - python-version: "3.11"
+            airflow-version: "2.2"
+          - python-version: "3.11"
+            airflow-version: "2.3"
+          - python-version: "3.11"
+            airflow-version: "2.4"
+          - python-version: "3.11"
+            airflow-version: "2.5"
+          - python-version: "3.11"
+            airflow-version: "2.6"
+          # Apache Airflow versions prior to 2.9.0 have not been tested with Python 3.12.
+          # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
+          # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
+          # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
+          - python-version: "3.12"
+            airflow-version: "2.2"
+          - python-version: "3.12"
+            airflow-version: "2.3"
+          - python-version: "3.12"
+            airflow-version: "2.4"
+          - python-version: "3.12"
+            airflow-version: "2.5"
+          - python-version: "3.12"
+            airflow-version: "2.6"
+          - python-version: "3.12"
+            airflow-version: "2.7"
+          - python-version: "3.12"
+            airflow-version: "2.8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .local/share/hatch/
+          key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install packages and dependencies
+        run: |
+          python -m pip install uv
+          uv pip install --system hatch
+          CONFIG_ROOT_DIR=`pwd`"/dags" hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
+
+      - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
+        run: |
+          CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
+
+      - name: Upload coverage to Github
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-test-${{ matrix.python-version }}-${{ matrix.airflow-version }}
+          path: .coverage
+          include-hidden-files: true
+
+  Code-Coverage:
+    if: github.event.action != 'labeled'
+    needs:
+      - Run-Unit-Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install coverage
+        run: |
+          pip3 install coverage
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./coverage
+      - name: Combine coverage
+        run: |
+          coverage combine ./coverage/coverage*/.coverage
+          coverage report
+          coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
