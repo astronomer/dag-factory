@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.16.0] - 2022-11-13
 ### Added
-- Function to scan recursively for YAML DAGs 
+- Function to scan recursively for YAML DAGs
 ### Changed
 - Changed deprecated imports to support Airflow 2.4+
 
@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.13.0] - 2022-05-27
 ### Added
 - Add support for custom `timetable`
-- Add support for `python_callable_file` for `PythonSensor` 
+- Add support for `python_callable_file` for `PythonSensor`
 
 ## [0.12.0] - 2022-02-07
 ### Added
@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.11.1] - 2021-12-07
 ### Added
-- Add support for `access_control` in DAG params 
+- Add support for `access_control` in DAG params
 ### Fixed
 - Fixed tests for Airflow 1.10 by pinning `wtforms`
 
@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2021-06-09
 ### Added
 - Support for `TaskGroups` if using Airflow 2.0
-- Separate DAG building and registering logic 
+- Separate DAG building and registering logic
 
 ## [0.7.2] - 2021-01-21
 ### Fixed
@@ -138,11 +138,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.5] - 2020-06-17
 ### Fixed
 - Do not include DAG `tags` parameter in Airflow versions that do not support it.
-  
+
 ## [0.4.4] - 2020-06-12
 ### Fixed
 - Use correct default for `tags` parameter
-  
+
 ## [0.4.3] - 2020-05-24
 ### Added
 - `execution_timeout` parse at task level
@@ -157,7 +157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.1] - 2020-02-18
 ### Fixed
 - Default `default_view` parameter to value from `airflow.cfg`
-  
+
 ## [0.4.0] - 2020-02-12
 ### Added
 - Support for additional DAG parameters
@@ -175,7 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `airflow` version
 ### Removed
 - `piplock` and `pipfile` files
-  
+
 ## [0.2.1] - 2019-02-26
 ### Added
 - Python 3+ type-annotations
@@ -188,7 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1] - 2018-11-20
 ### Removed
-- Removed `logme` dependency 
+- Removed `logme` dependency
 
 ## [0.1.0] - 2018-11-20
 - Initial release

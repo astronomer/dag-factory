@@ -1,8 +1,15 @@
-from airflow import DAG
+import os
+from pathlib import Path
+
+# The following import is here so Airflow parses this file
+# from airflow import DAG
 import dagfactory
 
+DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
+CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 
-config_file = "/usr/local/airflow/dags/datasets/example_dag_datasets.yml"
+config_file = str(CONFIG_ROOT_DIR / "datasets/example_dag_datasets.yml")
+
 example_dag_factory = dagfactory.DagFactory(config_file)
 
 # Creating task dependencies

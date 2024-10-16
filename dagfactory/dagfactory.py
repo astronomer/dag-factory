@@ -11,8 +11,7 @@ from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
-from dagfactory.exceptions import DagFactoryException, DagFactoryConfigException
-
+from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -29,17 +28,11 @@ class DagFactory:
     :type config: dict
     """
 
-    def __init__(
-        self, config_filepath: Optional[str] = None, config: Optional[dict] = None
-    ) -> None:
-        assert bool(config_filepath) ^ bool(
-            config
-        ), "Either `config_filepath` or `config` should be provided"
+    def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+        assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
-            self.config: Dict[str, Any] = DagFactory._load_config(
-                config_filepath=config_filepath
-            )
+            self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
 
@@ -49,9 +42,7 @@ class DagFactory:
         Validates config file path is absolute
         """
         if not os.path.isabs(config_filepath):
-            raise DagFactoryConfigException(
-                "DAG Factory `config_filepath` must be absolute path"
-            )
+            raise DagFactoryConfigException("DAG Factory `config_filepath` must be absolute path")
 
     @staticmethod
     def _load_config(config_filepath: str) -> Dict[str, Any]:
@@ -69,10 +60,13 @@ class DagFactory:
 
             yaml.add_constructor("!join", __join, yaml.FullLoader)
 
-            config: Dict[str, Any] = yaml.load(
-                stream=open(config_filepath, "r", encoding="utf-8"),
-                Loader=yaml.FullLoader,
-            )
+            with open(config_filepath, "r", encoding="utf-8") as fp:
+                yaml.add_constructor("!join", __join, yaml.FullLoader)
+                config_with_env = os.path.expandvars(fp.read())
+                config: Dict[str, Any] = yaml.load(
+                    stream=config_with_env,
+                    Loader=yaml.FullLoader,
+                )
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
@@ -83,11 +77,7 @@ class DagFactory:
 
         :returns: dict with configuration for dags
         """
-        return {
-            dag: self.config[dag]
-            for dag in self.config.keys()
-            if dag not in SYSTEM_PARAMS
-        }
+        return {dag: self.config[dag] for dag in self.config.keys() if dag not in SYSTEM_PARAMS}
 
     def get_default_config(self) -> Dict[str, Any]:
         """
@@ -115,9 +105,7 @@ class DagFactory:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as err:
-                raise DagFactoryException(
-                    f"Failed to generate dag {dag_name}. verify config is correct"
-                ) from err
+                raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
 
         return dags
 
@@ -190,11 +178,12 @@ def load_yaml_dags(
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
     for suf in suffix:
-        candidate_dag_files = chain(
-            candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")
-        )
-
+        candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
     for config_file_path in candidate_dag_files:
         config_file_abs_path = str(config_file_path.absolute())
-        DagFactory(config_file_abs_path).generate_dags(globals_dict)
-        logging.info("DAG loaded: %s", config_file_path)
+        logging.info("Loading %s", config_file_abs_path)
+        try:
+            DagFactory(config_file_abs_path).generate_dags(globals_dict)
+            logging.info("DAG loaded: %s", config_file_path)
+        except Exception:  # pylint: disable=broad-except
+            logging.exception("Failed to load dag from %s", config_file_path)

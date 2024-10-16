@@ -1,11 +1,11 @@
-import os
 import datetime
+import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pendulum
 import pytest
 from airflow import DAG
-
 from packaging import version
 
 try:
@@ -35,19 +35,15 @@ except ImportError:
 
 from dagfactory import dagbuilder
 
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-    from airflow.timetables.interval import CronDataIntervalTimetable
-else:
-    Timetable = None
-# pylint: disable=ungrouped-imports,invalid-name
-
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
     from airflow.models import MappedOperator
 else:
     MappedOperator = None
 # pylint: disable=ungrouped-imports,invalid-name
 
-here = os.path.dirname(__file__)
+here = Path(__file__).parent
+
+PROJECT_ROOT_PATH = str(here.parent)
 
 DEFAULT_CONFIG = {
     "default_args": {
@@ -149,7 +145,7 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": "request.output"},
+            "expand": {"op_args": {"request_output": "request.output"}},
         },
     },
 }
@@ -201,6 +197,45 @@ DAG_CONFIG_CALLBACK = {
     },
 }
 UTC = pendulum.timezone("UTC")
+
+DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
+    "default_args": {"owner": "custom_owner"},
+    "schedule_interval": "0 3 * * *",
+    "task_groups": {
+        "task_group_1": {
+            "tooltip": "this is a task group",
+            "default_args": {
+                "on_failure_callback": f"{__name__}.print_context_callback",
+                "on_success_callback": f"{__name__}.print_context_callback",
+                "on_execute_callback": f"{__name__}.print_context_callback",
+                "on_retry_callback": f"{__name__}.print_context_callback",
+            },
+        },
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "task_group_name": "task_group_1",
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 2",
+            "task_group_name": "task_group_1",
+        },
+        "task_3": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 3",
+            "task_group_name": "task_group_1",
+            "dependencies": ["task_2"],
+        },
+        "task_4": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 4",
+            "dependencies": ["task_group_1"],
+        },
+    },
+}
 
 
 class MockTaskGroup:
@@ -469,7 +504,7 @@ def test_build():
         assert actual["dag"].tags == ["tag1", "tag2"]
 
 
-def test_get_dag_params():
+def test_get_dag_params_dag_with_task_group():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
     expected = {
         "default_args": {
@@ -542,21 +577,13 @@ def test_build_task_groups():
             td.build()
     else:
         actual = td.build()
-        task_group_1 = {
-            t for t in actual["dag"].task_dict if t.startswith("task_group_1")
-        }
-        task_group_2 = {
-            t for t in actual["dag"].task_dict if t.startswith("task_group_2")
-        }
+        task_group_1 = {t for t in actual["dag"].task_dict if t.startswith("task_group_1")}
+        task_group_2 = {t for t in actual["dag"].task_dict if t.startswith("task_group_2")}
         assert actual["dag_id"] == "test_dag"
         assert isinstance(actual["dag"], DAG)
         assert len(actual["dag"].tasks) == 6
-        assert actual["dag"].task_dict["task_1"].downstream_task_ids == {
-            "task_group_1.task_2"
-        }
-        assert actual["dag"].task_dict["task_group_1.task_2"].downstream_task_ids == {
-            "task_group_1.task_3"
-        }
+        assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_group_1.task_2"}
+        assert actual["dag"].task_dict["task_group_1.task_2"].downstream_task_ids == {"task_group_1.task_3"}
         assert actual["dag"].task_dict["task_group_1.task_3"].downstream_task_ids == {
             "task_4",
             "task_group_2.task_5",
@@ -568,6 +595,30 @@ def test_build_task_groups():
         assert {"task_group_2.task_5", "task_group_2.task_6"} == task_group_2
 
 
+def test_build_task_groups_with_callbacks():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
+        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
+        with pytest.raises(Exception, match=error_message):
+            td.build()
+    else:
+        actual = td.build()
+        assert actual["dag_id"] == "test_dag"
+        assert isinstance(actual["dag"], DAG)
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_failure_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_execute_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_success_callback"]
+        )
+        assert callable(
+            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_retry_callback"]
+        )
+
+
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
 def test_make_task_groups():
     task_group_dict = {
@@ -577,9 +628,7 @@ def test_make_task_groups():
     }
     dag = "dag"
     task_groups = dagbuilder.DagBuilder.make_task_groups(task_group_dict, dag)
-    expected = MockTaskGroup(
-        tooltip="this is a task group", group_id="task_group", dag=dag
-    )
+    expected = MockTaskGroup(tooltip="this is a task group", group_id="task_group", dag=dag)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
         assert task_groups == {}
     else:
@@ -625,7 +674,11 @@ def test_make_timetable():
         timetable_params = {"cron": "0 8,16 * * 1-5", "timezone": "UTC"}
         actual = td.make_timetable(timetable, timetable_params)
         assert actual.periodic
-        assert actual.can_run
+        try:
+            assert actual.can_run
+        except AttributeError:
+            # can_run attribute was removed and replaced with can_be_scheduled in later versions of Airflow.
+            assert actual.can_be_scheduled
 
 
 def test_make_dag_with_callback():
@@ -636,60 +689,46 @@ def test_make_dag_with_callback():
 def test_get_dag_params_with_template_searchpath():
     from dagfactory import utils
 
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"template_searchpath": ["./sql"]}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["./sql"]}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be absolute paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"template_searchpath": ["/sql"]}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": ["/sql"]}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"template_searchpath": "./sql"}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "./sql"}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be absolute paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"template_searchpath": "/sql"}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"template_searchpath": "/sql"}, DEFAULT_CONFIG)
     error_message = "template_searchpath must be existing paths"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
     assert utils.check_template_searchpath(123) == False
-    assert utils.check_template_searchpath("/home/runner/work") == True
-    assert utils.check_template_searchpath(["/home/runner/work"]) == True
+    assert utils.check_template_searchpath(PROJECT_ROOT_PATH) == True
+    assert utils.check_template_searchpath([PROJECT_ROOT_PATH]) == True
 
 
 def test_get_dag_params_with_render_template_as_native_obj():
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"render_template_as_native_obj": "true"}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"render_template_as_native_obj": "true"}, DEFAULT_CONFIG)
     error_message = "render_template_as_native_obj should be bool type!"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
     false = lambda x: print(x)
-    td = dagbuilder.DagBuilder(
-        "test_dag", {"render_template_as_native_obj": false}, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", {"render_template_as_native_obj": false}, DEFAULT_CONFIG)
     error_message = "render_template_as_native_obj should be bool type!"
     with pytest.raises(Exception, match=error_message):
         td.get_dag_params()
 
 
 def test_make_task_with_duplicated_partial_kwargs():
-    td = dagbuilder.DagBuilder(
-        "test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     operator = "airflow.operators.bash_operator.BashOperator"
     task_params = {
         "task_id": "task_bash",
@@ -701,9 +740,7 @@ def test_make_task_with_duplicated_partial_kwargs():
 
 
 def test_dynamic_task_mapping():
-    td = dagbuilder.DagBuilder(
-        "test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
         error_message = "Dynamic task mapping available only in Airflow >= 2.3.0"
         with pytest.raises(Exception, match=error_message):
@@ -715,7 +752,7 @@ def test_dynamic_task_mapping():
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": "request.output"},
+            "expand": {"op_args": {"request_output": "request.output"}},
         }
         actual = td.make_task(operator, task_params)
         assert isinstance(actual, MappedOperator)
@@ -723,9 +760,7 @@ def test_dynamic_task_mapping():
 
 @patch("dagfactory.dagbuilder.PythonOperator", new=MockPythonOperator)
 def test_replace_expand_string_with_xcom():
-    td = dagbuilder.DagBuilder(
-        "test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG
-    )
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
         with pytest.raises(Exception):
             td.build()
@@ -735,15 +770,7 @@ def test_replace_expand_string_with_xcom():
         task_conf_output = {"expand": {"key_1": "task_1.output"}}
         task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
         tasks_dict = {"task_1": MockPythonOperator()}
-        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(
-            task_conf_output, tasks_dict
-        )
-        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(
-            task_conf_xcomarg, tasks_dict
-        )
-        assert updated_task_conf_output["expand"]["key_1"] == XComArg(
-            tasks_dict["task_1"]
-        )
-        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(
-            tasks_dict["task_1"]
-        )
+        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
+        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
+        assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
