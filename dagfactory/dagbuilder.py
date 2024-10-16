@@ -321,6 +321,8 @@ class DagBuilder:
                     # Airflow 2.0 doesn't allow these to be passed to operator
                     del task_params["python_callable_name"]
                     del task_params["python_callable_file"]
+                elif isinstance(task_params["python_callable"], str):
+                    task_params["python_callable"]: Callable = import_string(task_params["python_callable"])
 
             # Check for the custom success and failure callables in SqlSensor. These are considered
             # optional, so no failures in case they aren't found. Note: there's no reason to
