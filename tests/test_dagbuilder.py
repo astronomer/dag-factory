@@ -417,6 +417,7 @@ def test_make_python_operator():
     assert callable(actual.python_callable)
     assert isinstance(actual, PythonOperator)
 
+
 def test_make_python_operator_with_callable_str():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
@@ -428,7 +429,8 @@ def test_make_python_operator_with_callable_str():
     assert actual.task_id == "test_task"
     assert callable(actual.python_callable)
     assert isinstance(actual, PythonOperator)
-    
+
+
 def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
