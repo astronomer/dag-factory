@@ -5,10 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Removed support for Python 3.7
 
 ## [0.20.0a1] - 2024-10-17
+
 
 ### Added
 - Support using envvar in config YAML by @tatiana in #236
@@ -26,23 +25,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build DAGs when tehre is an invalid YAML in the DAGs folder by @quydx and @tatiana in #184
 
 ### Others
-- Fix static check failures in PR #218 by @pankajkoti in #251
-- Fix make docker-run by @pankajkoti in #249
-- Fix pre-commit checks by @tatiana in #247
-- Remove tox and corresponding build jobs in CI by @pankajkoti in #248
-- Install Airflow with different versions in the CI by @pankajkoti in #237
-- Run pre-commit hooks on all existing files by @pankajkoti in #245
-- Fix duplicate test name by @pankajastro in #234
-- Add static check by @pankajastro in #231
-- Add Python 3.11 and 3.12 to CI test pipeline by @pankajkoti in #229
-- Add vim dot files to .gitignore by @tatiana in #228
-- Fix running tests locally (outside the CI) by @tatiana in #227
-- Use Hatchling to modern package building by @kaxil in #208
-- Add the task_2 back to dataset example by @cmarteepants in #204
-- Remove unnecessary config line by @jlaneve in #202
-- Update the license from MIT to Apache 2.0 by @pankajastro in #191
-- Add registration icon and links to Airflow references by @cmarteepants in #190
-- Update quickstart and add feature examples by @cmarteepants #189
+- Development tools
+  - Fix make docker-run by @pankajkoti in #249
+  - Add vim dot files to .gitignore by @tatiana in #228
+  - Use Hatchling to modern package building by @kaxil in #208
+- CI
+  - Fix static check failures in PR #218 by @pankajkoti in #251
+  - Fix pre-commit checks by @tatiana in #247
+  - Remove tox and corresponding build jobs in CI by @pankajkoti in #248
+  - Install Airflow with different versions in the CI by @pankajkoti in #237
+  - Run pre-commit hooks on all existing files by @pankajkoti in #245
+  - Add Python 3.11 and 3.12 to CI test pipeline by @pankajkoti in #229
+- Tests
+  - Fix duplicate test name by @pankajastro in #234
+  - Add static check by @pankajastro in #231
+  - Fix running tests locally (outside the CI) by @tatiana in #227
+  - Add the task_2 back to dataset example by @cmarteepants in #204
+  - Remove unnecessary config line by @jlaneve in #202
+- Documentation
+  - Update the license from MIT to Apache 2.0 by @pankajastro in #191
+  - Add registration icon and links to Airflow references by @cmarteepants in #190
+  - Update quickstart and add feature examples by @cmarteepants #189
+
+### Breaking changes
+- Removed support for Python 3.7
+- The license was changed from MIT to Apache 2.0
 
 
 ## [0.19.0] - 2023-07-19
