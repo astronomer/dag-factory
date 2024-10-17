@@ -91,18 +91,6 @@ DAG_FACTORY_CALLBACK_CONFIG = {
 }
 
 
-@pytest.fixture(autouse=True)
-def build_path_for_doc_md():
-    with open(TEST_DAG_FACTORY, "r") as f:
-        oldText = f.read()
-        newText = oldText.replace("{here}", here)
-    with open(TEST_DAG_FACTORY, "w") as f:
-        f.write(newText)
-    yield
-    with open(TEST_DAG_FACTORY, "w") as f:
-        f.write(oldText)
-
-
 def test_validate_config_filepath_valid():
     dagfactory.DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
 
