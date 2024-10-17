@@ -87,6 +87,7 @@ packages = ["dagfactory"]
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]
 minversion = "6.0"
+markers = ["integration"]
 
 ######################################
 # THIRD PARTY TOOLS
