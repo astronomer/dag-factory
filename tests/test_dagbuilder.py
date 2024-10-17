@@ -883,6 +883,9 @@ def test_replace_expand_string_with_xcom():
         assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) <= version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+)
 @pytest.mark.parametrize(
     "outlets,output",
     [
@@ -898,12 +901,11 @@ def test_make_task_outlets(mock_read_file, outlets, output):
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     task_params = {
         "task_id": "process",
-        "python_callable_name": "dataset_task",
+        "python_callable_name": "expand_task",
         "python_callable_file": os.path.realpath(__file__),
         "outlets": outlets,
     }
     mock_read_file.return_value = output
-    if version.parse(AIRFLOW_VERSION) > version.parse("2.4.0"):
-        operator = "airflow.operators.python_operator.PythonOperator"
-        actual = td.make_task(operator, task_params)
-        assert actual.outlets == [Dataset(uri) for uri in output]
+    operator = "airflow.operators.python_operator.PythonOperator"
+    actual = td.make_task(operator, task_params)
+    assert actual.outlets == [Dataset(uri) for uri in output]
