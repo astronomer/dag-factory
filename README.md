@@ -1,7 +1,7 @@
 # dag-factory
 
-[![Github Actions](https://github.com/ajbosco/dag-factory/workflows/build/badge.svg?branch=master&event=push)](https://github.com/ajbosco/dag-factory/actions?workflow=build)
-[![Coverage](https://codecov.io/github/ajbosco/dag-factory/coverage.svg?branch=master)](https://codecov.io/github/ajbosco/dag-factory?branch=master)
+[![Github Actions](https://github.com/astronomer/dag-factory/workflows/build/badge.svg?branch=master&event=push)](https://github.com/astronomer/dag-factory/actions?workflow=build)
+[![Coverage](https://codecov.io/github/astronomer/dag-factory/coverage.svg?branch=master)](https://codecov.io/github/astronomer/dag-factory?branch=master)
 [![PyPi](https://img.shields.io/pypi/v/dag-factory.svg)](https://pypi.org/project/dag-factory/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
