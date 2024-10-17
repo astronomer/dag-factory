@@ -135,6 +135,8 @@ class DagBuilder:
         self.dag_name: str = dag_name
         self.dag_config: Dict[str, Any] = deepcopy(dag_config)
         self.default_config: Dict[str, Any] = deepcopy(default_config)
+        self.tasks_count: int = 0
+        self.taskgroups_count: int = 0
 
     # pylint: disable=too-many-branches,too-many-statements
     def get_dag_params(self) -> Dict[str, Any]:
@@ -793,12 +795,14 @@ class DagBuilder:
             dag.tags = dag_params.get("tags", None)
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
+        self.tasks_count = len(tasks)
 
         # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary of task groups
         task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(dag_params.get("task_groups", {}), dag)
+        self.taskgroups_count = len(task_groups_dict)
 
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}

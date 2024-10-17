@@ -10,6 +10,7 @@ import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
+from dagfactory import telemetry
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
@@ -29,6 +30,9 @@ class DagFactory:
     """
 
     def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+        self.dags_count: int = 0
+        self.tasks_count: int = 0
+        self.taskgroups_count: int = 0
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
@@ -106,8 +110,20 @@ class DagFactory:
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as err:
                 raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
+            else:
+                self.dags_count += 1
+                self.taskgroups_count += dag_builder.taskgroups_count
+                self.tasks_count += dag_builder.tasks_count
 
         return dags
+
+    def emit_telemetry(self, event_type: str) -> None:
+        additional_telemetry_metrics = {
+            "dags_count": self.dags_count,
+            "tasks_count": self.tasks_count,
+            "taskgroups_count": self.taskgroups_count,
+        }
+        telemetry.emit_usage_metrics_if_enabled(event_type, additional_telemetry_metrics)
 
     # pylint: disable=redefined-builtin
     @staticmethod
@@ -130,6 +146,7 @@ class DagFactory:
         """
         dags: Dict[str, Any] = self.build_dags()
         self.register_dags(dags, globals)
+        self.emit_telemetry("generate_dags")
 
     def clean_dags(self, globals: Dict[str, Any]) -> None:
         """
@@ -152,6 +169,8 @@ class DagFactory:
         # removing dags from DagBag
         for dag_to_remove in dags_to_remove:
             del globals[dag_to_remove]
+
+        self.emit_telemetry("clean_dags")
 
     # pylint: enable=redefined-builtin
 
@@ -183,7 +202,10 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         logging.info("Loading %s", config_file_abs_path)
         try:
-            DagFactory(config_file_abs_path).generate_dags(globals_dict)
-            logging.info("DAG loaded: %s", config_file_path)
+            factory = DagFactory(config_file_abs_path)
+            factory.generate_dags(globals_dict)
         except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)
+        else:
+            factory.emit_telemetry("load_yaml_dags")
+            logging.info("DAG loaded: %s", config_file_path)
