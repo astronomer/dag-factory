@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Install Airflow with different versions in the CI by @pankajkoti in #237
   - Run pre-commit hooks on all existing files by @pankajkoti in #245
   - Add Python 3.11 and 3.12 to CI test pipeline by @pankajkoti in #229
+- Release
+  - Configure GitHub to automate publishing DAG Factory in PyPI by @tatiana in #255
 - Tests
   - Fix duplicate test name by @pankajastro in #234
   - Add static check by @pankajastro in #231
