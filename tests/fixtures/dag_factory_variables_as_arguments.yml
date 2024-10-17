@@ -33,3 +33,14 @@ example_dag:
       variables_as_arguments : [
         {"variable":"var1","attribute":"bash_command"}
       ]
+
+second_example_dag:
+  default_args:
+    owner: 'custom_owner'
+    start_date: 3 days
+  description: 'this is a second example dag'
+  schedule_interval: '0 6 * * *'
+  tasks:
+    task_0:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: 'echo 1'

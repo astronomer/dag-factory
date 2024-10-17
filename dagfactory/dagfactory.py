@@ -29,11 +29,10 @@ class DagFactory:
     :type config: dict
     """
 
-    dags_count: int = 0
-    tasks_count: int = 0
-    taskgroups_count: int = 0
-
     def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+        self.dags_count: int = 0
+        self.tasks_count: int = 0
+        self.taskgroups_count: int = 0
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
@@ -112,8 +111,9 @@ class DagFactory:
             except Exception as err:
                 raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
             else:
-                self.taskgroups_count = dag_builder.taskgroups_count
-                self.tasks_count = dag_builder.tasks_count
+                self.dags_count += 1
+                self.taskgroups_count += dag_builder.taskgroups_count
+                self.tasks_count += dag_builder.tasks_count
 
         return dags
 
@@ -146,7 +146,6 @@ class DagFactory:
         """
         dags: Dict[str, Any] = self.build_dags()
         self.register_dags(dags, globals)
-        self.dags_count = len(dags)
         self.emit_telemetry("generate_dags")
 
     def clean_dags(self, globals: Dict[str, Any]) -> None:
