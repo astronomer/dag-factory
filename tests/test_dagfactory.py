@@ -439,3 +439,9 @@ def test_load_yaml_dags_succeed():
         dags_folder="tests/fixtures",
         suffix=["dag_factory_variables_as_arguments.yml"],
     )
+
+    # test load with none suffix
+    load_yaml_dags(
+        globals_dict=globals(),
+        dags_folder="tests/fixtures",
+    )
