@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Removed support for Python 3.7
 
-## [0.20.0a1] - 2024-08-17
+## [0.20.0a1] - 2024-10-17
 
 ### Added
 - Support using envvar in config YAML by @tatiana in #236
