@@ -117,8 +117,6 @@ jobs:
           include-hidden-files: true
 
   Code-Coverage:
-    needs:
-      - Authorize
     if: github.event.action != 'labeled'
     needs:
       - Run-Unit-Tests
@@ -154,7 +152,6 @@ jobs:
     if: github.event_name == 'release'
     name: Build and publish Python 🐍 distributions 📦 to PyPI
     needs:
-      - Authorize
       - Static-Check
       - Run-Unit-Tests
       - Code-Coverage
