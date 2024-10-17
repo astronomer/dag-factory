@@ -28,6 +28,7 @@ In addition to Scarf's default data collection, DAG Factory collects the followi
 - Airflow version
 - Python version
 - Operating system & machine architecture
+- Event type
 - Number of DAGs
 - Number of TaskGroups
 - Number of Tasks
