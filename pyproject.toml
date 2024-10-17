@@ -57,6 +57,7 @@ tests = [
 dependencies = [
     "dag-factory[tests]",
     "apache-airflow~={matrix:airflow}.0,!=2.9.0,!=2.9.1",  # https://github.com/apache/airflow/pull/39670
+    "httpx>=0.25.0"
 ]
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
@@ -79,7 +80,10 @@ test-cov = 'sh scripts/test/unit-cov.sh'
 Source = "https://github.com/astronomer/dag-factory"
 
 [tool.hatch.version]
-path = "dagfactory/__version__.py"
+path = "dagfactory/__init__.py"
+
+[tool.hatch.build]
+sources = ["."]
 
 [tool.hatch.build.targets.sdist]
 include = ["dagfactory"]
@@ -87,9 +91,13 @@ include = ["dagfactory"]
 [tool.hatch.build.targets.wheel]
 packages = ["dagfactory"]
 
+[tool.distutils.bdist_wheel]
+universal = true
+
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]
 minversion = "6.0"
+markers = ["integration"]
 
 ######################################
 # THIRD PARTY TOOLS

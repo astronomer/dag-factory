@@ -2,6 +2,7 @@
 
 import ast
 import importlib.util
+import logging
 import os
 import re
 import sys
@@ -269,7 +270,6 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
                 dataset["uri"] for dataset in datasets if dataset["name"] in datasets_filter and "uri" in dataset
             ]
             return datasets_result_uri
-    except FileNotFoundError as err:
-        raise FileNotFoundError(f"Error: File '{file_path}' not found.") from err
-    except yaml.YAMLError as error:
-        raise error
+    except FileNotFoundError:
+        logging.error("Error: File '%s' not found.", file_path)
+        raise
