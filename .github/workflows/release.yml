@@ -1,43 +1,20 @@
-name: Publish package in PyPi
-
-on:
-  release:
-    types: [published]
-
-jobs:
-  build:
-    name: Build wheels and source distribution
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install build dependencies
-        run: python -m pip install --upgrade build
-
-      - name: Build source distribution
-        run: python -m build
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: artifacts
-          path: dist/*
-          if-no-files-found: error
-
-  publish:
-    name: Publish release
+  Publish-Package:
+    if: github.event_name == 'release'
+    name: Build and publish Python 🐍 distributions 📦 to PyPI
     needs:
-      - build
+      - Static-Check
+      - Run-Unit-Tests
+      - Code-Coverage
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
         with:
-          name: artifacts
-          path: dist
-
-      - name: Push build artifacts to PyPi
-        uses: pypa/gh-action-pypi-publish@v1.8.14
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
+          python-version: '3.10'
+          architecture: 'x64'
+      - run: pip3 install hatch
+      - run: hatch build
+      - run: hatch publish
+    env:
+      HATCH_INDEX_USER: __token__
+      HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
