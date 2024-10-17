@@ -14,7 +14,6 @@ from dagfactory import telemetry
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
-
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
@@ -29,6 +28,7 @@ class DagFactory:
     :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
     :type config: dict
     """
+
     dags_count: int = 0
     tasks_count: int = 0
     taskgroups_count: int = 0
@@ -58,6 +58,7 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
+
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
@@ -120,7 +121,7 @@ class DagFactory:
         additional_telemetry_metrics = {
             "dags_count": self.dags_count,
             "tasks_count": self.tasks_count,
-            "taskgroups_count": self.taskgroups_count
+            "taskgroups_count": self.taskgroups_count,
         }
         telemetry.emit_usage_metrics_if_enabled(event_type, additional_telemetry_metrics)
 

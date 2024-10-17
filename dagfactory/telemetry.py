@@ -8,17 +8,14 @@ import httpx
 from airflow import __version__ as airflow_version
 
 import dagfactory
-from dagfactory import constants
-from dagfactory import settings
+from dagfactory import constants, settings
 
 
 def should_emit() -> bool:
     """
     Identify if telemetry metrics should be emitted or not.
     """
-    return settings.enable_telemetry and \
-        not settings.do_not_track and \
-        not settings.no_analytics
+    return settings.enable_telemetry and not settings.do_not_track and not settings.no_analytics
 
 
 def collect_standard_usage_metrics() -> dict[str, object]:
@@ -31,7 +28,7 @@ def collect_standard_usage_metrics() -> dict[str, object]:
         "python_version": platform.python_version(),
         "platform_system": platform.system(),
         "platform_machine": platform.machine(),
-        "variables": {}
+        "variables": {},
     }
     return metrics
 
@@ -44,22 +41,16 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
     """
     query_string = urlencode(metrics)
     telemetry_url = constants.TELEMETRY_URL.format(
-        **metrics,
-        telemetry_version=constants.TELEMETRY_VERSION,
-        query_string=query_string
+        **metrics, telemetry_version=constants.TELEMETRY_VERSION, query_string=query_string
     )
-    logging.debug(
-        "Telemetry is enabled. Emitting the following usage metrics to %s: %s",
-        telemetry_url,
-        metrics
-    )
+    logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
     response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT)
     if not response.is_success:
         logging.warning(
             "Unable to emit usage metrics to %s. Status code: %s. Message: %s",
             telemetry_url,
             response.status_code,
-            response.text
+            response.text,
         )
     return response.is_success
 
@@ -78,7 +69,5 @@ def emit_usage_metrics_if_enabled(event_type: str, additional_metrics: dict[str,
         is_success = emit_usage_metrics(metrics)
         return is_success
     else:
-        logging.debug(
-            "Telemetry is disabled. To enable it, export AIRFLOW__DAG_FACTORY__ENABLE_TELEMETRY=True."
-        )
+        logging.debug("Telemetry is disabled. To enable it, export AIRFLOW__DAG_FACTORY__ENABLE_TELEMETRY=True.")
         return False

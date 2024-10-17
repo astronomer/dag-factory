@@ -804,7 +804,6 @@ class DagBuilder:
         task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(dag_params.get("task_groups", {}), dag)
         self.taskgroups_count = len(task_groups_dict)
 
-
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
         for task_name, task_conf in tasks.items():
