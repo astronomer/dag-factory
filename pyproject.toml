@@ -78,6 +78,9 @@ test-cov = 'sh scripts/test/unit-cov.sh'
 [project.urls]
 Source = "https://github.com/astronomer/dag-factory"
 
+[tool.hatch.version]
+path = "dagfactory/__init__.py"
+
 [tool.hatch.build.targets.sdist]
 include = ["dagfactory"]
 
