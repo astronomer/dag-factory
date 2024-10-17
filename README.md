@@ -4,7 +4,8 @@
 [![Coverage](https://codecov.io/github/astronomer/dag-factory/coverage.svg?branch=master)](https://codecov.io/github/astronomer/dag-factory?branch=master)
 [![PyPi](https://img.shields.io/pypi/v/dag-factory.svg)](https://pypi.org/project/dag-factory/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Downloads](https://pepy.tech/badge/dag-factory)](https://pepy.tech/project/dag-factory)
+[![Downloads](https://img.shields.io/pypi/dm/dag-factory.svg)](hhttps://img.shields.io/pypi/dm/dag-factory)
+
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
 
 Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files.
