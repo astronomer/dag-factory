@@ -5,7 +5,10 @@ import os
 from airflow.configuration import conf
 
 
-def convert_to_boolean(value: str | None):
+def convert_to_boolean(value: str | None) -> bool:
+    """
+    Convert a string that represents a boolean to a Python boolean.
+    """
     value = str(value).lower().strip()
     if value in ("f", "false", "0", "", "none"):
         return False
