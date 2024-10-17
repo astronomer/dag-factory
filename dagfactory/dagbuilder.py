@@ -36,12 +36,7 @@ try:
 except ImportError:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
-# python sensor was moved in Airflow 2.0.0
-try:
-    from airflow.sensors.python import PythonSensor
-except ImportError:
-    from airflow.contrib.sensors.python_sensor import PythonSensor
-
+from airflow.sensors.python import PythonSensor
 
 # k8s libraries are moved in v5.0.0
 try:
@@ -69,7 +64,7 @@ try:
         )
     from airflow.kubernetes.secret import Secret
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-except ImportError:
+except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.pod import Port
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
     from airflow.contrib.kubernetes.secret import Secret
@@ -77,20 +72,11 @@ except ImportError:
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-
-# pylint: disable=ungrouped-imports,invalid-name
-# Disabling pylint's ungrouped-imports warning because this is a
-# conditional import and cannot be done within the import group above
-# TaskGroup is introduced in Airflow 2.0.0
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-    from airflow.utils.task_group import TaskGroup
-else:
-    TaskGroup = None
-# pylint: disable=ungrouped-imports,invalid-name
 
 # TimeTable is introduced in Airflow 2.2.0
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
@@ -104,12 +90,7 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
 else:
     MappedOperator = None
 
-# XComArg is introduced in Airflow 2.0.0
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-    from airflow.models.xcom_arg import XComArg
-else:
-    XComArg = None
-# pylint: disable=ungrouped-imports,invalid-name
+from airflow.models.xcom_arg import XComArg
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
     from airflow.datasets import Dataset
@@ -148,9 +129,6 @@ class DagBuilder:
         except Exception as err:
             raise DagFactoryConfigException("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
-
-        if dag_params.get("task_groups") and version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
-            raise DagFactoryConfigException("`task_groups` key can only be used with Airflow 2.x.x")
 
         if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
             dag_params["schedule_interval"] = None
@@ -691,10 +669,7 @@ class DagBuilder:
         if not dag_params.get("timetable") and not utils.check_dict_key(dag_params, "schedule"):
             dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.11"):
-            dag_kwargs["description"] = dag_params.get("description", None)
-        else:
-            dag_kwargs["description"] = dag_params.get("description", "")
+        dag_kwargs["description"] = dag_params.get("description", None)
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
             dag_kwargs["max_active_tasks"] = dag_params.get(
