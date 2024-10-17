@@ -1,5 +1,6 @@
 import datetime
 import os
+import functools
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
@@ -259,6 +260,27 @@ DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS = {
             "dependencies": ["task_1"],
         },
     },
+}
+
+# Alternative way to define callbacks (only "on_failure_callbacks" for now, more to come)
+DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {"owner": "custom_owner",},
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "on_failure_callback": {
+        "callable": f"{__name__}.empty_callback_with_params",
+        "param_1": "value_1",
+        "param_2": "value_2"
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5
+        },
+    }
 }
 
 UTC = pendulum.timezone("UTC")
@@ -711,6 +733,11 @@ def print_context_callback(context, **kwargs):
     print(context)
 
 
+def empty_callback_with_params(param_1, param_2, **kwargs):
+    print(param_1)
+    print(param_2)
+
+
 def test_make_task_with_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
@@ -791,6 +818,28 @@ def test_make_timetable():
 def test_make_dag_with_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK, DEFAULT_CONFIG)
     td.build()
+
+
+def test_on_failure_callback():
+    # Import the DAG using the callback config that was build above
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+    td.build()
+
+    # Check to see if on_failure_callback is in the DAG config, and the type of value that is returned
+    assert "on_failure_callback" in td.dag_config
+
+    # Pull the callback
+    on_failure_callback: functools.partial = td.dag_config.get("on_failure_callback")
+
+    assert isinstance(on_failure_callback, functools.partial)
+    assert callable(on_failure_callback)
+    assert on_failure_callback.func.__name__ == "empty_callback_with_params"
+
+    # Parameters
+    assert "param_1" in on_failure_callback.keywords
+    assert on_failure_callback.keywords.get("param_1") == "value_1"
+    assert "param_2" in on_failure_callback.keywords
+    assert on_failure_callback.keywords.get("param_2") == "value_2"
 
 
 def test_get_dag_params_with_template_searchpath():
