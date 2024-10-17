@@ -1,10 +1,12 @@
-name: test
+name: Test and release related jobs
 
 on:
   push: # Run on pushes to the default branch
     branches: [main]
   pull_request_target: # Also run on pull requests originated from forks
     branches: [main]
+  release:
+    types: ['published']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -140,3 +142,24 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+
+  Publish-Package:
+    if: github.event_name == 'release'
+    name: Build and publish Python 🐍 distributions 📦 to PyPI
+    needs:
+      - Static-Check
+      - Run-Unit-Tests
+      - Code-Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          architecture: 'x64'
+      - run: pip3 install hatch
+      - run: hatch build
+      - run: hatch publish
+    env:
+      HATCH_INDEX_USER: __token__
+      HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
