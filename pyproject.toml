@@ -82,11 +82,17 @@ Source = "https://github.com/astronomer/dag-factory"
 [tool.hatch.version]
 path = "dagfactory/__init__.py"
 
+[tool.hatch.build]
+sources = ["."]
+
 [tool.hatch.build.targets.sdist]
 include = ["dagfactory"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["dagfactory"]
+
+[tool.distutils.bdist_wheel]
+universal = true
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]
