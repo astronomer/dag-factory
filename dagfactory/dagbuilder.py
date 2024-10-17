@@ -5,8 +5,8 @@ import os
 import re
 from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Union
 from functools import partial
+from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
@@ -836,6 +836,5 @@ class DagBuilder:
                     # Return the callable, this time, using the params provided in the YAML file, rather than a .py
                     # file with a callable configured
                     parameters[callback_type]: Callable = partial(
-                        on_state_callback_callable,
-                        **on_state_callback_params
+                        on_state_callback_callable, **on_state_callback_params
                     )

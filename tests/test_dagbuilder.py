@@ -1,6 +1,6 @@
 import datetime
-import os
 import functools
+import os
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
@@ -265,22 +265,24 @@ DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS = {
 # Alternative way to define callbacks (only "on_failure_callbacks" for now, more to come)
 DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
     "doc_md": "##here is a doc md string",
-    "default_args": {"owner": "custom_owner",},
+    "default_args": {
+        "owner": "custom_owner",
+    },
     "description": "this is an example dag",
     "schedule_interval": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "on_failure_callback": {
         "callable": f"{__name__}.empty_callback_with_params",
         "param_1": "value_1",
-        "param_2": "value_2"
+        "param_2": "value_2",
     },
     "tasks": {
         "task_1": {
             "operator": "airflow.operators.bash_operator.BashOperator",
             "bash_command": "echo 1",
-            "execution_timeout_secs": 5
+            "execution_timeout_secs": 5,
         },
-    }
+    },
 }
 
 UTC = pendulum.timezone("UTC")
