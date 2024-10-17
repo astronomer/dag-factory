@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.20.0a1] - 2024-10-17
+## [0.20.0a2] - 2024-10-17
 
 
 ### Added
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support telemetry during DAG parsing emitting data to Scarf by @tatiana in #250.
 
 ### Fixed
-- Build DAGs when tehre is an invalid YAML in the DAGs folder by @quydx and @tatiana in #184
+- Build DAGs when there is an invalid YAML in the DAGs folder by @quydx and @tatiana in #184
 
 ### Others
 - Development tools
@@ -44,11 +44,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix running tests locally (outside the CI) by @tatiana in #227
   - Add the task_2 back to dataset example by @cmarteepants in #204
   - Remove unnecessary config line by @jlaneve in #202
+  - Fix Pytest fixture that changed DAG YAML file by @tatiana in #256
+- Refactor
+  - Refactor poor exception handling by @tatiana in #259
 - Documentation
   - Update the license from MIT to Apache 2.0 by @pankajastro in #191
   - Add registration icon and links to Airflow references by @cmarteepants in #190
   - Update quickstart and add feature examples by @cmarteepants #189
-
+  - Fix `README.md` badges by @tatiana in #260
+  -
 ### Breaking changes
 - Removed support for Python 3.7
 - The license was changed from MIT to Apache 2.0
