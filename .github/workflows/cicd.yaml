@@ -23,6 +23,8 @@ jobs:
       - run: true
 
   Static-Check:
+    needs:
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +40,8 @@ jobs:
       - run: CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
+    needs:
+      - Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -113,6 +117,8 @@ jobs:
           include-hidden-files: true
 
   Code-Coverage:
+    needs:
+      - Authorize
     if: github.event.action != 'labeled'
     needs:
       - Run-Unit-Tests
@@ -148,6 +154,7 @@ jobs:
     if: github.event_name == 'release'
     name: Build and publish Python 🐍 distributions 📦 to PyPI
     needs:
+      - Authorize
       - Static-Check
       - Run-Unit-Tests
       - Code-Coverage
