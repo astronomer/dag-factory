@@ -6,17 +6,10 @@ help:
 
 .PHONY: setup-dev
 setup-dev: ## Setup development environment
-	@pip3 install virtualenv
-	@make venv
-
-.PHONY: venv
-venv: venv/bin/activate
-venv/bin/activate: pyproject.toml
-	@test -d venv || virtualenv -p python3 venv
-	@${PYTHON} -m pip install -U pip
-	@${PYTHON} -m pip install -e .[dev]
-	@${PYTHON} -m pip install cattrs==1.0.0
-	@touch venv/bin/activate
+	python3 -m venv venv
+	. venv/bin/activate && pip install ".[tests]"
+	@echo "To activate the virtual environment, run:"
+	@echo "source venv/bin/activate"
 
 .PHONY: clean
 clean: ## Removes build and test artifacts
