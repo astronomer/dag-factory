@@ -27,16 +27,24 @@ clean: ## Removes build and test artifacts
 	@find . -name '*~' -exec rm -f {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
 
-.PHONY: docker-build
-docker-build:
-	@echo "==> Building docker image for local testing"
-	@docker build -t dag_factory:latest .
+
+.PHONY: copy-files
+copy-files: ## copy project in docker context
+	mkdir -p dev/include/tmp_dagfactory
+	cp -r ./dagfactory dev/tmp_dagfactory
+	cp ./pyproject.toml dev/include/tmp_dagfactory/pyproject.toml
+	cp ./LICENSE dev/include/tmp_dagfactory/LICENSE
+	cp ./README.md dev/include/tmp_dagfactory/README.md
+	cp -r ./examples/* dev/dags/
 
 .PHONY: docker-run
-docker-run: docker-build ## Runs local Airflow for testing
-	@docker run -d -e AIRFLOW__CORE__DAGS_FOLDER=/usr/local/airflow/dags -v $(PWD)/examples:/usr/local/airflow/dags -p 127.0.0.1:8080:8080 --name=dag_factory dag_factory:latest
-	@echo "==> Airflow is running at http://localhost:8080"
+docker-run: copy-files ## Runs local Airflow for testing
+	@if ! lsof -i :8080 | grep LISTEN > /dev/null; then \
+		cd dev && astro dev start; \
+	else \
+		cd dev && astro dev restart; \
+	fi
 
 .PHONY: docker-stop
 docker-stop: ## Stop Docker container
-	@docker stop dag_factory; docker rm dag_factory
+	cd dev && astro dev stop
