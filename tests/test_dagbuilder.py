@@ -267,12 +267,17 @@ DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
     "doc_md": "##here is a doc md string",
     "default_args": {
         "owner": "custom_owner",
+        "on_failure_callback": {
+            "callback": f"{__name__}.empty_callback_with_params",
+            "param_1": "value_1",
+            "param_2": "value_2",
+        },
     },
     "description": "this is an example dag",
     "schedule_interval": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "on_failure_callback": {
-        "callable": f"{__name__}.empty_callback_with_params",
+        "callback": f"{__name__}.empty_callback_with_params",
         "param_1": "value_1",
         "param_2": "value_2",
     },
@@ -763,6 +768,7 @@ def test_make_task_with_callback():
     assert callable(actual.on_retry_callback)
 
 
+@pytest.mark.callbacks
 def test_dag_with_callback_name_and_file():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE, DEFAULT_CONFIG)
     dag = td.build().get("dag")
@@ -783,6 +789,7 @@ def test_dag_with_callback_name_and_file():
         assert not callable(td_task.on_failure_callback)
 
 
+@pytest.mark.callbacks
 def test_dag_with_callback_name_and_file_default_args():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS, DEFAULT_CONFIG)
     dag = td.build().get("dag")
@@ -822,26 +829,47 @@ def test_make_dag_with_callback():
     td.build()
 
 
-def test_on_failure_callback():
+@pytest.mark.callbacks
+@pytest.mark.parametrize(
+    "callback_type,in_default_args", [("on_failure_callback", False), ("on_failure_callback", True)]
+)
+def test_dag_with_on_callback_str(callback_type, in_default_args):
+    # Using a different config (DAG_CONFIG_CALLBACK) than below
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK, DEFAULT_CONFIG)
+    td.build()
+
+    config_obj = td.dag_config.get("default_args") if in_default_args else td.dag_config
+
+    # Validate the .set_callback() method works as expected when importing a string,
+    assert callback_type in config_obj
+    assert callable(config_obj.get(callback_type))
+    assert config_obj.get(callback_type).__name__ == "print_context_callback"
+
+
+@pytest.mark.callbacks
+@pytest.mark.parametrize(
+    "callback_type,in_default_args", [("on_failure_callback", False), ("on_failure_callback", True)]
+)
+def test_dag_with_on_callback_and_params(callback_type, in_default_args):
     # Import the DAG using the callback config that was build above
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
     td.build()
 
-    # Check to see if on_failure_callback is in the DAG config, and the type of value that is returned
-    assert "on_failure_callback" in td.dag_config
+    config_obj = td.dag_config.get("default_args") if in_default_args else td.dag_config
 
-    # Pull the callback
-    on_failure_callback: functools.partial = td.dag_config.get("on_failure_callback")
+    # Check to see if callback_type is in the DAG config, and the type of value that is returned, pull the callback
+    assert callback_type in config_obj
+    on_callback: functools.partial = config_obj.get(callback_type)
 
-    assert isinstance(on_failure_callback, functools.partial)
-    assert callable(on_failure_callback)
-    assert on_failure_callback.func.__name__ == "empty_callback_with_params"
+    assert isinstance(on_callback, functools.partial)
+    assert callable(on_callback)
+    assert on_callback.func.__name__ == "empty_callback_with_params"
 
     # Parameters
-    assert "param_1" in on_failure_callback.keywords
-    assert on_failure_callback.keywords.get("param_1") == "value_1"
-    assert "param_2" in on_failure_callback.keywords
-    assert on_failure_callback.keywords.get("param_2") == "value_2"
+    assert "param_1" in on_callback.keywords
+    assert on_callback.keywords.get("param_1") == "value_1"
+    assert "param_2" in on_callback.keywords
+    assert on_callback.keywords.get("param_2") == "value_2"
 
 
 def test_get_dag_params_with_template_searchpath():
