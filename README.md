@@ -173,15 +173,15 @@ consumer_dag:
 ![custom_operators.png](img/custom_operators.png)
 ## Notes
 
-### HttpSensor (since 0.10.0)
+### HttpSensor (since 1.0.0)
 
-The package `airflow.sensors.http_sensor` works with all supported versions of Airflow. In Airflow 2.0+, the new package name can be used in the operator value: `airflow.providers.http.sensors.http`
+The package `airflow.providers.http.sensors.http` is available for Airflow 2.0+
 
 The following example shows `response_check` logic in a python file:
 
 ```yaml
 task_2:
-  operator: airflow.sensors.http_sensor.HttpSensor
+  operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'
   response_check_name: check_sensor
@@ -193,7 +193,7 @@ The `response_check` logic can also be provided as a lambda:
 
 ```yaml
 task_2:
-  operator: airflow.sensors.http_sensor.HttpSensor
+  operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'
   response_check_lambda: 'lambda response: "ok" in reponse.text'
