@@ -434,10 +434,12 @@ def test_load_yaml_dags_succeed(mock_emit_usage_metrics_if_enabled):
     args = mock_emit_usage_metrics_if_enabled.call_args.args
     assert args[0] == "load_yaml_dags"
     assert args[1] == {"dags_count": 2, "tasks_count": 4, "taskgroups_count": 0}
-    
-    # test load with none suffix
+
+
+def test_load_yaml_dags_default_suffix_succeed(caplog):
+    caplog.set_level(logging.INFO)
     load_yaml_dags(
         globals_dict=globals(),
         dags_folder="tests/fixtures",
     )
-    
+    assert "Loading DAGs from tests/fixtures" in caplog.messages
