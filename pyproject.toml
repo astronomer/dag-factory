@@ -38,13 +38,6 @@ dependencies = [
 
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=6.0",
-    "black",
-    "pylint",
-    "pytest-cov",
-    "tox",
-]
 tests = [
     "pytest>=6.0",
     "pytest-cov",

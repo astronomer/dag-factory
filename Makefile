@@ -6,8 +6,11 @@ help:
 
 .PHONY: setup-dev
 setup-dev: ## Setup development environment
-	@pip3 install virtualenv
-	@make venv
+	python3 -m venv venv
+	source venv/bin/activate
+    pip install -e []
+
+
 
 .PHONY: venv
 venv: venv/bin/activate
