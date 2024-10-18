@@ -1,9 +1,1 @@
-name: John Doe
-age: 30
-is_student: yes
-address:
-  street: 123 Main St
-  city: New York
-  postal_code 10001
-- phone: 555-1234
-email: johndoe@example.com
+../dev/dags/invalid.yaml
