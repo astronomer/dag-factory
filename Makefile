@@ -30,8 +30,8 @@ clean: ## Removes build and test artifacts
 
 .PHONY: build-whl
 build-whl: ## Build installable whl file
+	cd examples && ln -s ../dev/dags dags
 	python3 -m build --outdir dev/include/
-	cd examples && ln -sf ../dev/dags/* .
 
 .PHONY: docker-run
 docker-run: build-whl ## Runs local Airflow for testing
