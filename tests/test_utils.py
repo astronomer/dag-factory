@@ -249,7 +249,7 @@ def test_is_partial_duplicated():
 
 def test_open_and_filter_yaml_config_datasets():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
-    file_path = "examples/datasets/example_config_datasets.yml"
+    file_path = "dev/dags/datasets/example_config_datasets.yml"
 
     actual = utils.get_datasets_uri_yaml_file(file_path, datasets_names)
     expected = [
