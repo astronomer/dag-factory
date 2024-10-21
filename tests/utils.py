@@ -12,10 +12,20 @@ from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
 from airflow.utils import timezone
-from airflow.utils.session import NEW_SESSION, provide_session
+from airflow.utils.session import provide_session
 from airflow.utils.state import DagRunState, State
 from airflow.utils.types import DagRunType
 from sqlalchemy.orm.session import Session
+
+try:
+    from airflow.utils.session import NEW_SESSION
+except ImportError:
+    # Airflow < 2.3 did not have NEW_SESSION in airflow.utils.session
+    from typing import cast
+
+    from airflow import settings
+
+    NEW_SESSION: settings.SASession = cast(settings.SASession, None)
 
 log = logging.getLogger(__name__)
 
