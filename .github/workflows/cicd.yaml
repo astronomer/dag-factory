@@ -1,4 +1,4 @@
-name: Test and release related jobs
+name: CI jobs
 
 on:
   push: # Run on pushes to the default branch
@@ -27,7 +27,7 @@ jobs:
           architecture: "x64"
 
       - run: pip3 install hatch
-      - run: CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py3.12-2.10:static-check
+      - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
     runs-on: ubuntu-latest
@@ -91,11 +91,11 @@ jobs:
         run: |
           python -m pip install uv
           uv pip install --system hatch
-          CONFIG_ROOT_DIR=`pwd`"/dags" hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
+          hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
         run: |
-          CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
+          hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
@@ -182,19 +182,20 @@ jobs:
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
         run: |
-          PYTHONPATH=`pwd`:`pwd`/examples CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-integration-setup
-          PYTHONPATH=`pwd`:`pwd`/examples CONFIG_ROOT_DIR=`pwd`"/dags" hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-integration
+          hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-integration-setup
+          hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-integration
         env:
-          AIRFLOW_HOME: /home/runner/work/dag-factory/dag-factory/
-          AIRFLOW_CONN_EXAMPLE_CONN: postgres://postgres:postgres@0.0.0.0:5432/postgres
           AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 90.0
-          PYTHONPATH: /home/runner/work/dag-factory/dag-factory/:/home/runner/work/dag-factory/dag-factory/examples:$PYTHONPATH
-          POSTGRES_HOST: localhost
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          AIRFLOW_CONN_EXAMPLE_CONN: postgres://postgres:postgres@0.0.0.0:5432/postgres
+          AIRFLOW_HOME: /home/runner/work/dag-factory/dag-factory/
+          CONFIG_ROOT_DIR: $PWD/dags
           POSTGRES_DB: postgres
-          POSTGRES_SCHEMA: public
+          POSTGRES_HOST: localhost
+          POSTGRES_PASSWORD: postgres
           POSTGRES_PORT: 5432
+          POSTGRES_SCHEMA: public
+          POSTGRES_USER: postgres
+          PYTHONPATH: $PWD:$PWD/examples:$PYTHONPATH
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
