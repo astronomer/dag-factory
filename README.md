@@ -205,7 +205,7 @@ take parameters (such as `text`, `channel`, and `username`, as shown here).
 ```yaml
 example_dag1:
   on_failure_callback:
-    callback: airflow.providers.slack.notifications.slack import send_slack_notification
+    callback: airflow.providers.slack.notifications.slack.send_slack_notification
     text: |
       :red_circle: Task Failed.
       This task has failed and needs to be addressed.
