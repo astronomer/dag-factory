@@ -5,15 +5,15 @@ default:
     end_date: 2018-03-05
     retries: 1
     retry_delay_sec: 300
+    on_success_callback_name: print_hello_from_callback
+    on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
   concurrency: 1
   max_active_runs: 1
   dagrun_timeout_sec: 600
   default_view: "tree"
   orientation: "LR"
   schedule_interval: "0 1 * * *"
-  on_success_callback_name: print_hello
-  on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
-  on_failure_callback_name: print_hello
+  on_failure_callback_name: print_hello_from_callback
   on_failure_callback_file: $CONFIG_ROOT_DIR/print_hello.py
 
 example_dag:

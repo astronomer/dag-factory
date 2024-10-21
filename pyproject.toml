@@ -77,6 +77,8 @@ freeze = "pip freeze"
 static-check = " pre-commit run --files dagfactory/*"
 test = 'sh scripts/test/unit.sh'
 test-cov = 'sh scripts/test/unit-cov.sh'
+test-integration = 'sh scripts/test/integration.sh'
+test-integration-setup = 'sh scripts/test/integration-setup.sh'
 
 [project.urls]
 Source = "https://github.com/astronomer/dag-factory"
