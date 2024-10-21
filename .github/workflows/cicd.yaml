@@ -187,15 +187,15 @@ jobs:
         env:
           AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 90.0
           AIRFLOW_CONN_EXAMPLE_CONN: postgres://postgres:postgres@0.0.0.0:5432/postgres
-          AIRFLOW_HOME: /home/runner/work/dag-factory/dag-factory/
-          CONFIG_ROOT_DIR: $PWD/dags
+          AIRFLOW_HOME: ${{ github.workspace }}
+          CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
           POSTGRES_DB: postgres
           POSTGRES_HOST: localhost
           POSTGRES_PASSWORD: postgres
           POSTGRES_PORT: 5432
           POSTGRES_SCHEMA: public
           POSTGRES_USER: postgres
-          PYTHONPATH: $PWD:$PWD/examples:$PYTHONPATH
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
