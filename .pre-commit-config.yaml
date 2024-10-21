@@ -17,7 +17,7 @@ repos:
       - id: check-yaml
         args:
           - --unsafe
-        exclude: 'tests/fixtures/dag_factory.yml|examples/invalid.yaml|tests/fixtures/invalid_yaml.yml'
+        exclude: 'tests/fixtures/dag_factory.yml|dev/dags/invalid.yaml|tests/fixtures/invalid_yaml.yml'
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending

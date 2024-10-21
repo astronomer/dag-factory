@@ -10,7 +10,7 @@ ls $AIRFLOW_HOME
 
 airflow db check
 
-ln -s examples dags
+ln -s dev/dags dags
 
 pytest -vv \
     --cov=dagfactory \

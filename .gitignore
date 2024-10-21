@@ -10,7 +10,6 @@ __pycache__/
 .Python
 build/
 bin/
-include/
 develop-eggs/
 dist/
 downloads/
@@ -127,3 +126,6 @@ logs/
 examples/.airflowignore
 airflow.cfg
 webserver_config.py
+
+# Astro
+dev/include/dag_factory-*
