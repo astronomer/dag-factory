@@ -1,0 +1,34 @@
+---
+name: Feature request
+description: Suggest an idea for this project
+title: "[Feature] "
+labels: ["enhancement", "triage-needed"]
+body:
+  - type: markdown
+    attributes:
+      # yamllint disable rule:line-length
+      value: "
+        Thank you for finding the time to propose new feature!
+
+        We really appreciate the community efforts to improve DAG Factory."
+      # yamllint enable rule:line-length
+  - type: textarea
+    attributes:
+      label: Description
+      description: A short description of your feature
+  - type: textarea
+    attributes:
+      label: Use case/motivation
+      description: What would you like to happen?
+  - type: textarea
+    attributes:
+      label: Related issues
+      description: Is there currently another issue associated with this?
+  - type: checkboxes
+    attributes:
+      label: Are you willing to submit a PR?
+      options:
+        - label: Yes, I am willing to submit a PR!
+  - type: markdown
+    attributes:
+      value: "Thanks for completing our form!"
