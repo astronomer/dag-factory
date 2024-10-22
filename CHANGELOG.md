@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix make docker-run by @pankajkoti in #249
   - Add vim dot files to .gitignore by @tatiana in #228
   - Use Hatchling to modern package building by @kaxil in #208
+  - Cleanup dependabot, MANIFEST.in and Makefile by @pankajastro in #268
+  - Add Astro CLI project to validate DAG Factory by @pankajastro in #267
 - CI
   - Fix static check failures in PR #218 by @pankajkoti in #251
   - Fix pre-commit checks by @tatiana in #247
@@ -40,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Packaging & Release
   - Configure GitHub to automate publishing DAG Factory in PyPI by @tatiana in #255
   - Update pyproject classifiers for Python 3.11 and 3.12 by @pankajastro in #262
+  - Update http sensor example to Airflow 2.0 by @pankajastro in #265
 - Tests
   - Fix duplicate test name by @pankajastro in #234
   - Add static check by @pankajastro in #231
@@ -47,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add the task_2 back to dataset example by @cmarteepants in #204
   - Remove unnecessary config line by @jlaneve in #202
   - Fix Pytest fixture that changed DAG YAML file by @tatiana in #256
+  - Run integration tests in CI by @pankajkoti in #266
+  - Improve test coverage by @pankajastro in #258
 - Refactor
   - Refactor poor exception handling by @tatiana in #259
 - Documentation
@@ -54,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add registration icon and links to Airflow references by @cmarteepants in #190
   - Update quickstart and add feature examples by @cmarteepants #189
   - Fix `README.md` badges by @tatiana in #260
-  -
+
 ### Breaking changes
 - Removed support for Python 3.7
 - The license was changed from MIT to Apache 2.0
