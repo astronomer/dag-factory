@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development tools
   - Fix make docker-run by @pankajkoti in #249
   - Add vim dot files to .gitignore by @tatiana in #228
+  - Add local airflow setup files to .gitignore by @pankajkoti in #246
   - Use Hatchling to modern package building by @kaxil in #208
   - Cleanup dependabot, MANIFEST.in and Makefile by @pankajastro in #268
   - Add Astro CLI project to validate DAG Factory by @pankajastro in #267
