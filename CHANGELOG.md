@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add registration icon and links to Airflow references by @cmarteepants in #190
   - Update quickstart and add feature examples by @cmarteepants #189
   - Fix `README.md` badges by @tatiana in #260
+  - Remove duplicated operator in `README.md` by @brair in #263 
 
 ### Breaking changes
 - Removed support for Python 3.7
