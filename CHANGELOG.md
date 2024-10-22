@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.20.0rc1] - 2024-10-22
+## [0.20.0] - 2024-10-22
 
 ### Added
 - Support using envvar in config YAML by @tatiana in #236
@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use Hatchling to modern package building by @kaxil in #208
   - Cleanup dependabot, MANIFEST.in and Makefile by @pankajastro in #268
   - Add Astro CLI project to validate DAG Factory by @pankajastro in #267
+  - Fix Makefile to run make docker-run by @tatiana in #271
 - CI
   - Fix static check failures in PR #218 by @pankajkoti in #251
   - Fix pre-commit checks by @tatiana in #247
@@ -53,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improve test coverage by @pankajastro in #258
 - Refactor
   - Refactor poor exception handling by @tatiana in #259
+  - Remove off looking start-date value in example_dag yaml config by @pankajkoti in #273
 - Documentation
   - Update the license from MIT to Apache 2.0 by @pankajastro in #191
   - Add registration icon and links to Airflow references by @cmarteepants in #190
