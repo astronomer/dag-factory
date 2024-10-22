@@ -19,7 +19,6 @@ default:
 example_dag:
   default_args:
     owner: "custom_owner"
-    start_date: 2 days
   description: "this is an example dag"
   schedule_interval: "0 3 * * *"
   render_template_as_native_obj: True
