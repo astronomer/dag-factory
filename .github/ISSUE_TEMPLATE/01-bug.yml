@@ -1,0 +1,114 @@
+---
+name: Bug Report
+description: File a bug report.
+title: "[Bug] "
+labels: ["bug", "triage-needed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: dag-factory-version
+    attributes:
+      label: DAG Factory version
+      # yamllint disable rule:line-length
+      description: >
+        On what version of DAG Factory are you currently experiencing the issue? Remember, you are encouraged to
+        test with the latest release or on the main branch to verify your issue still exists.
+      placeholder: e.g. 0.19.0
+    validations:
+      required: true
+  - type: input
+    id: airflow-version
+    attributes:
+      label: airflow version
+      description: What version of Apache Airflow are you running?
+      placeholder: ex. 2.9.0
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: What version of Python are you running?
+      placeholder: e.g. 3.10
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Deployment
+      description: >
+        What kind of deployment do you have?
+      multiple: false
+      options:
+        - "Official Apache Airflow Helm Chart"
+        - "Other 3rd-party Helm chart"
+        - "Docker-Compose"
+        - "Other Docker-based deployment"
+        - "Virtualenv installation"
+        - "Astronomer"
+        - "Google Cloud Composer"
+        - "Amazon (AWS) MWAA"
+        - "Microsoft ADF Managed Airflow"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Deployment details
+      description: Additional description of your deployment.
+      placeholder: >
+        Enter any relevant details of your deployment. Especially version of your tools,
+        software (docker-compose, helm, k8s, etc.), any customisation and configuration you added.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: textarea
+    attributes:
+      label: How to reproduce
+      description: What should we do to reproduce the problem?
+      placeholder: >
+        Please make sure you provide a reproducible step-by-step case of how to reproduce the problem
+        as minimally and precisely as possible. Keep in mind we do not have access to your cluster or DAGs.
+        Remember that non-reproducible issues make it hard for us to help you or resolve the issue!
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Anything else :)?
+      description: Anything else we need to know?
+      placeholder: >
+        How often does this problem occur? (Once? Every time? Only when certain conditions are met?)
+  - type: checkboxes
+    attributes:
+      label: Are you willing to submit PR?
+      description: >
+        This is absolutely not required, but we are happy to guide you in the contribution process
+        especially if you already have a good understanding of how to implement the fix. We love to bring new
+        contributors in.
+      options:
+        - label: Yes I am willing to submit a PR!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: (Optional) How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: "Thanks for completing our form!"
