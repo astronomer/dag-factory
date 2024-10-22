@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.20.0a3] - 2024-10-18
+## [0.20.0rc1] - 2024-10-22
 
 ### Added
 - Support using envvar in config YAML by @tatiana in #236
