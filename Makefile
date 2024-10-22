@@ -22,8 +22,8 @@ clean: ## Removes build and test artifacts
 
 
 .PHONY: build-whl
-build-whl: ## Build installable whl file
-	cd examples && ln -s ../dev/dags dags
+build-whl: setup-dev ## Build installable whl file
+	cd dev
 	python3 -m build --outdir dev/include/
 
 .PHONY: docker-run
