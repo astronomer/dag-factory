@@ -5,8 +5,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
+
+## [0.20.0] - 2024-10-22
+
+### Added
+- Support using envvar in config YAML by @tatiana in #236
+- **Callback improvements**
+  - Support installed code via python callable string by @john-drews in #221
+  - Add `callback_file` & `callback_name` to `default_args` DAG level by @subbota19 in #218
+  - Cast callbacks to functions when set with `default_args` on TaskGroups by @Baraldo and @pankajastro in #235
+
+- **Telemetry**
+  - For more information, please, read the [Privacy Notice](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md#collection-of-data).
+  - Add scarf to readme for website analytics by @cmarteepants in #219
+  - Support telemetry during DAG parsing emitting data to Scarf by @tatiana in #250.
+
+### Fixed
+- Build DAGs when there is an invalid YAML in the DAGs folder by @quydx and @tatiana in #184
+
+### Others
+- Development tools
+  - Fix make docker-run by @pankajkoti in #249
+  - Add vim dot files to .gitignore by @tatiana in #228
+  - Add local airflow setup files to .gitignore by @pankajkoti in #246
+  - Use Hatchling to modern package building by @kaxil in #208
+  - Cleanup dependabot, MANIFEST.in and Makefile by @pankajastro in #268
+  - Add Astro CLI project to validate DAG Factory by @pankajastro in #267
+  - Fix Makefile to run make docker-run by @tatiana in #271
+- CI
+  - Fix static check failures in PR #218 by @pankajkoti in #251
+  - Fix pre-commit checks by @tatiana in #247
+  - Remove tox and corresponding build jobs in CI by @pankajkoti in #248
+  - Install Airflow with different versions in the CI by @pankajkoti in #237
+  - Run pre-commit hooks on all existing files by @pankajkoti in #245
+  - Add Python 3.11 and 3.12 to CI test pipeline by @pankajkoti in #229
+  - Fix release action and overall CI jobs dependencies by @tatiana in #261
+- Packaging & Release
+  - Configure GitHub to automate publishing DAG Factory in PyPI by @tatiana in #255
+  - Update pyproject classifiers for Python 3.11 and 3.12 by @pankajastro in #262
+  - Update http sensor example to Airflow 2.0 by @pankajastro in #265
+- Tests
+  - Fix duplicate test name by @pankajastro in #234
+  - Add static check by @pankajastro in #231
+  - Fix running tests locally (outside the CI) by @tatiana in #227
+  - Add the task_2 back to dataset example by @cmarteepants in #204
+  - Remove unnecessary config line by @jlaneve in #202
+  - Fix Pytest fixture that changed DAG YAML file by @tatiana in #256
+  - Run integration tests in CI by @pankajkoti in #266
+  - Improve test coverage by @pankajastro in #258
+- Refactor
+  - Refactor poor exception handling by @tatiana in #259
+  - Remove off looking start-date value in example_dag yaml config by @pankajkoti in #273
+- Documentation
+  - Update the license from MIT to Apache 2.0 by @pankajastro in #191
+  - Add registration icon and links to Airflow references by @cmarteepants in #190
+  - Update quickstart and add feature examples by @cmarteepants #189
+  - Fix `README.md` badges by @tatiana in #260
+  - Remove duplicated operator in `README.md` by @brair in #263 
+
+### Breaking changes
 - Removed support for Python 3.7
+- The license was changed from MIT to Apache 2.0
+
 
 ## [0.19.0] - 2023-07-19
 ### Added
