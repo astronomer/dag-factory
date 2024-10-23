@@ -190,7 +190,7 @@ callback is defined using `default_args`, meaning this callback will be applied 
 example_dag1:
   ...
   default_args:
-    on_success_callback_file: include.callbacks
+    on_success_callback_file: /usr/local/airflow/include/callbacks.py
     on_success_callback_name: example_callback1
 ```
 
@@ -206,6 +206,7 @@ take parameters (such as `text`, `channel`, and `username`, as shown here).
 example_dag1:
   on_failure_callback:
     callback: airflow.providers.slack.notifications.slack.send_slack_notification
+    slack_conn_id: example_slack_id
     text: |
       :red_circle: Task Failed.
       This task has failed and needs to be addressed.
