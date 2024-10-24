@@ -5,15 +5,6 @@ example_callbacks:
     on_failure_callback_name: output_message
   schedule_interval: "@daily"
   catchup: False
-  on_failure_callback:
-    callback: airflow.providers.slack.notifications.slack.send_slack_notification
-    slack_conn_id: example_slack_conn
-    text: |
-      :red_circle: Task Failed.
-      This task has failed and needs to be addressed.
-      Please remediate this issue ASAP.
-    channel: cse-callback-demo
-    username: Airflow
   tasks:
     start:
       operator: airflow.operators.empty.EmptyOperator
