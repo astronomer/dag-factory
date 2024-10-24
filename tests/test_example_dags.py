@@ -53,6 +53,7 @@ def get_dag_bag() -> DagBag:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([f"{dagfile}\n"])
 
+    print(EXAMPLE_DAGS_DIR)
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
     db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
