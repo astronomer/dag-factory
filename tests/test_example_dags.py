@@ -52,13 +52,14 @@ def get_dag_bag() -> DagBag:
 
         for dagfile in IGNORED_DAG_FILES:
             print(f"Adding {dagfile} to .airflowignore")
-            print(os.system("pwd"))
             file.writelines([
                 f"/home/runner/work/dag-factory/dag-factory/dev/dags/{dagfile}\n" +
                 f"/home/runner/work/dag-factory/dag-factory/examples/{dagfile}\n" if AIRFLOW_VERSION == Version('2.3')
                     else f"{dagfile}\n"
             ])
 
+    print(os.getcwd())
+    print(os.listdir())
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
     db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
