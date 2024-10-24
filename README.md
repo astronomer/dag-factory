@@ -171,6 +171,51 @@ consumer_dag:
       bread_type: 'Sourdough'
 ```
 ![custom_operators.png](img/custom_operators.png)
+
+### Callbacks
+**dag-factory** also supports using "callbacks" at the DAG, Task, and TaskGroup level. These callbacks can be defined in
+a few different ways. The first points directly to a Python function that has been defined in the `include/callbacks.py`
+file.
+
+```yaml
+example_dag1:
+  on_failure_callback: include.callbacks.example_callback1
+...
+```
+
+Here, the `on_success_callback` points to first a file, and then to a function name within that file. Notice that this
+callback is defined using `default_args`, meaning this callback will be applied to all tasks.
+
+```yaml
+example_dag1:
+  ...
+  default_args:
+    on_success_callback_file: /usr/local/airflow/include/callbacks.py
+    on_success_callback_name: example_callback1
+```
+
+**dag-factory** users can also leverage provider-built tools when configuring callbacks. In this example, the
+`send_slack_notification` function from the Slack provider is used to dispatch a message when a DAG failure occurs. This
+function is passed to the `callback` key under `on_failure_callback`. This pattern allows for callback definitions to
+take parameters (such as `text`, `channel`, and `username`, as shown here).
+
+**Note that this functionality is currently only supported for `on_failure_callback`'s defined at the DAG-level, or in
+`default_args`. Support for other callback types and Task/TaskGroup-level definitions are coming soon.**
+
+```yaml
+example_dag1:
+  on_failure_callback:
+    callback: airflow.providers.slack.notifications.slack.send_slack_notification
+    slack_conn_id: example_slack_id
+    text: |
+      :red_circle: Task Failed.
+      This task has failed and needs to be addressed.
+      Please remediate this issue ASAP.
+    channel: analytics-alerts
+    username: Airflow
+...
+```
+
 ## Notes
 
 ### HttpSensor (since 1.0.0)
