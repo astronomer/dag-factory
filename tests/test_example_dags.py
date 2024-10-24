@@ -52,7 +52,8 @@ def get_dag_bag() -> DagBag:
         for dagfile in IGNORED_DAG_FILES:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([
-                f"dev/dags/{dagfile}\nexamples/{dagfile}\n" if AIRFLOW_VERSION == Version('2.3')
+                f"/home/runner/work/dag-factory/dag-factory/dev/dags/{dagfile}\n" +
+                f"/home/runner/work/dag-factory/dag-factory/examples/{dagfile}\n" if AIRFLOW_VERSION == Version('2.3')
                     else f"{dagfile}\n"
             ])
 
