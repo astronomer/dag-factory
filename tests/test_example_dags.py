@@ -53,7 +53,7 @@ def get_dag_bag() -> DagBag:
         for dagfile in IGNORED_DAG_FILES:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([
-                f"**/{dagfile}\n" if AIRFLOW_VERSION == Version('2.3') else f"{dagfile}\n"
+                f"{dagfile}\n" if AIRFLOW_VERSION == Version('2.3') else f"{dagfile}\n"
             ])
 
     print(os.getcwd())
