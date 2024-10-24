@@ -51,9 +51,8 @@ def get_dag_bag() -> DagBag:
 
         for dagfile in IGNORED_DAG_FILES:
             print(f"Adding {dagfile} to .airflowignore")
-            file.writelines([f"{dagfile}\n"])
+            file.writelines([f"{'examples/' + dagfile if AIRFLOW_VERSION <= Version("2.3") else dagfile}\n"])
 
-    print(EXAMPLE_DAGS_DIR)
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
     db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
