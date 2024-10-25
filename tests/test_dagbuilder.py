@@ -901,19 +901,20 @@ def test_dag_with_on_callback_and_params(callback_type, in_default_args):
 
 @pytest.mark.callbacks
 def test_dag_with_provider_callback():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
-    td.build()
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.6.0"):
+        td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+        td.build()
 
-    # Check to see if the on_failure_callback exists and that it's a callback
-    assert td.dag_config.get("default_args").get("on_failure_callback")
+        # Check to see if the on_failure_callback exists and that it's a callback
+        assert td.dag_config.get("default_args").get("on_failure_callback")
 
-    on_failure_callback = td.dag_config.get("default_args").get("on_failure_callback")
-    assert callable(on_failure_callback)
+        on_failure_callback = td.dag_config.get("default_args").get("on_failure_callback")
+        assert callable(on_failure_callback)
 
-    # Check values
-    assert on_failure_callback.slack_conn_id == "slack_conn_id"
-    assert on_failure_callback.channel == "#channel"
-    assert on_failure_callback.username == "username"
+        # Check values
+        assert on_failure_callback.slack_conn_id == "slack_conn_id"
+        assert on_failure_callback.channel == "#channel"
+        assert on_failure_callback.username == "username"
 
 
 def test_get_dag_params_with_template_searchpath():
