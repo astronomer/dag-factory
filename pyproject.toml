@@ -39,6 +39,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
+    "apache-airflow-providers-slack",
     "pytest>=6.0",
     "pytest-cov",
     "pre-commit"

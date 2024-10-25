@@ -290,6 +290,32 @@ DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
     },
 }
 
+DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+        "on_failure_callback": {
+            "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
+            "slack_conn_id": "slack_conn_id",
+            "text": f"""
+                Sample, multi-line callback text.
+            """,
+            "channel": "#channel",
+            "username": "username"
+        },
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5,
+        },
+    },
+}
+
 UTC = pendulum.timezone("UTC")
 
 DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
@@ -740,7 +766,7 @@ def print_context_callback(context, **kwargs):
     print(context)
 
 
-def empty_callback_with_params(param_1, param_2, **kwargs):
+def empty_callback_with_params(context, param_1, param_2, **kwargs):
     print(param_1)
     print(param_2)
 
@@ -870,6 +896,21 @@ def test_dag_with_on_callback_and_params(callback_type, in_default_args):
     assert on_callback.keywords.get("param_1") == "value_1"
     assert "param_2" in on_callback.keywords
     assert on_callback.keywords.get("param_2") == "value_2"
+
+
+def test_dag_with_provider_callback():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+    td.build()
+
+    assert td.dag_config.get("default_args").get("on_failure_callback")
+
+    on_failure_callback: functools.partial = td.dag_config.get("default_args").get("on_failure_callback")
+    print(on_failure_callback.args)
+    print(on_failure_callback.keywords)
+    print(on_failure_callback.func)
+
+    assert callable(on_failure_callback)
+    #assert on_failure_callback.func.__name__ == "send_slack_notification"
 
 
 def test_get_dag_params_with_template_searchpath():

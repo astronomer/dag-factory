@@ -845,6 +845,9 @@ class DagBuilder:
                     # Return the callable, this time, using the params provided in the YAML file, rather than a .py
                     # file with a callable configured. If not returning the partial, something like this could be used
                     # to update the config ... parameters[callback_type]: Callable = partial(...)
+                    if hasattr(on_state_callback_callable, "notify"):
+                        return on_state_callback_callable(**on_state_callback_params)
+
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
         raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
