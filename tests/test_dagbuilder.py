@@ -901,7 +901,7 @@ def test_dag_with_on_callback_and_params(callback_type, in_default_args):
 
 @pytest.mark.callbacks
 def test_dag_with_provider_callback():
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.6.0"):
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.6.0"):
         td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
         td.build()
 
