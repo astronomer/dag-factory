@@ -31,6 +31,9 @@ try:
 except ImportError:
     from airflow.operators.python_operator import PythonOperator
 
+# Import the SlackNotifier
+from airflow.providers.slack.notifications.slack import SlackNotifier
+
 try:
     from airflow.version import version as AIRFLOW_VERSION
 except ImportError:
@@ -767,6 +770,7 @@ def print_context_callback(context, **kwargs):
 
 
 def empty_callback_with_params(context, param_1, param_2, **kwargs):
+    # Context is the first parameter passed into the callback
     print(param_1)
     print(param_2)
 
@@ -898,19 +902,22 @@ def test_dag_with_on_callback_and_params(callback_type, in_default_args):
     assert on_callback.keywords.get("param_2") == "value_2"
 
 
+@pytest.mark.callbacks
 def test_dag_with_provider_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
     td.build()
 
     assert td.dag_config.get("default_args").get("on_failure_callback")
 
-    on_failure_callback: functools.partial = td.dag_config.get("default_args").get("on_failure_callback")
-    print(on_failure_callback.args)
-    print(on_failure_callback.keywords)
-    print(on_failure_callback.func)
+    on_failure_callback: SlackNotifier = td.dag_config.get("default_args").get("on_failure_callback")
 
+    assert isinstance(on_failure_callback, SlackNotifier)
     assert callable(on_failure_callback)
-    #assert on_failure_callback.func.__name__ == "send_slack_notification"
+
+    # Check values
+    assert on_failure_callback.slack_conn_id == "slack_conn_id"
+    assert on_failure_callback.channel == "#channel"
+    assert on_failure_callback.username == "username"
 
 
 def test_get_dag_params_with_template_searchpath():
