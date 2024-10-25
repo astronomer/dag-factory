@@ -60,7 +60,7 @@ pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow}
 
 [[tool.hatch.envs.tests.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-airflow = ["2.2", "2.3.1", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
+airflow = ["2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
 
 [tool.hatch.envs.tests.overrides]
 matrix.airflow.dependencies = [

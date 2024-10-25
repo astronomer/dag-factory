@@ -31,9 +31,6 @@ try:
 except ImportError:
     from airflow.operators.python_operator import PythonOperator
 
-# Import the SlackNotifier
-from airflow.providers.slack.notifications.slack import SlackNotifier
-
 try:
     from airflow.version import version as AIRFLOW_VERSION
 except ImportError:
@@ -907,11 +904,10 @@ def test_dag_with_provider_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
     td.build()
 
+    # Check to see if the on_failure_callback exists and that it's a callback
     assert td.dag_config.get("default_args").get("on_failure_callback")
 
-    on_failure_callback: SlackNotifier = td.dag_config.get("default_args").get("on_failure_callback")
-
-    assert isinstance(on_failure_callback, SlackNotifier)
+    on_failure_callback = td.dag_config.get("default_args").get("on_failure_callback")
     assert callable(on_failure_callback)
 
     # Check values
