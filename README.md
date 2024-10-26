@@ -24,7 +24,7 @@ For a gentle introduction, please take a look at our [Quickstart Guide](#quickst
   - [Custom Operators](#custom-operators)
 - [Benefits](#benefits)
 - [Notes](#notes)
-  - [HttpSensor (since 0.10.0)](#httpsensor-since-0100)
+  - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
 - [Contributing](#contributing)
 
 ## Quickstart
