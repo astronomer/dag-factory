@@ -17,7 +17,7 @@ from packaging.version import Version
 
 from . import utils as test_utils
 
-EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "examples"
+EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
 IGNORED_DAG_FILES = [
