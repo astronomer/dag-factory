@@ -96,7 +96,7 @@ universal = true
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]
 minversion = "6.0"
-markers = ["integration"]
+markers = ["integration", "callbacks"]
 
 ######################################
 # THIRD PARTY TOOLS
