@@ -1,0 +1,28 @@
+example_callbacks:
+  default_args:
+    start_date: "2024-01-01"
+    on_failure_callback:
+      callback: airflow.providers.slack.notifications.slack.send_slack_notification
+      slack_conn_id: slack_conn_id
+      text: |
+        :red_circle: Task Failed.
+        This task has failed and needs to be addressed.
+        Please remediate this issue ASAP.
+      channel: "#channel"
+  schedule_interval: "@daily"
+  catchup: False
+  on_failure_callback:
+    callback: customized.callbacks.custom_callbacks.output_message
+    param1: param1
+    param2: param2
+  tasks:
+    start:
+      operator: airflow.operators.python.PythonOperator
+      python_callable_file: $CONFIG_ROOT_DIR/customized/callables/python.py
+      python_callable_name: succeeding_task
+    end:
+      operator: airflow.operators.python.PythonOperator
+      python_callable_file: $CONFIG_ROOT_DIR/customized/callables/python.py
+      python_callable_name: failing_task
+      dependencies:
+        - start

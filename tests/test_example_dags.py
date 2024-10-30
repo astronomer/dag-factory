@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 try:
@@ -16,10 +17,12 @@ from packaging.version import Version
 
 from . import utils as test_utils
 
-EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "examples"
+EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
-IGNORED_DAG_FILES = []
+IGNORED_DAG_FILES = [
+    "example_callbacks.py"
+]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "2.3": ["example_dynamic_task_mapping.py"],
@@ -51,9 +54,11 @@ def get_dag_bag() -> DagBag:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([f"{dagfile}\n"])
 
+    # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
     db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
+
     assert db.dags
     assert not db.import_errors
     return db

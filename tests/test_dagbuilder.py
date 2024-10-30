@@ -1,4 +1,5 @@
 import datetime
+import functools
 import os
 from pathlib import Path
 from unittest.mock import mock_open, patch
@@ -257,6 +258,60 @@ DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS = {
             "operator": "airflow.operators.bash_operator.BashOperator",
             "bash_command": "echo 3",
             "dependencies": ["task_1"],
+        },
+    },
+}
+
+# Alternative way to define callbacks (only "on_failure_callbacks" for now, more to come)
+DAG_CONFIG_CALLBACK_WITH_PARAMETERS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+        "on_failure_callback": {
+            "callback": f"{__name__}.empty_callback_with_params",
+            "param_1": "value_1",
+            "param_2": "value_2",
+        },
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "on_failure_callback": {
+        "callback": f"{__name__}.empty_callback_with_params",
+        "param_1": "value_1",
+        "param_2": "value_2",
+    },
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5,
+        },
+    },
+}
+
+DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS = {
+    "doc_md": "##here is a doc md string",
+    "default_args": {
+        "owner": "custom_owner",
+        "on_failure_callback": {
+            "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
+            "slack_conn_id": "slack_conn_id",
+            "text": f"""
+                Sample, multi-line callback text.
+            """,
+            "channel": "#channel",
+            "username": "username"
+        },
+    },
+    "description": "this is an example dag",
+    "schedule_interval": "0 3 * * *",
+    "tags": ["tag1", "tag2"],
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+            "execution_timeout_secs": 5,
         },
     },
 }
@@ -711,6 +766,12 @@ def print_context_callback(context, **kwargs):
     print(context)
 
 
+def empty_callback_with_params(context, param_1, param_2, **kwargs):
+    # Context is the first parameter passed into the callback
+    print(param_1)
+    print(param_2)
+
+
 def test_make_task_with_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = "airflow.operators.python_operator.PythonOperator"
@@ -734,6 +795,7 @@ def test_make_task_with_callback():
     assert callable(actual.on_retry_callback)
 
 
+@pytest.mark.callbacks
 def test_dag_with_callback_name_and_file():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE, DEFAULT_CONFIG)
     dag = td.build().get("dag")
@@ -754,6 +816,7 @@ def test_dag_with_callback_name_and_file():
         assert not callable(td_task.on_failure_callback)
 
 
+@pytest.mark.callbacks
 def test_dag_with_callback_name_and_file_default_args():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_NAME_AND_FILE_DEFAULT_ARGS, DEFAULT_CONFIG)
     dag = td.build().get("dag")
@@ -791,6 +854,67 @@ def test_make_timetable():
 def test_make_dag_with_callback():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK, DEFAULT_CONFIG)
     td.build()
+
+
+@pytest.mark.callbacks
+@pytest.mark.parametrize(
+    "callback_type,in_default_args", [("on_failure_callback", False), ("on_failure_callback", True)]
+)
+def test_dag_with_on_callback_str(callback_type, in_default_args):
+    # Using a different config (DAG_CONFIG_CALLBACK) than below
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK, DEFAULT_CONFIG)
+    td.build()
+
+    config_obj = td.dag_config.get("default_args") if in_default_args else td.dag_config
+
+    # Validate the .set_callback() method works as expected when importing a string,
+    assert callback_type in config_obj
+    assert callable(config_obj.get(callback_type))
+    assert config_obj.get(callback_type).__name__ == "print_context_callback"
+
+
+@pytest.mark.callbacks
+@pytest.mark.parametrize(
+    "callback_type,in_default_args", [("on_failure_callback", False), ("on_failure_callback", True)]
+)
+def test_dag_with_on_callback_and_params(callback_type, in_default_args):
+    # Import the DAG using the callback config that was build above
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+    td.build()
+
+    config_obj = td.dag_config.get("default_args") if in_default_args else td.dag_config
+
+    # Check to see if callback_type is in the DAG config, and the type of value that is returned, pull the callback
+    assert callback_type in config_obj
+    on_callback: functools.partial = config_obj.get(callback_type)
+
+    assert isinstance(on_callback, functools.partial)
+    assert callable(on_callback)
+    assert on_callback.func.__name__ == "empty_callback_with_params"
+
+    # Parameters
+    assert "param_1" in on_callback.keywords
+    assert on_callback.keywords.get("param_1") == "value_1"
+    assert "param_2" in on_callback.keywords
+    assert on_callback.keywords.get("param_2") == "value_2"
+
+
+@pytest.mark.callbacks
+def test_dag_with_provider_callback():
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.6.0"):
+        td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS, DEFAULT_CONFIG)
+        td.build()
+
+        # Check to see if the on_failure_callback exists and that it's a callback
+        assert td.dag_config.get("default_args").get("on_failure_callback")
+
+        on_failure_callback = td.dag_config.get("default_args").get("on_failure_callback")
+        assert callable(on_failure_callback)
+
+        # Check values
+        assert on_failure_callback.slack_conn_id == "slack_conn_id"
+        assert on_failure_callback.channel == "#channel"
+        assert on_failure_callback.username == "username"
 
 
 def test_get_dag_params_with_template_searchpath():

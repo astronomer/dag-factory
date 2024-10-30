@@ -5,6 +5,7 @@ import os
 import re
 from copy import deepcopy
 from datetime import datetime, timedelta
+from functools import partial
 from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
@@ -178,10 +179,9 @@ class DagBuilder:
                 )
 
         if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
-            if isinstance(dag_params["default_args"]["on_failure_callback"], str):
-                dag_params["default_args"]["on_failure_callback"]: Callable = import_string(
-                    dag_params["default_args"]["on_failure_callback"]
-                )
+            dag_params["default_args"]["on_failure_callback"]: Callable = self.set_callback(
+                parameters=dag_params["default_args"], callback_type="on_failure_callback"
+            )
 
         if utils.check_dict_key(dag_params["default_args"], "on_retry_callback"):
             if isinstance(dag_params["default_args"]["on_retry_callback"], str):
@@ -198,8 +198,9 @@ class DagBuilder:
                 dag_params["on_success_callback"]: Callable = import_string(dag_params["on_success_callback"])
 
         if utils.check_dict_key(dag_params, "on_failure_callback"):
-            if isinstance(dag_params["on_failure_callback"], str):
-                dag_params["on_failure_callback"]: Callable = import_string(dag_params["on_failure_callback"])
+            dag_params["on_failure_callback"]: Callable = self.set_callback(
+                parameters=dag_params, callback_type="on_failure_callback"
+            )
 
         if utils.check_dict_key(dag_params, "on_success_callback_name") and utils.check_dict_key(
             dag_params, "on_success_callback_file"
@@ -212,9 +213,8 @@ class DagBuilder:
         if utils.check_dict_key(dag_params, "on_failure_callback_name") and utils.check_dict_key(
             dag_params, "on_failure_callback_file"
         ):
-            dag_params["on_failure_callback"]: Callable = utils.get_python_callable(
-                dag_params["on_failure_callback_name"],
-                dag_params["on_failure_callback_file"],
+            dag_params["on_failure_callback"] = self.set_callback(
+                parameters=dag_params, callback_type="on_failure_callback", has_name_and_file=True
             )
 
         if utils.check_dict_key(dag_params["default_args"], "on_success_callback_name") and utils.check_dict_key(
@@ -229,10 +229,8 @@ class DagBuilder:
         if utils.check_dict_key(dag_params["default_args"], "on_failure_callback_name") and utils.check_dict_key(
             dag_params["default_args"], "on_failure_callback_file"
         ):
-
-            dag_params["default_args"]["on_failure_callback"]: Callable = utils.get_python_callable(
-                dag_params["default_args"]["on_failure_callback_name"],
-                dag_params["default_args"]["on_failure_callback_file"],
+            dag_params["default_args"]["on_failure_callback"] = self.set_callback(
+                parameters=dag_params["default_args"], callback_type="on_failure_callback", has_name_and_file=True
             )
 
         if utils.check_dict_key(dag_params, "template_searchpath"):
@@ -805,3 +803,51 @@ class DagBuilder:
         self.set_dependencies(tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict)
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
+
+    @staticmethod
+    def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
+        """
+        Update the passed-in config with the callback.
+
+        :param parameters:
+        :param callback_type:
+        :param has_name_and_file:
+        :returns: Callable
+        """
+        # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
+        # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That
+        # being said, what if this is not a Python callable? What if this is another type?
+        if has_name_and_file:
+            return utils.get_python_callable(
+                python_callable_name=parameters[f"{callback_type}_name"],
+                python_callable_file=parameters[f"{callback_type}_file"],
+            )
+
+        # If the value stored at parameters[callback_type] is a string, it should be imported under the assumption that
+        # it is a function that is "ready to be called". If not returning the function, something like this could be
+        # used to update the config parameters[callback_type] = import_string(parameters[callback_type])
+        if isinstance(parameters[callback_type], str):
+            return import_string(parameters[callback_type])
+
+        # Otherwise, if the parameter[callback_type] is a dictionary, it should be treated similar to the Python
+        # callable
+        elif isinstance(parameters[callback_type], dict):
+            # Pull the on_failure_callback dictionary from dag_params
+            on_state_callback_params: dict = parameters[callback_type]
+
+            # Check to see if there is a "callback" key in the on_failure_callback dictionary. If there is, parse
+            # out that callable, and add the parameters
+            if utils.check_dict_key(on_state_callback_params, "callback"):
+                if isinstance(on_state_callback_params["callback"], str):
+                    on_state_callback_callable: Callable = import_string(on_state_callback_params["callback"])
+                    del on_state_callback_params["callback"]
+
+                    # Return the callable, this time, using the params provided in the YAML file, rather than a .py
+                    # file with a callable configured. If not returning the partial, something like this could be used
+                    # to update the config ... parameters[callback_type]: Callable = partial(...)
+                    if hasattr(on_state_callback_callable, "notify"):
+                        return on_state_callback_callable(**on_state_callback_params)
+
+                    return partial(on_state_callback_callable, **on_state_callback_params)
+
+        raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
