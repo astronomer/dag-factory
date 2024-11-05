@@ -24,7 +24,9 @@ repos:
       - id: pretty-format-json
         args: [ "--autofix" ]
       - id: trailing-whitespace
-
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [ "--allow-missing-credentials" ]
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
