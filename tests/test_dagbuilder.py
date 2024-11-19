@@ -301,7 +301,7 @@ DAG_CONFIG_PROVIDER_CALLBACK_WITH_PARAMETERS = {
                 Sample, multi-line callback text.
             """,
             "channel": "#channel",
-            "username": "username"
+            "username": "username",
         },
     },
     "description": "this is an example dag",
@@ -1033,3 +1033,28 @@ def test_make_task_outlets(mock_read_file, outlets, output):
     operator = "airflow.operators.python_operator.PythonOperator"
     actual = td.make_task(operator, task_params)
     assert actual.outlets == [Dataset(uri) for uri in output]
+
+
+@patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
+def test_make_nested_task_groups():
+    task_group_dict = {
+        "task_group": {
+            "tooltip": "this is a task group",
+        },
+        "sub_task_group": {"tooltip": "this is a sub task group", "parent_group_name": "task_group"},
+    }
+    dag = "dag"
+    task_groups = dagbuilder.DagBuilder.make_task_groups(task_group_dict, dag)
+    expected = {
+        "task_group": MockTaskGroup(tooltip="this is a task group", group_id="task_group", dag=dag),
+        "sub_task_group": MockTaskGroup(tooltip="this is a sub task group", group_id="sub_task_group", dag=dag),
+    }
+
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
+        assert task_groups == {}
+    else:
+        sub_task_group = task_groups["sub_task_group"].__dict__
+        assert sub_task_group["parent_group"]
+        del sub_task_group["parent_group"]
+        assert task_groups["task_group"].__dict__ == expected["task_group"].__dict__
+        assert sub_task_group == expected["sub_task_group"].__dict__

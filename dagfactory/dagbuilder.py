@@ -100,7 +100,7 @@ else:
 
 
 # these are params only used in the DAG factory, not in the tasks
-SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
+SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 
 
 class DagBuilder:
@@ -549,52 +549,102 @@ class DagBuilder:
         task_groups_dict: Dict[str, "TaskGroup"] = {}
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
             for task_group_name, task_group_conf in task_groups.items():
-                task_group_conf["group_id"] = task_group_name
-                task_group_conf["dag"] = dag
+                circularity_check_queue = []
+                DagBuilder.make_nested_task_groups(
+                    task_group_name, task_group_conf, task_groups_dict, task_groups, circularity_check_queue, dag
+                )
 
-                if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0") and isinstance(
-                    task_group_conf.get("default_args"), dict
-                ):
-                    # https://github.com/apache/airflow/pull/16557
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_success_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_success_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_success_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_success_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_execute_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_execute_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_execute_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_execute_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_failure_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_failure_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_failure_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_failure_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_retry_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_retry_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_retry_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_retry_callback"]
-                            )
-
-                task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
-                task_groups_dict[task_group.group_id] = task_group
         return task_groups_dict
+
+    @staticmethod
+    def _init_task_group_callback_param(task_group_conf):
+        if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0") and isinstance(
+            task_group_conf.get("default_args"), dict
+        ):
+            # https://github.com/apache/airflow/pull/16557
+            if utils.check_dict_key(task_group_conf["default_args"], "on_success_callback"):
+                if isinstance(
+                    task_group_conf["default_args"]["on_success_callback"],
+                    str,
+                ):
+                    task_group_conf["default_args"]["on_success_callback"]: Callable = import_string(
+                        task_group_conf["default_args"]["on_success_callback"]
+                    )
+
+            if utils.check_dict_key(task_group_conf["default_args"], "on_execute_callback"):
+                if isinstance(
+                    task_group_conf["default_args"]["on_execute_callback"],
+                    str,
+                ):
+                    task_group_conf["default_args"]["on_execute_callback"]: Callable = import_string(
+                        task_group_conf["default_args"]["on_execute_callback"]
+                    )
+
+            if utils.check_dict_key(task_group_conf["default_args"], "on_failure_callback"):
+                if isinstance(
+                    task_group_conf["default_args"]["on_failure_callback"],
+                    str,
+                ):
+                    task_group_conf["default_args"]["on_failure_callback"]: Callable = import_string(
+                        task_group_conf["default_args"]["on_failure_callback"]
+                    )
+
+            if utils.check_dict_key(task_group_conf["default_args"], "on_retry_callback"):
+                if isinstance(
+                    task_group_conf["default_args"]["on_retry_callback"],
+                    str,
+                ):
+                    task_group_conf["default_args"]["on_retry_callback"]: Callable = import_string(
+                        task_group_conf["default_args"]["on_retry_callback"]
+                    )
+        return task_group_conf
+
+    @staticmethod
+    def make_nested_task_groups(
+        task_group_name: str,
+        task_group_conf: Any,
+        task_groups_dict: Dict[str, "TaskGroup"],
+        task_groups: Dict[str, Any],
+        circularity_check_queue: List[str],
+        dag: DAG,
+    ):
+        """Takes a DAG and task group configurations. Creates nested TaskGroup instances.
+        :param task_group_name:
+        :param task_group_conf:
+        :param task_groups_dict
+        :param task_groups: Task group configuration from the YAML configuration file.
+        :param circularity_check_queue:
+        :param dag: DAG instance that task groups to be added.
+        """
+        if task_group_name in task_groups_dict:
+            return
+
+        if task_group_name in circularity_check_queue:
+            error_string = "Circular dependency detected:\n"
+            index = circularity_check_queue.index(task_group_name)
+            while index < len(circularity_check_queue):
+                error_string += f"{circularity_check_queue[index]} depends on\n"
+                index += 1
+            error_string += f"{task_group_name}"
+            raise Exception(error_string)
+
+        circularity_check_queue.append(task_group_name)
+
+        if task_group_conf.get("parent_group_name"):
+            parent_group_name = task_group_conf["parent_group_name"]
+            parent_group_conf = task_groups[parent_group_name]
+            DagBuilder.make_nested_task_groups(
+                parent_group_name, parent_group_conf, task_groups_dict, task_groups, circularity_check_queue, dag
+            )
+            task_group_conf["parent_group"] = task_groups_dict[parent_group_name]
+
+        task_group_conf["group_id"] = task_group_name
+        task_group_conf["dag"] = dag
+
+        task_group_conf = DagBuilder._init_task_group_callback_param(task_group_conf)
+
+        task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
+        task_groups_dict[task_group_name] = task_group
 
     @staticmethod
     def set_dependencies(
