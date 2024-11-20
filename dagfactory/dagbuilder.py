@@ -606,9 +606,8 @@ class DagBuilder:
             error_string = "Circular dependency detected:\n"
             index = circularity_check_queue.index(task_group_name)
             while index < len(circularity_check_queue):
-                error_string += f"{circularity_check_queue[index]} depends on\n"
+                error_string += f"{circularity_check_queue[index]} depends on {task_group_name}\n"
                 index += 1
-            error_string += f"{task_group_name}"
             raise Exception(error_string)
 
         circularity_check_queue.append(task_group_name)
