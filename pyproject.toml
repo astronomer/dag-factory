@@ -81,6 +81,9 @@ Source = "https://github.com/astronomer/dag-factory"
 [tool.hatch.version]
 path = "dagfactory/__init__.py"
 
+[project.entry-points."airflow.plugins"]
+dagfactory = "dagfactory.plugin:DagFactoryPlugin"
+
 [tool.hatch.build]
 sources = ["."]
 
