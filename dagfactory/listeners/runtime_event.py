@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from distutils.version import Version
+
 from airflow.listeners import hookimpl
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
@@ -7,6 +9,11 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.state import TaskInstanceState
 
 from dagfactory import telemetry
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:
+    from airflow import __version__ as AIRFLOW_VERSION
 
 log = LoggingMixin().log
 
@@ -52,14 +59,28 @@ def on_task_instance_success(previous_state: TaskInstanceState, task_instance: T
     telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
 
 
-@hookimpl
-def on_task_instance_failed(
-    previous_state: TaskInstanceState, task_instance: TaskInstance, error: None | str | BaseException, session
-):
-    additional_telemetry_metrics = {
-        "dag_hash": task_instance.dag_run.dag_hash,
-        "status": EventStatus.FAILED,
-        "operator": task_instance.operator,
-    }
+if AIRFLOW_VERSION >= Version("2.10.0"):
 
-    telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
+    @hookimpl
+    def on_task_instance_failed(
+        previous_state: TaskInstanceState, task_instance: TaskInstance, error: None | str | BaseException, session
+    ):
+        additional_telemetry_metrics = {
+            "dag_hash": task_instance.dag_run.dag_hash,
+            "status": EventStatus.FAILED,
+            "operator": task_instance.operator,
+        }
+
+        telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
+
+else:
+
+    @hookimpl
+    def on_task_instance_failed(previous_state: TaskInstanceState, task_instance: TaskInstance, session):
+        additional_telemetry_metrics = {
+            "dag_hash": task_instance.dag_run.dag_hash,
+            "status": EventStatus.FAILED,
+            "operator": task_instance.operator,
+        }
+
+        telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
