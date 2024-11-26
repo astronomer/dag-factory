@@ -807,9 +807,10 @@ class DagBuilder:
             else:
                 dag.doc_md += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
 
-        # tags parameter introduced in Airflow 1.10.8
-        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-            dag.tags = dag_params.get("tags", None)
+
+        tags = dag_params.get("tags", [])
+        tags.append("dagfactory")
+        dag.tags = dag_params.get("tags", tags)
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
         self.tasks_count = len(tasks)
