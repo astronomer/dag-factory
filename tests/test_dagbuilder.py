@@ -623,7 +623,7 @@ def test_build():
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-        assert actual["dag"].tags == ["tag1", "tag2"]
+        assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
 
 
 def test_get_dag_params_dag_with_task_group():
