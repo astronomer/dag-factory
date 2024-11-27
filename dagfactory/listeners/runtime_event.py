@@ -65,7 +65,6 @@ def on_task_instance_success(previous_state: TaskInstanceState, task_instance: T
     additional_telemetry_metrics = {
         "dag_hash": task_instance.dag_run.dag_hash,
         "status": EventStatus.SUCCESS,
-        "operator": task_instance.operator,
     }
 
     telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
@@ -82,7 +81,6 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.10.0"):
         additional_telemetry_metrics = {
             "dag_hash": task_instance.dag_run.dag_hash,
             "status": EventStatus.FAILED,
-            "operator": task_instance.operator,
         }
 
         telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)
@@ -96,7 +94,6 @@ else:
         additional_telemetry_metrics = {
             "dag_hash": task_instance.dag_run.dag_hash,
             "status": EventStatus.FAILED,
-            "operator": task_instance.operator,
         }
 
         telemetry.emit_usage_metrics_if_enabled(EventType.TASK_INSTANCE, additional_telemetry_metrics)

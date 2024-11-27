@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import platform
-from urllib.parse import urlencode
+from urllib import parse
 
 import httpx
 from airflow import __version__ as airflow_version
@@ -24,11 +24,10 @@ def collect_standard_usage_metrics() -> dict[str, object]:
     """
     metrics = {
         "dagfactory_version": dagfactory.__version__,
-        "airflow_version": airflow_version,
+        "airflow_version": parse.quote(airflow_version),
         "python_version": platform.python_version(),
         "platform_system": platform.system(),
         "platform_machine": platform.machine(),
-        "variables": {},
     }
     return metrics
 
@@ -39,11 +38,8 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
 
     The metrics must contain the necessary fields to build the TELEMETRY_URL.
     """
-    query_string = urlencode(metrics)
-    telemetry_url = constants.TELEMETRY_URL.format(
-        **metrics, telemetry_version=constants.TELEMETRY_VERSION, query_string=query_string
-    )
-    logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
+    telemetry_url = constants.TELEMETRY_URL.format(**metrics, telemetry_version=constants.TELEMETRY_VERSION)
+    logging.info("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
     response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT)
     if not response.is_success:
         logging.warning(
@@ -64,8 +60,8 @@ def emit_usage_metrics_if_enabled(event_type: str, additional_metrics: dict[str,
     """
     if should_emit():
         metrics = collect_standard_usage_metrics()
-        metrics["type"] = event_type
-        metrics["variables"].update(additional_metrics)
+        metrics.update(additional_metrics)
+        metrics["event_type"] = event_type
         is_success = emit_usage_metrics(metrics)
         return is_success
     else:

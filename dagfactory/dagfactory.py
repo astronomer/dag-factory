@@ -10,7 +10,6 @@ import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
-from dagfactory import telemetry
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
@@ -139,14 +138,6 @@ class DagFactory:
 
         return dags
 
-    def emit_telemetry(self, event_type: str) -> None:
-        additional_telemetry_metrics = {
-            "dags_count": self.dags_count,
-            "tasks_count": self.tasks_count,
-            "taskgroups_count": self.taskgroups_count,
-        }
-        telemetry.emit_usage_metrics_if_enabled(event_type, additional_telemetry_metrics)
-
     # pylint: disable=redefined-builtin
     @staticmethod
     def register_dags(dags: Dict[str, DAG], globals: Dict[str, Any]) -> None:
@@ -168,7 +159,6 @@ class DagFactory:
         """
         dags: Dict[str, Any] = self.build_dags()
         self.register_dags(dags, globals)
-        self.emit_telemetry("generate_dags")
 
     def clean_dags(self, globals: Dict[str, Any]) -> None:
         """
@@ -191,10 +181,6 @@ class DagFactory:
         # removing dags from DagBag
         for dag_to_remove in dags_to_remove:
             del globals[dag_to_remove]
-
-        self.emit_telemetry("clean_dags")
-
-    # pylint: enable=redefined-builtin
 
 
 def load_yaml_dags(
@@ -229,5 +215,4 @@ def load_yaml_dags(
         except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)
         else:
-            factory.emit_telemetry("load_yaml_dags")
             logging.info("DAG loaded: %s", config_file_path)
