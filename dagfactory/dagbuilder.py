@@ -809,8 +809,9 @@ class DagBuilder:
 
 
         tags = dag_params.get("tags", [])
-        tags.append("dagfactory")
-        dag.tags = dag_params.get("tags", tags)
+        if "dagfactory" not in tags:
+            tags.append("dagfactory")
+        dag.tags = tags
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
         self.tasks_count = len(tasks)
