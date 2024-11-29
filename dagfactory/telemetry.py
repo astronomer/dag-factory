@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import platform
 from urllib import parse
+from urllib.parse import urlencode
 
 import httpx
 from airflow import __version__ as airflow_version
@@ -38,7 +39,10 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
 
     The metrics must contain the necessary fields to build the TELEMETRY_URL.
     """
-    telemetry_url = constants.TELEMETRY_URL.format(**metrics, telemetry_version=constants.TELEMETRY_VERSION)
+    query_string = urlencode(metrics)
+    telemetry_url = constants.TELEMETRY_URL.format(
+        **metrics, telemetry_version=constants.TELEMETRY_VERSION, query_string=query_string
+    )
     logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
     response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT, follow_redirects=True)
     if not response.is_success:

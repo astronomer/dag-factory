@@ -1,5 +1,6 @@
 import logging
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 import pytest
 
@@ -56,14 +57,15 @@ def test_emit_usage_metrics_fails(mock_httpx_get, caplog):
         "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
         "task_count": 3,
     }
+    query_string = urlencode(sample_metrics)
     is_success = telemetry.emit_usage_metrics(sample_metrics)
     mock_httpx_get.assert_called_once_with(
-        "https://astronomer.gateway.scarf.sh/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3",
+        f"""https://astronomer.gateway.scarf.sh/dag-factory/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3?{query_string}""",
         timeout=5.0,
         follow_redirects=True,
     )
     assert not is_success
-    log_msg = "Unable to emit usage metrics to https://astronomer.gateway.scarf.sh/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3. Status code: 404. Message: Non existent URL"
+    log_msg = f"""Unable to emit usage metrics to https://astronomer.gateway.scarf.sh/dag-factory/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3?{query_string}. Status code: 404. Message: Non existent URL"""
     assert caplog.text.startswith("WARNING")
     assert log_msg in caplog.text
 
