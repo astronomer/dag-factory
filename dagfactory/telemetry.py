@@ -40,7 +40,7 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
     """
     telemetry_url = constants.TELEMETRY_URL.format(**metrics, telemetry_version=constants.TELEMETRY_VERSION)
     logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
-    response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT)
+    response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT, follow_redirects=True)
     if not response.is_success:
         logging.warning(
             "Unable to emit usage metrics to %s. Status code: %s. Message: %s",
