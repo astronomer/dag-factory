@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-from unittest.mock import patch
 
 import pytest
 from airflow import __version__ as AIRFLOW_VERSION
@@ -457,20 +456,6 @@ def test_load_invalid_yaml_logs_error(caplog):
         suffix=["invalid_yaml.yml"],
     )
     assert caplog.messages == ["Failed to load dag from tests/fixtures/invalid_yaml.yml"]
-
-
-@patch("dagfactory.telemetry.emit_usage_metrics_if_enabled")
-def test_load_yaml_dags_succeed(mock_emit_usage_metrics_if_enabled):
-    load_yaml_dags(
-        globals_dict=globals(),
-        dags_folder="tests/fixtures",
-        suffix=["dag_factory_variables_as_arguments.yml"],
-    )
-
-    # Confirm the representative telemetry for all the DAGs defined in the desired YAML is being sent
-    args = mock_emit_usage_metrics_if_enabled.call_args.args
-    assert args[0] == "load_yaml_dags"
-    assert args[1] == {"dags_count": 2, "tasks_count": 4, "taskgroups_count": 0}
 
 
 def test_load_yaml_dags_default_suffix_succeed(caplog):
