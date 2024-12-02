@@ -443,3 +443,13 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
         dags_folder="tests/fixtures",
     )
     assert "Loading DAGs from tests/fixtures" in caplog.messages
+
+
+def test_yml_dag_rendering_in_docs():
+    dag_path = os.path.join(here, "fixtures/dag_md_docs.yml")
+    td = dagfactory.DagFactory(dag_path)
+    td.generate_dags(globals())
+    generated_doc_md = globals()["example_dag2"].doc_md
+    with open(dag_path, "r") as file:
+        expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
+    assert generated_doc_md == expected_doc_md
