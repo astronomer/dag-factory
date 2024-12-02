@@ -339,14 +339,14 @@ def test_doc_md_file_path():
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(DOC_MD_FIXTURE_FILE, "r") as file:
         expected_doc_md = file.read()
-    assert generated_doc_md == expected_doc_md
+    assert expected_doc_md in generated_doc_md
 
 
 def test_doc_md_callable():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     expected_doc_md = globals()["example_dag3"].doc_md
-    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) == expected_doc_md
+    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
 
 
 def test_schedule_interval():

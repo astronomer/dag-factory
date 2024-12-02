@@ -33,7 +33,6 @@ class DagFactory:
         self.dags_count: int = 0
         self.tasks_count: int = 0
         self.taskgroups_count: int = 0
-        # self.dag_py = None
         self._config_filepath = config_filepath
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
@@ -44,14 +43,21 @@ class DagFactory:
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
+        # Remove empty task_groups if it exists
         if dag_config.get("task_groups") == {}:
             del dag_config["task_groups"]
+
+        # Convert default_config to YAML format
         default_config = {"default": default_config}
-        default_config = yaml.dump(default_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        default_config_yaml = yaml.dump(default_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Convert dag_config to YAML format
         dag_config = {dag_name: dag_config}
-        dag_config = yaml.dump(dag_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
-        dag_yml = default_config + "\n" + dag_config
-        print(dag_yml)
+        dag_config_yaml = yaml.dump(dag_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Combine the two YAML outputs with appropriate formatting
+        dag_yml = default_config_yaml + "\n" + dag_config_yaml
+
         return dag_yml
 
     @staticmethod
