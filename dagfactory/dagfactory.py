@@ -33,12 +33,26 @@ class DagFactory:
         self.dags_count: int = 0
         self.tasks_count: int = 0
         self.taskgroups_count: int = 0
+        # self.dag_py = None
+        self._config_filepath = config_filepath
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
+
+    @staticmethod
+    def _serialise_config_md(dag_name, dag_config, default_config):
+        if dag_config.get("task_groups") == {}:
+            del dag_config["task_groups"]
+        default_config = {"default": default_config}
+        default_config = yaml.dump(default_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        dag_config = {dag_name: dag_config}
+        dag_config = yaml.dump(dag_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        dag_yml = default_config + "\n" + dag_config
+        print(dag_yml)
+        return dag_yml
 
     @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
@@ -104,6 +118,7 @@ class DagFactory:
                 dag_name=dag_name,
                 dag_config=dag_config,
                 default_config=default_config,
+                yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
             )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
