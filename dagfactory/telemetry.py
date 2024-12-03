@@ -65,7 +65,7 @@ def emit_usage_metrics_if_enabled(event_type: str, additional_metrics: dict[str,
     """
     if should_emit():
         metrics = collect_standard_usage_metrics()
-        metrics["type"] = event_type
+        metrics["event_type"] = event_type
         metrics["variables"].update(additional_metrics)
         metrics.update(additional_metrics)
         is_success = emit_usage_metrics(metrics)

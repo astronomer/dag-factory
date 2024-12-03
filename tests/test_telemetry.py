@@ -52,7 +52,7 @@ def test_emit_usage_metrics_fails(mock_httpx_get, caplog):
         "python_version": "3.11",
         "platform_system": "darwin",
         "platform_machine": "amd64",
-        "type": "dag_run",
+        "event_type": "dag_run",
         "status": "success",
         "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
         "task_count": 3,
@@ -79,7 +79,7 @@ def test_emit_usage_metrics_succeeds(caplog):
         "python_version": "3.11",
         "platform_system": "darwin",
         "platform_machine": "amd64",
-        "type": "dag_run",
+        "event_type": "dag_run",
         "status": "success",
         "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
         "task_count": 3,
@@ -109,6 +109,6 @@ def test_emit_usage_metrics_if_enabled_succeeds(
     assert mock_emit_usage_metrics.call_args.args[0] == {
         "k1": "v1",
         "k2": "v2",
-        "type": "any",
+        "event_type": "any",
         "variables": {"k2": "v2"},
     }
