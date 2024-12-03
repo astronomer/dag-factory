@@ -334,7 +334,7 @@ def test_variables_as_arguments_dag():
 
 
 def test_doc_md_file_path():
-    dag_config = """
+    dag_config = f"""
 ## YML DAG
 ```yaml
 default:
@@ -352,7 +352,7 @@ default:
   schedule_interval: 0 1 * * *
 
 example_dag2:
-  doc_md_file_path: /Users/pankaj/Documents/astro_code/dag-factory/tests/fixtures/mydocfile.md
+  doc_md_file_path: {DOC_MD_FIXTURE_FILE}
   schedule_interval: None
   tasks:
     task_1:
