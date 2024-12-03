@@ -4,7 +4,7 @@ from dagfactory.listeners import runtime_event
 
 
 class DagFactoryPlugin(AirflowPlugin):
-    name = "Listener Plugin"
+    name = "Dag Factory Plugin"
     listeners = [runtime_event]
 
 

@@ -12,8 +12,7 @@ class EventStatus:
     FAILED = "failed"
 
 
-class EventType:
-    DAG_RUN = "dag_run"
+DAG_RUN = "dag_run"
 
 
 def is_dagfactory_dag(dag: DAG | None = None):
@@ -24,7 +23,6 @@ def is_dagfactory_dag(dag: DAG | None = None):
 
 @hookimpl
 def on_dag_run_success(dag_run: DagRun, msg: str):
-    print("on_dag_run_success: %s", dag_run)
     dag = dag_run.get_dag()
     if not is_dagfactory_dag(dag):
         return
@@ -34,12 +32,11 @@ def on_dag_run_success(dag_run: DagRun, msg: str):
         "task_count": len(dag.task_ids),
     }
 
-    telemetry.emit_usage_metrics_if_enabled(EventType.DAG_RUN, additional_telemetry_metrics)
+    telemetry.emit_usage_metrics_if_enabled(DAG_RUN, additional_telemetry_metrics)
 
 
 @hookimpl
 def on_dag_run_failed(dag_run: DagRun, msg: str):
-    print("on_dag_run_failed: %s", dag_run)
     dag = dag_run.get_dag()
     if not is_dagfactory_dag(dag):
         return
@@ -49,4 +46,4 @@ def on_dag_run_failed(dag_run: DagRun, msg: str):
         "task_count": len(dag.task_ids),
     }
 
-    telemetry.emit_usage_metrics_if_enabled(EventType.DAG_RUN, additional_telemetry_metrics)
+    telemetry.emit_usage_metrics_if_enabled(DAG_RUN, additional_telemetry_metrics)

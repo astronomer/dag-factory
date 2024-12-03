@@ -29,6 +29,7 @@ def collect_standard_usage_metrics() -> dict[str, object]:
         "python_version": platform.python_version(),
         "platform_system": platform.system(),
         "platform_machine": platform.machine(),
+        "variables": {},
     }
     return metrics
 
@@ -64,8 +65,9 @@ def emit_usage_metrics_if_enabled(event_type: str, additional_metrics: dict[str,
     """
     if should_emit():
         metrics = collect_standard_usage_metrics()
+        metrics["type"] = event_type
+        metrics["variables"].update(additional_metrics)
         metrics.update(additional_metrics)
-        metrics["event_type"] = event_type
         is_success = emit_usage_metrics(metrics)
         return is_success
     else:

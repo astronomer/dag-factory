@@ -1,6 +1,5 @@
 import logging
 from unittest.mock import patch
-from urllib.parse import urlencode
 
 import pytest
 
@@ -34,6 +33,7 @@ def test_collect_standard_usage_metrics():
         "platform_machine",
         "platform_system",
         "python_version",
+        "variables",
     ]
     assert sorted(metrics.keys()) == expected_keus
 
@@ -52,20 +52,20 @@ def test_emit_usage_metrics_fails(mock_httpx_get, caplog):
         "python_version": "3.11",
         "platform_system": "darwin",
         "platform_machine": "amd64",
-        "event_type": "dag_run",
+        "type": "dag_run",
         "status": "success",
         "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
         "task_count": 3,
     }
-    query_string = urlencode(sample_metrics)
+    # query_string = urlencode(sample_metrics)
     is_success = telemetry.emit_usage_metrics(sample_metrics)
     mock_httpx_get.assert_called_once_with(
-        f"""https://astronomer.gateway.scarf.sh/dag-factory/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3?{query_string}""",
+        f"""https://astronomer.gateway.scarf.sh/dag-factory/v2/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3""",
         timeout=5.0,
         follow_redirects=True,
     )
     assert not is_success
-    log_msg = f"""Unable to emit usage metrics to https://astronomer.gateway.scarf.sh/dag-factory/v1/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3?{query_string}. Status code: 404. Message: Non existent URL"""
+    log_msg = f"""Unable to emit usage metrics to https://astronomer.gateway.scarf.sh/dag-factory/v2/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3. Status code: 404. Message: Non existent URL"""
     assert caplog.text.startswith("WARNING")
     assert log_msg in caplog.text
 
@@ -79,7 +79,7 @@ def test_emit_usage_metrics_succeeds(caplog):
         "python_version": "3.11",
         "platform_system": "darwin",
         "platform_machine": "amd64",
-        "event_type": "dag_run",
+        "type": "dag_run",
         "status": "success",
         "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
         "task_count": 3,
@@ -99,11 +99,16 @@ def test_emit_usage_metrics_if_enabled_fails(mock_should_emit, caplog):
 
 
 @patch("dagfactory.telemetry.should_emit", return_value=True)
-@patch("dagfactory.telemetry.collect_standard_usage_metrics", return_value={"k1": "v1", "k2": "v2"})
+@patch("dagfactory.telemetry.collect_standard_usage_metrics", return_value={"k1": "v1", "k2": "v2", "variables": {}})
 @patch("dagfactory.telemetry.emit_usage_metrics")
 def test_emit_usage_metrics_if_enabled_succeeds(
     mock_emit_usage_metrics, mock_collect_standard_usage_metrics, mock_should_emit
 ):
     assert telemetry.emit_usage_metrics_if_enabled("any", {"k2": "v2"})
     mock_emit_usage_metrics.assert_called_once()
-    assert mock_emit_usage_metrics.call_args.args[0] == {"k1": "v1", "k2": "v2", "event_type": "any"}
+    assert mock_emit_usage_metrics.call_args.args[0] == {
+        "k1": "v1",
+        "k2": "v2",
+        "type": "any",
+        "variables": {"k2": "v2"},
+    }
