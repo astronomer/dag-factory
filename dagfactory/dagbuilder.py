@@ -115,12 +115,15 @@ class DagBuilder:
         in the YAML file
     """
 
-    def __init__(self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]) -> None:
+    def __init__(
+        self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any], yml_dag: str = ""
+    ) -> None:
         self.dag_name: str = dag_name
         self.dag_config: Dict[str, Any] = deepcopy(dag_config)
         self.default_config: Dict[str, Any] = deepcopy(default_config)
         self.tasks_count: int = 0
         self.taskgroups_count: int = 0
+        self._yml_dag = yml_dag
 
     # pylint: disable=too-many-branches,too-many-statements
     def get_dag_params(self) -> Dict[str, Any]:
@@ -794,6 +797,15 @@ class DagBuilder:
                 dag_params.get("doc_md_python_callable_file"),
             )
             dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
+
+        # Render YML DAG in DAG Docs
+        if self._yml_dag:
+            subtitle = "## YML DAG"
+
+            if dag.doc_md is None:
+                dag.doc_md = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
+            else:
+                dag.doc_md += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):

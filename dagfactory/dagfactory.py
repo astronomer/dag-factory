@@ -41,6 +41,27 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     @staticmethod
+    def _serialise_config_md(dag_name, dag_config, default_config):
+        # Remove empty task_groups if it exists
+        # We inject it if not supply by user
+        # https://github.com/astronomer/dag-factory/blob/e53b456d25917b746d28eecd1e896595ae0ee62b/dagfactory/dagfactory.py#L102
+        if dag_config.get("task_groups") == {}:
+            del dag_config["task_groups"]
+
+        # Convert default_config to YAML format
+        default_config = {"default": default_config}
+        default_config_yaml = yaml.dump(default_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Convert dag_config to YAML format
+        dag_config = {dag_name: dag_config}
+        dag_config_yaml = yaml.dump(dag_config, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Combine the two YAML outputs with appropriate formatting
+        dag_yml = default_config_yaml + "\n" + dag_config_yaml
+
+        return dag_yml
+
+    @staticmethod
     def _validate_config_filepath(config_filepath: str) -> None:
         """
         Validates config file path is absolute
@@ -104,6 +125,7 @@ class DagFactory:
                 dag_name=dag_name,
                 dag_config=dag_config,
                 default_config=default_config,
+                yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
             )
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()

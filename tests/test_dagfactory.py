@@ -334,11 +334,48 @@ def test_variables_as_arguments_dag():
 
 
 def test_doc_md_file_path():
+    dag_config = f"""
+## YML DAG
+```yaml
+default:
+  concurrency: 1
+  dagrun_timeout_sec: 600
+  default_args:
+    end_date: 2018-03-05
+    owner: default_owner
+    retries: 1
+    retry_delay_sec: 300
+    start_date: 2018-03-01
+  default_view: tree
+  max_active_runs: 1
+  orientation: LR
+  schedule_interval: 0 1 * * *
+
+example_dag2:
+  doc_md_file_path: {DOC_MD_FIXTURE_FILE}
+  schedule_interval: None
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash_operator.BashOperator
+    task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash_operator.BashOperator
+    task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash_operator.BashOperator
+
+```"""
+
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(DOC_MD_FIXTURE_FILE, "r") as file:
-        expected_doc_md = file.read()
+        expected_doc_md = file.read() + dag_config
     assert generated_doc_md == expected_doc_md
 
 
@@ -346,7 +383,7 @@ def test_doc_md_callable():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     expected_doc_md = globals()["example_dag3"].doc_md
-    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) == expected_doc_md
+    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
 
 
 def test_schedule_interval():
@@ -443,3 +480,13 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
         dags_folder="tests/fixtures",
     )
     assert "Loading DAGs from tests/fixtures" in caplog.messages
+
+
+def test_yml_dag_rendering_in_docs():
+    dag_path = os.path.join(here, "fixtures/dag_md_docs.yml")
+    td = dagfactory.DagFactory(dag_path)
+    td.generate_dags(globals())
+    generated_doc_md = globals()["example_dag2"].doc_md
+    with open(dag_path, "r") as file:
+        expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
+    assert generated_doc_md == expected_doc_md
