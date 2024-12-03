@@ -33,7 +33,6 @@ class DagFactory:
         self.dags_count: int = 0
         self.tasks_count: int = 0
         self.taskgroups_count: int = 0
-        self._config_filepath = config_filepath
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
