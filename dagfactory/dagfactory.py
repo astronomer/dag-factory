@@ -44,6 +44,8 @@ class DagFactory:
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
         # Remove empty task_groups if it exists
+        # We inject it if not supply by user
+        # https://github.com/astronomer/dag-factory/blob/e53b456d25917b746d28eecd1e896595ae0ee62b/dagfactory/dagfactory.py#L102
         if dag_config.get("task_groups") == {}:
             del dag_config["task_groups"]
 
