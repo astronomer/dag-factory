@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import platform
+from urllib import parse
 from urllib.parse import urlencode
 
 import httpx
@@ -24,7 +25,7 @@ def collect_standard_usage_metrics() -> dict[str, object]:
     """
     metrics = {
         "dagfactory_version": dagfactory.__version__,
-        "airflow_version": airflow_version,
+        "airflow_version": parse.quote(airflow_version),
         "python_version": platform.python_version(),
         "platform_system": platform.system(),
         "platform_machine": platform.machine(),
@@ -44,7 +45,7 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
         **metrics, telemetry_version=constants.TELEMETRY_VERSION, query_string=query_string
     )
     logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
-    response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT)
+    response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT, follow_redirects=True)
     if not response.is_success:
         logging.warning(
             "Unable to emit usage metrics to %s. Status code: %s. Message: %s",
@@ -64,8 +65,9 @@ def emit_usage_metrics_if_enabled(event_type: str, additional_metrics: dict[str,
     """
     if should_emit():
         metrics = collect_standard_usage_metrics()
-        metrics["type"] = event_type
+        metrics["event_type"] = event_type
         metrics["variables"].update(additional_metrics)
+        metrics.update(additional_metrics)
         is_success = emit_usage_metrics(metrics)
         return is_success
     else:
