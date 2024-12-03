@@ -29,8 +29,9 @@ In addition to Scarf's default data collection, DAG Factory collects the followi
 - Python version
 - Operating system & machine architecture
 - Event type
-- Number of DAGs
-- Number of TaskGroups
-- Number of Tasks
+- Number of failed DagRuns
+- Number of successful DagRuns
+- Total tasks associated to each DagRun
+- Dag hash
 
 No user-identifiable information (IP included) is stored in Scarf.

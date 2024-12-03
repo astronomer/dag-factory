@@ -29,9 +29,6 @@ class DagFactory:
     """
 
     def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
-        self.dags_count: int = 0
-        self.tasks_count: int = 0
-        self.taskgroups_count: int = 0
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
@@ -131,10 +128,6 @@ class DagFactory:
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as err:
                 raise DagFactoryException(f"Failed to generate dag {dag_name}. verify config is correct") from err
-            else:
-                self.dags_count += 1
-                self.taskgroups_count += dag_builder.taskgroups_count
-                self.tasks_count += dag_builder.tasks_count
 
         return dags
 
