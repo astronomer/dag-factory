@@ -805,7 +805,7 @@ class DagBuilder:
             if dag.doc_md is None:
                 dag.doc_md = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
             else:
-                dag.doc_md += f"\n\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
+                dag.doc_md += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
 
         # tags parameter introduced in Airflow 1.10.8
         if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):

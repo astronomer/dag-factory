@@ -334,12 +334,49 @@ def test_variables_as_arguments_dag():
 
 
 def test_doc_md_file_path():
+    dag_config = """
+## YML DAG
+```yaml
+default:
+  concurrency: 1
+  dagrun_timeout_sec: 600
+  default_args:
+    end_date: 2018-03-05
+    owner: default_owner
+    retries: 1
+    retry_delay_sec: 300
+    start_date: 2018-03-01
+  default_view: tree
+  max_active_runs: 1
+  orientation: LR
+  schedule_interval: 0 1 * * *
+
+example_dag2:
+  doc_md_file_path: /Users/pankaj/Documents/astro_code/dag-factory/tests/fixtures/mydocfile.md
+  schedule_interval: None
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash_operator.BashOperator
+    task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash_operator.BashOperator
+    task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash_operator.BashOperator
+
+```"""
+
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(DOC_MD_FIXTURE_FILE, "r") as file:
-        expected_doc_md = file.read()
-    assert expected_doc_md in generated_doc_md
+        expected_doc_md = file.read() + dag_config
+    assert generated_doc_md == expected_doc_md
 
 
 def test_doc_md_callable():
