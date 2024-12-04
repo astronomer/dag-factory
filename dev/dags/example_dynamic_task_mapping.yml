@@ -6,18 +6,18 @@ test_expand:
   schedule_interval: "0 3 * * *"
   default_view: "graph"
   tasks:
-    request:
-      operator: airflow.operators.python.PythonOperator
-      python_callable_name: example_task_mapping
-      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
     process:
       operator: airflow.operators.python_operator.PythonOperator
-      python_callable_name: expand_task
+      python_callable_name: consume_value
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
       partial:
         op_kwargs:
-          test_id: "test"
+          fixed_param: "test"
       expand:
         op_args:
-          request.output
+            request.output
       dependencies: [request]
+    request:
+      operator: airflow.operators.python.PythonOperator
+      python_callable_name: make_list
+      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
