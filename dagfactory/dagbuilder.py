@@ -67,16 +67,13 @@ try:
         )
     from airflow.kubernetes.secret import Secret
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-except (ImportError, ModuleNotFoundError):  # pragma: no cover
-    try:
-        from airflow.contrib.kubernetes.pod import Port
-        from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
-        from airflow.contrib.kubernetes.secret import Secret
-        from airflow.contrib.kubernetes.volume import Volume
-        from airflow.contrib.kubernetes.volume_mount import VolumeMount
-        from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-    except ModuleNotFoundError:
-        pass
+except ImportError:  # pragma: no cover
+    from airflow.contrib.kubernetes.pod import Port
+    from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
+    from airflow.contrib.kubernetes.secret import Secret
+    from airflow.contrib.kubernetes.volume import Volume
+    from airflow.contrib.kubernetes.volume_mount import VolumeMount
+    from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
