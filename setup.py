@@ -27,7 +27,7 @@ REQUIRED = [
     "apache-airflow[http,kubernetes]>=1.10.0",
     "pyyaml",
     "packaging",
-    "tenacity",
+    "tenacity==9.*",
     "pendulum",
 ]
 DEV_REQUIRED = ["black", "pytest", "pylint", "pytest-cov", "tox"]
