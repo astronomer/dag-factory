@@ -66,7 +66,10 @@ try:
             V1VolumeMount as VolumeMount,
         )
     from airflow.kubernetes.secret import Secret
-    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    if version.parse(K8S_PROVIDER_VERSION) < version.parse("10"):
+        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    else:
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.pod import Port
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
