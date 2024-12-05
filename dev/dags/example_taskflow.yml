@@ -13,20 +13,14 @@ example_taskflow:
       decorator: airflow.decorators.task
       python_callable_name: build_numbers_list
       python_callable_file: $CONFIG_ROOT_DIR/sample.py
-    double_number_with_kwargs:
+    double_number_from_arg:
       decorator: airflow.decorators.task
       python_callable: "sample.double"
-      kwargs:
-        number: 2
-    double_number_with_args:
+      number: 2
+    double_number_from_task:
       decorator: airflow.decorators.task
       python_callable: "sample.double"
-      args: 3
-    double_number_from_upstream_task:
-      decorator: airflow.decorators.task
-      python_callable: "sample.double"
-      taskflow_kwargs:
-        number: some_number
+      number: some_number  # this is a task previously defined
       #dependencies: [some_number]
     #double_list_dynamically:
     #  python_callable: !!python/name:sample.double"

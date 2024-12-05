@@ -8,7 +8,7 @@ import dagfactory
 DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
 CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 
-config_file = str(CONFIG_ROOT_DIR / "example_dynamic_task_mapping_with_taskflow.yml")
+config_file = str(CONFIG_ROOT_DIR / "example_taskflow.yml")
 example_dag_factory = dagfactory.DagFactory(config_file)
 
 # Creating task dependencies

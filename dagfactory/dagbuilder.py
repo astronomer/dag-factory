@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # pylint: disable=ungrouped-imports
+import inspect
 import os
 import re
 from copy import deepcopy
@@ -1032,16 +1033,19 @@ class DagBuilder:
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
         """
-        args = task_params.pop("args", [])
-        if not isinstance(args, list):
-            args = [args]
 
-        kwargs = task_params.pop("kwargs", {})
-        taskflow_kwargs = task_params.pop("taskflow_kwargs", {})
-        for arg_name, arg_value in taskflow_kwargs.items():
-            kwargs[arg_name] = tasks_dict[arg_value]
+        callable_args_keys = inspect.getfullargspec(python_callable).args
+        callable_kwargs = {}
+        decorator_kwargs = dict(**task_params)
+        for arg_key, arg_value in task_params.items():
+            if arg_key in callable_args_keys:
+                decorator_kwargs.pop(arg_key)
+                if arg_value in tasks_dict:
+                    callable_kwargs[arg_key] = tasks_dict[arg_value]
+                else:
+                    callable_kwargs[arg_key] = arg_value
 
-        return decorator(**task_params)(*args, **kwargs)
+        return decorator(**decorator_kwargs)(**callable_kwargs)
 
     @staticmethod
     def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
