@@ -846,7 +846,10 @@ class DagBuilder:
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
             elif "decorator" in task_conf:
-                DagBuilder.make_decorator(decorator_import_path=task_conf["decorator"], task_params=params)
+                task = DagBuilder.make_decorator(
+                    decorator_import_path=task_conf["decorator"], task_params=params, tasks_dict=tasks_dict
+                )
+                tasks_dict[task_name]: BaseOperator = task
             else:
                 raise DagFactoryConfigException("Tasks must define either 'operator' or 'decorator")
 
@@ -902,7 +905,9 @@ class DagBuilder:
 
         return sorted_tasks
 
-    def make_decorator(decorator_import_path: str, task_params: Dict[str, Any]) -> BaseOperator:
+    def make_decorator(
+        decorator_import_path: str, task_params: Dict[str, Any], tasks_dict: dict(str, Any)
+    ) -> BaseOperator:
         """
         Takes a decorator and params and creates an instance of that decorator.
 
@@ -910,20 +915,9 @@ class DagBuilder:
         """
         # Check mandatory fields
         mandatory_keys_set1 = set(["python_callable_name", "python_callable_file"])
-        mandatory_keys_set2 = set("python_callable_file")
-        if not set(mandatory_keys_set1).issubset(task_params) and not not set(mandatory_keys_set2).issubset(
-            task_params
-        ):
-            raise DagFactoryException(
-                "Failed to create task. Decorator-based tasks require \
-                `python_callable_name` and `python_callable_file` "
-                "parameters.\nOptionally you can load python_callable "
-                "from a file. with the special pyyaml notation:\n"
-                "  python_callable_file: !!python/name:my_module.my_func"
-            )
 
         # Fetch the Python callable
-        if not task_params.get("python_callable"):
+        if set(mandatory_keys_set1).issubset(task_params):
             python_callable: Callable = utils.get_python_callable(
                 task_params["python_callable_name"],
                 task_params["python_callable_file"],
@@ -931,8 +925,16 @@ class DagBuilder:
             # Remove dag-factory specific parameters since Airflow 2.0 doesn't allow these to be passed to operator
             del task_params["python_callable_name"]
             del task_params["python_callable_file"]
-        else:
+        elif "python_callable" in task_params:
             python_callable: Callable = import_string(task_params["python_callable"])
+        else:
+            raise DagFactoryException(
+                "Failed to create task. Decorator-based tasks require \
+                `python_callable_name` and `python_callable_file` "
+                "parameters.\nOptionally you can load python_callable "
+                "from a file. with the special pyyaml notation:\n"
+                "  python_callable: !!python/name:my_module.my_func"
+            )
 
         task_params["python_callable"] = python_callable
 
@@ -1030,8 +1032,16 @@ class DagBuilder:
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
         """
+        args = task_params.pop("args", [])
+        if not isinstance(args, list):
+            args = [args]
 
-        return decorator(**task_params)()
+        kwargs = task_params.pop("kwargs", {})
+        taskflow_kwargs = task_params.pop("taskflow_kwargs", {})
+        for arg_name, arg_value in taskflow_kwargs.items():
+            kwargs[arg_name] = tasks_dict[arg_value]
+
+        return decorator(**task_params)(*args, **kwargs)
 
     @staticmethod
     def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:

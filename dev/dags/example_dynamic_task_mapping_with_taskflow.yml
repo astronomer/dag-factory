@@ -1,0 +1,37 @@
+example_taskflow:
+  default_args:
+    owner: "custom_owner"
+    start_date: 2 days
+  description: "Example of TaskFlow powered DAG that includes dynamic task mapping"
+  schedule_interval: "0 3 * * *"
+  default_view: "graph"
+  tasks:
+    some_number:
+      decorator: airflow.decorators.task
+      python_callable: "sample.some_number"
+    numbers_list:
+      decorator: airflow.decorators.task
+      python_callable_name: build_numbers_list
+      python_callable_file: $CONFIG_ROOT_DIR/sample.py
+    double_number_with_kwargs:
+      decorator: airflow.decorators.task
+      python_callable: "sample.double"
+      kwargs:
+        number: 2
+    double_number_with_args:
+      decorator: airflow.decorators.task
+      python_callable: "sample.double"
+      args: 3
+    double_number_from_upstream_task:
+      decorator: airflow.decorators.task
+      python_callable: "sample.double"
+      taskflow_kwargs:
+        number: some_number
+      #dependencies: [some_number]
+    #double_list_dynamically:
+    #  python_callable: !!python/name:sample.double"
+    #  python_callable_file: $CONFIG_ROOT_DIR/sample.py
+    #  map_index_template: "{{ my_param }}" # https://github.com/astronomer/dag-factory/issues/302
+    #  expand: # should always receive kwargs
+    #    value: first_list
+    #  dependencies: [first_list]
