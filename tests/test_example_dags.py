@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 try:
@@ -20,9 +19,7 @@ from . import utils as test_utils
 EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
-IGNORED_DAG_FILES = [
-    "example_callbacks.py"
-]
+IGNORED_DAG_FILES = ["example_callbacks.py"]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "2.3": ["example_dynamic_task_mapping.py"],
