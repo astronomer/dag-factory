@@ -1033,15 +1033,15 @@ class DagBuilder:
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
         """
-
         callable_args_keys = inspect.getfullargspec(python_callable).args
         callable_kwargs = {}
         decorator_kwargs = dict(**task_params)
         for arg_key, arg_value in task_params.items():
             if arg_key in callable_args_keys:
                 decorator_kwargs.pop(arg_key)
-                if arg_value in tasks_dict:
-                    callable_kwargs[arg_key] = tasks_dict[arg_value]
+                if arg_value.startswith("+"):
+                    upstream_task_name = arg_value.split("+")[0]
+                    callable_kwargs[arg_key] = tasks_dict[upstream_task_name]
                 else:
                     callable_kwargs[arg_key] = arg_value
 

@@ -8,19 +8,19 @@ example_taskflow:
   tasks:
     some_number:
       decorator: airflow.decorators.task
-      python_callable: "sample.some_number"
+      python_callable: sample.some_number
     numbers_list:
       decorator: airflow.decorators.task
       python_callable_name: build_numbers_list
       python_callable_file: $CONFIG_ROOT_DIR/sample.py
     double_number_from_arg:
       decorator: airflow.decorators.task
-      python_callable: "sample.double"
+      python_callable: sample.double
       number: 2
     double_number_from_task:
       decorator: airflow.decorators.task
-      python_callable: "sample.double"
-      number: some_number  # this is a task previously defined
+      python_callable: sample.double
+      number: +some_number  # this is a task previously defined
       #dependencies: [some_number]
     #double_list_dynamically:
     #  python_callable: !!python/name:sample.double"
