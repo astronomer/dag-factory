@@ -66,6 +66,7 @@ try:
             V1VolumeMount as VolumeMount,
         )
     from airflow.kubernetes.secret import Secret
+
     if version.parse(K8S_PROVIDER_VERSION) < version.parse("10"):
         from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
     else:
