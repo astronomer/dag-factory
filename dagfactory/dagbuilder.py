@@ -97,7 +97,6 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
 else:
     MappedOperator = None
 
-from airflow.models.xcom_arg import XComArg
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
     from airflow.datasets import Dataset
@@ -682,11 +681,11 @@ class DagBuilder:
             if ".output" in expand_value:
                 task_id = expand_value.split(".output")[0]
                 if task_id in tasks_dict:
-                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+                    task_conf["expand"][expand_key] = tasks_dict[task_id].output
             elif "XcomArg" in expand_value:
                 task_id = re.findall(r"\(+(.*?)\)", expand_value)[0]
                 if task_id in tasks_dict:
-                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+                    task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
 
     # pylint: disable=too-many-locals
