@@ -6,6 +6,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2024-12-06
+
+### Added
+
+- Add support to TaskFlow and improve dynamic task mapping support by @tatiana in #314
+- Render YML DAG config as DAG Docs by @pankajastro #305
+- Support building DAGs out of topologically unsorted YAML files by @tatiana in #307
+- Add support for nested task groups by @glazunov996 and @pankajastro in #292
+- Add support for templating `on_failure_callback` by @jroach-astronomer #252
+
+### Fixed
+
+- Fix compatibility with apache-airflow-providers-cncf-kubernetes>=10.0.0 by @tatiana in #311
+- Refactor telemetry to collect events during DAG run and not during DAG parsing by @pankajastro #300
+
+### Docs
+
+- Fix reference for HttpSensor in README.md by @pankajastro in #277
+- Add example DAG for task group by @pankajastro in #293
+- Add CODEOWNERS by @pankajkoti in #270
+- Update CODEOWNERS to track all files by @pankajkoti in #276
+- Modified Status badge in README by @jaejun #298
+
+### Others
+
+- Refactor dynamic task mapping implementation by @tatiana in #313
+- Remove pytest durations from tests by @tatiana in #309
+- Remove DAG retries check since many DAGs have different retry values by @tatiana in #310
+- Lint fixes after running  `pre-commit run --all-files` by @tatiana in #312
+- Remove redundant exception code by @pankajastro #294
+- Add GitHub issue template for bug reports and feature requests by @pankajkoti in #269
+
+
+
+
+### Breaking changes
+
+
 ## [0.20.0] - 2024-10-22
 
 ### Added
