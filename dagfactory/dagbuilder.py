@@ -867,9 +867,7 @@ class DagBuilder:
             del task_params["execution_date_fn_file"]
 
         # on_execute_callback is an Airflow 2.0 feature
-        if utils.check_dict_key(task_params, "on_execute_callback") and version.parse(AIRFLOW_VERSION) >= version.parse(
-            "2.0.0"
-        ):
+        if utils.check_dict_key(task_params, "on_execute_callback"):
             task_params["on_execute_callback"]: Callable = import_string(task_params["on_execute_callback"])
 
         if utils.check_dict_key(task_params, "on_failure_callback"):
