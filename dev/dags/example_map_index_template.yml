@@ -1,0 +1,18 @@
+# Requires Airflow 2.7 or higher
+example_map_index_template:
+  default_args:
+    owner: "custom_owner"
+    start_date: 2 days
+  description: "Example of TaskFlow powered DAG that includes dynamic task mapping"
+  schedule_interval: "0 3 * * *"
+  default_view: "graph"
+  tasks:
+    dynamic_task_with_named_mapping:
+      decorator: airflow.decorators.task
+      python_callable: sample.extract_last_name
+      map_index_template: "{{ custom_mapping_key }}"
+      expand:
+        full_name:
+          - Lucy Black
+          - Vera Santos
+          - Marks Spencer
