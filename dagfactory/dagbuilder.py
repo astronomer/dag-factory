@@ -771,15 +771,13 @@ class DagBuilder:
 
             if "operator" in task_conf:
                 operator: str = task_conf["operator"]
-                # Dynamic task mapping available only in Airflow >= 2.3.0
-                if (task_conf.get("expand") or task_conf.get("partial")) and version.parse(
-                    AIRFLOW_VERSION
-                ) < version.parse("2.3.0"):
-                    raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
 
-                # replace 'task_id.output' or 'XComArg(task_id)' with XComArg(task_instance) object
-                if task_conf.get("expand") and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
-                    task_conf = self.replace_expand_values(task_conf, tasks_dict)
+                # Dynamic task mapping available only in Airflow >= 2.3.0
+                if task_conf.get("expand"):
+                    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+                        raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
+                    else:
+                        task_conf = self.replace_expand_values(task_conf, tasks_dict)
 
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
