@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support to TaskFlow and improve dynamic task mapping support by @tatiana in #314
+- Support Task Flow and enhance dynamic task mapping by @tatiana in #314
 - Render YML DAG config as DAG Docs by @pankajastro #305
-- Support building DAGs out of topologically unsorted YAML files by @tatiana in #307
+- Support building DAGs from topologically unsorted YAML files by @tatiana in #307
 - Add support for nested task groups by @glazunov996 and @pankajastro in #292
 - Add support for templating `on_failure_callback` by @jroach-astronomer #252
 
@@ -31,16 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Others
 
+- Add GitHub issue template for bug reports and feature requests by @pankajkoti in #269
 - Refactor dynamic task mapping implementation by @tatiana in #313
 - Remove pytest durations from tests by @tatiana in #309
 - Remove DAG retries check since many DAGs have different retry values by @tatiana in #310
 - Lint fixes after running  `pre-commit run --all-files` by @tatiana in #312
 - Remove redundant exception code by @pankajastro #294
-- Add GitHub issue template for bug reports and feature requests by @pankajkoti in #269
-
-
-### Breaking changes
-
 
 ## [0.20.0] - 2024-10-22
 
