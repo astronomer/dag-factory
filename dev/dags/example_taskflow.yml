@@ -50,12 +50,3 @@ example_taskflow:
           number: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
       partial:
           label: True
-    dynamic_task_with_named_mapping:
-      decorator: airflow.decorators.task
-      python_callable: sample.extract_last_name
-      map_index_template: "{{ custom_mapping_key }}"
-      expand:
-        full_name:
-          - Lucy Black
-          - Vera Santos
-          - Marks Spencer

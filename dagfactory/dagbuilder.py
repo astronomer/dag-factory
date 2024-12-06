@@ -956,6 +956,11 @@ class DagBuilder:
         expand_kwargs = decorator_kwargs.pop("expand", {})
         partial_kwargs = decorator_kwargs.pop("partial", {})
 
+        if ("map_index_template" in decorator_kwargs) and (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")):
+            raise DagFactoryConfigException(
+                "The dynamic task mapping argument `map_index_template` is only supported since Airflow 2.7"
+            )
+
         if expand_kwargs and partial_kwargs:
             if callable_kwargs:
                 raise DagFactoryConfigException(

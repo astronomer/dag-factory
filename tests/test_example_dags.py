@@ -23,6 +23,7 @@ IGNORED_DAG_FILES = ["example_callbacks.py"]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "2.3": ["example_dynamic_task_mapping.py"],
+    "2.7": ["example_map_index_template.py"],
 }
 
 
@@ -42,6 +43,7 @@ def get_dag_bag() -> DagBag:
     """Create a DagBag by adding the files that are not supported to .airflowignore"""
 
     with open(AIRFLOW_IGNORE_FILE, "w+") as file:
+
         for min_version, files in MIN_VER_DAG_FILE_VER.items():
             if AIRFLOW_VERSION < Version(min_version):
                 print(f"Adding {files} to .airflowignore")
