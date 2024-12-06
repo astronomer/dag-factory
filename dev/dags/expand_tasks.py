@@ -1,8 +1,8 @@
-def example_task_mapping():
-    return [[1], [2], [3]]
+def make_list():
+    return [[1], [2], [3], [4]]
 
 
-def expand_task(x, test_id):
-    print(test_id)
-    print(x)
-    return [x]
+def consume_value(expanded_param, fixed_param):
+    print(fixed_param)
+    print(expanded_param)
+    return [expanded_param]

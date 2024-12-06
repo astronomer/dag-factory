@@ -1058,3 +1058,65 @@ def test_make_nested_task_groups():
         del sub_task_group["parent_group"]
         assert task_groups["task_group"].__dict__ == expected["task_group"].__dict__
         assert sub_task_group == expected["sub_task_group"].__dict__
+
+
+class TestTopologicalSortTasks:
+
+    def test_basic_topological_sort(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task2"]},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        expected = [
+            ("task1", {"dependencies": []}),
+            ("task2", {"dependencies": ["task1"]}),
+            ("task3", {"dependencies": ["task2"]}),
+        ]
+        assert result == expected
+
+    def test_no_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": []},
+            "task3": {"dependencies": []},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        # Order doesn't matter as there are no dependencies
+        expected = [
+            ("task1", {"dependencies": []}),
+            ("task2", {"dependencies": []}),
+            ("task3", {"dependencies": []}),
+        ]
+        assert result == expected
+
+    def test_empty_input(self):
+        tasks_configs = {}
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        assert result == []
+
+    def test_cyclic_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": ["task3"]},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task2"]},
+        }
+        with pytest.raises(ValueError) as exc_info:
+            dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        assert "Cycle detected" in str(exc_info.value)
+
+    def test_multiple_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task1"]},
+            "task4": {"dependencies": ["task2", "task3"]},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        # Verify ordering with dependencies
+        task_names = [task[0] for task in result]
+        assert task_names.index("task1") < task_names.index("task2")
+        assert task_names.index("task1") < task_names.index("task3")
+        assert task_names.index("task2") < task_names.index("task4")
+        assert task_names.index("task3") < task_names.index("task4")

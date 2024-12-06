@@ -824,7 +824,8 @@ class DagBuilder:
 
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
-        for task_name, task_conf in tasks.items():
+        tasks_tuples = self.topological_sort_tasks(tasks)
+        for task_name, task_conf in tasks_tuples:
             task_conf["task_id"]: str = task_name
             operator: str = task_conf["operator"]
             task_conf["dag"]: DAG = dag
@@ -847,6 +848,53 @@ class DagBuilder:
         self.set_dependencies(tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict)
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
+
+    @staticmethod
+    def topological_sort_tasks(tasks_configs: dict[str, Any]) -> list[tuple(str, Any)]:
+        """
+        Use the Kahn's algorithm to sort topologically the tasks:
+        (https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm)
+
+        The complexity is O(N + D) where N: total tasks and D: number of dependencies.
+
+        :returns: topologically sorted list containing tuples (task name, task config)
+        """
+        # Step 1: Build the downstream (adjacency) tasks list and the upstream dependencies (in-degree) count
+        downstream_tasks = {}
+        upstream_dependencies_count = {}
+
+        for task_name, _ in tasks_configs.items():
+            downstream_tasks[task_name] = []
+            upstream_dependencies_count[task_name] = 0
+
+        for task_name, task_conf in tasks_configs.items():
+            for upstream_task in task_conf.get("dependencies", []):
+                # there are cases when dependencies contains references to TaskGroups and not Tasks - we skip those
+                if upstream_task in tasks_configs:
+                    downstream_tasks[upstream_task].append(task_name)
+                    upstream_dependencies_count[task_name] += 1
+
+        # Step 2: Find all tasks with no dependencies
+        tasks_without_dependencies = [
+            task for task in upstream_dependencies_count if not upstream_dependencies_count[task]
+        ]
+        sorted_tasks = []
+
+        # Step 3: Perform topological sort
+        while tasks_without_dependencies:
+            current = tasks_without_dependencies.pop(0)
+            sorted_tasks.append((current, tasks_configs[current]))
+
+            for child in downstream_tasks[current]:
+                upstream_dependencies_count[child] -= 1
+                if upstream_dependencies_count[child] == 0:
+                    tasks_without_dependencies.append(child)
+
+        # If not all tasks are processed, there is a cycle (not applicable for DAGs)
+        if len(sorted_tasks) != len(tasks_configs):
+            raise ValueError("Cycle detected in task dependencies!")
+
+        return sorted_tasks
 
     @staticmethod
     def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
