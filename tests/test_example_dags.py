@@ -22,7 +22,8 @@ AIRFLOW_VERSION = Version(airflow.__version__)
 IGNORED_DAG_FILES = ["example_callbacks.py"]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
-    "2.3": ["example_dynamic_task_mapping.py"],
+    # TaskFlow examples unrelated to dynamic task mapping work in earlier versions
+    "2.3": ["example_dynamic_task_mapping.py", "example_taskflow.py"],
     "2.7": ["example_map_index_template.py"],
 }
 
