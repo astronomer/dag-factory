@@ -763,10 +763,11 @@ class DagBuilder:
         for task_name, task_conf in tasks_tuples:
             task_conf["task_id"]: str = task_name
             task_conf["dag"]: DAG = dag
-            params: Dict[str, Any] = {k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS}
 
             if task_groups_dict and task_conf.get("task_group_name"):
                 task_conf["task_group"] = task_groups_dict[task_conf.get("task_group_name")]
+
+            params: Dict[str, Any] = {k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS}
 
             if "operator" in task_conf:
                 operator: str = task_conf["operator"]
@@ -779,8 +780,10 @@ class DagBuilder:
                 # replace 'task_id.output' or 'XComArg(task_id)' with XComArg(task_instance) object
                 if task_conf.get("expand") and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
                     task_conf = self.replace_expand_values(task_conf, tasks_dict)
+
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
+
             elif "decorator" in task_conf:
                 task = DagBuilder.make_decorator(
                     decorator_import_path=task_conf["decorator"], task_params=params, tasks_dict=tasks_dict
