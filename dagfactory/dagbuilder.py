@@ -158,80 +158,51 @@ class DagBuilder:
             dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla_secs"])
             del dag_params["default_args"]["sla_secs"]
 
-        if utils.check_dict_key(dag_params["default_args"], "sla_miss_callback"):
-            if isinstance(dag_params["default_args"]["sla_miss_callback"], str):
-                dag_params["default_args"]["sla_miss_callback"] = import_string(
-                    dag_params["default_args"]["sla_miss_callback"]
-                )
-
-        if utils.check_dict_key(dag_params["default_args"], "on_execute_callback") and version.parse(
-            AIRFLOW_VERSION
-        ) >= version.parse("2.0.0"):
-            if isinstance(dag_params["default_args"]["on_execute_callback"], str):
-                dag_params["default_args"]["on_execute_callback"] = import_string(
-                    dag_params["default_args"]["on_execute_callback"]
-                )
-
-        if utils.check_dict_key(dag_params["default_args"], "on_success_callback"):
-            if isinstance(dag_params["default_args"]["on_success_callback"], str):
-                dag_params["default_args"]["on_success_callback"]: Callable = import_string(
-                    dag_params["default_args"]["on_success_callback"]
-                )
-
-        if utils.check_dict_key(dag_params["default_args"], "on_failure_callback"):
-            dag_params["default_args"]["on_failure_callback"]: Callable = self.set_callback(
-                parameters=dag_params["default_args"], callback_type="on_failure_callback"
-            )
-
-        if utils.check_dict_key(dag_params["default_args"], "on_retry_callback"):
-            if isinstance(dag_params["default_args"]["on_retry_callback"], str):
-                dag_params["default_args"]["on_retry_callback"]: Callable = import_string(
-                    dag_params["default_args"]["on_retry_callback"]
-                )
-
-        if utils.check_dict_key(dag_params, "sla_miss_callback"):
-            if isinstance(dag_params["sla_miss_callback"], str):
-                dag_params["sla_miss_callback"]: Callable = import_string(dag_params["sla_miss_callback"])
-
-        if utils.check_dict_key(dag_params, "on_success_callback"):
-            if isinstance(dag_params["on_success_callback"], str):
-                dag_params["on_success_callback"]: Callable = import_string(dag_params["on_success_callback"])
-
-        if utils.check_dict_key(dag_params, "on_failure_callback"):
-            dag_params["on_failure_callback"]: Callable = self.set_callback(
-                parameters=dag_params, callback_type="on_failure_callback"
-            )
-
-        if utils.check_dict_key(dag_params, "on_success_callback_name") and utils.check_dict_key(
-            dag_params, "on_success_callback_file"
+        # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
+        # check has gone into the set_callback method
+        for callback_type in (
+            "on_execute_callback",
+            "on_success_callback",
+            "on_failure_callback",
+            "on_retry_callback",  # Not applicable at the DAG-level
+            "on_skipped_callback",  # Not applicable at the DAG-level
+            "sla_miss_callback"  # Not applicable at the default_args level
         ):
-            dag_params["on_success_callback"]: Callable = utils.get_python_callable(
-                dag_params["on_success_callback_name"],
-                dag_params["on_success_callback_file"],
-            )
+            # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
+            # copy-and-pasted for each callback type and each configuration option (via a string import, function
+            # defined via YAML, or file path and name
 
-        if utils.check_dict_key(dag_params, "on_failure_callback_name") and utils.check_dict_key(
-            dag_params, "on_failure_callback_file"
-        ):
-            dag_params["on_failure_callback"] = self.set_callback(
-                parameters=dag_params, callback_type="on_failure_callback", has_name_and_file=True
-            )
+            # First, check at the DAG-level for just the single field (via a string or via a provider callback that
+            # takes parameters). Since "on_retry_callback" and "on_skipped_callback" is only applicable at the
+            # Task-level, we are skipping that callback type here.
+            if callback_type not in ("on_retry_callback", "on_skipped_callback"):
+                if utils.check_dict_key(dag_params, callback_type):
+                    dag_params[callback_type]: Callable = self.set_callback(
+                        parameters=dag_params, callback_type=callback_type
+                    )
 
-        if utils.check_dict_key(dag_params["default_args"], "on_success_callback_name") and utils.check_dict_key(
-            dag_params["default_args"], "on_success_callback_file"
-        ):
+                # Then, check at the DAG-level for a file path and name
+                if utils.check_dict_key(dag_params, f"{callback_type}_name") \
+                        and utils.check_dict_key(dag_params, f"{callback_type}_file"):
+                    dag_params[callback_type] = self.set_callback(
+                        parameters=dag_params, callback_type=callback_type, has_name_and_file=True
+                    )
 
-            dag_params["default_args"]["on_success_callback"]: Callable = utils.get_python_callable(
-                dag_params["default_args"]["on_success_callback_name"],
-                dag_params["default_args"]["on_success_callback_file"],
-            )
+            # SLAs are defined at the DAG-level, and will be applied to every task.
+            # https://www.astronomer.io/docs/learn/error-notifications-in-airflow/
+            if callback_type != "sla_miss_callback":
+                # Next, check for a callback at the Task-level using default_args
+                if utils.check_dict_key(dag_params["default_args"], callback_type):
+                    dag_params["default_args"][callback_type]: Callable = self.set_callback(
+                        parameters=dag_params["default_args"], callback_type=callback_type
+                    )
 
-        if utils.check_dict_key(dag_params["default_args"], "on_failure_callback_name") and utils.check_dict_key(
-            dag_params["default_args"], "on_failure_callback_file"
-        ):
-            dag_params["default_args"]["on_failure_callback"] = self.set_callback(
-                parameters=dag_params["default_args"], callback_type="on_failure_callback", has_name_and_file=True
-            )
+                # Finally, check for file path and name at the Task-level using default_args
+                if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") \
+                        and utils.check_dict_key(dag_params["default_args"], f"{callback_type}_file"):
+                    dag_params["default_args"][callback_type] = self.set_callback(
+                        parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
+                    )
 
         if utils.check_dict_key(dag_params, "template_searchpath"):
             if isinstance(dag_params["template_searchpath"], (list, str)) and utils.check_template_searchpath(
@@ -468,7 +439,26 @@ class DagBuilder:
                 del task_params["execution_date_fn_name"]
                 del task_params["execution_date_fn_file"]
 
-            # on_execute_callback is an Airflow 2.0 feature
+            for callback_type in (
+                "on_execute_callback",
+                "on_success_callback",
+                "on_failure_callback",
+                "on_retry_callback",
+                "on_skipped_callback"
+            ):
+                if utils.check_dict_key(task_params, callback_type):
+                    task_params[callback_type]: Callable = DagBuilder.set_callback(
+                        parameters=task_params, callback_type=callback_type
+                    )
+
+                # Then, check at the DAG-level for a file path and name
+                if utils.check_dict_key(task_params, f"{callback_type}_name") \
+                        and utils.check_dict_key(task_params, f"{callback_type}_file"):
+                    task_params[callback_type] = DagBuilder.set_callback(
+                        parameters=task_params, callback_type=callback_type, has_name_and_file=True
+                    )
+
+            """
             if utils.check_dict_key(task_params, "on_execute_callback") and version.parse(
                 AIRFLOW_VERSION
             ) >= version.parse("2.0.0"):
@@ -482,6 +472,7 @@ class DagBuilder:
 
             if utils.check_dict_key(task_params, "on_retry_callback"):
                 task_params["on_retry_callback"]: Callable = import_string(task_params["on_retry_callback"])
+            """
 
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
@@ -552,10 +543,35 @@ class DagBuilder:
                 task_group_conf["group_id"] = task_group_name
                 task_group_conf["dag"] = dag
 
+                # Version checking for default_args
                 if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0") and isinstance(
                     task_group_conf.get("default_args"), dict
                 ):
+                    # Check the callback types that can be in the default_args of the TaskGroup
+                    for callback_type in (
+                            "on_execute_callback",
+                            "on_success_callback",
+                            "on_failure_callback",
+                            "on_retry_callback",
+                            "on_skipped_callback"
+                    ):
+                        if utils.check_dict_key(task_group_conf["default_args"], callback_type):
+                            task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
+                                parameters=task_group_conf["default_args"], callback_type=callback_type
+                            )
+
+                        # Then, check at the DAG-level for a file path and name
+                        if utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_name") \
+                                and utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
+                            task_group_conf["default_args"][callback_type] = DagBuilder.set_callback(
+                                parameters=task_group_conf["default_args"],
+                                callback_type=callback_type,
+                                has_name_and_file=True
+                            )
+
                     # https://github.com/apache/airflow/pull/16557
+                    # TODO: Update this here as well
+                    """
                     if utils.check_dict_key(task_group_conf["default_args"], "on_success_callback"):
                         if isinstance(
                             task_group_conf["default_args"]["on_success_callback"],
@@ -591,6 +607,7 @@ class DagBuilder:
                             task_group_conf["default_args"]["on_retry_callback"]: Callable = import_string(
                                 task_group_conf["default_args"]["on_retry_callback"]
                             )
+                    """
 
                 task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
                 task_groups_dict[task_group.group_id] = task_group
@@ -814,14 +831,24 @@ class DagBuilder:
         :param has_name_and_file:
         :returns: Callable
         """
+        # Check Airflow version, raise an exception otherwise
+        if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):  # TODO: Look closer at this
+            raise DagFactoryException("Cannot parse callbacks with an Airflow version less than 2.0.0.")
+
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
         # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That
         # being said, what if this is not a Python callable? What if this is another type?
         if has_name_and_file:
-            return utils.get_python_callable(
+            on_state_callback_callable: Callable = utils.get_python_callable(
                 python_callable_name=parameters[f"{callback_type}_name"],
                 python_callable_file=parameters[f"{callback_type}_file"],
             )
+
+            # Delete the callback_type name and file
+            del parameters[f"{callback_type}_name"]
+            del parameters[f"{callback_type}_file"]
+
+            return on_state_callback_callable
 
         # If the value stored at parameters[callback_type] is a string, it should be imported under the assumption that
         # it is a function that is "ready to be called". If not returning the function, something like this could be
