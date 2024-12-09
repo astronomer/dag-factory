@@ -9,8 +9,8 @@ if [ -L "dags" ]; then
 elif [ -e "dags" ]; then
     echo "'dags' exists but is not a symbolic link. Please resolve this manually."
 else
-    echo "Symbolic link 'dags' created successfully."
     ln -s dev/dags dags
+    echo "Symbolic link 'dags' created successfully."
 fi
 
 rm -rf airflow.*
