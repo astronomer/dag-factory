@@ -9,7 +9,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, Optional
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
@@ -623,6 +623,117 @@ class DagBuilder:
                 if task_id in tasks_dict:
                     task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
+    
+    @staticmethod
+    def evaluate_condition_with_datasets(
+        condition_string: str, 
+        datasets_filter: List[str]
+    ) -> Any:
+        """
+        Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
+
+        :param condition_string: A string representing the logical condition to evaluate.
+            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
+        :type condition_string: str
+        :param datasets_filter: A list of dataset URIs to be evaluated in the condition.
+        :type datasets_filter: List[str]
+
+        :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
+        :rtype: Any
+        """
+        dataset_map = {}
+        for uri in datasets_filter:
+            valid_variable_name = utils.make_valid_variable_name(uri)
+            condition_string = condition_string.replace(uri, valid_variable_name)
+            dataset_map[valid_variable_name] = Dataset(uri)
+        evaluated_condition = eval(condition_string, {}, dataset_map)
+        return evaluated_condition
+
+    @staticmethod
+    def process_file_with_datasets(
+        file: str, datasets_filter: List[str], condition_string: Optional[str] = None
+    ) -> Any:
+        """
+        Processes datasets from a file and evaluates conditions if provided.
+
+        :param file: The file path containing dataset information in a YAML or other structured format.
+        :type file: str
+        :param datasets_filter: A list of dataset names to filter and process.
+        :type datasets_filter: List[str]
+        :param condition_string: A logical condition string to evaluate using the datasets.
+            If not provided, the function returns a list of `Dataset` objects based on the file and filter.
+            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
+        :type condition_string: Optional[str]
+
+        :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
+        :rtype: Any
+        """
+        if condition_string:
+            map_datasets = utils.get_datasets_map_uri_yaml_file(file, datasets_filter)
+            dataset_map = {
+                alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()
+            }
+            return eval(condition_string, {}, dataset_map)
+        else:
+            datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+            return [Dataset(uri) for uri in datasets_uri]
+    
+    @staticmethod
+    def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
+        """
+        Configures the schedule for the DAG based on parameters and the Airflow version.
+
+        :param dag_params: A dictionary containing DAG parameters, including scheduling configuration.
+            Example: {"schedule": {"file": "datasets.yaml", "datasets": ["dataset_1"], "conditions": "dataset_1 & dataset_2"}}
+        :type dag_params: Dict[str, Any]
+        :param dag_kwargs: A dictionary for setting the resulting schedule configuration for the DAG.
+        :type dag_kwargs: Dict[str, Any]
+        
+        :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
+        :returns: None. The function updates `dag_kwargs` in-place.
+        """
+        is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
+        has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
+        has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
+
+        if has_schedule_attr and not has_schedule_interval_attr and is_airflow_version_at_least_2_4:
+            schedule: Dict[str, Any] = dag_params.get("schedule")
+
+            has_file_attr = utils.check_dict_key(schedule, "file")
+            has_datasets_attr = utils.check_dict_key(schedule, "datasets")
+            has_conditions_attr = utils.check_dict_key(schedule, "conditions")
+
+            if has_file_attr and has_datasets_attr:
+                file = schedule.get("file")
+                datasets_filter = schedule.get("datasets")
+                condition_string = schedule.get("conditions") if has_conditions_attr else None
+
+                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(
+                    file, datasets_filter, condition_string
+                )
+
+                # Remove processed keys from the schedule
+                schedule.pop("file", None)
+                schedule.pop("datasets", None)
+                if has_conditions_attr:
+                    schedule.pop("conditions", None)
+
+            # Process condition-based schedules directly from datasets
+            elif has_conditions_attr and has_datasets_attr:
+                datasets_filter = schedule["datasets"]
+                condition_string = schedule["conditions"]
+
+                # Evaluate the condition and set the schedule
+                dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(
+                    condition_string, datasets_filter
+                )
+
+                # Remove the processed condition key
+                schedule.pop("conditions", None)
+
+            # Handle basic schedules with direct dataset URIs
+            else:
+                dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
@@ -698,24 +809,7 @@ class DagBuilder:
 
         dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
 
-        if (
-            utils.check_dict_key(dag_params, "schedule")
-            and not utils.check_dict_key(dag_params, "schedule_interval")
-            and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
-        ):
-            if utils.check_dict_key(dag_params["schedule"], "file") and utils.check_dict_key(
-                dag_params["schedule"], "datasets"
-            ):
-                file = dag_params["schedule"]["file"]
-                datasets_filter = dag_params["schedule"]["datasets"]
-                datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
-
-                del dag_params["schedule"]["file"]
-                del dag_params["schedule"]["datasets"]
-            else:
-                datasets_uri = dag_params["schedule"]
-
-            dag_kwargs["schedule"] = [Dataset(uri) for uri in datasets_uri]
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
 
