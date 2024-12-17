@@ -732,16 +732,18 @@ def test_make_dag_with_callbacks_default_args():
         "on_success_callback",
         "on_failure_callback",
         "on_retry_callback",
-        "on_skipped_callback",  # TODO: Fix me
+        "on_skipped_callback",
     ):
-        assert callback_type in default_args
-        assert callable(default_args.get(callback_type))
-        assert default_args.get(callback_type).__name__ == "print_context_callback"
+        # on_skipped_callback could only be added to default_args starting in Airflow version 2.7.0
+        if not (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0") and callback_type == "on_skipped_callback"):
+            assert callback_type in default_args
+            assert callable(default_args.get(callback_type))
+            assert default_args.get(callback_type).__name__ == "print_context_callback"
 
-        # Assert that these callbacks have been applied at the Task-level
-        assert callback_type in task_1.__dict__
-        assert callable(task_1.__dict__[callback_type])
-        assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+            # Assert that these callbacks have been applied at the Task-level
+            assert callback_type in task_1.__dict__
+            assert callable(task_1.__dict__[callback_type])
+            assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
 
 @pytest.mark.callbacks
