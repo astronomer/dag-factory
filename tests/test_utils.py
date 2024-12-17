@@ -259,6 +259,32 @@ def test_open_and_filter_yaml_config_datasets():
 
     assert actual == expected
 
+def get_datasets_map_uri_yaml_file():
+    datasets_names = ["dataset_custom_1", "dataset_custom_2"]
+    file_path = "dev/dags/datasets/example_config_datasets.yml"
+
+    actual = utils.get_datasets_uri_yaml_file(file_path, datasets_names)
+    expected = {
+        "dataset_custom_1": "s3://bucket-cjmm/raw/dataset_custom_1",
+        "dataset_custom_2": "s3://bucket-cjmm/raw/dataset_custom_2",
+    }
+
+    assert actual == expected
+
+def test_valid_uri():
+    actual = utils.make_valid_variable_name("s3://bucket/dataset")
+    expected = "s3__bucket_dataset"
+    assert actual == expected
+
+def test_uri_with_special_characters(self):
+    actual = utils.make_valid_variable_name("s3://bucket/dataset-1!@#$%^&*()")
+    expected = "s3__bucket_dataset_1_____________"
+    assert actual == expected
+
+def test_uri_starting_with_number(self):
+    actual = utils.make_valid_variable_name("123/bucket/dataset")
+    expected = "_123_bucket_dataset"
+    assert actual == expected
 
 def test_open_and_filter_yaml_config_datasets_file_notfound():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
