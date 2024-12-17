@@ -276,12 +276,12 @@ def test_valid_uri():
     expected = "s3___bucket_dataset"
     assert actual == expected
 
-def test_uri_with_special_characters(self):
+def test_uri_with_special_characters():
     actual = utils.make_valid_variable_name("s3://bucket/dataset-1!@#$%^&*()")
     expected = "s3___bucket_dataset_1__________"
     assert actual == expected
 
-def test_uri_starting_with_number(self):
+def test_uri_starting_with_number():
     actual = utils.make_valid_variable_name("123/bucket/dataset")
     expected = "_123_bucket_dataset"
     assert actual == expected
