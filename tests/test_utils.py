@@ -273,12 +273,12 @@ def get_datasets_map_uri_yaml_file():
 
 def test_valid_uri():
     actual = utils.make_valid_variable_name("s3://bucket/dataset")
-    expected = "s3__bucket_dataset"
+    expected = "s3___bucket_dataset"
     assert actual == expected
 
 def test_uri_with_special_characters(self):
     actual = utils.make_valid_variable_name("s3://bucket/dataset-1!@#$%^&*()")
-    expected = "s3__bucket_dataset_1_____________"
+    expected = "s3___bucket_dataset_1__________"
     assert actual == expected
 
 def test_uri_starting_with_number(self):
