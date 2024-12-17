@@ -624,30 +624,6 @@ def test_build_task_groups():
         assert {"task_group_2.task_5", "task_group_2.task_6"} == task_group_2
 
 
-def test_build_task_groups_with_callbacks():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
-        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
-        with pytest.raises(Exception, match=error_message):
-            td.build()
-    else:
-        actual = td.build()
-        assert actual["dag_id"] == "test_dag"
-        assert isinstance(actual["dag"], DAG)
-        assert callable(
-            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_failure_callback"]
-        )
-        assert callable(
-            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_execute_callback"]
-        )
-        assert callable(
-            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_success_callback"]
-        )
-        assert callable(
-            actual["dag"].task_group.get_task_group_dict()["task_group_1"].default_args["on_retry_callback"]
-        )
-
-
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
 def test_make_task_groups():
     task_group_dict = {

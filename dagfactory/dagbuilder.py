@@ -468,17 +468,18 @@ class DagBuilder:
                     task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
                 )
 
-                # Add callbacks to the TaskGroup after nested TaskGroups have been created
-                DagBuilder._init_task_group_callback_param(task_group_conf)
-
-                # Create the TaskGroup, update task_groups_dict
-                task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
-                task_groups_dict[task_group.group_id] = task_group
-
         return task_groups_dict
 
     @staticmethod
     def _init_task_group_callback_param(task_group_conf):
+        """
+        _init_task_group_callback_param
+
+        Handle configuring callbacks in this helper-method.
+
+        :param task_group_conf: dict containing the configuration of the TaskGroup
+        """
+        # The Airflow version needs to be at least 2.2.0, and default args must be present
         if not (
             version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
             and isinstance(task_group_conf.get("default_args"), dict)
@@ -859,18 +860,18 @@ class DagBuilder:
 
         # on_execute_callback is an Airflow 2.0 feature
         for callback_type in [
-                "on_execute_callback",
-                "on_success_callback",
-                "on_failure_callback",
-                "on_retry_callback",
-                "on_skipped_callback",
+            "on_execute_callback",
+            "on_success_callback",
+            "on_failure_callback",
+            "on_retry_callback",
+            "on_skipped_callback",
         ]:
             if utils.check_dict_key(task_params, callback_type):
                 task_params[callback_type]: Callable = DagBuilder.set_callback(
                     parameters=task_params, callback_type=callback_type
                 )
 
-            # Then, check at the DAG-level for a file path and name
+            # Check for file path and name
             if utils.check_dict_key(task_params, f"{callback_type}_name") and utils.check_dict_key(
                     task_params, f"{callback_type}_file"
             ):
@@ -1037,4 +1038,5 @@ class DagBuilder:
 
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
+        print(f"ERROR for callback {callback_type}, type is {parameters.get(callback_type)}")
         raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
