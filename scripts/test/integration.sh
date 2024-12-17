@@ -10,11 +10,8 @@ ls $AIRFLOW_HOME
 
 airflow db check
 
-ln -s dev/dags dags
-
 pytest -vv \
     --cov=dagfactory \
     --cov-report=term-missing \
     --cov-report=xml \
-    --durations=0 \
     -m integration

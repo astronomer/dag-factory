@@ -1,6 +1,9 @@
 """Module contains code for generating tasks and constructing a DAG"""
 
+from __future__ import annotations
+
 # pylint: disable=ungrouped-imports
+import inspect
 import os
 import re
 from copy import deepcopy
@@ -64,7 +67,11 @@ try:
             V1VolumeMount as VolumeMount,
         )
     from airflow.kubernetes.secret import Secret
-    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+
+    if version.parse(K8S_PROVIDER_VERSION) < version.parse("10"):
+        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    else:
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.pod import Port
     from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
@@ -91,7 +98,6 @@ if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
 else:
     MappedOperator = None
 
-from airflow.models.xcom_arg import XComArg
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
     from airflow.datasets import Dataset
@@ -100,7 +106,7 @@ else:
 
 
 # these are params only used in the DAG factory, not in the tasks
-SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name"]
+SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 
 
 class DagBuilder:
@@ -113,12 +119,13 @@ class DagBuilder:
         in the YAML file
     """
 
-    def __init__(self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any]) -> None:
+    def __init__(
+        self, dag_name: str, dag_config: Dict[str, Any], default_config: Dict[str, Any], yml_dag: str = ""
+    ) -> None:
         self.dag_name: str = dag_name
         self.dag_config: Dict[str, Any] = deepcopy(dag_config)
         self.default_config: Dict[str, Any] = deepcopy(default_config)
-        self.tasks_count: int = 0
-        self.taskgroups_count: int = 0
+        self._yml_dag = yml_dag
 
     # pylint: disable=too-many-branches,too-many-statements
     def get_dag_params(self) -> Dict[str, Any]:
@@ -160,14 +167,14 @@ class DagBuilder:
 
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
         # check has gone into the set_callback method
-        for callback_type in (
+        for callback_type in [
             "on_execute_callback",
             "on_success_callback",
             "on_failure_callback",
             "on_retry_callback",  # Not applicable at the DAG-level
             "on_skipped_callback",  # Not applicable at the DAG-level
             "sla_miss_callback",  # Not applicable at the default_args level
-        ):
+        ]:
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
             # copy-and-pasted for each callback type and each configuration option (via a string import, function
             # defined via YAML, or file path and name
@@ -419,60 +426,8 @@ class DagBuilder:
                     if task_params.get("init_containers") is not None
                     else None
                 )
-            if utils.check_dict_key(task_params, "execution_timeout_secs"):
-                task_params["execution_timeout"]: timedelta = timedelta(seconds=task_params["execution_timeout_secs"])
-                del task_params["execution_timeout_secs"]
 
-            if utils.check_dict_key(task_params, "sla_secs"):
-                task_params["sla"]: timedelta = timedelta(seconds=task_params["sla_secs"])
-                del task_params["sla_secs"]
-
-            if utils.check_dict_key(task_params, "execution_delta_secs"):
-                task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta_secs"])
-                del task_params["execution_delta_secs"]
-
-            if utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
-                task_params, "execution_date_fn_file"
-            ):
-                task_params["execution_date_fn"]: Callable = utils.get_python_callable(
-                    task_params["execution_date_fn_name"],
-                    task_params["execution_date_fn_file"],
-                )
-                del task_params["execution_date_fn_name"]
-                del task_params["execution_date_fn_file"]
-
-            for callback_type in (
-                "on_execute_callback",
-                "on_success_callback",
-                "on_failure_callback",
-                "on_retry_callback",
-                "on_skipped_callback",
-            ):
-                if utils.check_dict_key(task_params, callback_type):
-                    task_params[callback_type]: Callable = DagBuilder.set_callback(
-                        parameters=task_params, callback_type=callback_type
-                    )
-
-                # Then, check at the DAG-level for a file path and name
-                if utils.check_dict_key(task_params, f"{callback_type}_name") and utils.check_dict_key(
-                    task_params, f"{callback_type}_file"
-                ):
-                    task_params[callback_type] = DagBuilder.set_callback(
-                        parameters=task_params, callback_type=callback_type, has_name_and_file=True
-                    )
-
-            # use variables as arguments on operator
-            if utils.check_dict_key(task_params, "variables_as_arguments"):
-                variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
-                for variable in variables:
-                    if Variable.get(variable["variable"], default_var=None) is not None:
-                        task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
-                del task_params["variables_as_arguments"]
-
-            if (
-                utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
-            ) and version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-                raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
+            DagBuilder.adjust_general_task_params(task_params)
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
             # expand available only in airflow >= 2.3.0
@@ -490,30 +445,12 @@ class DagBuilder:
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
                     task_params.update(partial_kwargs)
 
-            if utils.check_dict_key(task_params, "outlets") and version.parse(AIRFLOW_VERSION) >= version.parse(
-                "2.4.0"
-            ):
-                if utils.check_dict_key(task_params["outlets"], "file") and utils.check_dict_key(
-                    task_params["outlets"], "datasets"
-                ):
-                    file = task_params["outlets"]["file"]
-                    datasets_filter = task_params["outlets"]["datasets"]
-                    datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
-
-                    del task_params["outlets"]["file"]
-                    del task_params["outlets"]["datasets"]
-                else:
-                    datasets_uri = task_params["outlets"]
-
-                task_params["outlets"] = [Dataset(uri) for uri in datasets_uri]
-
             task: Union[BaseOperator, MappedOperator] = (
                 operator_obj(**task_params)
                 if not expand_kwargs
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
         except Exception as err:
-            raise err
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
 
@@ -527,41 +464,99 @@ class DagBuilder:
         task_groups_dict: Dict[str, "TaskGroup"] = {}
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
             for task_group_name, task_group_conf in task_groups.items():
-                task_group_conf["group_id"] = task_group_name
-                task_group_conf["dag"] = dag
+                DagBuilder.make_nested_task_groups(
+                    task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
+                )
 
-                # Version checking for default_args
-                if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0") and isinstance(
-                    task_group_conf.get("default_args"), dict
-                ):
-                    # Check the callback types that can be in the default_args of the TaskGroup
-                    for callback_type in (
-                        "on_execute_callback",
-                        "on_success_callback",
-                        "on_failure_callback",
-                        "on_retry_callback",
-                        "on_skipped_callback",
-                    ):
-                        if utils.check_dict_key(task_group_conf["default_args"], callback_type):
-                            task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
-                                parameters=task_group_conf["default_args"], callback_type=callback_type
-                            )
-
-                        # Then, check at the DAG-level for a file path and name
-                        if utils.check_dict_key(
-                            task_group_conf["default_args"], f"{callback_type}_name"
-                        ) and utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
-                            task_group_conf["default_args"][callback_type] = DagBuilder.set_callback(
-                                parameters=task_group_conf["default_args"],
-                                callback_type=callback_type,
-                                has_name_and_file=True,
-                            )
+                # Add callbacks to the TaskGroup after nested TaskGroups have been created
+                DagBuilder._init_task_group_callback_param(task_group_conf)
 
                 # Create the TaskGroup, update task_groups_dict
                 task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
                 task_groups_dict[task_group.group_id] = task_group
 
         return task_groups_dict
+
+    @staticmethod
+    def _init_task_group_callback_param(task_group_conf):
+        if not (
+            version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
+            and isinstance(task_group_conf.get("default_args"), dict)
+        ):
+            return task_group_conf
+
+        # Check the callback types that can be in the default_args of the TaskGroup
+        for callback_type in [
+            "on_success_callback",
+            "on_execute_callback",
+            "on_failure_callback",
+            "on_retry_callback",
+        ]:
+            # First, check for a str, str with params, or provider callback
+            if utils.check_dict_key(task_group_conf["default_args"], callback_type):
+                task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
+                    parameters=task_group_conf["default_args"], callback_type=callback_type
+                )
+
+            # Then, check for a file path and name
+            if utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_name") and \
+                    utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
+                task_group_conf["default_args"][callback_type] = DagBuilder.set_callback(
+                    parameters=task_group_conf["default_args"],
+                    callback_type=callback_type,
+                    has_name_and_file=True,
+                )
+
+        return task_group_conf
+
+    @staticmethod
+    def make_nested_task_groups(
+        task_group_name: str,
+        task_group_conf: Any,
+        task_groups_dict: Dict[str, "TaskGroup"],
+        task_groups: Dict[str, Any],
+        circularity_check_queue: List[str] | None,
+        dag: DAG,
+    ):
+        """Takes a DAG and task group configurations. Creates nested TaskGroup instances.
+        :param task_group_name: The name of the task group to be created
+        :param task_group_conf: Configuration details for the task group, which may include parent group information.
+        :param task_groups_dict: A dictionary where the created TaskGroup instances are stored, keyed by task group name.
+        :param task_groups: Task group configuration from the YAML configuration file.
+        :param circularity_check_queue: A list used to track the task groups being processed to detect circular dependencies.
+        :param dag: DAG instance that task groups to be added.
+        """
+        if task_group_name in task_groups_dict:
+            return
+
+        if circularity_check_queue is None:
+            circularity_check_queue = []
+
+        if task_group_name in circularity_check_queue:
+            error_string = "Circular dependency detected:\n"
+            index = circularity_check_queue.index(task_group_name)
+            while index < len(circularity_check_queue):
+                error_string += f"{circularity_check_queue[index]} depends on {task_group_name}\n"
+                index += 1
+            raise Exception(error_string)
+
+        circularity_check_queue.append(task_group_name)
+
+        if task_group_conf.get("parent_group_name"):
+            parent_group_name = task_group_conf["parent_group_name"]
+            parent_group_conf = task_groups[parent_group_name]
+            DagBuilder.make_nested_task_groups(
+                parent_group_name, parent_group_conf, task_groups_dict, task_groups, circularity_check_queue, dag
+            )
+            task_group_conf["parent_group"] = task_groups_dict[parent_group_name]
+
+        task_group_conf["group_id"] = task_group_name
+        task_group_conf["dag"] = dag
+
+        task_group_conf = DagBuilder._init_task_group_callback_param(task_group_conf)
+
+        task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
+        task_groups_dict[task_group_name] = task_group
 
     @staticmethod
     def set_dependencies(
@@ -613,11 +608,11 @@ class DagBuilder:
             if ".output" in expand_value:
                 task_id = expand_value.split(".output")[0]
                 if task_id in tasks_dict:
-                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+                    task_conf["expand"][expand_key] = tasks_dict[task_id].output
             elif "XcomArg" in expand_value:
                 task_id = re.findall(r"\(+(.*?)\)", expand_value)[0]
                 if task_id in tasks_dict:
-                    task_conf["expand"][expand_key] = XComArg(tasks_dict[task_id])
+                    task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
 
     # pylint: disable=too-many-locals
@@ -731,45 +726,260 @@ class DagBuilder:
             )
             dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
 
-        # tags parameter introduced in Airflow 1.10.8
-        if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-            dag.tags = dag_params.get("tags", None)
+        # Render YML DAG in DAG Docs
+        if self._yml_dag:
+            subtitle = "## YML DAG"
+
+            if dag.doc_md is None:
+                dag.doc_md = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
+            else:
+                dag.doc_md += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
+
+        tags = dag_params.get("tags", [])
+        if "dagfactory" not in tags:
+            tags.append("dagfactory")
+        dag.tags = tags
 
         tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
-        self.tasks_count = len(tasks)
 
         # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary of task groups
         task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(dag_params.get("task_groups", {}), dag)
-        self.taskgroups_count = len(task_groups_dict)
 
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
-        for task_name, task_conf in tasks.items():
+        tasks_tuples = self.topological_sort_tasks(tasks)
+        for task_name, task_conf in tasks_tuples:
             task_conf["task_id"]: str = task_name
-            operator: str = task_conf["operator"]
             task_conf["dag"]: DAG = dag
-            # add task to task_group
+
             if task_groups_dict and task_conf.get("task_group_name"):
                 task_conf["task_group"] = task_groups_dict[task_conf.get("task_group_name")]
-            # Dynamic task mapping available only in Airflow >= 2.3.0
-            if (task_conf.get("expand") or task_conf.get("partial")) and version.parse(AIRFLOW_VERSION) < version.parse(
-                "2.3.0"
-            ):
-                raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
 
-            # replace 'task_id.output' or 'XComArg(task_id)' with XComArg(task_instance) object
-            if task_conf.get("expand") and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
-                task_conf = self.replace_expand_values(task_conf, tasks_dict)
             params: Dict[str, Any] = {k: v for k, v in task_conf.items() if k not in SYSTEM_PARAMS}
-            task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
-            tasks_dict[task.task_id]: BaseOperator = task
+
+            if "operator" in task_conf:
+                operator: str = task_conf["operator"]
+
+                # Dynamic task mapping available only in Airflow >= 2.3.0
+                if task_conf.get("expand"):
+                    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
+                        raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
+                    else:
+                        task_conf = self.replace_expand_values(task_conf, tasks_dict)
+
+                task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
+                tasks_dict[task.task_id]: BaseOperator = task
+
+            elif "decorator" in task_conf:
+                task = DagBuilder.make_decorator(
+                    decorator_import_path=task_conf["decorator"], task_params=params, tasks_dict=tasks_dict
+                )
+                tasks_dict[task_name]: BaseOperator = task
+            else:
+                raise DagFactoryConfigException("Tasks must define either 'operator' or 'decorator")
+
         # set task dependencies after creating tasks
         self.set_dependencies(tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict)
 
         return {"dag_id": dag_params["dag_id"], "dag": dag}
+
+    @staticmethod
+    def topological_sort_tasks(tasks_configs: dict[str, Any]) -> list[tuple(str, Any)]:
+        """
+        Use the Kahn's algorithm to sort topologically the tasks:
+        (https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm)
+
+        The complexity is O(N + D) where N: total tasks and D: number of dependencies.
+
+        :returns: topologically sorted list containing tuples (task name, task config)
+        """
+        # Step 1: Build the downstream (adjacency) tasks list and the upstream dependencies (in-degree) count
+        downstream_tasks = {}
+        upstream_dependencies_count = {}
+
+        for task_name, _ in tasks_configs.items():
+            downstream_tasks[task_name] = []
+            upstream_dependencies_count[task_name] = 0
+
+        for task_name, task_conf in tasks_configs.items():
+            for upstream_task in task_conf.get("dependencies", []):
+                # there are cases when dependencies contains references to TaskGroups and not Tasks - we skip those
+                if upstream_task in tasks_configs:
+                    downstream_tasks[upstream_task].append(task_name)
+                    upstream_dependencies_count[task_name] += 1
+
+        # Step 2: Find all tasks with no dependencies
+        tasks_without_dependencies = [
+            task for task in upstream_dependencies_count if not upstream_dependencies_count[task]
+        ]
+        sorted_tasks = []
+
+        # Step 3: Perform topological sort
+        while tasks_without_dependencies:
+            current = tasks_without_dependencies.pop(0)
+            sorted_tasks.append((current, tasks_configs[current]))
+
+            for child in downstream_tasks[current]:
+                upstream_dependencies_count[child] -= 1
+                if upstream_dependencies_count[child] == 0:
+                    tasks_without_dependencies.append(child)
+
+        # If not all tasks are processed, there is a cycle (not applicable for DAGs)
+        if len(sorted_tasks) != len(tasks_configs):
+            raise ValueError("Cycle detected in task dependencies!")
+
+        return sorted_tasks
+
+    def adjust_general_task_params(task_params: dict(str, Any)):
+        """Adjusts in place the task params argument"""
+        if utils.check_dict_key(task_params, "execution_timeout_secs"):
+            task_params["execution_timeout"]: timedelta = timedelta(seconds=task_params["execution_timeout_secs"])
+            del task_params["execution_timeout_secs"]
+
+        if utils.check_dict_key(task_params, "sla_secs"):
+            task_params["sla"]: timedelta = timedelta(seconds=task_params["sla_secs"])
+            del task_params["sla_secs"]
+
+        if utils.check_dict_key(task_params, "execution_delta_secs"):
+            task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta_secs"])
+            del task_params["execution_delta_secs"]
+
+        if utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
+            task_params, "execution_date_fn_file"
+        ):
+            task_params["execution_date_fn"]: Callable = utils.get_python_callable(
+                task_params["execution_date_fn_name"],
+                task_params["execution_date_fn_file"],
+            )
+            del task_params["execution_date_fn_name"]
+            del task_params["execution_date_fn_file"]
+
+        # on_execute_callback is an Airflow 2.0 feature
+        for callback_type in [
+                "on_execute_callback",
+                "on_success_callback",
+                "on_failure_callback",
+                "on_retry_callback",
+                "on_skipped_callback",
+        ]:
+            if utils.check_dict_key(task_params, callback_type):
+                task_params[callback_type]: Callable = DagBuilder.set_callback(
+                    parameters=task_params, callback_type=callback_type
+                )
+
+            # Then, check at the DAG-level for a file path and name
+            if utils.check_dict_key(task_params, f"{callback_type}_name") and utils.check_dict_key(
+                    task_params, f"{callback_type}_file"
+            ):
+                task_params[callback_type] = DagBuilder.set_callback(
+                    parameters=task_params, callback_type=callback_type, has_name_and_file=True
+                )
+
+        # use variables as arguments on operator
+        if utils.check_dict_key(task_params, "variables_as_arguments"):
+            variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
+            for variable in variables:
+                if Variable.get(variable["variable"], default_var=None) is not None:
+                    task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
+            del task_params["variables_as_arguments"]
+
+        if utils.check_dict_key(task_params, "outlets") and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+            if utils.check_dict_key(task_params["outlets"], "file") and utils.check_dict_key(
+                task_params["outlets"], "datasets"
+            ):
+                file = task_params["outlets"]["file"]
+                datasets_filter = task_params["outlets"]["datasets"]
+                datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+
+                del task_params["outlets"]["file"]
+                del task_params["outlets"]["datasets"]
+            else:
+                datasets_uri = task_params["outlets"]
+
+            task_params["outlets"] = [Dataset(uri) for uri in datasets_uri]
+
+    @staticmethod
+    def make_decorator(
+        decorator_import_path: str, task_params: Dict[str, Any], tasks_dict: dict(str, Any)
+    ) -> BaseOperator:
+        """
+        Takes a decorator and params and creates an instance of that decorator.
+
+        :returns: instance of operator object
+        """
+        # Check mandatory fields
+        mandatory_keys_set1 = set(["python_callable_name", "python_callable_file"])
+
+        # Fetch the Python callable
+        if set(mandatory_keys_set1).issubset(task_params):
+            python_callable: Callable = utils.get_python_callable(
+                task_params["python_callable_name"],
+                task_params["python_callable_file"],
+            )
+            # Remove dag-factory specific parameters since Airflow 2.0 doesn't allow these to be passed to operator
+            del task_params["python_callable_name"]
+            del task_params["python_callable_file"]
+        elif "python_callable" in task_params:
+            python_callable: Callable = import_string(task_params["python_callable"])
+        else:
+            raise DagFactoryException(
+                "Failed to create task. Decorator-based tasks require \
+                `python_callable_name` and `python_callable_file` "
+                "parameters.\nOptionally you can load python_callable "
+                "from a file. with the special pyyaml notation:\n"
+                "  python_callable: !!python/name:my_module.my_func"
+            )
+
+        task_params["python_callable"] = python_callable
+
+        decorator: Callable[..., BaseOperator] = import_string(decorator_import_path)
+        task_params.pop("decorator")
+
+        DagBuilder.adjust_general_task_params(task_params)
+
+        callable_args_keys = inspect.getfullargspec(python_callable).args
+        callable_kwargs = {}
+        decorator_kwargs = dict(**task_params)
+        for arg_key, arg_value in task_params.items():
+            if arg_key in callable_args_keys:
+                decorator_kwargs.pop(arg_key)
+                if isinstance(arg_value, str) and arg_value.startswith("+"):
+                    upstream_task_name = arg_value.split("+")[-1]
+                    callable_kwargs[arg_key] = tasks_dict[upstream_task_name]
+                else:
+                    callable_kwargs[arg_key] = arg_value
+
+        expand_kwargs = decorator_kwargs.pop("expand", {})
+        partial_kwargs = decorator_kwargs.pop("partial", {})
+
+        if ("map_index_template" in decorator_kwargs) and (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")):
+            raise DagFactoryConfigException(
+                "The dynamic task mapping argument `map_index_template` is only supported since Airflow 2.7"
+            )
+
+        if expand_kwargs and partial_kwargs:
+            if callable_kwargs:
+                raise DagFactoryConfigException(
+                    "When using dynamic task mapping, all the task arguments should be defined in expand and partial."
+                )
+            DagBuilder.replace_kwargs_values_as_tasks(expand_kwargs, tasks_dict)
+            DagBuilder.replace_kwargs_values_as_tasks(partial_kwargs, tasks_dict)
+            return decorator(**decorator_kwargs).partial(**partial_kwargs).expand(**expand_kwargs)
+        elif expand_kwargs:
+            DagBuilder.replace_kwargs_values_as_tasks(expand_kwargs, tasks_dict)
+            return decorator(**decorator_kwargs).expand(**expand_kwargs)
+        else:
+            return decorator(**decorator_kwargs)(**callable_kwargs)
+
+    @staticmethod
+    def replace_kwargs_values_as_tasks(kwargs: dict(str, Any), tasks_dict: dict(str, Any)):
+        for key, value in kwargs.items():
+            if isinstance(value, str) and value.startswith("+"):
+                upstream_task_name = value.split("+")[-1]
+                kwargs[key] = tasks_dict[upstream_task_name]
 
     @staticmethod
     def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:

@@ -530,7 +530,7 @@ def test_build():
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-        assert actual["dag"].tags == ["tag1", "tag2"]
+        assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
 
 
 def test_get_dag_params_dag_with_task_group():
@@ -759,7 +759,7 @@ def test_make_dag_with_callbacks_default_args():
         assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
 
-@pytest.mark.task_callbacks
+@pytest.mark.callbacks
 def test_make_dag_with_task_group_callbacks():
     """
     test_dag_with_task_group_callbacks
@@ -953,7 +953,6 @@ def test_dynamic_task_mapping():
         assert isinstance(actual, MappedOperator)
 
 
-@patch("dagfactory.dagbuilder.PythonOperator", new=MockPythonOperator)
 def test_replace_expand_string_with_xcom():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
@@ -964,7 +963,13 @@ def test_replace_expand_string_with_xcom():
 
         task_conf_output = {"expand": {"key_1": "task_1.output"}}
         task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
-        tasks_dict = {"task_1": MockPythonOperator()}
+
+        task1 = PythonOperator(
+            task_id="task1",
+            python_callable=lambda: print("hello"),
+        )
+
+        tasks_dict = {"task_1": task1}
         updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
         updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
         assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
@@ -997,3 +1002,90 @@ def test_make_task_outlets(mock_read_file, outlets, output):
     operator = "airflow.operators.python_operator.PythonOperator"
     actual = td.make_task(operator, task_params)
     assert actual.outlets == [Dataset(uri) for uri in output]
+
+
+@patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
+def test_make_nested_task_groups():
+    task_group_dict = {
+        "task_group": {
+            "tooltip": "this is a task group",
+        },
+        "sub_task_group": {"tooltip": "this is a sub task group", "parent_group_name": "task_group"},
+    }
+    dag = "dag"
+    task_groups = dagbuilder.DagBuilder.make_task_groups(task_group_dict, dag)
+    expected = {
+        "task_group": MockTaskGroup(tooltip="this is a task group", group_id="task_group", dag=dag),
+        "sub_task_group": MockTaskGroup(tooltip="this is a sub task group", group_id="sub_task_group", dag=dag),
+    }
+
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
+        assert task_groups == {}
+    else:
+        sub_task_group = task_groups["sub_task_group"].__dict__
+        assert sub_task_group["parent_group"]
+        del sub_task_group["parent_group"]
+        assert task_groups["task_group"].__dict__ == expected["task_group"].__dict__
+        assert sub_task_group == expected["sub_task_group"].__dict__
+
+
+class TestTopologicalSortTasks:
+
+    def test_basic_topological_sort(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task2"]},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        expected = [
+            ("task1", {"dependencies": []}),
+            ("task2", {"dependencies": ["task1"]}),
+            ("task3", {"dependencies": ["task2"]}),
+        ]
+        assert result == expected
+
+    def test_no_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": []},
+            "task3": {"dependencies": []},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        # Order doesn't matter as there are no dependencies
+        expected = [
+            ("task1", {"dependencies": []}),
+            ("task2", {"dependencies": []}),
+            ("task3", {"dependencies": []}),
+        ]
+        assert result == expected
+
+    def test_empty_input(self):
+        tasks_configs = {}
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        assert result == []
+
+    def test_cyclic_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": ["task3"]},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task2"]},
+        }
+        with pytest.raises(ValueError) as exc_info:
+            dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        assert "Cycle detected" in str(exc_info.value)
+
+    def test_multiple_dependencies(self):
+        tasks_configs = {
+            "task1": {"dependencies": []},
+            "task2": {"dependencies": ["task1"]},
+            "task3": {"dependencies": ["task1"]},
+            "task4": {"dependencies": ["task2", "task3"]},
+        }
+        result = dagbuilder.DagBuilder.topological_sort_tasks(tasks_configs)
+        # Verify ordering with dependencies
+        task_names = [task[0] for task in result]
+        assert task_names.index("task1") < task_names.index("task2")
+        assert task_names.index("task1") < task_names.index("task3")
+        assert task_names.index("task2") < task_names.index("task4")
+        assert task_names.index("task3") < task_names.index("task4")
