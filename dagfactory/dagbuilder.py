@@ -461,22 +461,6 @@ class DagBuilder:
                         parameters=task_params, callback_type=callback_type, has_name_and_file=True
                     )
 
-            """
-            if utils.check_dict_key(task_params, "on_execute_callback") and version.parse(
-                AIRFLOW_VERSION
-            ) >= version.parse("2.0.0"):
-                task_params["on_execute_callback"]: Callable = import_string(task_params["on_execute_callback"])
-
-            if utils.check_dict_key(task_params, "on_failure_callback"):
-                task_params["on_failure_callback"]: Callable = import_string(task_params["on_failure_callback"])
-
-            if utils.check_dict_key(task_params, "on_success_callback"):
-                task_params["on_success_callback"]: Callable = import_string(task_params["on_success_callback"])
-
-            if utils.check_dict_key(task_params, "on_retry_callback"):
-                task_params["on_retry_callback"]: Callable = import_string(task_params["on_retry_callback"])
-            """
-
             # use variables as arguments on operator
             if utils.check_dict_key(task_params, "variables_as_arguments"):
                 variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
@@ -573,48 +557,10 @@ class DagBuilder:
                                 has_name_and_file=True,
                             )
 
-                    # https://github.com/apache/airflow/pull/16557
-                    # TODO: Update this here as well
-                    """
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_success_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_success_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_success_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_success_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_execute_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_execute_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_execute_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_execute_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_failure_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_failure_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_failure_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_failure_callback"]
-                            )
-
-                    if utils.check_dict_key(task_group_conf["default_args"], "on_retry_callback"):
-                        if isinstance(
-                            task_group_conf["default_args"]["on_retry_callback"],
-                            str,
-                        ):
-                            task_group_conf["default_args"]["on_retry_callback"]: Callable = import_string(
-                                task_group_conf["default_args"]["on_retry_callback"]
-                            )
-                    """
-
+                # Create the TaskGroup, update task_groups_dict
                 task_group = TaskGroup(**{k: v for k, v in task_group_conf.items() if k not in SYSTEM_PARAMS})
                 task_groups_dict[task_group.group_id] = task_group
+
         return task_groups_dict
 
     @staticmethod
