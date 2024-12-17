@@ -177,11 +177,11 @@ DAG_CONFIG_CALLBACKS = {
     "on_failure_callback_name": "print_context_callback",
     "on_failure_callback_file": __file__,
     "sla_miss_callback": {
-            "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
-            "slack_conn_id": "slack_conn_id",
-            "text": f"""Sample callback text.""",
-            "channel": "#channel",
-            "username": "username"
+        "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
+        "slack_conn_id": "slack_conn_id",
+        "text": f"""Sample callback text.""",
+        "channel": "#channel",
+        "username": "username",
     },
     "tasks": {
         "task_1": {  # Make sure that default_args are applied to this Task
@@ -228,7 +228,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
                 "callback": f"{__name__}.empty_callback_with_params",
                 "param_1": "value_1",
                 "param_2": "value_2",
-            }
+            },
         },
         "task_3": {
             "operator": "airflow.operators.bash_operator.BashOperator",
@@ -258,7 +258,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
                 "slack_conn_id": "slack_conn_id",
                 "text": f"""Sample callback text.""",
                 "channel": "#channel",
-                "username": "username"
+                "username": "username",
             },
         },
     },
@@ -747,7 +747,7 @@ def test_make_dag_with_callbacks_default_args():
         "on_success_callback",
         "on_failure_callback",
         "on_retry_callback",
-        "on_skipped_callback"
+        "on_skipped_callback",
     ):
         assert callback_type in default_args
         assert callable(default_args.get(callback_type))
@@ -788,9 +788,11 @@ def test_make_dag_with_task_group_callbacks():
         assert dag.task_count == 4
         assert dag.has_task_group("task_group_1")
         assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
-        assert "task_group_1.task_1" in dag.task_dict and \
-            "task_group_1.task_2" in dag.task_dict and \
-            "task_group_1.task_3" in dag.task_dict
+        assert (
+            "task_group_1.task_1" in dag.task_dict
+            and "task_group_1.task_2" in dag.task_dict
+            and "task_group_1.task_3" in dag.task_dict
+        )
 
 
 @pytest.mark.callbacks

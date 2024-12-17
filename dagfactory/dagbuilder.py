@@ -166,7 +166,7 @@ class DagBuilder:
             "on_failure_callback",
             "on_retry_callback",  # Not applicable at the DAG-level
             "on_skipped_callback",  # Not applicable at the DAG-level
-            "sla_miss_callback"  # Not applicable at the default_args level
+            "sla_miss_callback",  # Not applicable at the default_args level
         ):
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
             # copy-and-pasted for each callback type and each configuration option (via a string import, function
@@ -182,8 +182,9 @@ class DagBuilder:
                     )
 
                 # Then, check at the DAG-level for a file path and name
-                if utils.check_dict_key(dag_params, f"{callback_type}_name") \
-                        and utils.check_dict_key(dag_params, f"{callback_type}_file"):
+                if utils.check_dict_key(dag_params, f"{callback_type}_name") and utils.check_dict_key(
+                    dag_params, f"{callback_type}_file"
+                ):
                     dag_params[callback_type] = self.set_callback(
                         parameters=dag_params, callback_type=callback_type, has_name_and_file=True
                     )
@@ -198,8 +199,9 @@ class DagBuilder:
                     )
 
                 # Finally, check for file path and name at the Task-level using default_args
-                if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") \
-                        and utils.check_dict_key(dag_params["default_args"], f"{callback_type}_file"):
+                if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") and utils.check_dict_key(
+                    dag_params["default_args"], f"{callback_type}_file"
+                ):
                     dag_params["default_args"][callback_type] = self.set_callback(
                         parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
                     )
@@ -444,7 +446,7 @@ class DagBuilder:
                 "on_success_callback",
                 "on_failure_callback",
                 "on_retry_callback",
-                "on_skipped_callback"
+                "on_skipped_callback",
             ):
                 if utils.check_dict_key(task_params, callback_type):
                     task_params[callback_type]: Callable = DagBuilder.set_callback(
@@ -452,8 +454,9 @@ class DagBuilder:
                     )
 
                 # Then, check at the DAG-level for a file path and name
-                if utils.check_dict_key(task_params, f"{callback_type}_name") \
-                        and utils.check_dict_key(task_params, f"{callback_type}_file"):
+                if utils.check_dict_key(task_params, f"{callback_type}_name") and utils.check_dict_key(
+                    task_params, f"{callback_type}_file"
+                ):
                     task_params[callback_type] = DagBuilder.set_callback(
                         parameters=task_params, callback_type=callback_type, has_name_and_file=True
                     )
@@ -549,11 +552,11 @@ class DagBuilder:
                 ):
                     # Check the callback types that can be in the default_args of the TaskGroup
                     for callback_type in (
-                            "on_execute_callback",
-                            "on_success_callback",
-                            "on_failure_callback",
-                            "on_retry_callback",
-                            "on_skipped_callback"
+                        "on_execute_callback",
+                        "on_success_callback",
+                        "on_failure_callback",
+                        "on_retry_callback",
+                        "on_skipped_callback",
                     ):
                         if utils.check_dict_key(task_group_conf["default_args"], callback_type):
                             task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
@@ -561,12 +564,13 @@ class DagBuilder:
                             )
 
                         # Then, check at the DAG-level for a file path and name
-                        if utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_name") \
-                                and utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
+                        if utils.check_dict_key(
+                            task_group_conf["default_args"], f"{callback_type}_name"
+                        ) and utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
                             task_group_conf["default_args"][callback_type] = DagBuilder.set_callback(
                                 parameters=task_group_conf["default_args"],
                                 callback_type=callback_type,
-                                has_name_and_file=True
+                                has_name_and_file=True,
                             )
 
                     # https://github.com/apache/airflow/pull/16557
