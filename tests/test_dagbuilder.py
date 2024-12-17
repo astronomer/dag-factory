@@ -234,7 +234,6 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         # - String with no parameters
         # - String with parameters
         # - File name and path
-        # - Provider callback
         "task_4": {
             "operator": "airflow.operators.bash_operator.BashOperator",
             "bash_command": "echo 4",
