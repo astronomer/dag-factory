@@ -48,6 +48,7 @@ here = Path(__file__).parent
 
 PROJECT_ROOT_PATH = str(here.parent)
 UTC = pendulum.timezone("UTC")
+AIRFLOW_VERSION == "2.2.0"
 
 DEFAULT_CONFIG = {
     "default_args": {
@@ -176,13 +177,6 @@ DAG_CONFIG_CALLBACKS = {
     },
     "on_failure_callback_name": "print_context_callback",
     "on_failure_callback_file": __file__,
-    "sla_miss_callback": {
-        "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
-        "slack_conn_id": "slack_conn_id",
-        "text": f"""Sample callback text.""",
-        "channel": "#channel",
-        "username": "username",
-    },
     "tasks": {
         "task_1": {  # Make sure that default_args are applied to this Task
             "operator": "airflow.operators.bash_operator.BashOperator",
@@ -690,10 +684,25 @@ def test_make_dag_with_callbacks():
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.6.0"):
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
+        # TODO: Do something like this, but with TaskGroups (for Airflow versioning reasons...)
+        dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)
+        dag_config_callbacks__with_provider["sla_miss_callback"] = {
+            "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
+            "slack_conn_id": "slack_conn_id",
+            "text": f"""Sample callback text.""",
+            "channel": "#channel",
+            "username": "username",
+        }
+
+        with_provider_td = dagbuilder.DagBuilder(
+            "test_dag", dag_config_callbacks__with_provider, DEFAULT_CONFIG
+        )
+        with_provider_td.build()
+
         # Assert that sla_miss_callback is part of the dag_config. If it is, pull the callback and validate the config
         # of the Slack notifier
-        assert "sla_miss_callback" in td.dag_config
-        sla_miss_callback = td.dag_config["sla_miss_callback"]
+        assert "sla_miss_callback" in with_provider_td.dag_config
+        sla_miss_callback = with_provider_td.dag_config["sla_miss_callback"]
 
         assert isinstance(sla_miss_callback, send_slack_notification)
         assert callable(sla_miss_callback)
@@ -723,7 +732,7 @@ def test_make_dag_with_callbacks_default_args():
         "on_success_callback",
         "on_failure_callback",
         "on_retry_callback",
-        "on_skipped_callback",
+        "on_skipped_callback",  # TODO: Fix me
     ):
         assert callback_type in default_args
         assert callable(default_args.get(callback_type))
