@@ -500,8 +500,9 @@ class DagBuilder:
                 )
 
             # Then, check for a file path and name
-            if utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_name") and \
-                    utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_file"):
+            if utils.check_dict_key(task_group_conf["default_args"], f"{callback_type}_name") and utils.check_dict_key(
+                task_group_conf["default_args"], f"{callback_type}_file"
+            ):
                 task_group_conf["default_args"][callback_type] = DagBuilder.set_callback(
                     parameters=task_group_conf["default_args"],
                     callback_type=callback_type,
@@ -873,7 +874,7 @@ class DagBuilder:
 
             # Check for file path and name
             if utils.check_dict_key(task_params, f"{callback_type}_name") and utils.check_dict_key(
-                    task_params, f"{callback_type}_file"
+                task_params, f"{callback_type}_file"
             ):
                 task_params[callback_type] = DagBuilder.set_callback(
                     parameters=task_params, callback_type=callback_type, has_name_and_file=True
