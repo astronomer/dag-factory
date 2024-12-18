@@ -486,8 +486,9 @@ class DagBuilder:
             version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
             and isinstance(task_group_conf.get("default_args"), dict)
         ):
-            print(f"{'*' * 20} MADE IT HERE {'*' * 20}")
             return task_group_conf
+
+        print(print(f"{'*' * 20} {task_group_conf.get('default_args')} {'*' * 20}"))
 
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
