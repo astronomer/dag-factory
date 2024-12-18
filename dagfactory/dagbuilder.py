@@ -1044,5 +1044,4 @@ class DagBuilder:
 
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
-        print(f"ERROR for callback {callback_type}, type is {parameters.get(callback_type)}")
         raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
