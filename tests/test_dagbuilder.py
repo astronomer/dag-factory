@@ -765,7 +765,6 @@ def test_make_dag_with_task_group_callbacks():
 
         # Basic checks to ensure the DAG was built as expected
         assert dag.task_count == 4
-        assert dag.has_task_group("task_group_1")
         assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
         assert (
             "task_group_1.task_1" in dag.task_dict
@@ -794,7 +793,8 @@ def test_dag_with_task_group_callbacks_default_args():
         dag = td.build()["dag"]  # Also, pull the dag
 
         # Now, loop through each of the callback types and validate
-        task_group_default_args = dag.task_group_dict["task_group_1"].default_args
+        assert "task_group_1" in td.dag_config["task_groups"]
+        task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
 
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
