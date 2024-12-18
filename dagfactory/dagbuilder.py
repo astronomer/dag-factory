@@ -488,8 +488,6 @@ class DagBuilder:
         ):
             return task_group_conf
 
-        print(f"{'*' * 20} {task_group_conf.get('default_args')} {'*' * 20}")
-
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
             "on_success_callback",
@@ -513,7 +511,6 @@ class DagBuilder:
                     has_name_and_file=True,
                 )
 
-        print(f"{'*' * 20} {task_group_conf.get('default_args')} {'*' * 20}")
         return task_group_conf
 
     @staticmethod

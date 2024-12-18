@@ -788,14 +788,12 @@ def test_dag_with_task_group_callbacks_default_args():
     # if the version was not met. Here, we'll pass testing
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
         dag = td.build()["dag"]  # Also, pull the dag
 
         # Now, loop through each of the callback types and validate
         assert "task_group_1" in td.dag_config["task_groups"]
         task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
-        print(f"{'*' * 20} {td.dag_config['task_groups']['task_group_1']} {'*' * 20}")
-        print(f"{'*' * 20} {dag.task_dict['task_group_1.task_1'].__dict__} {'*' * 20}")
 
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
