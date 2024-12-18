@@ -479,14 +479,15 @@ class DagBuilder:
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
-        # The Airflow version needs to be at least 2.2.0, and default args must be present
+        # The Airflow version needs to be at least 2.2.0, and default args must be present. Basically saying here: if
+        # it's not the case that we're using at least Airflow 2.2.0 and default_args are present, then return the
+        # TaskGroup configuration without doing anything
         if not (
             version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
             and isinstance(task_group_conf.get("default_args"), dict)
         ):
+            print(f"{'*' * 20} MADE IT HERE {'*' * 20}")
             return task_group_conf
-
-        print(f"{'*' * 20} MADE IT HERE {'*' * 20}")
 
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
