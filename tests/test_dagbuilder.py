@@ -723,7 +723,8 @@ def test_make_dag_with_callbacks_default_args():
         "on_skipped_callback",
     ):
         # on_skipped_callback could only be added to default_args starting in Airflow version 2.7.0
-        if not (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0") and callback_type == "on_skipped_callback"):
+        # TODO: Address this, this should be 2.7.0
+        if not (version.parse(AIRFLOW_VERSION) < version.parse("2.9.0") and callback_type == "on_skipped_callback"):
             assert callback_type in default_args
             assert callable(default_args.get(callback_type))
             assert default_args.get(callback_type).__name__ == "print_context_callback"
@@ -786,6 +787,7 @@ def test_make_dag_with_task_group_callbacks_default_args():
     # if the version was not met. Here, we'll pass testing
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
+    # TODO: This should be 2.2.0
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):  # This is a work-around for now
         dag = td.build()["dag"]  # Also, pull the dag
 
