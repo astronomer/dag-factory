@@ -48,7 +48,6 @@ here = Path(__file__).parent
 
 PROJECT_ROOT_PATH = str(here.parent)
 UTC = pendulum.timezone("UTC")
-AIRFLOW_VERSION == "2.2.0"
 
 DEFAULT_CONFIG = {
     "default_args": {
