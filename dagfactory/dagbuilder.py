@@ -197,8 +197,11 @@ class DagBuilder:
                     )
 
             # SLAs are defined at the DAG-level, and will be applied to every task.
-            # https://www.astronomer.io/docs/learn/error-notifications-in-airflow/
-            if callback_type != "sla_miss_callback":
+            # https://www.astronomer.io/docs/learn/error-notifications-in-airflow/. Here, we are not going to add
+            # callbacks for sla_miss_callback, or on_skipped_callback if the Airflow version is less than 2.7.0
+            if (callback_type != "sla_miss_callback") or not (
+                callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")
+            ):
                 # Next, check for a callback at the Task-level using default_args
                 if utils.check_dict_key(dag_params["default_args"], callback_type):
                     dag_params["default_args"][callback_type]: Callable = self.set_callback(
@@ -475,7 +478,7 @@ class DagBuilder:
         """
         _init_task_group_callback_param
 
-        Handle configuring callbacks in this helper-method.
+        Handle configuring callbacks for TaskGroups in this method in this helper-method
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
@@ -490,11 +493,16 @@ class DagBuilder:
 
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
-            "on_success_callback",
             "on_execute_callback",
+            "on_success_callback",
             "on_failure_callback",
             "on_retry_callback",
+            "on_skipped_callback",  # This is only available AIRFLOW_VERSION >= 2.7.0
         ]:
+            # on_skipped_callback can only be added to the default_args of a TaskGroup for AIRFLOW_VERSION >= 2.7.0
+            if callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"):
+                continue
+
             # First, check for a str, str with params, or provider callback
             if utils.check_dict_key(task_group_conf["default_args"], callback_type):
                 task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
@@ -996,7 +1004,7 @@ class DagBuilder:
         :returns: Callable
         """
         # Check Airflow version, raise an exception otherwise
-        if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):  # TODO: Look closer at this
+        if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
             raise DagFactoryException("Cannot parse callbacks with an Airflow version less than 2.0.0.")
 
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
