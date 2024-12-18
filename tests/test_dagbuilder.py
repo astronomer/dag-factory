@@ -799,6 +799,7 @@ def test_dag_with_task_group_callbacks_default_args():
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
         assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
+        print(dag.task_dict["task_group_1.task_1"].__dict__)
         assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
         assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
 
