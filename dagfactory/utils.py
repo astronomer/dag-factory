@@ -274,6 +274,7 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
         logging.error("Error: File '%s' not found.", file_path)
         raise
 
+
 def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict[str, str]:
     """
     Retrieves the URIs of datasets from a YAML file based on a given filter.
@@ -291,8 +292,8 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
 
             datasets = data.get("datasets", [])
             datasets_result_dict = {
-                dataset["name"]: dataset["uri"] 
-                for dataset in datasets 
+                dataset["name"]: dataset["uri"]
+                for dataset in datasets
                 if dataset["name"] in datasets_filter and "uri" in dataset
             }
             return datasets_result_dict
@@ -300,5 +301,6 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
         logging.error("Error: File '%s' not found.", file_path)
         raise
 
+
 def make_valid_variable_name(uri):
-    return re.sub(r'\W|^(?=\d)', '_', uri)
+    return re.sub(r"\W|^(?=\d)", "_", uri)
