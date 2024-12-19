@@ -9,7 +9,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Callable, Dict, List, Union, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
