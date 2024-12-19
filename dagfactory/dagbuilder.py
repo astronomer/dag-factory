@@ -9,7 +9,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
@@ -213,8 +213,7 @@ class DagBuilder:
             dag_params, "on_success_callback_file"
         ):
             dag_params["on_success_callback"]: Callable = utils.get_python_callable(
-                dag_params["on_success_callback_name"],
-                dag_params["on_success_callback_file"],
+                dag_params["on_success_callback_name"], dag_params["on_success_callback_file"]
             )
 
         if utils.check_dict_key(dag_params, "on_failure_callback_name") and utils.check_dict_key(
@@ -317,8 +316,7 @@ class DagBuilder:
                     )
                 if not task_params.get("python_callable"):
                     task_params["python_callable"]: Callable = utils.get_python_callable(
-                        task_params["python_callable_name"],
-                        task_params["python_callable_file"],
+                        task_params["python_callable_name"], task_params["python_callable_file"]
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -336,8 +334,7 @@ class DagBuilder:
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get("success_check_name"):
                     task_params["success"]: Callable = utils.get_python_callable(
-                        task_params["success_check_name"],
-                        task_params["success_check_file"],
+                        task_params["success_check_name"], task_params["success_check_file"]
                     )
                     del task_params["success_check_name"]
                     del task_params["success_check_file"]
@@ -349,8 +346,7 @@ class DagBuilder:
                 # Failure checks
                 if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
                     task_params["failure"]: Callable = utils.get_python_callable(
-                        task_params["failure_check_name"],
-                        task_params["failure_check_file"],
+                        task_params["failure_check_name"], task_params["failure_check_file"]
                     )
                     del task_params["failure_check_name"]
                     del task_params["failure_check_file"]
@@ -371,8 +367,7 @@ class DagBuilder:
                     )
                 if task_params.get("response_check_file"):
                     task_params["response_check"]: Callable = utils.get_python_callable(
-                        task_params["response_check_name"],
-                        task_params["response_check_file"],
+                        task_params["response_check_name"], task_params["response_check_file"]
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -461,11 +456,7 @@ class DagBuilder:
                 utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
             ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
                 # Getting expand and partial kwargs from task_params
-                (
-                    task_params,
-                    expand_kwargs,
-                    partial_kwargs,
-                ) = utils.get_expand_partial_kwargs(task_params)
+                (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
 
                 # If there are partial_kwargs we should merge them with existing task_params
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
@@ -505,12 +496,7 @@ class DagBuilder:
             return task_group_conf
 
         default_args = task_group_conf["default_args"]
-        callback_keys = [
-            "on_success_callback",
-            "on_execute_callback",
-            "on_failure_callback",
-            "on_retry_callback",
-        ]
+        callback_keys = ["on_success_callback", "on_execute_callback", "on_failure_callback", "on_retry_callback"]
 
         for key in callback_keys:
             if key in default_args and isinstance(default_args[key], str):
@@ -624,6 +610,104 @@ class DagBuilder:
                     task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
 
+    @staticmethod
+    def evaluate_condition_with_datasets(condition_string: str, datasets_filter: List[str]) -> Any:
+        """
+        Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
+
+        :param condition_string: A string representing the logical condition to evaluate.
+            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
+        :type condition_string: str
+        :param datasets_filter: A list of dataset URIs to be evaluated in the condition.
+        :type datasets_filter: List[str]
+
+        :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
+        :rtype: Any
+        """
+        dataset_map = {}
+        for uri in datasets_filter:
+            valid_variable_name = utils.make_valid_variable_name(uri)
+            condition_string = condition_string.replace(uri, valid_variable_name)
+            dataset_map[valid_variable_name] = Dataset(uri)
+        evaluated_condition = eval(condition_string, {}, dataset_map)
+        return evaluated_condition
+
+    @staticmethod
+    def process_file_with_datasets(
+        file: str, datasets_filter: List[str], condition_string: Optional[str] = None
+    ) -> Any:
+        """
+        Processes datasets from a file and evaluates conditions if provided.
+
+        :param file: The file path containing dataset information in a YAML or other structured format.
+        :type file: str
+        :param datasets_filter: A list of dataset names to filter and process.
+        :type datasets_filter: List[str]
+        :param condition_string: A logical condition string to evaluate using the datasets.
+            If not provided, the function returns a list of `Dataset` objects based on the file and filter.
+            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
+        :type condition_string: Optional[str]
+
+        :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
+        :rtype: Any
+        """
+        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
+        if condition_string and is_airflow_version_at_least_2_9:
+            map_datasets = utils.get_datasets_map_uri_yaml_file(file, datasets_filter)
+            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
+            return eval(condition_string, {}, dataset_map)
+        else:
+            datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+            return [Dataset(uri) for uri in datasets_uri]
+
+    @staticmethod
+    def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
+        """
+        Configures the schedule for the DAG based on parameters and the Airflow version.
+
+        :param dag_params: A dictionary containing DAG parameters, including scheduling configuration.
+            Example: {"schedule": {"file": "datasets.yaml", "datasets": ["dataset_1"], "conditions": "dataset_1 & dataset_2"}}
+        :type dag_params: Dict[str, Any]
+        :param dag_kwargs: A dictionary for setting the resulting schedule configuration for the DAG.
+        :type dag_kwargs: Dict[str, Any]
+
+        :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
+        :returns: None. The function updates `dag_kwargs` in-place.
+        """
+        is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
+        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
+        has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
+        has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
+
+        if has_schedule_attr and not has_schedule_interval_attr and is_airflow_version_at_least_2_4:
+            schedule: Dict[str, Any] = dag_params.get("schedule")
+
+            has_file_attr = utils.check_dict_key(schedule, "file")
+            has_datasets_attr = utils.check_dict_key(schedule, "datasets")
+            has_conditions_attr = utils.check_dict_key(schedule, "conditions")
+
+            if has_file_attr and has_datasets_attr:
+                file = schedule.get("file")
+                datasets_filter = schedule.get("datasets")
+                condition_string = schedule.get("conditions")
+
+                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_filter, condition_string)
+
+            elif has_conditions_attr and has_datasets_attr and is_airflow_version_at_least_2_9:
+                datasets_filter = schedule["datasets"]
+                condition_string = schedule["conditions"]
+                dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(condition_string, datasets_filter)
+
+            else:
+                dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
+
+            if has_file_attr:
+                schedule.pop("file")
+            if has_datasets_attr:
+                schedule.pop("datasets")
+            if has_conditions_attr:
+                schedule.pop("conditions")
+
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -645,8 +729,7 @@ class DagBuilder:
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
             dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks",
-                configuration.conf.getint("core", "max_active_tasks_per_dag"),
+                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
             )
 
             if dag_params.get("timetable"):
@@ -664,8 +747,7 @@ class DagBuilder:
         )
 
         dag_kwargs["max_active_runs"] = dag_params.get(
-            "max_active_runs",
-            configuration.conf.getint("core", "max_active_runs_per_dag"),
+            "max_active_runs", configuration.conf.getint("core", "max_active_runs_per_dag")
         )
 
         dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
@@ -698,24 +780,7 @@ class DagBuilder:
 
         dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
 
-        if (
-            utils.check_dict_key(dag_params, "schedule")
-            and not utils.check_dict_key(dag_params, "schedule_interval")
-            and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
-        ):
-            if utils.check_dict_key(dag_params["schedule"], "file") and utils.check_dict_key(
-                dag_params["schedule"], "datasets"
-            ):
-                file = dag_params["schedule"]["file"]
-                datasets_filter = dag_params["schedule"]["datasets"]
-                datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
-
-                del dag_params["schedule"]["file"]
-                del dag_params["schedule"]["datasets"]
-            else:
-                datasets_uri = dag_params["schedule"]
-
-            dag_kwargs["schedule"] = [Dataset(uri) for uri in datasets_uri]
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
 
@@ -730,8 +795,7 @@ class DagBuilder:
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get("doc_md_python_callable_name"):
             doc_md_callable = utils.get_python_callable(
-                dag_params.get("doc_md_python_callable_name"),
-                dag_params.get("doc_md_python_callable_file"),
+                dag_params.get("doc_md_python_callable_name"), dag_params.get("doc_md_python_callable_file")
             )
             dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
 
@@ -860,8 +924,7 @@ class DagBuilder:
             task_params, "execution_date_fn_file"
         ):
             task_params["execution_date_fn"]: Callable = utils.get_python_callable(
-                task_params["execution_date_fn_name"],
-                task_params["execution_date_fn_file"],
+                task_params["execution_date_fn_name"], task_params["execution_date_fn_file"]
             )
             del task_params["execution_date_fn_name"]
             del task_params["execution_date_fn_file"]
@@ -917,8 +980,7 @@ class DagBuilder:
         # Fetch the Python callable
         if set(mandatory_keys_set1).issubset(task_params):
             python_callable: Callable = utils.get_python_callable(
-                task_params["python_callable_name"],
-                task_params["python_callable_file"],
+                task_params["python_callable_name"], task_params["python_callable_file"]
             )
             # Remove dag-factory specific parameters since Airflow 2.0 doesn't allow these to be passed to operator
             del task_params["python_callable_name"]
