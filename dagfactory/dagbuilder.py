@@ -623,12 +623,9 @@ class DagBuilder:
                 if task_id in tasks_dict:
                     task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
-    
+
     @staticmethod
-    def evaluate_condition_with_datasets(
-        condition_string: str, 
-        datasets_filter: List[str]
-    ) -> Any:
+    def evaluate_condition_with_datasets(condition_string: str, datasets_filter: List[str]) -> Any:
         """
         Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
 
@@ -670,14 +667,12 @@ class DagBuilder:
         """
         if condition_string:
             map_datasets = utils.get_datasets_map_uri_yaml_file(file, datasets_filter)
-            dataset_map = {
-                alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()
-            }
+            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
             return eval(condition_string, {}, dataset_map)
         else:
             datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
             return [Dataset(uri) for uri in datasets_uri]
-    
+
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
@@ -688,11 +683,12 @@ class DagBuilder:
         :type dag_params: Dict[str, Any]
         :param dag_kwargs: A dictionary for setting the resulting schedule configuration for the DAG.
         :type dag_kwargs: Dict[str, Any]
-        
+
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
         is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
+        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
         has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
         has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
 
@@ -706,34 +702,25 @@ class DagBuilder:
             if has_file_attr and has_datasets_attr:
                 file = schedule.get("file")
                 datasets_filter = schedule.get("datasets")
-                condition_string = schedule.get("conditions") if has_conditions_attr else None
+                condition_string = schedule.get("conditions")
 
-                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(
-                    file, datasets_filter, condition_string
-                )
+                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_filter, condition_string)
 
-                # Remove processed keys from the schedule
-                schedule.pop("file", None)
-                schedule.pop("datasets", None)
-                if has_conditions_attr:
-                    schedule.pop("conditions", None)
-
-            # Process condition-based schedules directly from datasets
             elif has_conditions_attr and has_datasets_attr:
                 datasets_filter = schedule["datasets"]
                 condition_string = schedule["conditions"]
 
-                # Evaluate the condition and set the schedule
-                dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(
-                    condition_string, datasets_filter
-                )
+                if is_airflow_version_at_least_2_9:
+                    dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(
+                        condition_string, datasets_filter
+                    )
 
-                # Remove the processed condition key
-                schedule.pop("conditions", None)
-
-            # Handle basic schedules with direct dataset URIs
             else:
                 dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
+
+            schedule.pop("file", None)
+            schedule.pop("datasets", None)
+            schedule.pop("conditions", None)
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
