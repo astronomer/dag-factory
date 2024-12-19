@@ -213,8 +213,7 @@ class DagBuilder:
             dag_params, "on_success_callback_file"
         ):
             dag_params["on_success_callback"]: Callable = utils.get_python_callable(
-                dag_params["on_success_callback_name"],
-                dag_params["on_success_callback_file"],
+                dag_params["on_success_callback_name"], dag_params["on_success_callback_file"]
             )
 
         if utils.check_dict_key(dag_params, "on_failure_callback_name") and utils.check_dict_key(
@@ -317,8 +316,7 @@ class DagBuilder:
                     )
                 if not task_params.get("python_callable"):
                     task_params["python_callable"]: Callable = utils.get_python_callable(
-                        task_params["python_callable_name"],
-                        task_params["python_callable_file"],
+                        task_params["python_callable_name"], task_params["python_callable_file"]
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -336,8 +334,7 @@ class DagBuilder:
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get("success_check_name"):
                     task_params["success"]: Callable = utils.get_python_callable(
-                        task_params["success_check_name"],
-                        task_params["success_check_file"],
+                        task_params["success_check_name"], task_params["success_check_file"]
                     )
                     del task_params["success_check_name"]
                     del task_params["success_check_file"]
@@ -349,8 +346,7 @@ class DagBuilder:
                 # Failure checks
                 if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
                     task_params["failure"]: Callable = utils.get_python_callable(
-                        task_params["failure_check_name"],
-                        task_params["failure_check_file"],
+                        task_params["failure_check_name"], task_params["failure_check_file"]
                     )
                     del task_params["failure_check_name"]
                     del task_params["failure_check_file"]
@@ -371,8 +367,7 @@ class DagBuilder:
                     )
                 if task_params.get("response_check_file"):
                     task_params["response_check"]: Callable = utils.get_python_callable(
-                        task_params["response_check_name"],
-                        task_params["response_check_file"],
+                        task_params["response_check_name"], task_params["response_check_file"]
                     )
                     # remove dag-factory specific parameters
                     # Airflow 2.0 doesn't allow these to be passed to operator
@@ -461,11 +456,7 @@ class DagBuilder:
                 utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
             ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
                 # Getting expand and partial kwargs from task_params
-                (
-                    task_params,
-                    expand_kwargs,
-                    partial_kwargs,
-                ) = utils.get_expand_partial_kwargs(task_params)
+                (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
 
                 # If there are partial_kwargs we should merge them with existing task_params
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
@@ -505,12 +496,7 @@ class DagBuilder:
             return task_group_conf
 
         default_args = task_group_conf["default_args"]
-        callback_keys = [
-            "on_success_callback",
-            "on_execute_callback",
-            "on_failure_callback",
-            "on_retry_callback",
-        ]
+        callback_keys = ["on_success_callback", "on_execute_callback", "on_failure_callback", "on_retry_callback"]
 
         for key in callback_keys:
             if key in default_args and isinstance(default_args[key], str):
@@ -718,9 +704,12 @@ class DagBuilder:
             else:
                 dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
 
-            schedule.pop("file", None)
-            schedule.pop("datasets", None)
-            schedule.pop("conditions", None)
+            if has_file_attr:
+                schedule.pop("file")
+            if has_datasets_attr:
+                schedule.pop("datasets")
+            if has_conditions_attr:
+                schedule.pop("conditions")
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
@@ -743,8 +732,7 @@ class DagBuilder:
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
             dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks",
-                configuration.conf.getint("core", "max_active_tasks_per_dag"),
+                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
             )
 
             if dag_params.get("timetable"):
@@ -762,8 +750,7 @@ class DagBuilder:
         )
 
         dag_kwargs["max_active_runs"] = dag_params.get(
-            "max_active_runs",
-            configuration.conf.getint("core", "max_active_runs_per_dag"),
+            "max_active_runs", configuration.conf.getint("core", "max_active_runs_per_dag")
         )
 
         dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
@@ -811,8 +798,7 @@ class DagBuilder:
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get("doc_md_python_callable_name"):
             doc_md_callable = utils.get_python_callable(
-                dag_params.get("doc_md_python_callable_name"),
-                dag_params.get("doc_md_python_callable_file"),
+                dag_params.get("doc_md_python_callable_name"), dag_params.get("doc_md_python_callable_file")
             )
             dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
 
@@ -941,8 +927,7 @@ class DagBuilder:
             task_params, "execution_date_fn_file"
         ):
             task_params["execution_date_fn"]: Callable = utils.get_python_callable(
-                task_params["execution_date_fn_name"],
-                task_params["execution_date_fn_file"],
+                task_params["execution_date_fn_name"], task_params["execution_date_fn_file"]
             )
             del task_params["execution_date_fn_name"]
             del task_params["execution_date_fn_file"]
@@ -998,8 +983,7 @@ class DagBuilder:
         # Fetch the Python callable
         if set(mandatory_keys_set1).issubset(task_params):
             python_callable: Callable = utils.get_python_callable(
-                task_params["python_callable_name"],
-                task_params["python_callable_file"],
+                task_params["python_callable_name"], task_params["python_callable_file"]
             )
             # Remove dag-factory specific parameters since Airflow 2.0 doesn't allow these to be passed to operator
             del task_params["python_callable_name"]

@@ -84,10 +84,7 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 yaml.add_constructor("!join", __join, yaml.FullLoader)
                 config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(
-                    stream=config_with_env,
-                    Loader=yaml.FullLoader,
-                )
+                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
@@ -177,9 +174,7 @@ class DagFactory:
 
 
 def load_yaml_dags(
-    globals_dict: Dict[str, Any],
-    dags_folder: str = airflow_conf.get("core", "dags_folder"),
-    suffix=None,
+    globals_dict: Dict[str, Any], dags_folder: str = airflow_conf.get("core", "dags_folder"), suffix=None
 ):
     """
     Loads all the yaml/yml files in the dags folder
