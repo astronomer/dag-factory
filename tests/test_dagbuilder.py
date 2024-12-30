@@ -9,7 +9,7 @@ import pytest
 from airflow import DAG
 from packaging import version
 
-from dagfactory.dagbuilder import Dataset
+from dagfactory.dagbuilder import Dataset, DagBuilder, DagFactoryConfigException
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -638,6 +638,33 @@ def empty_callback_with_params(context, param_1, param_2, **kwargs):
     # Context is the first parameter passed into the callback
     print(param_1)
     print(param_2)
+
+
+# Test the set_callback() static method
+@pytest.mark.callbacks
+def test_set_callback_exceptions():
+    """
+    test_set_callback_exceptions
+
+    Validate that exceptions are being throw for an incompatible version of Airflow, as well as for an invalid type
+    passed to the parameter config.
+    """
+    # Test a versioning exception
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
+        error_message = "Cannot parse callbacks with an Airflow version less than 2.0.0"
+        with pytest.raises(DagFactoryConfigException, match=error_message):
+            DagBuilder.set_callback(
+                parameters={"dummy_key": "dummy_value"},
+                callback_type="on_execute_callback",
+            )
+
+    # Now, test an exception parsing the parameters dictionary
+    invalid_type_passed_message = "Invalid type passed to on_execute_callback"
+    with pytest.raises(DagFactoryConfigException, match=invalid_type_passed_message):
+        DagBuilder.set_callback(
+            parameters={"on_execute_callback": ["callback_1", "callback_2", "callback_3"]},
+            callback_type="on_execute_callback"
+        )
 
 
 @pytest.mark.callbacks
