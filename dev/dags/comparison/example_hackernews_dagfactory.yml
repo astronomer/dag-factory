@@ -1,6 +1,6 @@
 example_hackernews_dagfactory:
   default_args:
-    start_date: 1 day
+    start_date: 2022-03-04
   tasks:
     fetch_top_ten_news:
       operator: airflow.operators.bash_operator.BashOperator
