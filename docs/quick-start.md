@@ -1,6 +1,6 @@
-# DAG Factory
+# DAG Factory Quick Start Guide
 
-**DAG Factory** is a library for [Apache Airflow®](https://airflow.apache.org) that allows you to construct DAGs declaratively via configuration files.
+**DAG Factory** is a Python library [Apache Airflow®](https://airflow.apache.org) that simplifies DAG creation using declarative YAML configuration files.
 
 # Prerequisites
 
@@ -9,35 +9,57 @@ The minimum requirements for **dag-factory** are:
 - Python 3.8.0+
 - [Apache Airflow®](https://airflow.apache.org) 2.0+
 
+# Step 1: Create a Virtual Environment
 
-> **Note:** We will use the [astro-cli](https://www.astronomer.io/docs/astro/cli/overview) tool to set up the Airflow environment.
-
-
-# Initialize Apache Airflow Project
-
-To initialize your [Apache Airflow®](https://airflow.apache.org) project using astro-cli, follow these steps:
+First, create and activate a virtual environment:
 
 ```commandline
-mkdir dag-factory-quick-start && cd dag-factory-quick-start
-
-astro dev init
+python3 -m venv dagfacotry_env
+source dagfacotry_env/bin/activate
 ```
 
-This command will create the necessary Apache [Apache Airflow®](https://airflow.apache.org) project structure. After running it, the directory structure should look like the one below:
+# Step 2: Install Apache Airflow
 
-![Astro Airflow Project](./static/images/astro-airflow-dir.png)
+Next, you'll need to install [Apache Airflow®](https://airflow.apache.org). Follow these steps:
 
+1. Create a directory for your project and navigate to it:
 
-# Install DAG Factory
+    ```commandline
+    mkdir dag-factory-quick-start && cd dag-factory-quick-start
+    ```
 
-To install DAG Factory in your Airflow environment
+2. Set the `AIRFLOW_HOME` environment variable:
 
-1. Add ``dag-factory`` as a dependency to the ``requirements.txt`` file created during the project initialization.
+    ```commandline
+    export AIRFLOW_HOME=$(pwd)
+    export AIRFLOW__CORE__LOAD_EXAMPLES=False
+    ```
 
+3. Install Apache Airflow:
 
-# Example DAG
+    ```commandline
+    pip install apache-airflow
+    ```
 
-**DAG Factory** uses YAML files to define DAG configurations. Create a file named ``example_dag_factory.yml`` in the ``dags`` folder with the following configuration:
+# Step 3: Install DAG Factory
+
+Now, install the DAG Factory library in your virtual environment:
+
+```commandline
+pip install dag-factory
+```
+
+# Step 4: Set Up the DAGS Folder
+
+Create a dags folder inside the $AIRFLOW_HOME directory, which is where your DAGs will be stored:
+
+```commandline
+mkdir dags
+```
+
+# Step 5: Define a DAG in YAML
+
+**DAG Factory** uses YAML files to define DAG configurations. Create a file named `example_dag_factory.yml` in the `$AIRFLOW_HOME/dags` folder with the following content:
 
 ```yaml
 default:
@@ -65,7 +87,9 @@ example_dag:
       dependencies: [task_1]
 ```
 
-Next, create a Python script named ``example_dag_factory_dag.py`` in the ``dags`` folder to generate the DAG from the YAML configuration:
+# Step 6: Generate the DAG from YAML
+
+Create a Python script named `example_dag_factory_dag.py` in the `$AIRFLOW_HOME/dags` folder. This script will generate the DAG from the YAML configuration
 
 ```python
 import os
@@ -75,10 +99,9 @@ from pathlib import Path
 # from airflow import DAG
 import dagfactory
 
-DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
-CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
+CONFIG_ROOT_DIR = Path(os.getenv("AIRFLOW_HOME", ""))
 
-config_file = str(CONFIG_ROOT_DIR / "example_dag_factory.yml")
+config_file = str(CONFIG_ROOT_DIR / "dags/example_dag_factory.yml")
 
 example_dag_factory = dagfactory.DagFactory(config_file)
 
@@ -87,15 +110,19 @@ example_dag_factory.clean_dags(globals())
 example_dag_factory.generate_dags(globals())
 ```
 
-# Start Airflow Project
+# Step 7: Start the Airflow
 
 To start the Airflow environment with your DAG Factory setup, run the following command:
 
 ```commandline
-astro dev start
+airflow standalone
 ```
 
 This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at http://localhost:8080 🚀.
+
+# View Your Generated DAG
+
+Once Airflow is up and running, you can log in with the username `admin` and the password in `$AIRFLOW_HOME/standalone_admin_password.txt`. You should be able to see your generated DAG in the Airflow UI.
 
 **Generated DAG's**
 
@@ -104,7 +131,6 @@ This will take a few minutes to set up. Once completed, you can access the Airfl
 **Graph View**
 
 ![Airflow Home](./static/images/airflow-dag.png)
-
 
 
 Checkout [examples](https://github.com/astronomer/dag-factory/tree/main/dev/dags) for more advance DAG.
