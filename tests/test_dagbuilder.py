@@ -624,7 +624,8 @@ def test_build():
     assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
-    assert actual["dag"].dag_display_name == "Pretty example dag"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
+        assert actual["dag"].dag_display_name == "Pretty example dag"
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
         assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
 
