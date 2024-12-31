@@ -8,9 +8,9 @@ Are you new to DAG Factory? This is the place to start!
 
 * [DAG Factory at a glance]()
 * [Install guide]()
-* [Using YAML instead of Python]()
-    * [Traditional Airflow Operators]()
-    * [TaskFlow API]()
+* [Using YAML instead of Python](./comparison/index.md)
+    * [Traditional Airflow Operators](./comparison/traditional_operators.md)
+    * [TaskFlow API](./comparison/taskflow_api.md)
 
 
 ## Features
