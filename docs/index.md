@@ -1,6 +1,6 @@
 # DAG Factory documentation
 
-Everything you need to know about how to build Airflow workflows using YAML files.
+Everything you need to know about how to build Apache Airflow® workflows using YAML files.
 
 ## Getting started
 
