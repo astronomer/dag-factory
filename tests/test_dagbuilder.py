@@ -65,6 +65,7 @@ DAG_CONFIG = {
     "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
+    "dag_display_name": "Pretty example dag",
     "schedule_interval": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
@@ -374,6 +375,7 @@ def test_get_dag_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     expected = {
         "doc_md": "##here is a doc md string",
+        "dag_display_name": "Pretty example dag",
         "dag_id": "test_dag",
         "default_args": {
             "owner": "custom_owner",
@@ -622,6 +624,7 @@ def test_build():
     assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
+    assert actual["dag"].dag_display_name == "Pretty example dag"
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
         assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
 
