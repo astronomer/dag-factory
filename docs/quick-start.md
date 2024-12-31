@@ -122,7 +122,7 @@ This will take a few minutes to set up. Once completed, you can access the Airfl
 
 # View Your Generated DAG
 
-Once Airflow is up and running, you can log in with the username `admin` and the password in `$AIRFLOW_HOME/standalone_admin_password.txt`. You should be able to see your generated DAG in the Airflow UI.
+Once Airflow is up and running, you can login with the username `admin` and the password in `$AIRFLOW_HOME/standalone_admin_password.txt`. You should be able to see your generated DAG in the Airflow UI.
 
 **Generated DAG's**
 
