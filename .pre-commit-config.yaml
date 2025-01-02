@@ -40,13 +40,14 @@ repos:
       - id: codespell
         exclude: tests/fixtures/mydocfile.md
 
-  - repo: https://github.com/markdownlint/markdownlint
-    rev: v0.13.0
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
     hooks:
       - id: markdownlint
         args:
-          - "--rule"
-          - "MD013:line_length=120"
+          - "--disable=MD013"  # disable line length
+          - "--disable=MD024"  # disable multiple headings with the same content (CHANGELOG)
+          - "--disable=MD033"  # disable no inline html (needed for analytics dead pixel)
 
   - repo: https://github.com/tcort/markdown-link-check
     rev: v3.13.6
