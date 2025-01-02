@@ -8,23 +8,25 @@
 
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
 
-Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files.
+Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs
+declaratively via configuration files.
 
 The minimum requirements for **dag-factory** are:
 - Python 3.8.0+
 - [Apache Airflow®](https://airflow.apache.org) 2.0+
 
-For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the [examples](/examples) folder.
+For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the
+[examples](/examples) folder.
 
 - [Quickstart](#quickstart)
 - [Features](#features)
-  - [Multiple Configuration Files](#multiple-configuration-files)
-  - [Dynamically Mapped Tasks](#dynamically-mapped-tasks)
-  - [Datasets](#datasets)
-  - [Custom Operators](#custom-operators)
+   - [Multiple Configuration Files](#multiple-configuration-files)
+   - [Dynamically Mapped Tasks](#dynamically-mapped-tasks)
+   - [Datasets](#datasets)
+   - [Custom Operators](#custom-operators)
 - [Benefits](#benefits)
 - [Notes](#notes)
-  - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
+   - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
 - [Contributing](#contributing)
 
 ## Quickstart
@@ -247,10 +249,10 @@ task_2:
 
 ## Benefits
 
-* Construct DAGs without knowing Python
-* Construct DAGs without learning Airflow primitives
-* Avoid duplicative code
-* Everyone loves YAML! ;)
+- Construct DAGs without knowing Python
+- Construct DAGs without learning Airflow primitives
+- Avoid duplicative code
+- Everyone loves YAML! ;)
 
 ## Contributing
 

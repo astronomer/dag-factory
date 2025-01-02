@@ -27,6 +27,7 @@ repos:
       - id: detect-private-key
       - id: detect-aws-credentials
         args: [ "--allow-missing-credentials" ]
+
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
@@ -43,6 +44,9 @@ repos:
     rev: v0.13.0
     hooks:
       - id: markdownlint
+        args:
+          - "--rule"
+          - "MD013:line_length=120"
 
   - repo: https://github.com/tcort/markdown-link-check
     rev: v3.13.6
