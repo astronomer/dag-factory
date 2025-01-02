@@ -7,6 +7,8 @@ Everything you need to know about how to build Apache Airflow® workflows using 
 Are you new to DAG Factory? This is the place to start!
 
 * DAG Factory at a glance
+    * [Quickstart with Airflow standalone](quick-start-airflow-standalone.md)
+    * [Quickstart with Astro CLI](quick-start-astro-cli.md)
 * Install guide
 * Using YAML instead of Python
   * Traditional Airflow Operators]
