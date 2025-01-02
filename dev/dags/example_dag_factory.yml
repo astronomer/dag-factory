@@ -3,7 +3,7 @@ default:
     catchup: false,
     start_date: 2024-11-11
 
-example_dag:
+basic_example_dag:
   default_args:
     owner: "custom_owner"
   description: "this is an example dag"
