@@ -35,13 +35,6 @@ def test_visit_BinOp_or(visitor):
     expected = 1 | 3
     assert result == expected
 
-def test_visit_UnaryOp_not(visitor):
-    condition_string = "~dataset_custom_1"
-    tree = ast.parse(condition_string, mode='eval')
-    result = visitor.evaluate(tree)
-    expected = ~1
-    assert result == expected
-
 def test_visit_Name(visitor):
     condition_string = "dataset_custom_2"
     tree = ast.parse(condition_string, mode='eval')

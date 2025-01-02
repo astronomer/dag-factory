@@ -22,13 +22,6 @@ class SafeEvalVisitor(ast.NodeVisitor):
         else:
             raise ValueError(f"Unsupported binary operation: {type(node.op).__name__}")
 
-    def visit_UnaryOp(self, node):
-        operand = self.visit(node.operand)
-        if isinstance(node.op, ast.Not):
-            return ~operand
-        else:
-            raise ValueError(f"Unsupported unary operation: {type(node.op).__name__}")
-
     def visit_Name(self, node):
         if node.id in self.dataset_map:
             return self.dataset_map[node.id]
