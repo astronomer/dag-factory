@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
+from airflow import settings
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
@@ -35,6 +36,28 @@ class DagFactory:
             self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
+
+    @staticmethod
+    def _global_default_args():
+        default_args_yml = Path(settings.DAGS_FOLDER) / "defaults.yml"
+
+        if default_args_yml.exists():
+            with open(default_args_yml, "r") as file:
+                return yaml.safe_load(file)
+
+    def deep_merge(self, dict1, dict2):
+        for key, value in dict2.items():
+            if isinstance(value, dict) and key in dict1 and isinstance(dict1[key], dict):
+                dict1[key] = self.deep_merge(dict1[key], value)
+            else:
+                dict1[key] = value
+        return dict1
+
+    def _merge_default_args(self):
+        global_default_args = self._global_default_args()
+        default_config: Dict[str, Any] = self.get_default_config()
+
+        return self.deep_merge(global_default_args, default_config)
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -111,7 +134,7 @@ class DagFactory:
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
-        default_config: Dict[str, Any] = self.get_default_config()
+        default_config: Dict[str, Any] = self._merge_default_args()
 
         dags: Dict[str, Any] = {}
 
