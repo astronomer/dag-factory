@@ -627,7 +627,7 @@ class DagBuilder:
         :returns: The result of evaluating the condition.
         :rtype: Any
         """
-        tree = ast.parse(condition_string, mode='eval')
+        tree = ast.parse(condition_string, mode="eval")
         evaluator = parsers.SafeEvalVisitor(dataset_map)
         return evaluator.evaluate(tree)
 
@@ -659,9 +659,7 @@ class DagBuilder:
         return evaluated_condition
 
     @staticmethod
-    def process_file_with_datasets(
-        file: str, datasets: Union[List[str], str]
-    ) -> Any:
+    def process_file_with_datasets(file: str, datasets: Union[List[str], str]) -> Any:
         """
         Processes datasets from a file and evaluates conditions if provided.
 

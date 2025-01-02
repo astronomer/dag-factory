@@ -78,7 +78,7 @@ class DagFactory:
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
-            
+
             def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return " | ".join([f"({str(i)})" for i in seq])

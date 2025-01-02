@@ -15,16 +15,16 @@ class SafeEvalVisitor(ast.NodeVisitor):
         left = self.visit(node.left)
         right = self.visit(node.right)
 
-        if isinstance(node.op, ast.BitAnd):  
+        if isinstance(node.op, ast.BitAnd):
             return left & right
-        elif isinstance(node.op, ast.BitOr):  
+        elif isinstance(node.op, ast.BitOr):
             return left | right
         else:
             raise ValueError(f"Unsupported binary operation: {type(node.op).__name__}")
 
     def visit_UnaryOp(self, node):
         operand = self.visit(node.operand)
-        if isinstance(node.op, ast.Not):  
+        if isinstance(node.op, ast.Not):
             return ~operand
         else:
             raise ValueError(f"Unsupported unary operation: {type(node.op).__name__}")
