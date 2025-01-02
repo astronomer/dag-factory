@@ -4,6 +4,6 @@ from .dagfactory import DagFactory, load_yaml_dags
 
 __version__ = "0.21.0"
 __all__ = [
-    "DagFactory", 
+    "DagFactory",
     "load_yaml_dags",
 ]
