@@ -37,6 +37,7 @@ repos:
     rev: v2.2.4
     hooks:
       - id: codespell
+        exclude: tests/fixtures/mydocfile.md
 
   - repo: https://github.com/markdownlint/markdownlint
     rev: v0.13.0
