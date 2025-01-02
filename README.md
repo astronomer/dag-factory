@@ -241,7 +241,7 @@ task_2:
   operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'
-  response_check_lambda: 'lambda response: "ok" in reponse.text'
+  response_check_lambda: 'lambda response: "ok" in response.text'
   dependencies: [task_1]
 ```
 
