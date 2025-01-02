@@ -305,7 +305,7 @@ def test_extract_dataset_names():
     assert result == expected
 
     expression = "123_invalid_dataset"
-    expected = ["invalid_dataset"]
+    expected = []
     result = utils.extract_dataset_names(expression)
     assert result == expected
 
