@@ -14,8 +14,8 @@ The minimum requirements for **dag-factory** are:
 First, create and activate a virtual environment:
 
 ```commandline
-python3 -m venv dagfacotry_env
-source dagfacotry_env/bin/activate
+python3 -m venv dagfactory_env
+source dagfactory_env/bin/activate
 ```
 
 # Step 2: Install Apache Airflow
@@ -110,7 +110,7 @@ example_dag_factory.clean_dags(globals())
 example_dag_factory.generate_dags(globals())
 ```
 
-# Step 7: Start the Airflow
+# Step 7: Start Airflow
 
 To start the Airflow environment with your DAG Factory setup, run the following command:
 
@@ -124,7 +124,7 @@ This will take a few minutes to set up. Once completed, you can access the Airfl
 
 Once Airflow is up and running, you can login with the username `admin` and the password in `$AIRFLOW_HOME/standalone_admin_password.txt`. You should be able to see your generated DAG in the Airflow UI.
 
-**Generated DAG's**
+**Generated DAG**
 
 ![Airflow DAG](./static/images/airflow-home.png)
 
@@ -133,4 +133,4 @@ Once Airflow is up and running, you can login with the username `admin` and the 
 ![Airflow Home](./static/images/airflow-dag.png)
 
 
-Checkout [examples](https://github.com/astronomer/dag-factory/tree/main/dev/dags) for more advance DAG.
+Checkout [examples](https://github.com/astronomer/dag-factory/tree/main/dev/dags) for generating more advanced DAGs.
