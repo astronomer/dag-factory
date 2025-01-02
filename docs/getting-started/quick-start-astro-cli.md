@@ -60,10 +60,10 @@ Once Airflow is up and running, you can login with the username `admin` and the 
 
 **Generated DAG**
 
-![Airflow DAG](static/images/airflow-home.png)
+![Airflow DAG](../static/images/airflow-home.png)
 
 **Graph View**
 
-![Airflow Home](static/images/airflow-dag.png)
+![Airflow Home](../static/images/airflow-dag.png)
 
 Checkout [examples](https://github.com/astronomer/dag-factory/tree/main/dev/dags) for generating more advanced DAGs.
