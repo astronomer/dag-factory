@@ -57,8 +57,7 @@ example_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
   schedule:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
-    datasets: ['dataset_custom_1', 'dataset_custom_2', 'dataset_custom_3']
-    conditions: "((dataset_custom_1 & dataset_custom_2) | dataset_custom_3)"
+    datasets: "((dataset_custom_1 & dataset_custom_2) | dataset_custom_3)"
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
@@ -67,8 +66,12 @@ example_custom_config_condition_dataset_consumer_dag:
 example_without_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
   schedule:
-    datasets: ['s3://bucket-cjmm/raw/dataset_custom_1', 's3://bucket-cjmm/raw/dataset_custom_2', 's3://bucket-cjmm/raw/dataset_custom_3']
-    conditions: "((s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2) | s3://bucket-cjmm/raw/dataset_custom_3)"
+    datasets: 
+      !or  
+        - !and  
+          - "s3://bucket-cjmm/raw/dataset_custom_1"  
+          - "s3://bucket-cjmm/raw/dataset_custom_2"
+        - "s3://bucket-cjmm/raw/dataset_custom_3"
   tasks:
     task_1:
       operator: airflow.operators.bash_operator.BashOperator
