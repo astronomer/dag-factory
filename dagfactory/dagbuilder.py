@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+
 # pylint: disable=ungrouped-imports
 import inspect
 import os
@@ -9,7 +11,7 @@ import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
@@ -83,7 +85,7 @@ except ImportError:  # pragma: no cover
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
 
-from dagfactory import utils
+from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 # TimeTable is introduced in Airflow 2.2.0
@@ -611,51 +613,80 @@ class DagBuilder:
         return task_conf
 
     @staticmethod
-    def evaluate_condition_with_datasets(condition_string: str, datasets_filter: List[str]) -> Any:
+    def safe_eval(condition_string: str, dataset_map: dict) -> Any:
+        """
+        Safely evaluates a condition string using the provided dataset map.
+
+        :param condition_string: A string representing the condition to evaluate.
+            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
+        :type condition_string: str
+        :param dataset_map: A dictionary where keys are valid variable names (dataset aliases),
+                             and values are Dataset objects.
+        :type dataset_map: dict
+
+        :returns: The result of evaluating the condition.
+        :rtype: Any
+        """
+        tree = ast.parse(condition_string, mode='eval')
+        evaluator = parsers.SafeEvalVisitor(dataset_map)
+        return evaluator.evaluate(tree)
+
+    @staticmethod
+    def evaluate_condition_with_datasets(datasets: Union[List[str], str]) -> Any:
         """
         Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
 
-        :param condition_string: A string representing the logical condition to evaluate.
-            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
-        :type condition_string: str
-        :param datasets_filter: A list of dataset URIs to be evaluated in the condition.
-        :type datasets_filter: List[str]
+        :param datasets: A list or string of dataset URIs to be evaluated in the condition.
+        :type datasets_filter: Union[List[str], str]
 
         :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
         :rtype: Any
         """
         dataset_map = {}
+        datasets_filter = []
+        condition_string = ""
+        if isinstance(datasets, str):
+            condition_string: str = datasets
+            datasets_filter: List[str] = utils.extract_dataset_names(datasets) + utils.extract_storage_names(datasets)
+        else:
+            datasets_filter: List[str] = datasets
+
         for uri in datasets_filter:
             valid_variable_name = utils.make_valid_variable_name(uri)
             condition_string = condition_string.replace(uri, valid_variable_name)
             dataset_map[valid_variable_name] = Dataset(uri)
-        evaluated_condition = eval(condition_string, {}, dataset_map)
+        evaluated_condition = DagBuilder.safe_eval(condition_string, dataset_map)
         return evaluated_condition
 
     @staticmethod
     def process_file_with_datasets(
-        file: str, datasets_filter: List[str], condition_string: Optional[str] = None
+        file: str, datasets: Union[List[str], str]
     ) -> Any:
         """
         Processes datasets from a file and evaluates conditions if provided.
 
         :param file: The file path containing dataset information in a YAML or other structured format.
         :type file: str
-        :param datasets_filter: A list of dataset names to filter and process.
-        :type datasets_filter: List[str]
-        :param condition_string: A logical condition string to evaluate using the datasets.
-            If not provided, the function returns a list of `Dataset` objects based on the file and filter.
-            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
-        :type condition_string: Optional[str]
+        :param datasets: A list of dataset or string of dataset names to filter and process.
+        :type datasets_filter: Union[List[str], str]
 
         :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
         :rtype: Any
         """
         is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
+        dataset_map = {}
+        condition_string = ""
+        if isinstance(datasets, str):
+            condition_string: str = datasets
+            datasets_filter: List[str] = utils.extract_dataset_names(datasets) + utils.extract_storage_names(datasets)
+        else:
+            datasets_filter: List[str] = datasets
+
         if condition_string and is_airflow_version_at_least_2_9:
             map_datasets = utils.get_datasets_map_uri_yaml_file(file, datasets_filter)
             dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
-            return eval(condition_string, {}, dataset_map)
+            evaluated_condition = DagBuilder.safe_eval(condition_string, dataset_map)
+            return evaluated_condition
         else:
             datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
             return [Dataset(uri) for uri in datasets_uri]
@@ -684,19 +715,15 @@ class DagBuilder:
 
             has_file_attr = utils.check_dict_key(schedule, "file")
             has_datasets_attr = utils.check_dict_key(schedule, "datasets")
-            has_conditions_attr = utils.check_dict_key(schedule, "conditions")
 
             if has_file_attr and has_datasets_attr:
                 file = schedule.get("file")
                 datasets_filter = schedule.get("datasets")
-                condition_string = schedule.get("conditions")
+                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_filter)
 
-                dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_filter, condition_string)
-
-            elif has_conditions_attr and has_datasets_attr and is_airflow_version_at_least_2_9:
+            elif has_datasets_attr and is_airflow_version_at_least_2_9:
                 datasets_filter = schedule["datasets"]
-                condition_string = schedule["conditions"]
-                dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(condition_string, datasets_filter)
+                dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(datasets_filter)
 
             else:
                 dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
@@ -705,8 +732,6 @@ class DagBuilder:
                 schedule.pop("file")
             if has_datasets_attr:
                 schedule.pop("datasets")
-            if has_conditions_attr:
-                schedule.pop("conditions")
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
