@@ -16,18 +16,12 @@ DEFAULT_PYPI_PROJECTS = [
 ]
 
 
+# ----8<---   [ start: pypi_stats ]
+
+
 def get_pypi_projects_list(**kwargs: dict[str, Any]) -> list[str]:
     """
     Return a list of PyPI project names to be analysed.
-
-    If the user defined via parameters, in the Airflow UI, use that. Example of user-defined value:
-        {
-            "pypi_projects": [
-                "apache-airflow"
-            ]
-        }
-
-    Otherwise, uses a pre-defined list of values.
     """
     projects_from_ui = kwargs.get("dag_run").conf.get("pypi_projects") if kwargs.get("dag_run") else None
     if projects_from_ui is None:
@@ -40,10 +34,6 @@ def get_pypi_projects_list(**kwargs: dict[str, Any]) -> list[str]:
 def fetch_pypi_stats_data(package_name: str) -> dict[str, Any]:
     """
     Given a PyPI project name, return the PyPI stats data associated to it.
-
-    Example:
-        >>> fetch_pypi_stats_data("dag-factory")
-        {'last_day': 10078, 'last_month': 354085, 'last_week': 77752, 'package_name': 'dag-factory'}
     """
     url = f"https://pypistats.org/api/packages/{package_name}/recent"
     package_json = httpx.get(url).json()
@@ -55,17 +45,6 @@ def fetch_pypi_stats_data(package_name: str) -> dict[str, Any]:
 def summarize(values: list[dict[str, Any]]):
     """
     Given a list with PyPI stats data, create a table summarizing it, sorting by the last day total downloads.
-
-    Example:
-
-        >>> summarize(stats_data)
-
-        | package_name      |   last_day |   last_month |   last_week |
-        |:------------------|-----------:|-------------:|------------:|
-        | apache-airflow    |     852242 |     28194255 |     6253861 |
-        | astronomer-cosmos |     442531 |     13354870 |     3127750 |
-        | dag-factory       |      10078 |       354085 |       77752 |
-
     """
     df = pd.DataFrame(values)
     first_column = "package_name"
@@ -75,6 +54,8 @@ def summarize(values: list[dict[str, Any]]):
     print(markdown_output)
     return markdown_output
 
+
+# ----8<--- [ end: pypi_stats ]
 
 if __name__ == "__main__":
     pypi_projects_list = get_pypi_projects_list()

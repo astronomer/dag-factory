@@ -19,8 +19,7 @@ Let's say we'd like to create a workflow that performs the following:
 3. Summarize the selected stories Markdown, using Python.
 
 We will implement the first two steps using `BashOperator` and the third step using `PythonOperator`.
-
-The last task of the workflow will use the method `summarize` defined in [hackernews.py](../../dev/dags/hackernews.py) to generate a `Markdown` like the one below:
+The last task will generate a `Markdown` snippet similar to:
 
 ```
 | title                                                                       | url                                                                                                                    |
@@ -28,6 +27,14 @@ The last task of the workflow will use the method `summarize` defined in [hacker
 | I keep turning my Google Sheets into phone-friendly webapps                 | https://arstechnica.com/gadgets/2024/12/making-tiny-no-code-webapps-out-of-spreadsheets-is-a-weirdly-fulfilling-hobby/ |
 | Coconut by Meta AI – Better LLM Reasoning with Chain of Continuous Thought? | https://aipapersacademy.com/chain-of-continuous-thought/                                                               |
 ```
+
+The main logic is implemented as plain Python functions in [hacker_news.py](../../dev/dags/hacker_news.py):
+
+```title="pypi_stats.py"
+--8<-- "dev/dags/hacker_news.py:hacker_news"
+```
+
+
 
 ## Implementation
 
@@ -41,7 +48,7 @@ As a reference, the following workflows run using Airflow 2.10.2 and DAG Factory
 
 ### Alternative DAG Factory YAML
 
-```title="example_hackernews_plain_airflow.py"
+```title="example_hackernews_dagfactory.py"
 --8<-- "dev/dags/comparison/example_hackernews_dagfactory.yml"
 ```
 

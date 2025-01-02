@@ -4,6 +4,8 @@ import json
 
 import pandas as pd
 
+# ----8<---   [ start: hacker_news ]
+
 
 def summarize(**kwargs):
     """
@@ -20,3 +22,6 @@ def summarize(**kwargs):
     markdown_output = df.to_markdown(index=False)
     print(markdown_output)
     return markdown_output
+
+
+# ----8<---   [ end: hacker_news ]

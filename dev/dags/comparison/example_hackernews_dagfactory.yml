@@ -15,5 +15,5 @@ example_hackernews_dagfactory:
       dependencies: [fetch_top_ten_news]
     summarize:
       operator: airflow.operators.python.PythonOperator
-      python_callable: hackernews.summarize
+      python_callable: hacker_news.summarize
       dependencies: [fetch_first_top_news, fetch_second_top_news]

@@ -1,6 +1,6 @@
 example_pypi_stats_dagfactory:
   default_args:
-    start_date: 1 day
+    start_date: 2022-03-04
   tasks:
     get_pypi_projects_list:
       decorator: airflow.decorators.task
