@@ -314,3 +314,9 @@ def extract_storage_names(expression) -> List[str]:
 
 def make_valid_variable_name(uri) -> str:
     return re.sub(r"\W|^(?=\d)", "_", uri)
+
+
+def parse_list_datasets(datasets: Union[List[str], str]) -> str:
+    if isinstance(datasets, list):
+        datasets = " & ".join(datasets)
+    return datasets
