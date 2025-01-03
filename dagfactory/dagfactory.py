@@ -13,8 +13,6 @@ from airflow.models import DAG
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
-# rom dagfactory.utils import merge_configs
-
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
