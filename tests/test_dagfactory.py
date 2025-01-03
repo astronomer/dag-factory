@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-from pathlib import Path
 
 import pytest
 from airflow import __version__ as AIRFLOW_VERSION
@@ -450,8 +449,7 @@ def test_set_callback_after_loading_config():
     td.generate_dags(globals())
 
 
-def test_build_dag_with_global_default(monkeypatch):
-    monkeypatch.setattr(Path, "exists", lambda self: True)
+def test_build_dag_with_global_default():
     dags = dagfactory.DagFactory(
         config=DAG_FACTORY_CONFIG, default_args_config_path=DEFAULT_ARGS_CONFIG_ROOT
     ).build_dags()
