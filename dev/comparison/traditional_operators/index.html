@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Traditional Operators: Using YAML instead of Python - DAG Factory Documentation</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">DAG Factory Documentation</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">DAG Factory documentation</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Comparison</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../" class="dropdown-item">Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="../taskflow_api/" class="dropdown-item">TaskFlow API: Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Traditional Operators: Using YAML instead of Python</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../getting-started/quick-start-airflow-standalone/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../../getting-started/quick-start-astro-cli/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                            <li class="nav-item">
+                                <a rel="prev" href="../taskflow_api/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../getting-started/quick-start-airflow-standalone/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#traditional-operators-using-yaml-instead-of-python" class="nav-link">Traditional Operators: Using YAML instead of Python</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#goal" class="nav-link">Goal</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation" class="nav-link">Implementation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#comparison" class="nav-link">Comparison</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="traditional-operators-using-yaml-instead-of-python">Traditional Operators: Using YAML instead of Python</h1>
+<p>Traditionally, operators are Airflow's building blocks, and while they are robust and diverse,
+they can sometimes lead to boilerplate-heavy DAGs compared to the newer <a href="../taskflow_api/">TaskFlow API</a>.</p>
+<p>Most of the Airflow providers come with built-in traditional operators. Some examples include <code>BashOperator</code>, <code>PythonOperator</code>, <code>KubernetesPodOperator</code>, and  <code>PostgresOperator</code>.</p>
+<p>Below, we illustrate how to represent an Airflow DAG using traditional operators and how to define the same DAG using
+DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
+to declare the workflow: while one uses Python, the other uses YAML.</p>
+<h2 id="goal">Goal</h2>
+<p>Let's say we'd like to create a workflow that performs the following:</p>
+<ol>
+<li>Retrieve the top ten stories from Hacker News using the <a href="https://github.com/HackerNews/API">Hacker News API</a>.</li>
+<li>Fetch the details for the two top stories using the Hacker News API.</li>
+<li>Summarize the selected stories as Markdown, using Python.</li>
+</ol>
+<p>We will implement the first two steps using <code>BashOperator</code> and the third step using <code>PythonOperator</code>.
+The last task will generate a <code>Markdown</code> snippet similar to:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>| title                                                                       | url                                                                                                                    |
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>|:----------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------|
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>| I keep turning my Google Sheets into phone-friendly webapps                 | https://arstechnica.com/gadgets/2024/12/making-tiny-no-code-webapps-out-of-spreadsheets-is-a-weirdly-fulfilling-hobby/ |
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>| Coconut by Meta AI – Better LLM Reasoning with Chain of Continuous Thought? | https://aipapersacademy.com/chain-of-continuous-thought/                                                               |
+</span></code></pre></div>
+<p>The main logic is implemented as plain Python functions in <a href="https://github.com/astronomer/dag-factory/blob/main/dev/dags/hacker_news.py">hacker_news.py</a>:</p>
+<div class="language-text highlight"><span class="filename">pypi_stats.py</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>def summarize(**kwargs):
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    &quot;&quot;&quot;
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    Given the Airflow context is provided to this function, it will extract the XCom hackernews records from its
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    upstream tasks and summarise in Markdown.
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    &quot;&quot;&quot;
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    ti = kwargs[&quot;ti&quot;]
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    upstream_task_ids = ti.task.upstream_task_ids  # Get upstream task IDs dynamically
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    values = [json.loads(ti.xcom_pull(task_ids=task_id)) for task_id in upstream_task_ids]
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    df = pd.DataFrame(values)
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    selected_columns = [&quot;title&quot;, &quot;url&quot;]
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    df = df[selected_columns]
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    markdown_output = df.to_markdown(index=False)
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    print(markdown_output)
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    return markdown_output
+</span></code></pre></div>
+<h2 id="implementation">Implementation</h2>
+<p>As a reference, the following workflows run using Airflow 2.10.2 and DAG Factory 0.21.0.</p>
+<h3 id="plain-airflow-python-dag">Plain Airflow Python DAG</h3>
+<div class="language-text highlight"><span class="filename">example_hackernews_plain_airflow.py</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>from datetime import datetime
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>from airflow.models.dag import DAG
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>from airflow.operators.bash_operator import BashOperator
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>from airflow.operators.python import PythonOperator
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>from hacker_news import summarize
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>with DAG(dag_id=&quot;example_hackernews_plain_airflow&quot;, schedule=None, start_date=datetime(2022, 3, 4)) as dag:
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    fetch_top_ten_news = BashOperator(
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        task_id=&quot;fetch_top_ten_news&quot;,
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        bash_command=&quot;curl -s https://hacker-news.firebaseio.com/v0/topstories.json  | jq -c -r &#39;.[0:10]&#39;&quot;,
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    )
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    fetch_first_top_news = BashOperator(
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>        task_id=&quot;fetch_first_top_news&quot;,
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>        bash_command=&quot;&quot;&quot;
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>            echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[0]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>        &quot;&quot;&quot;,
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    )
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    fetch_second_top_news = BashOperator(
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>        task_id=&quot;fetch_second_news&quot;,
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>        bash_command=&quot;&quot;&quot;
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>            echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[1]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>        &quot;&quot;&quot;,
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>    )
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>    summarize = PythonOperator(task_id=&quot;summarize&quot;, python_callable=summarize)
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>    fetch_top_ten_news &gt;&gt; [fetch_first_top_news, fetch_second_top_news] &gt;&gt; summarize
+</span></code></pre></div>
+<h3 id="alternative-dag-factory-yaml">Alternative DAG Factory YAML</h3>
+<div class="language-text highlight"><span class="filename">example_hackernews_dagfactory.py</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>example_hackernews_dagfactory:
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  default_args:
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    start_date: 2022-03-04
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  tasks:
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    fetch_top_ten_news:
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>      bash_command: &quot;curl -s https://hacker-news.firebaseio.com/v0/topstories.json  | jq -c -r &#39;.[0:10]&#39;&quot;
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    fetch_first_top_news:
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      bash_command: &quot;echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[0]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;&quot;
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      dependencies: [fetch_top_ten_news]
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    fetch_second_top_news:
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>      bash_command: &quot;echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[1]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;&quot;
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>      dependencies: [fetch_top_ten_news]
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    summarize:
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>      operator: airflow.operators.python.PythonOperator
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>      python_callable: hacker_news.summarize
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>      dependencies: [fetch_first_top_news, fetch_second_top_news]
+</span></code></pre></div>
+<h2 id="comparison">Comparison</h2>
+<h3 id="goal_1">Goal</h3>
+<p>Both implementations accomplish the same goal and result in the expected Markdown table.</p>
+<h3 id="airflow-graph-view">Airflow Graph view</h3>
+<p>As it can be seen in the screenshots below, both the DAG created using Python with standard Airflow and the
+DAG created using YAML and DAG Factory look identical, from a graph topology perspective, and also from the underlining
+operators being used.</p>
+<h4 id="graph-view-plain-airflow-python-dag">Graph view: Plain Airflow Python DAG</h4>
+<p><img alt="alt text" src="../../static/example_hackernews_plain_airflow_graph.png" title="Python DAG Graph visualisation" /></p>
+<h4 id="graph-view-alternative-dag-factory-yaml">Graph view: Alternative DAG Factory YAML</h4>
+<p><img alt="alt text" src="../../static/example_hackernews_dagfactory_graph.png" title="YAML DAG Graph visualization" /></p>
+<h3 id="airflow-code-view">Airflow Code view</h3>
+<p>From an Airflow UI perspective, the content displayed in the "Code" view is the main difference between the two implementations. While Airflow renders the original Python DAG, as expected, in the case of the YAML DAGs, Airflow displays the Python file that references the DAG Factory YAML files:</p>
+<div class="language-text highlight"><span class="filename">example_load_yaml_dags.py</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import os
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>from pathlib import Path
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>from dagfactory import load_yaml_dags
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>DEFAULT_CONFIG_ROOT_DIR = &quot;/usr/local/airflow/dags/&quot;
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>CONFIG_ROOT_DIR = Path(os.getenv(&quot;CONFIG_ROOT_DIR&quot;, DEFAULT_CONFIG_ROOT_DIR))
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>config_dir = str(CONFIG_ROOT_DIR / &quot;comparison&quot;)
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>load_yaml_dags(
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    globals_dict=globals(),
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    dags_folder=config_dir,
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>)
+</span></code></pre></div>
+<h4 id="code-view-plain-airflow-python-dag">Code view: Plain Airflow Python DAG</h4>
+<p><img alt="alt text" src="../../static/example_hackernews_plain_airflow_code.png" title="Python DAG code visualization" /></p>
+<h4 id="code-view-alternative-dag-factory-yaml">Code view: Alternative DAG Factory YAML</h4>
+<p><img alt="alt text" src="../../static/example_hackernews_dagfactory_code.png" title="YAML DAG code visualization" /></p>
+<p>To overcome this limitation, DAG Factory appends the YAML content to the DAG Documentation so users can better troubleshoot
+the DAG:</p>
+<p><img alt="alt text" src="../../static/example_hackernews_dagfactory_docs.png" title="YAML DAG docs visualization" /></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
