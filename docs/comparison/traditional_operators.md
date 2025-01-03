@@ -16,7 +16,7 @@ Let's say we'd like to create a workflow that performs the following:
 
 1. Retrieve the top ten stories from Hacker News using the [Hacker News API](https://github.com/HackerNews/API).
 2. Fetch the details for the two top stories using the Hacker News API.
-3. Summarize the selected stories Markdown, using Python.
+3. Summarize the selected stories as Markdown, using Python.
 
 We will implement the first two steps using `BashOperator` and the third step using `PythonOperator`.
 The last task will generate a `Markdown` snippet similar to:
