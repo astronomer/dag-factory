@@ -404,7 +404,6 @@ def test_dagfactory_dict():
         },
         "default_view": "graph",
         "schedule_interval": "@daily",
-        "depends_on_past": True,
     }
     expected_dag = {
         "example_dag": {
