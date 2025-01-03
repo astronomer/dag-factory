@@ -54,7 +54,8 @@ dependencies = [
     "build",
     "dag-factory[tests]",
     "apache-airflow~={matrix:airflow}.0,!=2.9.0,!=2.9.1",  # https://github.com/apache/airflow/pull/39670
-    "httpx>=0.25.0"
+    "httpx>=0.25.0",
+    "pandas",
 ]
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
