@@ -486,26 +486,3 @@ def test_yml_dag_rendering_in_docs():
     with open(dag_path, "r") as file:
         expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
     assert generated_doc_md == expected_doc_md
-
-
-@pytest.mark.parametrize(
-    "mock_global, mock_local, expected_merged",
-    [
-        # Test case 1: global config is empty, but local config exists
-        ({}, {"key1": "value1", "key2": "value2"}, {"key1": "value1", "key2": "value2"}),
-        # Test case 2: global config and local config have non-overlapping keys
-        ({"key1": "value1"}, {"key2": "value2"}, {"key1": "value1", "key2": "value2"}),
-        # Test case 3: global config and local config have overlapping keys (local config overrides global)
-        (
-            {"key1": "global_value1", "key2": "global_value2"},
-            {"key2": "local_value2", "key3": "local_value3"},
-            {"key1": "global_value1", "key2": "local_value2", "key3": "local_value3"},
-        ),
-    ],
-)
-def test_merge_default_args(mock_global, mock_local, expected_merged):
-    dag_factory = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
-
-    result = dag_factory._merge_default_args(mock_global, mock_local)
-
-    assert result == expected_merged

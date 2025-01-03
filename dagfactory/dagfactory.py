@@ -13,6 +13,8 @@ from airflow.models import DAG
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
+# rom dagfactory.utils import merge_configs
+
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
@@ -48,17 +50,6 @@ class DagFactory:
         if default_args_yml.exists():
             with open(default_args_yml, "r") as file:
                 return yaml.safe_load(file)
-
-    def _merge_default_args(self, global_default_args, local_default_args):
-        result = global_default_args.copy()
-
-        for key, value in local_default_args.items():
-            if isinstance(value, dict) and key in result and isinstance(result[key], dict):
-                result[key] = self._merge_default_args(result[key], value)
-            else:
-                result[key] = value
-
-        return result
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -139,7 +130,7 @@ class DagFactory:
         default_config: Dict[str, Any] = self.get_default_config()
 
         if global_default_args is not None:
-            default_config = self._merge_default_args(global_default_args, default_config)
+            default_config = {"default_args": {**global_default_args["default_args"], **default_config["default_args"]}}
 
         dags: Dict[str, Any] = {}
 
