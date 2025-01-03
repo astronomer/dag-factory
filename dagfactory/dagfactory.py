@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
-from airflow import settings
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
 
@@ -29,17 +28,22 @@ class DagFactory:
     :type config: dict
     """
 
-    def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        config_filepath: Optional[str] = None,
+        config: Optional[dict] = None,
+        default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
+    ) -> None:
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
+        self.default_args_config_path = default_args_config_path
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
 
-    @staticmethod
-    def _global_default_args():
-        default_args_yml = Path(settings.DAGS_FOLDER) / "defaults.yml"
+    def _global_default_args(self):
+        default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():
             with open(default_args_yml, "r") as file:
@@ -203,6 +207,7 @@ class DagFactory:
 def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
+    default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
     suffix=None,
 ):
     """
@@ -213,8 +218,9 @@ def load_yaml_dags(
     interesting to load only a subset by setting a different suffix.
 
     :param globals_dict: The globals() from the file used to generate DAGs
-    :dags_folder: Path to the folder you want to get recursively scanned
-    :suffix: file suffix to filter `in` what files to scan for dags
+    :param dags_folder: Path to the folder you want to get recursively scanned
+    :param default_args_config_path: The Folder path where defaults.yml exist.
+    :param suffix: file suffix to filter `in` what files to scan for dags
     """
     # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
@@ -227,7 +233,7 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         logging.info("Loading %s", config_file_abs_path)
         try:
-            factory = DagFactory(config_file_abs_path)
+            factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
             factory.generate_dags(globals_dict)
         except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)

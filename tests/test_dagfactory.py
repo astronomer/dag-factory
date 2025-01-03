@@ -450,10 +450,11 @@ def test_set_callback_after_loading_config():
     td.generate_dags(globals())
 
 
-def test_build_dag_with_global_deafult(monkeypatch):
-    monkeypatch.setattr("dagfactory.dagfactory.settings.DAGS_FOLDER", DEFAULT_ARGS_CONFIG_ROOT)
+def test_build_dag_with_global_default(monkeypatch):
     monkeypatch.setattr(Path, "exists", lambda self: True)
-    dags = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG).build_dags()
+    dags = dagfactory.DagFactory(
+        config=DAG_FACTORY_CONFIG, default_args_config_path=DEFAULT_ARGS_CONFIG_ROOT
+    ).build_dags()
 
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
