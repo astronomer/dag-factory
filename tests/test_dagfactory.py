@@ -447,6 +447,7 @@ def test_set_callback_after_loading_config():
     td.config["default"]["default_args"]["on_success_callback"] = dagfactory.DagFactory(
         config=DAG_FACTORY_CONFIG
     ).build_dags
+    td.generate_dags(globals())
 
 
 def test_build_dag_with_global_deafult(monkeypatch):
