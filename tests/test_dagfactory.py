@@ -14,6 +14,7 @@ from dagfactory import dagfactory, load_yaml_dags
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
+DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
@@ -446,6 +447,14 @@ def test_set_callback_after_loading_config():
         config=DAG_FACTORY_CONFIG
     ).build_dags
     td.generate_dags(globals())
+
+
+def test_build_dag_with_global_default():
+    dags = dagfactory.DagFactory(
+        config=DAG_FACTORY_CONFIG, default_args_config_path=DEFAULT_ARGS_CONFIG_ROOT
+    ).build_dags()
+
+    assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
 def test_load_invalid_yaml_logs_error(caplog):
