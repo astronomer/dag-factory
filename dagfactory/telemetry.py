@@ -47,7 +47,7 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
     logging.debug("Telemetry is enabled. Emitting the following usage metrics to %s: %s", telemetry_url, metrics)
     try:
         response = httpx.get(telemetry_url, timeout=constants.TELEMETRY_TIMEOUT, follow_redirects=True)
-    except httpx.ConnectError as e:
+    except httpx.HTTPError as e:
         logging.warning(
             "Unable to emit usage metrics to %s. An HTTPX connection error occurred: %s.", telemetry_url, str(e)
         )
