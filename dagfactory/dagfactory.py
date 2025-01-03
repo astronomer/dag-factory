@@ -128,7 +128,10 @@ class DagFactory:
         default_config: Dict[str, Any] = self.get_default_config()
 
         if global_default_args is not None:
-            default_config = {"default_args": {**global_default_args["default_args"], **default_config["default_args"]}}
+            if "default_args" in default_config and "default_args" in global_default_args:
+                default_config = {
+                    "default_args": {**global_default_args["default_args"], **default_config["default_args"]}
+                }
 
         dags: Dict[str, Any] = {}
 
