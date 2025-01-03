@@ -7,7 +7,7 @@ Most of the Airflow providers come with built-in traditional operators. Some exa
 
 Below, we illustrate how to represent an Airflow DAG using traditional operators and how to define the same DAG using
 DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
-to declare the workflow: while one uses Python, the other uses YAML.
+to declare the workflow: one uses Python and the other uses YAML.
 
 
 ## Goal
@@ -61,7 +61,7 @@ Both implementations accomplish the same goal and result in the expected Markdow
 
 ### Airflow Graph view
 
-As it can be seen in the screenshots below, both the DAG created using Python with standard Airflow and the
+As shown in the screenshots below, both the DAG created using Python with standard Airflow and the
 DAG created using YAML and DAG Factory look identical, from a graph topology perspective, and also from the underlining
 operators being used.
 
