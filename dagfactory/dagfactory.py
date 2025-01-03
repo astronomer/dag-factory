@@ -49,6 +49,9 @@ class DagFactory:
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
 
+        if global_default_args is None:
+            return default_config
+
         merged_config = global_default_args.copy()
         merged_config.update(default_config)
 
