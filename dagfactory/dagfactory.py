@@ -79,15 +79,21 @@ class DagFactory:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
 
+            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return " | ".join([f"({str(i)})" for i in seq])
+
+            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return " & ".join([f"({str(i)})" for i in seq])
+
             yaml.add_constructor("!join", __join, yaml.FullLoader)
+            yaml.add_constructor("!or", __or, yaml.FullLoader)
+            yaml.add_constructor("!and", __and, yaml.FullLoader)
 
             with open(config_filepath, "r", encoding="utf-8") as fp:
-                yaml.add_constructor("!join", __join, yaml.FullLoader)
                 config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(
-                    stream=config_with_env,
-                    Loader=yaml.FullLoader,
-                )
+                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
@@ -177,9 +183,7 @@ class DagFactory:
 
 
 def load_yaml_dags(
-    globals_dict: Dict[str, Any],
-    dags_folder: str = airflow_conf.get("core", "dags_folder"),
-    suffix=None,
+    globals_dict: Dict[str, Any], dags_folder: str = airflow_conf.get("core", "dags_folder"), suffix=None
 ):
     """
     Loads all the yaml/yml files in the dags folder

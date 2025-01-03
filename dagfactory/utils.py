@@ -202,11 +202,9 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
     return False
 
 
-def get_expand_partial_kwargs(task_params: Dict[str, Any]) -> Tuple[
-    Dict[str, Any],
-    Dict[str, Union[Dict[str, Any], Any]],
-    Dict[str, Union[Dict[str, Any], Any]],
-]:
+def get_expand_partial_kwargs(
+    task_params: Dict[str, Any]
+) -> Tuple[Dict[str, Any], Dict[str, Union[Dict[str, Any], Any]], Dict[str, Union[Dict[str, Any], Any]]]:
     """
     Getting expand and partial kwargs if existed from task_params
     :param task_params: a dictionary with original task params from yaml
@@ -273,3 +271,52 @@ def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str
     except FileNotFoundError:
         logging.error("Error: File '%s' not found.", file_path)
         raise
+
+
+def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict[str, str]:
+    """
+    Retrieves the URIs of datasets from a YAML file based on a given filter.
+
+    :param file_path: The path to the YAML file.
+    :type file_path: str
+    :param datasets_filter: A list of dataset names to filter the results.
+    :type datasets_filter: List[str]
+    :return: A Dict of dataset URIs that match the filter.
+    :rtype: Dict[str, str]
+    """
+    try:
+        with open(file_path, "r", encoding="UTF-8") as file:
+            data = yaml.safe_load(file)
+
+            datasets = data.get("datasets", [])
+            datasets_result_dict = {
+                dataset["name"]: dataset["uri"]
+                for dataset in datasets
+                if dataset["name"] in datasets_filter and "uri" in dataset
+            }
+            return datasets_result_dict
+    except FileNotFoundError:
+        logging.error("Error: File '%s' not found.", file_path)
+        raise
+
+
+def extract_dataset_names(expression) -> List[str]:
+    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
+    datasets = re.findall(dataset_pattern, expression)
+    return datasets
+
+
+def extract_storage_names(expression) -> List[str]:
+    storage_pattern = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
+    storages = re.findall(storage_pattern, expression)
+    return storages
+
+
+def make_valid_variable_name(uri) -> str:
+    return re.sub(r"\W|^(?=\d)", "_", uri)
+
+
+def parse_list_datasets(datasets: Union[List[str], str]) -> str:
+    if isinstance(datasets, list):
+        datasets = " & ".join(datasets)
+    return datasets
