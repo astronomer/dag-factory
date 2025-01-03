@@ -45,19 +45,14 @@ class DagFactory:
             with open(default_args_yml, "r") as file:
                 return yaml.safe_load(file)
 
-    def deep_merge(self, dict1, dict2):
-        for key, value in dict2.items():
-            if isinstance(value, dict) and key in dict1 and isinstance(dict1[key], dict):
-                dict1[key] = self.deep_merge(dict1[key], value)
-            else:
-                dict1[key] = value
-        return dict1
-
     def _merge_default_args(self):
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
 
-        return self.deep_merge(global_default_args, default_config)
+        merged_config = global_default_args.copy()
+        merged_config.update(default_config)
+
+        return merged_config
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
