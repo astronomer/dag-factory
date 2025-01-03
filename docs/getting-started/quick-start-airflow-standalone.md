@@ -51,7 +51,7 @@ pip install dag-factory
 
 ## Step 4: Set Up the DAGS Folder
 
-Create a dags folder inside the $AIRFLOW_HOME directory, which is where your DAGs will be stored:
+Create a DAGs folder inside the $AIRFLOW_HOME directory, which is where your DAGs will be stored:
 
 ```commandline
 mkdir dags
