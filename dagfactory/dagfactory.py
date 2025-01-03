@@ -45,17 +45,16 @@ class DagFactory:
             with open(default_args_yml, "r") as file:
                 return yaml.safe_load(file)
 
-    def _merge_default_args(self):
-        global_default_args = self._global_default_args()
-        default_config: Dict[str, Any] = self.get_default_config()
+    def _merge_default_args(self, global_default_args, local_default_args):
+        result = global_default_args.copy()
 
-        if global_default_args is None:
-            return default_config
+        for key, value in local_default_args.items():
+            if isinstance(value, dict) and key in result and isinstance(result[key], dict):
+                result[key] = self._merge_default_args(result[key], value)
+            else:
+                result[key] = value
 
-        merged_config = global_default_args.copy()
-        merged_config.update(default_config)
-
-        return merged_config
+        return result
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -132,7 +131,11 @@ class DagFactory:
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
-        default_config: Dict[str, Any] = self._merge_default_args()
+        global_default_args = self._global_default_args()
+        default_config: Dict[str, Any] = self.get_default_config()
+
+        if global_default_args is not None:
+            default_config = self._merge_default_args(global_default_args, default_config)
 
         dags: Dict[str, Any] = {}
 

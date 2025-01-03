@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-from unittest.mock import MagicMock
+from pathlib import Path
 
 import pytest
 from airflow import __version__ as AIRFLOW_VERSION
@@ -15,6 +15,7 @@ from dagfactory import dagfactory, load_yaml_dags
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
+DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
@@ -403,6 +404,7 @@ def test_dagfactory_dict():
         },
         "default_view": "graph",
         "schedule_interval": "@daily",
+        "depends_on_past": True,
     }
     expected_dag = {
         "example_dag": {
@@ -446,7 +448,14 @@ def test_set_callback_after_loading_config():
     td.config["default"]["default_args"]["on_success_callback"] = dagfactory.DagFactory(
         config=DAG_FACTORY_CONFIG
     ).build_dags
-    td.generate_dags(globals())
+
+
+def test_build_dag_with_global_deafult(monkeypatch):
+    monkeypatch.setattr("dagfactory.dagfactory.settings.DAGS_FOLDER", DEFAULT_ARGS_CONFIG_ROOT)
+    monkeypatch.setattr(Path, "exists", lambda self: True)
+    dags = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG).build_dags()
+
+    assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
 def test_load_invalid_yaml_logs_error(caplog):
@@ -481,8 +490,6 @@ def test_yml_dag_rendering_in_docs():
 @pytest.mark.parametrize(
     "mock_global, mock_local, expected_merged",
     [
-        # Test case 1: global config is None
-        (None, {"key1": "value1"}, {"key1": "value1"}),
         # Test case 2: global config is empty, but local config exists
         ({}, {"key1": "value1", "key2": "value2"}, {"key1": "value1", "key2": "value2"}),
         # Test case 3: global config and local config have non-overlapping keys
@@ -498,9 +505,6 @@ def test_yml_dag_rendering_in_docs():
 def test_merge_default_args(mock_global, mock_local, expected_merged):
     dag_factory = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
 
-    dag_factory._global_default_args = MagicMock(return_value=mock_global)
-    dag_factory.get_default_config = MagicMock(return_value=mock_local)
-
-    result = dag_factory._merge_default_args()
+    result = dag_factory._merge_default_args(mock_global, mock_local)
 
     assert result == expected_merged

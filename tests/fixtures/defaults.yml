@@ -1,3 +1,4 @@
 default_args:
-  start_date: "2024-01-01"
+  start_date: "2025-01-01"
   owner: "global_owner"
+  depends_on_past: true
