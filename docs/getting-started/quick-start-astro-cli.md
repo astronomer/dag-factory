@@ -25,7 +25,7 @@ This will set up the necessary Airflow files and directories.
 
 To install DAG Factory in your Airflow environment:
 
-1. Add dag-factory as a dependency to the requirements.txt file created during the project initialization.
+1. Add dag-factory as a dependency to the `requirements.txt` file created during the project initialization.
 
 
 ## Step 3: Define a DAG in YAML
