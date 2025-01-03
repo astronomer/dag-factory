@@ -490,11 +490,11 @@ def test_yml_dag_rendering_in_docs():
 @pytest.mark.parametrize(
     "mock_global, mock_local, expected_merged",
     [
-        # Test case 2: global config is empty, but local config exists
+        # Test case 1: global config is empty, but local config exists
         ({}, {"key1": "value1", "key2": "value2"}, {"key1": "value1", "key2": "value2"}),
-        # Test case 3: global config and local config have non-overlapping keys
+        # Test case 2: global config and local config have non-overlapping keys
         ({"key1": "value1"}, {"key2": "value2"}, {"key1": "value1", "key2": "value2"}),
-        # Test case 4: global config and local config have overlapping keys (local config overrides global)
+        # Test case 3: global config and local config have overlapping keys (local config overrides global)
         (
             {"key1": "global_value1", "key2": "global_value2"},
             {"key2": "local_value2", "key3": "local_value3"},
