@@ -40,11 +40,11 @@ DAG Factory is an Open-Source project. Learn about its development process and a
 
 ## License
 
-To learn more about the terms and conditions for use, reproduction and distribution, read the [Apache License 2.0](../LICENSE).
+To learn more about the terms and conditions for use, reproduction and distribution, read the [Apache License 2.0](https://github.com/astronomer/dag-factory/blob/main/LICENSE).
 
 
 ## Privacy Notice
 
 This project follows [Astronomer's Privacy Policy](https://www.astronomer.io/privacy/).
 
-For further information, [read this](../PRIVACY_NOTICE.md)
+For further information, [read this](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md)
