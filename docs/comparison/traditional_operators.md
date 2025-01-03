@@ -28,7 +28,7 @@ The last task will generate a `Markdown` snippet similar to:
 | Coconut by Meta AI – Better LLM Reasoning with Chain of Continuous Thought? | https://aipapersacademy.com/chain-of-continuous-thought/                                                               |
 ```
 
-The main logic is implemented as plain Python functions in [hacker_news.py](../../dev/dags/hacker_news.py):
+The main logic is implemented as plain Python functions in [hacker_news.py](https://github.com/astronomer/dag-factory/blob/main/dev/dags/hacker_news.py):
 
 ```title="pypi_stats.py"
 --8<-- "dev/dags/hacker_news.py:hacker_news"

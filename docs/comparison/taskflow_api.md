@@ -26,7 +26,7 @@ We will implement all these steps using the Airflow `task` decorator, and the la
 | dag-factory       |      10078 |       354085 |       77752 |
 ```
 
-The main logic is implemented as plain Python functions in [pypi_stats.py](../../dev/dags/pypi_stats.py):
+The main logic is implemented as plain Python functions in [pypi_stats.py](https://github.com/astronomer/dag-factory/blob/main/dev/dags/pypi_stats.py):
 
 ```title="pypi_stats.py"
 --8<-- "dev/dags/pypi_stats.py:pypi_stats"
