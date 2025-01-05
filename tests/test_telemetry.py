@@ -61,7 +61,7 @@ def test_emit_usage_metrics_is_unsuccessful(mock_httpx_get, caplog):
     is_success = telemetry.emit_usage_metrics(sample_metrics)
     mock_httpx_get.assert_called_once_with(
         f"""https://astronomer.gateway.scarf.sh/dag-factory/v2/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3""",
-        timeout=5.0,
+        timeout=1.0,
         follow_redirects=True,
     )
     assert not is_success
@@ -86,7 +86,7 @@ def test_emit_usage_metrics_fails(mock_httpx_get, caplog):
     is_success = telemetry.emit_usage_metrics(sample_metrics)
     mock_httpx_get.assert_called_once_with(
         f"""https://astronomer.gateway.scarf.sh/dag-factory/v2/0.2.0a1/2.10.1/3.11/darwin/amd64/dag_run/success/d151d1fa2f03270ea116cc7494f2c591/3""",
-        timeout=5.0,
+        timeout=1.0,
         follow_redirects=True,
     )
     assert not is_success
