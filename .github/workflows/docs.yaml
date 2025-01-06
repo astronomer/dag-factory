@@ -1,0 +1,46 @@
+name: CI Docs
+
+on:
+  push: # Run on pushes to the default branch
+    branches: [main, docs_job]
+  pull_request_target: # Also run on pull requests originated from forks
+    branches: [main, docs_job]
+  release:
+    types: ['published']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+
+  Deploy-Pages:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: "x64"
+
+      - name: Install packages and dependencies
+        run: pip install hatch
+
+      - name: Deploy Docs
+        run: |
+          git config user.name "OSS Integration Bot"
+          git config user.email "oss-integrations-bot@astronomer.io"
+
+          git fetch origin gh-pages --depth=1
+
+          if [[ $GITHUB_EVENT_NAME == "release" && $GITHUB_EVENT_ACTION == "published" ]]; then
+              hatch run docs:gh-release
+          else
+              hatch run docs:gh-deploy
+          fi
