@@ -4,10 +4,10 @@ PYTHON=venv/bin/python3
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: setup-dev
-setup-dev: ## Setup development environment
-	python3 -m venv venv
-	. venv/bin/activate && pip install ".[tests]"
+.PHONY: setup
+setup: ## Setup development environment
+	python3.12 -m venv venv
+	. venv/bin/activate && pip --no-cache-dir install ".[tests]"
 	@echo "To activate the virtual environment, run:"
 	@echo "source venv/bin/activate"
 
@@ -22,8 +22,9 @@ clean: ## Removes build and test artifacts
 
 
 .PHONY: build-whl
-build-whl: setup-dev ## Build installable whl file
+build-whl: setup ## Build installable whl file
 	cd dev
+	rm -rf  dev/include/*
 	python3 -m build --outdir dev/include/
 
 .PHONY: docker-run
