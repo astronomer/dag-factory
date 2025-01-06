@@ -4,7 +4,7 @@ All contributions, bug reports, bug fixes, documentation improvements, and enhan
 
 All contributors and maintainers to this project should abide by the [Contributor Code of Conduct](code_of_conduct.md).
 
-Learn more about the contributors' roles in [this page](roles.md).
+Learn more about the contributors' roles in [the Roles page](roles.md).
 
 This document describes how to contribute to DAG Factory, covering:
 
