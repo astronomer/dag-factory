@@ -134,7 +134,7 @@ hatch run tests.py3.9-2.9:test-integration-setup
 hatch run tests.py3.9-2.9:test-integration
 ```
 
-## 4. Pre-Commit and linting
+## Pre-Commit and linting
 
 We use pre-commit to run several checks on the code before committing. To install pre-commit hooks, run:
 
