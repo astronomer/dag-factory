@@ -178,7 +178,7 @@ To release the documentation with the current project version and set it to the 
 hatch run docs:release
 ```
 
-## 6. Releasing
+## Releasing
 
 We currently use [hatch](https://github.com/pypa/hatch) for building and distributing ``dag-factory``.
 
