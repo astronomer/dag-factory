@@ -100,7 +100,7 @@ The tests are developed using PyTest and run using hatch.
 
 The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproject.toml) file currently defines a matrix of supported versions of Python and Airflow against which a user can run the tests.
 
-### a) Running unit tests
+### Run unit tests
 
 For instance, to run unit tests using Python 3.10 and Airflow 2.5, use the following:
 
