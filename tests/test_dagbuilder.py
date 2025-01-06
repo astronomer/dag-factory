@@ -160,7 +160,7 @@ DAG_CONFIG_CALLBACKS = {
         "owner": "custom_owner",
         "on_execute_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
-        "on_failure_callback": f"{__name__}.print_context_callback",
+        # "on_failure_callback": f"{__name__}.print_context_callback",  # Passing this in at the Task-level
         "on_retry_callback": f"{__name__}.print_context_callback",
         "on_skipped_callback": f"{__name__}.print_context_callback",
     },
@@ -181,6 +181,8 @@ DAG_CONFIG_CALLBACKS = {
             "operator": "airflow.operators.bash_operator.BashOperator",
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
+            "on_failure_callback_name": "print_context_callback",
+            "on_failure_callback_file": __file__
         }
     },
 }
@@ -745,7 +747,7 @@ def test_make_dag_with_callbacks_default_args():
     for callback_type in (
         "on_execute_callback",
         "on_success_callback",
-        "on_failure_callback",
+        # "on_failure_callback",  # Set at the Task-level, tested below
         "on_retry_callback",
         "on_skipped_callback",
     ):
@@ -760,6 +762,11 @@ def test_make_dag_with_callbacks_default_args():
             assert callback_type in task_1.__dict__
             assert callable(task_1.__dict__[callback_type])
             assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+
+        # Assert that these callbacks have been applied at the Task-level
+        assert "on_failure_callback" in task_1.__dict__
+        assert callable(task_1.__dict__["on_failure_callback"])
+        assert task_1.__dict__["on_failure_callback"].__name__ == "print_context_callback"
 
 
 @pytest.mark.callbacks
