@@ -44,7 +44,7 @@ After cloning the project, there are two options for setting up the local develo
 * Use a Python virtual environment, or
 * Use Docker
 
-### a) Using a Python virtual environment for local development
+### Using a Python virtual environment for local development
 
 Install the project dependencies:
 
