@@ -34,7 +34,7 @@ Having trouble? We'd like to help!
 
 DAG Factory is an Open-Source project. Learn about its development process and about how you can contribute:
 
-* Contributing to DAG Factory
+* [Contributing to DAG Factory](contributing/howto.md)
 * [Github repository](https://github.com/astronomer/dag-factory/)
 
 ## License
