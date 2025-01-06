@@ -116,8 +116,8 @@ hatch run tests:test-cov
 
 ### b) Running integration tests
 
-> Note: these tests will create local Python virtual environments in a hatch-managed directory
-> They will also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files
+> Note: these tests create local Python virtual environments in a hatch-managed directory.
+> They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
 
 First, set the following environment variables:
 
