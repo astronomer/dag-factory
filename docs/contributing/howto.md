@@ -2,8 +2,7 @@
 
 All contributions, bug reports, bug fixes, documentation improvements, and enhancements are welcome.
 
-All contributors and maintainers to this project should abide by the
-[Contributor Code of Conduct](code_of_conduct.md).
+All contributors and maintainers to this project should abide by the [Contributor Code of Conduct](code_of_conduct.md).
 
 Learn more about the contributors' roles in [this page](roles.md).
 
