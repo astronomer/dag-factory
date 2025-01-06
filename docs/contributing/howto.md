@@ -8,12 +8,12 @@ Learn more about the contributors' roles in [the Roles page](roles.md).
 
 This document describes how to contribute to DAG Factory, covering:
 
-1. Overview of how to contribute
-2. How to set up the local development environment
-3. Running tests
-4. Pre-commit and linting
-5. Authoring the documentation
-6. Releasing
+- Overview of how to contribute
+- How to set up the local development environment
+- Running tests
+- Pre-commit and linting
+- Authoring the documentation
+- Releasing
 
 ## Overview of how to contribute
 
