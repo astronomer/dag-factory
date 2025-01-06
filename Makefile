@@ -6,7 +6,7 @@ help:
 
 .PHONY: setup
 setup: ## Setup development environment
-	python3.12 -m venv venv
+	python3 -m venv venv
 	. venv/bin/activate && pip --no-cache-dir install ".[tests]"
 	@echo "To activate the virtual environment, run:"
 	@echo "source venv/bin/activate"
