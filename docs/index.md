@@ -46,3 +46,9 @@ To learn more about the terms and conditions for use, reproduction and distribut
 This project follows [Astronomer's Privacy Policy](https://www.astronomer.io/privacy/).
 
 For further information, [read this](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md)
+
+## Security Policy
+
+Check the project's [Security Policy](https://github.com/astronomer/dag-factory/blob/main/SECURITY.md) to learn
+how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
+security team are handled.
