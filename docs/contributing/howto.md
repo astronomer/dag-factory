@@ -24,7 +24,7 @@ To contribute to the DAG Factory project:
 3. Link your issue to the pull request.
 4. After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.
 
-## 2. Setup a local development environment
+## Set up a local development environment
 
 ### Requirements
 
