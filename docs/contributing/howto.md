@@ -114,7 +114,7 @@ It is also possible to run the tests using all the matrix combinations, by using
 hatch run tests:test-cov
 ```
 
-### b) Running integration tests
+### Run integration tests
 
 > Note: these tests create local Python virtual environments in a hatch-managed directory.
 > They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
