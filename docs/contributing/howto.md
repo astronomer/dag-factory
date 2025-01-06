@@ -88,7 +88,7 @@ make docker-run
 
 After the sandbox is running, you can access the Airflow UI at ``http://localhost:8080``.
 
-This approach builds a DAG Factory wheel, so if there are code changes, you'll have to stop and restart the containers:
+This approach builds a DAG Factory wheel, so if there are code changes, you must stop and restart the containers:
 
 ```bash
 make docker-stop
