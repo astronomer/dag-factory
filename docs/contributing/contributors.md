@@ -7,7 +7,7 @@ Learn more about the project [contributors roles](roles.md).
 
 * Pankaj Koti ([@pankajkoti](https://github.com/pankajkoti))
 * Pankaj Singh ([@pankajastro](https://github.com/pankajastro))
-* Tatiana Al-Chueyr ([@tatiana](https://github.com/tatiana>))
+* Tatiana Al-Chueyr ([@tatiana](https://github.com/tatiana))
 
 ## Emeritus Committers
 
