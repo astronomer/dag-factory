@@ -94,7 +94,7 @@ This approach builds a DAG Factory wheel, so if there are code changes, you must
 make docker-stop
 ```
 
-## 3. Testing application with hatch
+## Testing application with hatch
 
 The tests are developed using PyTest and run using hatch.
 
