@@ -86,7 +86,7 @@ It is also possible to build the development environment using [Docker](https://
 make docker-run
 ```
 
-Once the sandbox is up, you can access the Airflow UI at ``http://localhost:8080``.
+After the sandbox is running, you can access the Airflow UI at ``http://localhost:8080``.
 
 This approach builds a DAG Factory wheel, so if there are code changes, you'll have to stop and restart the containers:
 
