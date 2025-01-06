@@ -46,7 +46,7 @@ After cloning the project, there are two options for setting up the local develo
 
 ### Using a Python virtual environment for local development
 
-Install the project dependencies:
+1. Install the project dependencies:
 
 ```bash
 make setup
