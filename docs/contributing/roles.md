@@ -3,7 +3,7 @@
 Contributors are welcome and are greatly appreciated! Every little bit helps, and we give credit to them.
 
 This document aims to explain the current roles in the DAG Factory project.
-For more information, check [contributing](howto.md).
+For more information, check the contributing docs.
 
 ## Contributors
 
