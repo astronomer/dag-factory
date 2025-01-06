@@ -19,7 +19,7 @@ This document describes how to contribute to DAG Factory, covering:
 
 To contribute to the DAG Factory project:
 
-1. Please create a [GitHub Issue](https://github.com/astronomer/dag-factory/issues) describing a bug, enhancement or feature request
+1. Please create a [GitHub Issue](https://github.com/astronomer/dag-factory/issues) describing a bug, enhancement, or feature request. 
 2. Open a branch off of the `main` branch and create a Pull Request into the `main` branch from your feature branch.
 3. Link your issue to the pull request.
 4. After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.
