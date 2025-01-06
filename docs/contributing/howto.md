@@ -58,7 +58,7 @@ make setup
 source venv/bin/activate
 ```
 
-Set [Apache Airflow®](https://airflow.apache.org/) home to the ``dev/``, so you can see DAG Factory example DAGs.
+3. Set [Apache Airflow®](https://airflow.apache.org/) home to the ``dev/``, so you can see DAG Factory example DAGs.
 Disable loading Airflow standard example DAGs:
 
 ```bash
