@@ -6,15 +6,18 @@
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Downloads](https://img.shields.io/pypi/dm/dag-factory.svg)](https://img.shields.io/pypi/dm/dag-factory)
 
-<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
+<img alt=analytics referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
 
-Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs declaratively via configuration files.
+Welcome to *dag-factory*! *dag-factory* is a library for [Apache Airflow®](https://airflow.apache.org) to construct DAGs
+declaratively via configuration files.
 
 The minimum requirements for **dag-factory** are:
+
 - Python 3.8.0+
 - [Apache Airflow®](https://airflow.apache.org) 2.0+
 
-For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the [examples](/examples) folder.
+For a gentle introduction, please take a look at our [Quickstart Guide](#quickstart). For more examples, please see the
+[examples](/examples) folder.
 
 - [Quickstart](#quickstart)
 - [Features](#features)
@@ -34,12 +37,14 @@ These tasks will be leveraging the `BashOperator` to execute simple bash command
 
 ![screenshot](/img/quickstart_dag.png)
 
-1. To install *dag-factory*, run the following pip command in your [Apache Airflow®](https://airflow.apache.org) environment:
+(1) To install *dag-factory*, run the following pip command in your [Apache Airflow®](https://airflow.apache.org) environment:
+
 ```bash
 pip install dag-factory
 ```
 
-2. Create a YAML configuration file called `config_file.yml` and save it within your dags folder:
+(2) Create a YAML configuration file called `config_file.yml` and save it within your dags folder:
+
 ```yaml
 example_dag1:
   default_args:
@@ -62,9 +67,10 @@ example_dag1:
       bash_command: 'echo 3'
       dependencies: [task_1]
 ```
+
 We are setting the execution order of the tasks by specifying the `dependencies` key.
 
-3. In the same folder, create a python file called `generate_dags.py`. This file is responsible for generating the DAGs from the configuration file and is a one-time setup.
+(3) In the same folder, create a python file called `generate_dags.py`. This file is responsible for generating the DAGs from the configuration file and is a one-time setup.
 You won't need to modify this file unless you want to add more configuration files or change the configuration file name.
 
 ```python
@@ -88,15 +94,17 @@ Please look at the [examples](/examples) folder for more examples.
 ## Features
 
 ### Multiple Configuration Files
-If you want to split your DAG configuration into multiple files, you can do so by leveraging a suffix in the configuration file name.
-```python
-# 'airflow' word is required for the dagbag to parse this file
-from dagfactory import load_yaml_dags
 
-load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
+If you want to split your DAG configuration into multiple files, you can do so by leveraging a suffix in the configuration file name.
+
+```python
+    from dagfactory import load_yaml_dags  # load relevant YAML files as airflow DAGs
+
+    load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
 ```
 
 ### Dynamically Mapped Tasks
+
 If you want to create a dynamic number of tasks, you can use the `mapped_tasks` key in the configuration file. The `mapped_tasks` key is a list of dictionaries, where each dictionary represents a task.
 
 ```yaml
@@ -118,9 +126,11 @@ If you want to create a dynamic number of tasks, you can use the `mapped_tasks` 
           request.output
       dependencies: [request]
 ```
+
 ![mapped_tasks_example.png](img/mapped_tasks_example.png)
 
 ### Datasets
+
 **dag-factory** supports scheduling DAGs via [Apache Airflow Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
 
 To leverage, you need to specify the `Dataset` in the `outlets` key in the configuration file. The `outlets` key is a list of strings that represent the dataset locations.
@@ -156,9 +166,11 @@ consumer_dag:
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 'consumer datasets'"
 ```
+
 ![datasets_example.png](img/datasets_example.png)
 
 ### Custom Operators
+
 **dag-factory** supports using custom operators. To leverage, set the path to the custom operator within the `operator` key in the configuration file. You can add any additional parameters that the custom operator requires.
 
 ```yaml
@@ -170,9 +182,11 @@ consumer_dag:
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Sourdough'
 ```
+
 ![custom_operators.png](img/custom_operators.png)
 
 ### Callbacks
+
 **dag-factory** also supports using "callbacks" at the DAG, Task, and TaskGroup level. These callbacks can be defined in
 a few different ways. The first points directly to a Python function that has been defined in the `include/callbacks.py`
 file.
@@ -241,17 +255,33 @@ task_2:
   operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'
-  response_check_lambda: 'lambda response: "ok" in reponse.text'
+  response_check_lambda: 'lambda response: "ok" in response.text'
   dependencies: [task_1]
 ```
 
 ## Benefits
 
-* Construct DAGs without knowing Python
-* Construct DAGs without learning Airflow primitives
-* Avoid duplicative code
-* Everyone loves YAML! ;)
+- Construct DAGs without knowing Python
+- Construct DAGs without learning Airflow primitives
+- Avoid duplicative code
+- Everyone loves YAML! ;)
 
 ## Contributing
 
 Contributions are welcome! Just submit a Pull Request or Github Issue.
+
+## License
+
+To learn more about the terms and conditions for use, reproduction and distribution, read the [Apache License 2.0](https://github.com/astronomer/dag-factory/blob/main/LICENSE).
+
+## Privacy Notice
+
+This project follows [Astronomer's Privacy Policy](https://www.astronomer.io/privacy/).
+
+For further information, [read this](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md)
+
+## Security Policy
+
+Check the project's [Security Policy](https://github.com/astronomer/dag-factory/blob/main/SECURITY.md) to learn
+how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
+security team are handled.

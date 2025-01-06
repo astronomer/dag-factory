@@ -1,22 +1,9 @@
 default:
   default_args:
     catchup: false,
-    owner: "default_owner"
     start_date: 2024-11-11
-    retries: 1
-    retry_delay_sec: 30
-    on_success_callback_name: print_hello_from_callback
-    on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
-  concurrency: 1
-  max_active_runs: 1
-  dagrun_timeout_sec: 600
-  default_view: "tree"
-  orientation: "LR"
-  schedule_interval: "0 1 * * *"
-  on_failure_callback_name: print_hello_from_callback
-  on_failure_callback_file: $CONFIG_ROOT_DIR/print_hello.py
 
-example_dag:
+basic_example_dag:
   default_args:
     owner: "custom_owner"
   description: "this is an example dag"
@@ -31,62 +18,6 @@ example_dag:
       bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
-      operator: airflow.operators.python_operator.PythonOperator
-      python_callable_name: print_hello
-      python_callable_file: $CONFIG_ROOT_DIR/print_hello.py
-      dependencies: [task_1]
-
-example_dag2:
-  default_args:
-    timezone: Europe/Amsterdam
-  tasks:
-    task_1:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 1"
-    task_2:
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
-    task_3:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 3"
-      dependencies: [task_1]
-
-example_dag3:
-  tasks:
-    task_1:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 1"
-    task_2:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 2"
-      dependencies: [task_1]
-    task_3:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 3"
-      dependencies: [task_1]
-
-example_dag4:
-  description: "this dag uses task groups"
-  task_groups:
-    task_group_1:
-      tooltip: "this is a task group"
-      dependencies: [task_1]
-  tasks:
-    task_1:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 1"
-    task_2:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 2"
-      task_group_name: task_group_1
-    task_3:
-      operator: airflow.operators.python_operator.PythonOperator
-      python_callable_name: print_hello
-      python_callable_file: $CONFIG_ROOT_DIR/print_hello.py
-      task_group_name: task_group_1
-      dependencies: [task_2]
-    task_4:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 1"
-      dependencies: [task_group_1]

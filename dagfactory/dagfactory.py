@@ -28,13 +28,26 @@ class DagFactory:
     :type config: dict
     """
 
-    def __init__(self, config_filepath: Optional[str] = None, config: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        config_filepath: Optional[str] = None,
+        config: Optional[dict] = None,
+        default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
+    ) -> None:
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
+        self.default_args_config_path = default_args_config_path
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
+
+    def _global_default_args(self):
+        default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
+
+        if default_args_yml.exists():
+            with open(default_args_yml, "r") as file:
+                return yaml.safe_load(file)
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -111,7 +124,14 @@ class DagFactory:
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
+        global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
+
+        if global_default_args is not None:
+            if "default_args" in default_config and "default_args" in global_default_args:
+                default_config = {
+                    "default_args": {**global_default_args["default_args"], **default_config["default_args"]}
+                }
 
         dags: Dict[str, Any] = {}
 
@@ -179,6 +199,7 @@ class DagFactory:
 def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
+    default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
     suffix=None,
 ):
     """
@@ -189,8 +210,9 @@ def load_yaml_dags(
     interesting to load only a subset by setting a different suffix.
 
     :param globals_dict: The globals() from the file used to generate DAGs
-    :dags_folder: Path to the folder you want to get recursively scanned
-    :suffix: file suffix to filter `in` what files to scan for dags
+    :param dags_folder: Path to the folder you want to get recursively scanned
+    :param default_args_config_path: The Folder path where defaults.yml exist.
+    :param suffix: file suffix to filter `in` what files to scan for dags
     """
     # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
@@ -203,7 +225,7 @@ def load_yaml_dags(
         config_file_abs_path = str(config_file_path.absolute())
         logging.info("Loading %s", config_file_abs_path)
         try:
-            factory = DagFactory(config_file_abs_path)
+            factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
             factory.generate_dags(globals_dict)
         except Exception:  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)

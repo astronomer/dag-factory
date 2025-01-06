@@ -11,15 +11,16 @@ security fixes. Additionally, this information supports key decisions related to
 
 Deployments and individual users can opt-out of analytics by setting the configuration:
 
-```
-[dag_factory] enable_telemetry False
+```ini
+[dag_factory]
+enable_telemetry False
 ```
 
 As described in the [official documentation](https://docs.scarf.sh/gateway/#do-not-track), it is also possible to opt out by setting one of the following environment variables:
 
 ```commandline
-DO_NOT_TRACK=True
-SCARF_NO_ANALYTICS=True
+    DO_NOT_TRACK=True
+    SCARF_NO_ANALYTICS=True
 ```
 
 In addition to Scarf's default data collection, DAG Factory collects the following information:

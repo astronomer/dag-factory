@@ -465,11 +465,10 @@ class DagBuilder:
         :param dag: DAG instance that task groups to be added.
         """
         task_groups_dict: Dict[str, "TaskGroup"] = {}
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-            for task_group_name, task_group_conf in task_groups.items():
-                DagBuilder.make_nested_task_groups(
-                    task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
-                )
+        for task_group_name, task_group_conf in task_groups.items():
+            DagBuilder.make_nested_task_groups(
+                task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
+            )
 
         return task_groups_dict
 
@@ -640,6 +639,8 @@ class DagBuilder:
         dag_kwargs: Dict[str, Any] = {}
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
+        if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
+            dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
 
         if not dag_params.get("timetable") and not utils.check_dict_key(dag_params, "schedule"):
             dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
