@@ -74,7 +74,7 @@ Then, run Airflow in standalone mode; the command below will create a new user (
 airflow standalone
 ```
 
-Once Airflow is up, you can access the Airflow UI at ``http://localhost:8080``.
+After Airflow is running, you can access the Airflow UI at ``http://localhost:8080``.
 
 > Note: whenever you want to start the development server, you need to activate the ``virtualenv`` and set the ``environment variables``
 
