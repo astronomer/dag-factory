@@ -154,7 +154,7 @@ Pre-commit runs several static checks, including Black and Ruff. It is also poss
 hatch run tests.py3.9-2.9:static-check
 ```
 
-## 5. Authoring the documentation
+## Write docs
 
 We use Markdown to author DAG Factory documentation.
 
