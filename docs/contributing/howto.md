@@ -52,7 +52,7 @@ After cloning the project, there are two options for setting up the local develo
 make setup
 ```
 
-Activate the local python environment:
+2. Activate the local python environment:
 
 ```bash
 source venv/bin/activate
