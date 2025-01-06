@@ -15,7 +15,7 @@ This document describes how to contribute to DAG Factory, covering:
 5. Authoring the documentation
 6. Releasing
 
-## 1. Overview of how to contribute
+## Overview of how to contribute
 
 To contribute to the DAG Factory project:
 
