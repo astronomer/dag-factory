@@ -3,6 +3,7 @@ default:
     catchup: false,
     start_date: 2024-11-11
 
+# ----8<---   [ start: example_dag_yaml_configuration ]
 basic_example_dag:
   default_args:
     owner: "custom_owner"
@@ -21,3 +22,4 @@ basic_example_dag:
       operator: airflow.operators.bash_operator.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
+# ----8<---   [ end: example_dag_yaml_configuration ]
