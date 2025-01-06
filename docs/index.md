@@ -7,12 +7,12 @@ Everything you need to know about how to build Apache Airflow® workflows using 
 Are you new to DAG Factory? This is the place to start!
 
 * DAG Factory at a glance
-    * [Quickstart with Airflow standalone](getting-started/quick-start-airflow-standalone.md)
-    * [Quickstart with Astro CLI](getting-started/quick-start-astro-cli.md)
+  * [Quickstart with Airflow standalone](getting-started/quick-start-airflow-standalone.md)
+  * [Quickstart with Astro CLI](getting-started/quick-start-astro-cli.md)
 * Install guide
 * [Using YAML instead of Python](./comparison/index.md)
-    * [Traditional Airflow Operators](./comparison/traditional_operators.md)
-    * [TaskFlow API](./comparison/taskflow_api.md)
+  * [Traditional Airflow Operators](./comparison/traditional_operators.md)
+  * [TaskFlow API](./comparison/taskflow_api.md)
 
 ## Features
 
@@ -46,3 +46,9 @@ To learn more about the terms and conditions for use, reproduction and distribut
 This project follows [Astronomer's Privacy Policy](https://www.astronomer.io/privacy/).
 
 For further information, [read this](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md)
+
+## Security Policy
+
+Check the project's [Security Policy](https://github.com/astronomer/dag-factory/blob/main/SECURITY.md) to learn
+how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
+security team are handled.
