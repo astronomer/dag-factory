@@ -78,7 +78,7 @@ After Airflow is running, you can access the Airflow UI at ``http://localhost:80
 
 > Note: whenever you want to start the development server, you need to activate the ``virtualenv`` and set the ``environment variables``
 
-### b) Using Docker for local development
+### Use Docker for local development
 
 It is also possible to build the development environment using [Docker](https://www.docker.com/products/docker-desktop/):
 
