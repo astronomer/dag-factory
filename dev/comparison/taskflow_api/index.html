@@ -123,14 +123,14 @@
 <h1 id="taskflow-api-using-yaml-instead-of-python">TaskFlow API: Using YAML instead of Python</h1>
 <p>For users that employ lots of Python functions in their DAGs, <a href="https://www.astronomer.io/docs/learn/airflow-decorators/">TaskFlow API</a> represent a simpler way to transform functions into tasks, with a more intuitive way of passing data between them.
 They were  introduced in Airflow 2 as an alternative to Airflow <a href="../traditional_operators/">traditional operators</a>.</p>
-<p>Below, we illustrate how to represent an Airflow DAG using TaskFlow API and how to define the same DAG using
+<p>The following section shows how to represent an Airflow DAG using TaskFlow API and how to define the same DAG using
 DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
-to declare the workflow: while one uses Python, the other uses YAML.</p>
+to declare the workflow: one uses Python and the other uses YAML.</p>
 <h2 id="goal">Goal</h2>
 <p>Let's say we'd like to create a workflow that performs the following:</p>
 <ol>
-<li>Create a list of <a href="https://pypi.org/">PyPI</a> projects to be analysed</li>
-<li>Fetch the <a href="https://pypistats.org/">statistics</a> for each of these projects</li>
+<li>Create a list of <a href="https://pypi.org/">PyPI</a> projects to be analysed.</li>
+<li>Fetch the <a href="https://pypistats.org/">statistics</a> for each of these projects.</li>
 <li>Summarize the selected statistics as Markdown, using Python.</li>
 </ol>
 <p>We will implement all these steps using the Airflow <code>task</code> decorator, and the last task will generate a Markdown table similar to:</p>
@@ -227,15 +227,14 @@ to declare the workflow: while one uses Python, the other uses YAML.</p>
 <h3 id="goal_1">Goal</h3>
 <p>Both implementations accomplish the same goal and result in the expected Markdown table.</p>
 <h3 id="airflow-graph-view">Airflow Graph view</h3>
-<p>As it can be seen in the screenshots below, both the DAG created using Python with standard Airflow and the
-DAG created using YAML and DAG Factory look identical, from a graph topology perspective, and also from the underlining
-operators being used.</p>
+<p>As shown in the screenshots below, both the DAG created using Python with standard Airflow and the
+DAG created using YAML and DAG Factory look identical, from a graph topology perspective, and also from the underlining operators being used.</p>
 <h4 id="graph-view-plain-airflow-python-dag">Graph view: Plain Airflow Python DAG</h4>
 <p><img alt="alt text" src="../../static/example_pypi_stats_plain_airflow_graph.png" title="Python DAG Graph visualisation" /></p>
 <h4 id="graph-view-alternative-dag-factory-yaml">Graph view: Alternative DAG Factory YAML</h4>
 <p><img alt="alt text" src="../../static/example_pypi_stats_dagfactory_graph.png" title="YAML DAG Graph visualization" /></p>
 <h3 id="airflow-dynamic-task-mapping">Airflow Dynamic Task Mapping</h3>
-<p>In both workflows, we are generating dynamically a task for each PyPI repo.</p>
+<p>In both workflows, we are dynamically generating a task for each PyPI repo.</p>
 <h4 id="mapped-tasks-plain-airflow-python-dag">Mapped Tasks: Plain Airflow Python DAG</h4>
 <p><img alt="alt text" src="../../static/example_pypi_stats_plain_airflow_mapped_tasks.png" title="Python DAG mapped tasks" /></p>
 <h4 id="mapped-tasks-alternative-dag-factory-yaml">Mapped Tasks: Alternative DAG Factory YAML</h4>
@@ -260,8 +259,7 @@ operators being used.</p>
 <p><img alt="alt text" src="../../static/example_pypi_stats_plain_airflow_code.png" title="Python DAG code visualization" /></p>
 <h4 id="code-view-alternative-dag-factory-yaml">Code view: Alternative DAG Factory YAML</h4>
 <p><img alt="alt text" src="../../static/example_pypi_stats_dagfactory_code.png" title="YAML DAG code visualization" /></p>
-<p>To overcome this limitation, DAG Factory appends the YAML content to the DAG Documentation so users can better troubleshoot
-the DAG:</p>
+<p>To overcome this limitation, DAG Factory appends the YAML content to the DAG Documentation so users can better troubleshoot the DAG:</p>
 <p><img alt="alt text" src="../../static/example_pypi_stats_dagfactory_docs.png" title="YAML DAG docs visualization" /></p></div>
             </div>
         </div>

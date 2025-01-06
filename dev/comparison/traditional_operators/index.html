@@ -126,7 +126,7 @@ they can sometimes lead to boilerplate-heavy DAGs compared to the newer <a href=
 <p>Most of the Airflow providers come with built-in traditional operators. Some examples include <code>BashOperator</code>, <code>PythonOperator</code>, <code>KubernetesPodOperator</code>, and  <code>PostgresOperator</code>.</p>
 <p>Below, we illustrate how to represent an Airflow DAG using traditional operators and how to define the same DAG using
 DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
-to declare the workflow: while one uses Python, the other uses YAML.</p>
+to declare the workflow: one uses Python and the other uses YAML.</p>
 <h2 id="goal">Goal</h2>
 <p>Let's say we'd like to create a workflow that performs the following:</p>
 <ol>
@@ -218,7 +218,7 @@ The last task will generate a <code>Markdown</code> snippet similar to:</p>
 <h3 id="goal_1">Goal</h3>
 <p>Both implementations accomplish the same goal and result in the expected Markdown table.</p>
 <h3 id="airflow-graph-view">Airflow Graph view</h3>
-<p>As it can be seen in the screenshots below, both the DAG created using Python with standard Airflow and the
+<p>As shown in the screenshots below, both the DAG created using Python with standard Airflow and the
 DAG created using YAML and DAG Factory look identical, from a graph topology perspective, and also from the underlining
 operators being used.</p>
 <h4 id="graph-view-plain-airflow-python-dag">Graph view: Plain Airflow Python DAG</h4>
