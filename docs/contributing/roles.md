@@ -42,6 +42,6 @@ General prerequisites that we look for in all candidates:
 1. Consistent contribution over last few months
 2. Visibility on discussions on the Slack channel or GitHub issues/discussions
 3. Contributions to community health and project's sustainability for the long-term
-4. Understands the project's [contributors guidelines](howto.md).
+4. Understands the project's contributors' guidelines.
 Astronomer is responsible and accountable for releasing new versions of DAG Factory in [PyPI](https://pypi.org/project/dag-factory/), following the [milestones](https://github.com/astronomer/dag-factory/milestones).
 Astronomer has the right to grant and revoke write access permissions to the project's official repository for any reason it sees fit.
