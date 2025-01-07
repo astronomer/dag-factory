@@ -53,5 +53,5 @@ Given the various ways to specify `default_args`, the following precedence order
 duplicated:
 
 1. In the DAG configuration
-2. In the default block within the workflow's YAML file
+2. In the `default` block within the workflow's YAML file
 3. In the `defaults.yml`
