@@ -1,6 +1,7 @@
 # Configuring Your Workflows
 
 DAG Factory allows you to define workflows in a structured, configuration-driven way using YAML files.
+You can define multiple workflows within a single YAML file based on your requirements.
 
 ## Key Elements of Workflow Configuration
 
@@ -17,5 +18,5 @@ DAG Factory allows you to define workflows in a structured, configuration-driven
 
 ### Check out more configuration params
 
-- [Environment variables](./environment_variables.md)
-- [Defaults](./defaults.md)
+- [Environment variables](environment_variables.md)
+- [Defaults](defaults.md)

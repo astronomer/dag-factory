@@ -14,11 +14,14 @@ Are you new to DAG Factory? This is the place to start!
   * [Traditional Airflow Operators](./comparison/traditional_operators.md)
   * [TaskFlow API](./comparison/taskflow_api.md)
 
+## Configuration
+
+* [Configuring your workflows](configuration/configuring_workflows.md)
+  * [Environment variables](configuration/environment_variables.md)
+  * [Defaults](configuration/defaults.md)
+
 ## Features
 
-* [Configuring your workflows](./features/configuring_workflows.md)
-  * [Environment variables](./features/environment_variables.md)
-  * [Defaults](./features/defaults.md)
 * Dynamically creating tasks during runtime
   * Dynamic task mapping
 
