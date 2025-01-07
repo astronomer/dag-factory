@@ -1,4 +1,4 @@
-# Requires Airflow 2.7 or higher
+# Requires Airflow 2.9 or higher
 example_map_index_template:
   default_args:
     owner: "custom_owner"

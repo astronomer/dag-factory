@@ -22,8 +22,7 @@ Are you new to DAG Factory? This is the place to start!
 
 ## Features
 
-* Dynamically creating tasks during runtime
-  * Dynamic task mapping
+* [Dynamic tasks](features/dynamic_tasks.md)
 
 ## Getting help
 
