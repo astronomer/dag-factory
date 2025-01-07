@@ -35,7 +35,7 @@ Having trouble? We'd like to help!
 
 DAG Factory is an Open-Source project. Learn about its development process and about how you can contribute:
 
-* Contributing to DAG Factory
+* [Contributing to DAG Factory](contributing/howto.md)
 * [Github repository](https://github.com/astronomer/dag-factory/)
 
 ## License
@@ -47,3 +47,9 @@ To learn more about the terms and conditions for use, reproduction and distribut
 This project follows [Astronomer's Privacy Policy](https://www.astronomer.io/privacy/).
 
 For further information, [read this](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md)
+
+## Security Policy
+
+Check the project's [Security Policy](https://github.com/astronomer/dag-factory/blob/main/SECURITY.md) to learn
+how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
+security team are handled.
