@@ -22,7 +22,7 @@ The arguments specified in the `default` block, such as `default_args`, `default
 
 ## Multiple ways for specifying Airflow default_args
 
-DAG Factory offers flexibility in defining Airflow’s default_args. These can be specified in several ways, depending on your requirements.
+DAG Factory offers flexibility in defining Airflow’s `default_args`. These can be specified in several ways, depending on your requirements.
 
 1. Specifying `default_args` in the `default` block
 
@@ -53,5 +53,5 @@ Given the various ways to specify `default_args`, the following precedence order
 duplicated:
 
 1. In the DAG configuration
-2. In the default block
-3. In the defaults.yml
+2. In the default block within the workflow's YAML file
+3. In the `defaults.yml`
