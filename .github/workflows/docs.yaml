@@ -7,10 +7,10 @@ on:
     branches: [main, docs_job]
   release:
     types: ['published']
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  workflow_run:
+    workflows: ["CI jobs"]
+    types:
+      - completed
 
 jobs:
 
@@ -34,7 +34,7 @@ jobs:
 
       - name: Deploy Docs
         run: |
-          git config user.name "OSS Integration Bot"
+          git config user.name "oss-integrations-bot"
           git config user.email "oss-integrations-bot@astronomer.io"
 
           git fetch origin gh-pages --depth=1
