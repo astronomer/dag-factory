@@ -42,7 +42,7 @@ task instance.
 
 ### Airflow mapped tasks view
 
-Below you can see list of mapped tasks generated dynamically as part of the `process` task
+Below, you can see a list of mapped tasks generated dynamically as part of the `process` task.
 
 ![example_dynamic_task_mapping.png](../static/example_dynamic_task_mapping.png "Dynamic Task Mapping visualization")
 
@@ -54,18 +54,18 @@ Below, we explain the different methods for defining dynamic task mapping, illus
 --8<-- "dev/dags/example_taskflow.yml"
 ```
 
-The above example illustrates below advanced usage of Dynamic Task Mapping using Dag Factory (the callable functions
+The example above illustrates advanced usage of Dynamic Task Mapping using Dag Factory (the callable functions
 used in the example are kept in [sample.py](https://github.com/astronomer/dag-factory/blob/main/dev/dags/sample.py)):
 
 1. **Static Input Mapping**
 
     The task `double_number_with_dynamic_task_mapping_static` shows how dynamic tasks can be created using static lists
-as input. With this three tasks will be created, each processing one number.
+as input. Three tasks are created, each processing one number.
 
 2. **Task-Generated Input Mapping**
 
     The task `double_number_with_dynamic_task_mapping_taskflow` shows how tasks can use outputs from other tasks as
-input for dynamic task mapping. The prefix `+` tells Dag Factory to resolve this value as the task `numbers_list`,
+input for dynamic task mapping. The prefix `+` tells DAG Factory to resolve this value as the task `numbers_list`,
 previously defined.
 
 3. **Mapping with Multiple Inputs**
@@ -97,10 +97,10 @@ Below is an example of how to configure and use custom names for mapped tasks
      - Marks Spencer
 3. Dynamic Task Naming:
    The `custom_mapping_key` is set to the first name of each person, e.g., Lucy, Vera, and Marks using the callable
-function `extract_last_name` is kept in [sample.py](https://github.com/astronomer/dag-factory/blob/main/dev/dags/sample.py)
+function `extract_last_name`. This callable function is kept in [sample.py](https://github.com/astronomer/dag-factory/blob/main/dev/dags/sample.py)
 
 ### Airflow named mapped tasks view
 
-The below image shows that the `map_index` gets the first name of the person in the mapped tasks with the above configuration
+The image below shows that the `map_index` gets the first name of the person in the mapped tasks with the above configuration.
 
 ![example_map_index_template.png](../static/example_map_index_template.png "Dynamic Task Mapping named mapped index visualization")
