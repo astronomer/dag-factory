@@ -104,3 +104,31 @@ function `extract_last_name`. This callable function is kept in [sample.py](http
 The image below shows that the `map_index` gets the first name of the person in the mapped tasks with the above configuration.
 
 ![example_map_index_template.png](../static/example_map_index_template.png "Dynamic Task Mapping named mapped index visualization")
+
+## Scope and limitations
+
+The Airflow documentation on [dynamic task mapping](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html)
+provides various examples of this feature. While the previous sections have discussed the forms supported by DAG
+Factory, it’s important to note the scenarios that have not been tested or are known to be unsupported.
+
+The following cases are tested and expected to work (you can refer to previous sections on how to use them with DAG Factory):
+
+- [Simple mapping](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#simple-mapping)
+- [Task-generated mapping](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#task-generated-mapping)
+- [Repeated mapping](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#repeated-mapping)
+- [Adding parameters that do not expand (partial)](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#adding-parameters-that-do-not-expand)
+- [Mapping over multiple parameters](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-multiple-parameters)
+- [Named mapping (map_index_template)](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#named-mapping)
+
+The following cases are untested but are expected to work:
+
+- [Mapping with non-TaskFlow operators](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-with-non-taskflow-operators)
+- [Mapping over the result of classic operators](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-result-of-classic-operators)
+- [Filtering items from a mapped task](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#filtering-items-from-a-mapped-task)
+
+The following cases are untested and may not work:
+
+- [Assigning multiple parameters to a non-TaskFlow operator](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#assigning-multiple-parameters-to-a-non-taskflow-operator)
+- [Mapping over a task group](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-a-task-group)
+- [Transforming expanding data](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#transforming-expanding-data)
+- [Combining upstream data (aka “zipping”)](https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#combining-upstream-data-aka-zipping)
