@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Dynamic tasks - DAG Factory Documentation</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">DAG Factory Documentation</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">DAG Factory documentation</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Comparison</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../comparison/" class="dropdown-item">Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="../../comparison/taskflow_api/" class="dropdown-item">TaskFlow API: Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="../../comparison/traditional_operators/" class="dropdown-item">Traditional Operators: Using YAML instead of Python</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../configuration/configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
+</li>
+                                    
+<li>
+    <a href="../../configuration/defaults/" class="dropdown-item">Defaults</a>
+</li>
+                                    
+<li>
+    <a href="../../configuration/environment_variables/" class="dropdown-item">Environment variables</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Contributing</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../contributing/code_of_conduct/" class="dropdown-item">Contributor Covenant Code of Conduct</a>
+</li>
+                                    
+<li>
+    <a href="../../contributing/contributors/" class="dropdown-item">Contributors</a>
+</li>
+                                    
+<li>
+    <a href="../../contributing/howto/" class="dropdown-item">Contributing Guide</a>
+</li>
+                                    
+<li>
+    <a href="../../contributing/roles/" class="dropdown-item">Contributor roles</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Dynamic tasks</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../getting-started/quick-start-airflow-standalone/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../../getting-started/quick-start-astro-cli/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                            <li class="nav-item">
+                                <a rel="prev" href="../../contributing/roles/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../getting-started/quick-start-airflow-standalone/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#dynamic-tasks" class="nav-link">Dynamic tasks</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#example-defining-dynamic-tasks" class="nav-link">Example: Defining Dynamic Tasks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#advanced-dynamic-task-mapping-with-dag-factory" class="nav-link">Advanced Dynamic Task Mapping with DAG Factory</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#named-mapping-in-dynamic-tasks-with-dag-factory" class="nav-link">Named Mapping in Dynamic Tasks with DAG Factory</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#scope-and-limitations" class="nav-link">Scope and limitations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="dynamic-tasks">Dynamic tasks</h1>
+<p>DAG Factory supports Airflow’s
+<a href="https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html">Dynamic Task Mapping</a>,
+enabling workflows to dynamically create tasks at runtime.  This approach allows the number of tasks to be determined
+during execution, usually based on the outcome of a preceding task, rather than being predefined during DAG authoring.</p>
+<h2 id="example-defining-dynamic-tasks">Example: Defining Dynamic Tasks</h2>
+<p>Below is an example configuration for implementing dynamic tasks using DAG Factory:</p>
+<div class="language-text highlight"><span class="filename">example_dynamic_task_mapping.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>test_expand:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    start_date: 2 days
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  description: &quot;test expand&quot;
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  default_view: &quot;graph&quot;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  tasks:
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    process:
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      operator: airflow.operators.python_operator.PythonOperator
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      python_callable_name: consume_value
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      partial:
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        op_kwargs:
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>          fixed_param: &quot;test&quot;
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      expand:
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        op_args:
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>            request.output
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      dependencies: [request]
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    # This task is intentionally placed after the &quot;process&quot; task to demonstrate that DAG Factory does not require tasks
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    # to be topologically ordered in the YAML file according to their dependencies.
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    request:
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>      operator: airflow.operators.python.PythonOperator
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      python_callable_name: make_list
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>      python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
+</span></code></pre></div>
+<h3 id="explanation-of-the-configuration">Explanation of the Configuration</h3>
+<ol>
+<li>
+<p><code>request</code> Task:</p>
+<ul>
+<li>Generates a list of items using the <code>make_list</code> function from the <a href="https://github.com/astronomer/dag-factory/blob/main/dev/dags/expand_tasks.py">expand_tasks.py</a> module.</li>
+<li>This task serves as the input provider for the dynamically mapped tasks.</li>
+</ul>
+</li>
+<li>
+<p><code>process</code> Task:</p>
+<ul>
+<li>Dynamically generates one task for each item in the list produced by the <code>request</code> task.</li>
+<li>The expand argument is used to create these tasks at runtime, with <code>request.output</code> supplying the input list.</li>
+<li>Additionally, the <code>partial</code> argument is used to specify fixed parameters (<code>op_kwargs</code>) that are applied to all dynamically generated tasks.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-it-works">How It Works</h3>
+<ul>
+<li>
+<p>Dynamic Task Creation:
+    The <code>expand</code> keyword allows the process task to spawn multiple tasks at runtime, each processing a single item from
+the list output of the <code>request</code> task.</p>
+</li>
+<li>
+<p>Fixed Parameters:
+    The partial keyword ensures that common parameters, such as <code>fixed_param</code>, are passed to every dynamically created
+task instance.</p>
+</li>
+</ul>
+<h3 id="benefits-of-dynamic-task-mapping-with-dag-factory">Benefits of Dynamic Task Mapping with DAG Factory</h3>
+<ul>
+<li>Flexibility: Handle varying input sizes and conditions dynamically without modifying the DAG definition.</li>
+<li>Scalability: Efficiently process large datasets by leveraging Airflow’s parallel execution capabilities.</li>
+<li>Simplicity: Define dynamic workflows declaratively using YAML, minimizing boilerplate code.</li>
+</ul>
+<h3 id="airflow-mapped-tasks-view">Airflow mapped tasks view</h3>
+<p>Below, you can see a list of mapped tasks generated dynamically as part of the <code>process</code> task.</p>
+<p><img alt="example_dynamic_task_mapping.png" src="../../static/example_dynamic_task_mapping.png" title="Dynamic Task Mapping visualization" /></p>
+<h2 id="advanced-dynamic-task-mapping-with-dag-factory">Advanced Dynamic Task Mapping with DAG Factory</h2>
+<p>Below, we explain the different methods for defining dynamic task mapping, illustrated by the provided example configuration.</p>
+<div class="language-text highlight"><span class="filename">Dynamic Task Mapping advanced usage</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>example_taskflow:
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    owner: &quot;custom_owner&quot;
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    start_date: 2 days
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  description: &quot;Example of TaskFlow powered DAG that includes dynamic task mapping&quot;
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  default_view: &quot;graph&quot;
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  tasks:
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    some_number:
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>      python_callable: sample.some_number
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    numbers_list:
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>      python_callable_name: build_numbers_list
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>      python_callable_file: $CONFIG_ROOT_DIR/sample.py
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    another_numbers_list:
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>      python_callable: sample.build_numbers_list
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    double_number_from_arg:
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>      python_callable: sample.double
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      number: 2
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    double_number_from_task:
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>      python_callable: sample.double
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>      number: +some_number  # the prefix + leads to resolving this value as the task `some_number`, previously defined
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    double_number_with_dynamic_task_mapping_static:
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>      python_callable: sample.double
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>      expand:
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>          number:
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>            - 1
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>            - 3
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>            - 5
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    double_number_with_dynamic_task_mapping_taskflow:
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>      python_callable: sample.double
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>      expand:
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>          number: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>    multiply_with_multiple_parameters:
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>      python_callable: sample.multiply
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>      expand:
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>          a: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>          b: +another_numbers_list # the prefix + tells DagFactory to resolve this value as the task `another_numbers_list`, previously defined
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>    double_number_with_dynamic_task_and_partial:
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>      decorator: airflow.decorators.task
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>      python_callable: sample.double_with_label
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>      expand:
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>          number: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>      partial:
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>          label: True
+</span></code></pre></div>
+<p>The example above illustrates advanced usage of Dynamic Task Mapping using Dag Factory (the callable functions
+used in the example are kept in <a href="https://github.com/astronomer/dag-factory/blob/main/dev/dags/sample.py">sample.py</a>):</p>
+<ol>
+<li>
+<p><strong>Static Input Mapping</strong></p>
+<p>The task <code>double_number_with_dynamic_task_mapping_static</code> shows how dynamic tasks can be created using static lists
+as input. Three tasks are created, each processing one number.</p>
+</li>
+<li>
+<p><strong>Task-Generated Input Mapping</strong></p>
+<p>The task <code>double_number_with_dynamic_task_mapping_taskflow</code> shows how tasks can use outputs from other tasks as
+input for dynamic task mapping. The prefix <code>+</code> tells DAG Factory to resolve this value as the task <code>numbers_list</code>,
+previously defined.</p>
+</li>
+<li>
+<p><strong>Mapping with Multiple Inputs</strong></p>
+<p>The task <code>multiply_with_multiple_parameters</code> shows how dynamic task mapping can combine outputs from multiple tasks
+as input parameters.</p>
+</li>
+</ol>
+<h2 id="named-mapping-in-dynamic-tasks-with-dag-factory">Named Mapping in Dynamic Tasks with DAG Factory</h2>
+<p>Starting with Airflow 2.9, the <code>map_index_template</code> feature allows for custom mapping name for dynamic tasks based on a
+user-defined key. DAG Factory fully supports this feature, enabling users to name tasks dynamically in a meaningful way
+during runtime. This can be useful for tracing and debugging tasks.</p>
+<p>Below is an example of how to configure and use custom names for mapped tasks</p>
+<div class="language-text highlight"><span class="filename">example_map_index_template.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Requires Airflow 2.9 or higher
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>example_map_index_template:
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  default_args:
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    owner: &quot;custom_owner&quot;
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    start_date: 2 days
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  description: &quot;Example of TaskFlow powered DAG that includes dynamic task mapping&quot;
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  default_view: &quot;graph&quot;
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  tasks:
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    dynamic_task_with_named_mapping:
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>      decorator: airflow.decorators.task
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>      python_callable: sample.extract_last_name
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>      map_index_template: &quot;{{ custom_mapping_key }}&quot;
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>      expand:
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        full_name:
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>          - Lucy Black
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>          - Vera Santos
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>          - Marks Spencer
+</span></code></pre></div>
+<h3 id="how-it-works_1">How it works</h3>
+<ol>
+<li>map_index_template:
+   Customizes the naming of dynamically mapped tasks using a Jinja2 expression. In this example, it uses
+<code>custom_mapping_key</code> from the task context to define task names.</li>
+<li>expand:
+   Dynamically generates tasks for each entry in the <code>full_name</code> list<ul>
+<li>Lucy Black</li>
+<li>Vera Santos</li>
+<li>Marks Spencer</li>
+</ul>
+</li>
+<li>Dynamic Task Naming:
+   The <code>custom_mapping_key</code> is set to the first name of each person, e.g., Lucy, Vera, and Marks using the callable
+function <code>extract_last_name</code>. This callable function is kept in <a href="https://github.com/astronomer/dag-factory/blob/main/dev/dags/sample.py">sample.py</a></li>
+</ol>
+<h3 id="airflow-named-mapped-tasks-view">Airflow named mapped tasks view</h3>
+<p>The image below shows that the <code>map_index</code> gets the first name of the person in the mapped tasks with the above configuration.</p>
+<p><img alt="example_map_index_template.png" src="../../static/example_map_index_template.png" title="Dynamic Task Mapping named mapped index visualization" /></p>
+<h2 id="scope-and-limitations">Scope and limitations</h2>
+<p>The Airflow documentation on <a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html">dynamic task mapping</a>
+provides various examples of this feature. While the previous sections have discussed the forms supported by DAG
+Factory, it’s important to note the scenarios that have not been tested or are known to be unsupported.</p>
+<p>The following cases are tested and expected to work (you can refer to previous sections on how to use them with DAG Factory):</p>
+<ul>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#simple-mapping">Simple mapping</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#task-generated-mapping">Task-generated mapping</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#repeated-mapping">Repeated mapping</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#adding-parameters-that-do-not-expand">Adding parameters that do not expand (partial)</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-multiple-parameters">Mapping over multiple parameters</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#named-mapping">Named mapping (map_index_template)</a></li>
+</ul>
+<p>The following cases are untested but are expected to work:</p>
+<ul>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-with-non-taskflow-operators">Mapping with non-TaskFlow operators</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-result-of-classic-operators">Mapping over the result of classic operators</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#filtering-items-from-a-mapped-task">Filtering items from a mapped task</a></li>
+</ul>
+<p>The following cases are untested and may not work:</p>
+<ul>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#assigning-multiple-parameters-to-a-non-taskflow-operator">Assigning multiple parameters to a non-TaskFlow operator</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#mapping-over-a-task-group">Mapping over a task group</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#transforming-expanding-data">Transforming expanding data</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.10.3/authoring-and-scheduling/dynamic-task-mapping.html#combining-upstream-data-aka-zipping">Combining upstream data (aka “zipping”)</a></li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

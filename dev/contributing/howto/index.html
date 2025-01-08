@@ -94,6 +94,15 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../features/dynamic_tasks/" class="dropdown-item">Dynamic tasks</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
                                 <ul class="dropdown-menu">
                                     
@@ -186,7 +195,7 @@
 <h2 id="overview-of-how-to-contribute">Overview of how to contribute</h2>
 <p>To contribute to the DAG Factory project:</p>
 <ol>
-<li>Please create a <a href="https://github.com/astronomer/dag-factory/issues">GitHub Issue</a> describing a bug, enhancement, or feature request. </li>
+<li>Please create a <a href="https://github.com/astronomer/dag-factory/issues">GitHub Issue</a> describing a bug, enhancement, or feature request.</li>
 <li>Open a branch off of the <code>main</code> branch and create a Pull Request into the <code>main</code> branch from your feature branch.</li>
 <li>Link your issue to the pull request.</li>
 <li>After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.</li>
@@ -209,18 +218,20 @@
 </ul>
 <h3 id="using-a-python-virtual-environment-for-local-development">Using a Python virtual environment for local development</h3>
 <ol>
-<li>Install the project dependencies:</li>
-</ol>
+<li>
+<p>Install the project dependencies:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>make<span class="w"> </span>setup
 </span></code></pre></div>
-<ol>
-<li>Activate the local python environment:</li>
-</ol>
+</li>
+<li>
+<p>Activate the local python environment:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
 </span></code></pre></div>
-<ol>
-<li>Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs.
-Disable loading Airflow standard example DAGs:</li>
+</li>
+<li>
+<p>Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs.
+Disable loading Airflow standard example DAGs:</p>
+</li>
 </ol>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__LOAD_EXAMPLES</span><span class="o">=</span><span class="nb">false</span>
@@ -280,14 +291,11 @@ They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-exi
 <h2 id="write-docs">Write docs</h2>
 <p>We use Markdown to author DAG Factory documentation.</p>
 <p>Similar to running tests, we also use hatch to manage the documentation.</p>
-<p>To build the documentation locally:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:build
-</span></code></pre></div>
-<p>To serve the documentation locally in <code>localhost:8080</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:serve
+<p>To build and serve the documentation locally:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:dev
 </span></code></pre></div>
 <p>To release the documentation with the current project version and set it to the latest:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:release
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:gh-release
 </span></code></pre></div>
 <h2 id="releasing">Releasing</h2>
 <p>We currently use <a href="https://github.com/pypa/hatch">hatch</a> for building and distributing <code>dag-factory</code>.</p>
@@ -296,15 +304,15 @@ They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-exi
 <blockquote>
 <p>Note: You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
 </blockquote>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
 </span></code></pre></div>
 <p>Or by manually updating the value of <code>__version__</code> in <code>dagfactory/__init__.py</code>.</p>
 <p>Make sure the <a href="https://github.com/astronomer/dag-factory/blob/main/CHANGELOG.md">CHANGELOG file</a> is up-to-date.</p>
 <p>Create a release using the <a href="https://github.com/astronomer/dag-factory/releases/new">GitHub UI</a>. GitHub will update the package directly to <a href="https://pypi.org/project/dag-factory/">PyPI</a>.</p>
 <p>If you're a <a href="https://pypi.org/project/dag-factory/">project maintainer in PyPI</a>, it is also possible to create a release manually,
 by authenticating to PyPI and running the commands:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hatch<span class="w"> </span>build
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>hatch<span class="w"> </span>publish
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>build
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>hatch<span class="w"> </span>publish
 </span></code></pre></div></div>
             </div>
         </div>
