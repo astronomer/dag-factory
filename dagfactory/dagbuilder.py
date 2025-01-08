@@ -173,9 +173,7 @@ class DagBuilder:
                     dag_params["default_args"]["sla_miss_callback"]
                 )
 
-        if utils.check_dict_key(dag_params["default_args"], "on_execute_callback") and version.parse(
-            AIRFLOW_VERSION
-        ) >= version.parse("2.0.0"):
+        if utils.check_dict_key(dag_params["default_args"], "on_execute_callback"):
             if isinstance(dag_params["default_args"]["on_execute_callback"], str):
                 dag_params["default_args"]["on_execute_callback"] = import_string(
                     dag_params["default_args"]["on_execute_callback"]
@@ -481,11 +479,10 @@ class DagBuilder:
         :param dag: DAG instance that task groups to be added.
         """
         task_groups_dict: Dict[str, "TaskGroup"] = {}
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-            for task_group_name, task_group_conf in task_groups.items():
-                DagBuilder.make_nested_task_groups(
-                    task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
-                )
+        for task_group_name, task_group_conf in task_groups.items():
+            DagBuilder.make_nested_task_groups(
+                task_group_name, task_group_conf, task_groups_dict, task_groups, None, dag
+            )
 
         return task_groups_dict
 

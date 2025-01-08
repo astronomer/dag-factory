@@ -16,6 +16,8 @@ default:
   on_failure_callback_name: print_hello_from_callback
   on_failure_callback_file: $CONFIG_ROOT_DIR/print_hello.py
 
+
+# ----8<---   [ start: environment_variable_example ]
 example_dag:
   default_args:
     owner: "custom_owner"
@@ -36,6 +38,7 @@ example_dag:
       python_callable_name: print_hello
       python_callable_file: $CONFIG_ROOT_DIR/print_hello.py
       dependencies: [task_1]
+# ----8<---   [ end: environment_variable_example ]
 
 example_dag2:
   default_args:

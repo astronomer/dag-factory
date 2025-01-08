@@ -11,7 +11,7 @@ The minimum requirements for **dag-factory** are:
 
 ## Step 1: Initialize Airflow Project
 
-Start by creating a new directory and initializing your Astro CLI project:
+Create a new directory and initialize your Astro CLI project:
 
 ```commandline
 mkdir dag-factory-quick-start && cd dag-factory-quick-start
@@ -23,7 +23,7 @@ This will set up the necessary Airflow files and directories.
 
 ## Step 2: Install DAG Factory
 
-To install DAG Factory in your Airflow environment:
+Install DAG Factory in your Airflow environment:
 
 1. Add dag-factory as a dependency to the `requirements.txt` file created during the project initialization.
 

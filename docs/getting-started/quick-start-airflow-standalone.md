@@ -11,7 +11,7 @@ The minimum requirements for **dag-factory** are:
 
 ## Step 1: Create a Python Virtual Environment
 
-First, create and activate a virtual environment:
+Create and activate a virtual environment:
 
 ```commandline
 python3 -m venv dagfactory_env
@@ -20,7 +20,7 @@ source dagfactory_env/bin/activate
 
 ## Step 2: Install Apache Airflow
 
-Next, you'll need to install [Apache Airflow®](https://airflow.apache.org). Follow these steps:
+Install [Apache Airflow®](https://airflow.apache.org):
 
 1. Create a directory for your project and navigate to it:
 
@@ -43,7 +43,7 @@ Next, you'll need to install [Apache Airflow®](https://airflow.apache.org). Fol
 
 ## Step 3: Install DAG Factory
 
-Now, install the DAG Factory library in your virtual environment:
+Install the DAG Factory library in your virtual environment:
 
 ```commandline
 pip install dag-factory

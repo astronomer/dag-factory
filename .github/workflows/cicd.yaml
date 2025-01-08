@@ -218,6 +218,40 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
 
+  Deploy-Pages:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs:
+      - Static-Check
+      - Run-Unit-Tests
+      - Run-Integration-Tests
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: "x64"
+
+      - name: Install packages and dependencies
+        run: pip install hatch
+
+      - name: Deploy Docs
+        run: |
+          git config user.name "oss-integrations-bot"
+          git config user.email "oss-integrations-bot@astronomer.io"
+
+          git fetch origin gh-pages --depth=1
+
+          if [[ $GITHUB_EVENT_NAME == "release" && $GITHUB_EVENT_ACTION == "published" ]]; then
+              hatch run docs:gh-release
+          else
+              hatch run docs:gh-deploy
+          fi
+
   Publish-Package:
     if: github.event_name == 'release'
     name: Build and publish Python 🐍 distributions 📦 to PyPI
