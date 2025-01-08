@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Contributors - DAG Factory Documentation</title>
+        <title>Environment variables - DAG Factory Documentation</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -56,40 +56,40 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../../configuration/configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
+    <a href="../configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
 </li>
                                     
 <li>
-    <a href="../../configuration/defaults/" class="dropdown-item">Defaults</a>
+    <a href="../defaults/" class="dropdown-item">Defaults</a>
 </li>
                                     
 <li>
-    <a href="../../configuration/environment_variables/" class="dropdown-item">Environment variables</a>
+    <a href="./" class="dropdown-item active" aria-current="page">Environment variables</a>
 </li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Contributing</a>
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Contributing</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../code_of_conduct/" class="dropdown-item">Contributor Covenant Code of Conduct</a>
+    <a href="../../contributing/code_of_conduct/" class="dropdown-item">Contributor Covenant Code of Conduct</a>
 </li>
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">Contributors</a>
+    <a href="../../contributing/contributors/" class="dropdown-item">Contributors</a>
 </li>
                                     
 <li>
-    <a href="../howto/" class="dropdown-item">Contributing Guide</a>
+    <a href="../../contributing/howto/" class="dropdown-item">Contributing Guide</a>
 </li>
                                     
 <li>
-    <a href="../roles/" class="dropdown-item">Contributor roles</a>
+    <a href="../../contributing/roles/" class="dropdown-item">Contributor roles</a>
 </li>
                                 </ul>
                             </li>
@@ -110,12 +110,12 @@
 
                     <ul class="nav navbar-nav ms-md-auto">
                             <li class="nav-item">
-                                <a rel="prev" href="../code_of_conduct/" class="nav-link">
+                                <a rel="prev" href="../defaults/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../howto/" class="nav-link">
+                                <a rel="next" href="../../contributing/code_of_conduct/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -137,17 +137,9 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#contributors" class="nav-link">Contributors</a>
+            <li class="nav-item" data-bs-level="1"><a href="#environment-variables" class="nav-link">Environment variables</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#committers" class="nav-link">Committers</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#emeritus-committers" class="nav-link">Emeritus Committers</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#contributors_1" class="nav-link">Contributors</a>
+            <li class="nav-item" data-bs-level="2"><a href="#example-yaml-configuration-with-environment-variables" class="nav-link">Example YAML Configuration with Environment Variables</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -158,22 +150,37 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="contributors">Contributors</h1>
-<p>There are different ways people can contribute to DAG Factory.
-Learn more about the project <a href="../roles/">contributors roles</a>.</p>
-<h2 id="committers">Committers</h2>
-<ul>
-<li>Pankaj Koti (<a href="https://github.com/pankajkoti">@pankajkoti</a>)</li>
-<li>Pankaj Singh (<a href="https://github.com/pankajastro">@pankajastro</a>)</li>
-<li>Tatiana Al-Chueyr (<a href="https://github.com/tatiana">@tatiana</a>)</li>
-</ul>
-<h2 id="emeritus-committers">Emeritus Committers</h2>
-<ul>
-<li>Adam Boscarino (<a href="https://github.com/ajbosco">@ajbosco</a>)</li>
-</ul>
-<h2 id="contributors_1">Contributors</h2>
-<p>Many people are improving DAG Factory each day.
-Find more contributors <a href="https://github.com/astronomer/dag-factory/graphs/contributors">in our GitHub page</a>.</p></div>
+<h1 id="environment-variables">Environment variables</h1>
+<p>Starting release <code>0.20.0</code>, DAG Factory introduces support for referencing environment variables directly within YAML
+configuration files. This enhancement enables dynamic configuration paths and enhances workflow portability by
+resolving environment variables during DAG parsing.</p>
+<p>With this feature, DAG Factory removes the reliance on hard-coded paths, allowing for more flexible and adaptable
+configurations that work seamlessly across various environments.</p>
+<h2 id="example-yaml-configuration-with-environment-variables">Example YAML Configuration with Environment Variables</h2>
+<div class="language-text highlight"><span class="filename">Reference environment variable in YAML</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>example_dag:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  description: &quot;this is an example dag&quot;
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  render_template_as_native_obj: True
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  dag_display_name: &quot;Pretty Example DAG&quot;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  tasks:
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    task_1:
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      bash_command: &quot;echo 1&quot;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    task_2:
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      bash_command: &quot;echo 2&quot;
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [task_1]
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    task_3:
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      operator: airflow.operators.python_operator.PythonOperator
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      python_callable_name: print_hello
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      python_callable_file: $CONFIG_ROOT_DIR/print_hello.py
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      dependencies: [task_1]
+</span></code></pre></div>
+<p>In the above example, <code>$CONFIG_ROOT_DIR</code> is used to reference an environment variable that points to the root
+directory of your DAG configurations. During DAG parsing, it will be resolved to the value specified for the
+<code>CONFIG_ROOT_DIR</code> environment variable.</p></div>
             </div>
         </div>
 

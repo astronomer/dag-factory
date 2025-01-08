@@ -56,11 +56,36 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="configuration/configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
+</li>
+                                    
+<li>
+    <a href="configuration/defaults/" class="dropdown-item">Defaults</a>
+</li>
+                                    
+<li>
+    <a href="configuration/environment_variables/" class="dropdown-item">Environment variables</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Contributing</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
+    <a href="contributing/code_of_conduct/" class="dropdown-item">Contributor Covenant Code of Conduct</a>
+</li>
+                                    
+<li>
     <a href="contributing/contributors/" class="dropdown-item">Contributors</a>
+</li>
+                                    
+<li>
+    <a href="contributing/howto/" class="dropdown-item">Contributing Guide</a>
 </li>
                                     
 <li>
@@ -118,6 +143,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#configuration" class="nav-link">Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-bs-level="2"><a href="#features" class="nav-link">Features</a>
               <ul class="nav flex-column">
               </ul>
@@ -154,23 +183,32 @@
 <h2 id="getting-started">Getting started</h2>
 <p>Are you new to DAG Factory? This is the place to start!</p>
 <ul>
-<li>DAG Factory at a glance</li>
+<li>DAG Factory at a glance<ul>
 <li><a href="getting-started/quick-start-airflow-standalone/">Quickstart with Airflow standalone</a></li>
 <li><a href="getting-started/quick-start-astro-cli/">Quickstart with Astro CLI</a></li>
+</ul>
+</li>
 <li>Install guide</li>
-<li><a href="comparison/">Using YAML instead of Python</a></li>
+<li><a href="comparison/">Using YAML instead of Python</a><ul>
 <li><a href="comparison/traditional_operators/">Traditional Airflow Operators</a></li>
 <li><a href="comparison/taskflow_api/">TaskFlow API</a></li>
 </ul>
+</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<ul>
+<li><a href="configuration/configuring_workflows/">Configuring your workflows</a><ul>
+<li><a href="configuration/environment_variables/">Environment variables</a></li>
+<li><a href="configuration/defaults/">Defaults</a></li>
+</ul>
+</li>
+</ul>
 <h2 id="features">Features</h2>
 <ul>
-<li>Configuring your workflows</li>
-<li>Environment variables</li>
-<li>Defaults</li>
-<li>Defining actions upon task states</li>
-<li>Callbacks</li>
-<li>Dynamically creating tasks during runtime</li>
+<li>Dynamically creating tasks during runtime<ul>
 <li>Dynamic task mapping</li>
+</ul>
+</li>
 </ul>
 <h2 id="getting-help">Getting help</h2>
 <p>Having trouble? We'd like to help!</p>
@@ -180,7 +218,7 @@
 <h2 id="contributing">Contributing</h2>
 <p>DAG Factory is an Open-Source project. Learn about its development process and about how you can contribute:</p>
 <ul>
-<li>Contributing to DAG Factory</li>
+<li><a href="contributing/howto/">Contributing to DAG Factory</a></li>
 <li><a href="https://github.com/astronomer/dag-factory/">Github repository</a></li>
 </ul>
 <h2 id="license">License</h2>
@@ -253,5 +291,5 @@ security team are handled.</p></div>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-01-08 10:59:41.361184+00:00
+Build Date UTC : 2025-01-08 11:00:31.478049+00:00
 -->

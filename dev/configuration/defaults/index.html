@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>DAG Factory Quick Start Guide - DAG Factory Documentation</title>
+        <title>Defaults - DAG Factory Documentation</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -56,19 +56,19 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../../configuration/configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
+    <a href="../configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
 </li>
                                     
 <li>
-    <a href="../../configuration/defaults/" class="dropdown-item">Defaults</a>
+    <a href="./" class="dropdown-item active" aria-current="page">Defaults</a>
 </li>
                                     
 <li>
-    <a href="../../configuration/environment_variables/" class="dropdown-item">Environment variables</a>
+    <a href="../environment_variables/" class="dropdown-item">Environment variables</a>
 </li>
                                 </ul>
                             </li>
@@ -94,15 +94,15 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../quick-start-airflow-standalone/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+    <a href="../../getting-started/quick-start-airflow-standalone/" class="dropdown-item">DAG Factory Quick Start Guide</a>
 </li>
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">DAG Factory Quick Start Guide</a>
+    <a href="../../getting-started/quick-start-astro-cli/" class="dropdown-item">DAG Factory Quick Start Guide</a>
 </li>
                                 </ul>
                             </li>
@@ -110,12 +110,12 @@
 
                     <ul class="nav navbar-nav ms-md-auto">
                             <li class="nav-item">
-                                <a rel="prev" href="../quick-start-airflow-standalone/" class="nav-link">
+                                <a rel="prev" href="../configuring_workflows/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../environment_variables/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -137,33 +137,13 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#dag-factory-quick-start-guide" class="nav-link">DAG Factory Quick Start Guide</a>
+            <li class="nav-item" data-bs-level="1"><a href="#defaults" class="nav-link">Defaults</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#step-1-initialize-airflow-project" class="nav-link">Step 1: Initialize Airflow Project</a>
+            <li class="nav-item" data-bs-level="2"><a href="#benefits-of-using-the-default-block" class="nav-link">Benefits of using the default block</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#step-2-install-dag-factory" class="nav-link">Step 2: Install DAG Factory</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#step-3-define-a-dag-in-yaml" class="nav-link">Step 3: Define a DAG in YAML</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#step-4-generate-the-dag-from-yaml" class="nav-link">Step 4: Generate the DAG from YAML</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#step-5-start-airflow-project" class="nav-link">Step 5: Start Airflow Project</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#view-your-generated-dag" class="nav-link">View Your Generated DAG</a>
+            <li class="nav-item" data-bs-level="2"><a href="#multiple-ways-for-specifying-airflow-default_args" class="nav-link">Multiple ways for specifying Airflow default_args</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -174,29 +154,65 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="dag-factory-quick-start-guide">DAG Factory Quick Start Guide</h1>
-<p><strong>DAG Factory</strong> is a Python library <a href="https://airflow.apache.org">Apache Airflow®</a> that simplifies DAG creation using declarative YAML configuration files instead of Python.</p>
-<h2 id="prerequisites">Prerequisites</h2>
-<p>The minimum requirements for <strong>dag-factory</strong> are:</p>
+<h1 id="defaults">Defaults</h1>
+<p>DAG Factory allows you to define Airflow
+<a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#default-arguments">default_args</a> and
+additional DAG-level arguments in a <code>default</code> block. This block enables you to share common settings across all DAGs in
+your YAML configuration, with the arguments automatically applied to each DAG defined in the file.</p>
+<h2 id="benefits-of-using-the-default-block">Benefits of using the default block</h2>
 <ul>
-<li>Python 3.8.0+</li>
-<li><a href="https://www.astronomer.io/docs/astro/cli/overview/">Astro CLI</a></li>
+<li>Consistency: Ensures uniform configurations across all tasks and DAGs.</li>
+<li>Maintainability: Reduces duplication by centralizing common properties.</li>
+<li>Simplicity: Makes configurations easier to read and manage.</li>
 </ul>
-<h2 id="step-1-initialize-airflow-project">Step 1: Initialize Airflow Project</h2>
-<p>Create a new directory and initialize your Astro CLI project:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir dag-factory-quick-start &amp;&amp; cd dag-factory-quick-start
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>astro dev init
+<h3 id="example-usage-of-default-block">Example usage of default block</h3>
+<div class="language-text highlight"><span class="filename">Usage of default block in YAML</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>default:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: default_owner
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    retries: 1
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    retry_delay_sec: 300
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    start_date: 2024-01-01
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  default_view: tree
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  max_active_runs: 1
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  schedule_interval: 0 1 * * *
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>example_task_group:
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  description: &quot;this dag uses task groups&quot;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  task_groups:
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    task_group_1:
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      tooltip: &quot;this is a task group&quot;
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [task_1]
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    task_group_2:
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      tooltip: &quot;this is a task group&quot;
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      parent_group_name: task_group_1
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  tasks:
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    task_1:
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      bash_command: &quot;echo 1&quot;
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    task_2:
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>      bash_command: &quot;echo 2&quot;
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      task_group_name: task_group_1
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    task_4:
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>      bash_command: &quot;echo 4&quot;
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      task_group_name: task_group_2
 </span></code></pre></div>
-<p>This will set up the necessary Airflow files and directories.</p>
-<h2 id="step-2-install-dag-factory">Step 2: Install DAG Factory</h2>
-<p>Install DAG Factory in your Airflow environment:</p>
+<p>The arguments specified in the <code>default</code> block, such as <code>default_args</code>, <code>default_view</code>, <code>max_active_runs</code>,
+<code>schedule_interval</code>, and any others defined, will be applied to all the DAGs in the YAML configuration.</p>
+<h2 id="multiple-ways-for-specifying-airflow-default_args">Multiple ways for specifying Airflow default_args</h2>
+<p>DAG Factory offers flexibility in defining Airflow’s <code>default_args</code>. These can be specified in several ways, depending on your requirements.</p>
 <ol>
-<li>Add dag-factory as a dependency to the <code>requirements.txt</code> file created during the project initialization.</li>
-</ol>
-<h2 id="step-3-define-a-dag-in-yaml">Step 3: Define a DAG in YAML</h2>
-<p><strong>DAG Factory</strong> uses YAML files to define DAG configurations. Create a file named <code>example_dag_factory.yml</code> in the <code>$AIRFLOW_HOME/dags</code> folder with the following content:</p>
-<div class="language-text highlight"><span class="filename">example_dag_factory.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>default:
+<li>
+<p>Specifying <code>default_args</code> in the <code>default</code> block</p>
+<p>As seen in the previous example, you can define shared <code>default_args</code> for all DAGs in the configuration YAML under
+the <code>default</code> block. These arguments are automatically inherited by every DAG defined in the file.</p>
+</li>
+<li>
+<p>Specifying <code>default_args</code> directly in a DAG configuration</p>
+<p>You can override or define specific default_args at the individual DAG level. This allows you to customize arguments
+for each DAG without affecting others.</p>
+<p>Example:</p>
+<div class="language-text highlight"><span class="filename">DAG level default_args</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>default:
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    catchup: false,
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    start_date: 2024-11-11
@@ -220,39 +236,24 @@
 </span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      bash_command: &quot;echo 2&quot;
 </span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>      dependencies: [task_1]
 </span></code></pre></div>
-<h2 id="step-4-generate-the-dag-from-yaml">Step 4: Generate the DAG from YAML</h2>
-<p>Create a Python script named <code>example_dag_factory.py</code> in the <code>$AIRFLOW_HOME/dags</code> folder. This script will generate the DAG from the YAML configuration</p>
-<div class="language-text highlight"><span class="filename">example_dag_factory.py</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import os
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>from pathlib import Path
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># The following import is here so Airflow parses this file
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a># from airflow import DAG
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>import dagfactory
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>DEFAULT_CONFIG_ROOT_DIR = &quot;/usr/local/airflow/dags/&quot;
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>CONFIG_ROOT_DIR = Path(os.getenv(&quot;CONFIG_ROOT_DIR&quot;, DEFAULT_CONFIG_ROOT_DIR))
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>config_file = str(CONFIG_ROOT_DIR / &quot;example_dag_factory.yml&quot;)
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>example_dag_factory = dagfactory.DagFactory(config_file)
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># Creating task dependencies
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>example_dag_factory.clean_dags(globals())
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>example_dag_factory.generate_dags(globals())
+</li>
+<li>
+<p>Specifying <code>default_args</code> in a shared <code>defaults.yml</code></p>
+<p>Starting DAG Factory 0.22.0, you can also keep the <code>default_args</code> in the <code>defaults.yml</code> file. The configuration
+from <code>defaults.yml</code> will be applied to all DAG Factory generated DAGs.</p>
+<div class="language-text highlight"><span class="filename">defaults.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>default_args:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  start_date: &quot;2025-01-01&quot;
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  owner: &quot;global_owner&quot;
 </span></code></pre></div>
-<h2 id="step-5-start-airflow-project">Step 5: Start Airflow Project</h2>
-<p>Once you've set up your YAML configuration and Python script, start the Airflow environment with the following command:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astro dev start
-</span></code></pre></div>
-<p>This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at http://localhost:8080 🚀.</p>
-<h2 id="view-your-generated-dag">View Your Generated DAG</h2>
-<p>Once Airflow is up and running, you can login with the username <code>admin</code> and the password <code>admin</code>. You should be able to see your generated DAG in the Airflow UI.</p>
-<p><strong>Generated DAG</strong></p>
-<p><img alt="Airflow DAG" src="../../static/images/airflow-home.png" /></p>
-<p><strong>Graph View</strong></p>
-<p><img alt="Airflow Home" src="../../static/images/airflow-dag.png" /></p>
-<p>Checkout <a href="https://github.com/astronomer/dag-factory/tree/main/dev/dags">examples</a> for generating more advanced DAGs.</p></div>
+</li>
+</ol>
+<p>Given the various ways to specify <code>default_args</code>, the following precedence order is applied when arguments are
+duplicated:</p>
+<ol>
+<li>In the DAG configuration</li>
+<li>In the <code>default</code> block within the workflow's YAML file</li>
+<li>In the <code>defaults.yml</code></li>
+</ol></div>
             </div>
         </div>
 

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Contributing Guide - DAG Factory Documentation</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">DAG Factory Documentation</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">DAG Factory documentation</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Comparison</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../comparison/" class="dropdown-item">Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="../../comparison/taskflow_api/" class="dropdown-item">TaskFlow API: Using YAML instead of Python</a>
+</li>
+                                    
+<li>
+    <a href="../../comparison/traditional_operators/" class="dropdown-item">Traditional Operators: Using YAML instead of Python</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../configuration/configuring_workflows/" class="dropdown-item">Configuring Your Workflows</a>
+</li>
+                                    
+<li>
+    <a href="../../configuration/defaults/" class="dropdown-item">Defaults</a>
+</li>
+                                    
+<li>
+    <a href="../../configuration/environment_variables/" class="dropdown-item">Environment variables</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Contributing</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../code_of_conduct/" class="dropdown-item">Contributor Covenant Code of Conduct</a>
+</li>
+                                    
+<li>
+    <a href="../contributors/" class="dropdown-item">Contributors</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Contributing Guide</a>
+</li>
+                                    
+<li>
+    <a href="../roles/" class="dropdown-item">Contributor roles</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../getting-started/quick-start-airflow-standalone/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../../getting-started/quick-start-astro-cli/" class="dropdown-item">DAG Factory Quick Start Guide</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                            <li class="nav-item">
+                                <a rel="prev" href="../contributors/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../roles/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#contributing-guide" class="nav-link">Contributing Guide</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#overview-of-how-to-contribute" class="nav-link">Overview of how to contribute</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#set-up-a-local-development-environment" class="nav-link">Set up a local development environment</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#testing-application-with-hatch" class="nav-link">Testing application with hatch</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#pre-commit-and-linting" class="nav-link">Pre-Commit and linting</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#write-docs" class="nav-link">Write docs</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#releasing" class="nav-link">Releasing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="contributing-guide">Contributing Guide</h1>
+<p>All contributions, bug reports, bug fixes, documentation improvements, and enhancements are welcome.</p>
+<p>All contributors and maintainers to this project should abide by the <a href="../code_of_conduct/">Contributor Code of Conduct</a>.</p>
+<p>Learn more about the contributors' roles in <a href="../roles/">the Roles page</a>.</p>
+<p>This document describes how to contribute to DAG Factory, covering:</p>
+<ul>
+<li>Overview of how to contribute</li>
+<li>How to set up the local development environment</li>
+<li>Running tests</li>
+<li>Pre-commit and linting</li>
+<li>Authoring the documentation</li>
+<li>Releasing</li>
+</ul>
+<h2 id="overview-of-how-to-contribute">Overview of how to contribute</h2>
+<p>To contribute to the DAG Factory project:</p>
+<ol>
+<li>Please create a <a href="https://github.com/astronomer/dag-factory/issues">GitHub Issue</a> describing a bug, enhancement, or feature request. </li>
+<li>Open a branch off of the <code>main</code> branch and create a Pull Request into the <code>main</code> branch from your feature branch.</li>
+<li>Link your issue to the pull request.</li>
+<li>After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.</li>
+</ol>
+<h2 id="set-up-a-local-development-environment">Set up a local development environment</h2>
+<h3 id="requirements">Requirements</h3>
+<ul>
+<li><a href="https://git-scm.com/">Git</a></li>
+<li><a href="https://www.python.org/">Python</a> &lt;= 3.12 (due to dependencies, such as <code>google-re2</code> not supporting Python 3.13 yet)</li>
+<li><a href="https://hatch.pypa.io/latest/">Hatch</a></li>
+</ul>
+<p>Clone the <strong>DAG Factory</strong> repository and change the current working directory to the repo's root directory:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/astronomer/dag-factory.git
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>dag-factory/
+</span></code></pre></div>
+<p>After cloning the project, there are two options for setting up the local development environment:</p>
+<ul>
+<li>Use a Python virtual environment, or</li>
+<li>Use Docker</li>
+</ul>
+<h3 id="using-a-python-virtual-environment-for-local-development">Using a Python virtual environment for local development</h3>
+<ol>
+<li>Install the project dependencies:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>make<span class="w"> </span>setup
+</span></code></pre></div>
+<ol>
+<li>Activate the local python environment:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</span></code></pre></div>
+<ol>
+<li>Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs.
+Disable loading Airflow standard example DAGs:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__LOAD_EXAMPLES</span><span class="o">=</span><span class="nb">false</span>
+</span></code></pre></div>
+<p>Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):</p>
+<blockquote>
+<p>Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code> to the SQL connection string.</p>
+</blockquote>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>airflow<span class="w"> </span>standalone
+</span></code></pre></div>
+<p>After Airflow is running, you can access the Airflow UI at <code>http://localhost:8080</code>.</p>
+<blockquote>
+<p>Note: whenever you want to start the development server, you need to activate the <code>virtualenv</code> and set the <code>environment variables</code></p>
+</blockquote>
+<h3 id="use-docker-for-local-development">Use Docker for local development</h3>
+<p>It is also possible to build the development environment using <a href="https://www.docker.com/products/docker-desktop/">Docker</a>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>docker-run
+</span></code></pre></div>
+<p>After the sandbox is running, you can access the Airflow UI at <code>http://localhost:8080</code>.</p>
+<p>This approach builds a DAG Factory wheel, so if there are code changes, you must stop and restart the containers:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>make<span class="w"> </span>docker-stop
+</span></code></pre></div>
+<h2 id="testing-application-with-hatch">Testing application with hatch</h2>
+<p>The tests are developed using PyTest and run using hatch.</p>
+<p>The <a href="https://github.com/astronomer/dag-factory/blob/main/pyproject.toml">pyproject. toml</a> file currently defines a matrix of supported versions of Python and Airflow against which a user can run the tests.</p>
+<h3 id="run-unit-tests">Run unit tests</h3>
+<p>To run unit tests using Python 3.10 and Airflow 2.5, use the following:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
+</span></code></pre></div>
+<p>It is also possible to run the tests using all the matrix combinations, by using:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
+</span></code></pre></div>
+<h3 id="run-integration-tests">Run integration tests</h3>
+<blockquote>
+<p>Note: these tests create local Python virtual environments in a hatch-managed directory.
+They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-existing <code>airflow.cfg</code> and <code>airflow.db</code> files.</p>
+</blockquote>
+<p>First, set the following environment variables:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span><span class="s2">&quot;/dev/dags&quot;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>dev/dags:<span class="nv">$PYTHONPATH</span>
+</span></code></pre></div>
+<p>To run the integration tests using Python 3.9 and Airflow 2.9, use</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
+</span></code></pre></div>
+<h2 id="pre-commit-and-linting">Pre-Commit and linting</h2>
+<p>We use pre-commit to run several checks on the code before committing. To install pre-commit hooks, run:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>pre-commit<span class="w"> </span>install
+</span></code></pre></div>
+<p>To run the checks manually, run the following:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</span></code></pre></div>
+<p>Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using <code>hatch</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
+</span></code></pre></div>
+<h2 id="write-docs">Write docs</h2>
+<p>We use Markdown to author DAG Factory documentation.</p>
+<p>Similar to running tests, we also use hatch to manage the documentation.</p>
+<p>To build the documentation locally:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:build
+</span></code></pre></div>
+<p>To serve the documentation locally in <code>localhost:8080</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:serve
+</span></code></pre></div>
+<p>To release the documentation with the current project version and set it to the latest:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:release
+</span></code></pre></div>
+<h2 id="releasing">Releasing</h2>
+<p>We currently use <a href="https://github.com/pypa/hatch">hatch</a> for building and distributing <code>dag-factory</code>.</p>
+<p>We use GitHub actions to create and deploy new releases. To create a new release, update the latest release version.</p>
+<p>It is possible to update the version either by using hatch:</p>
+<blockquote>
+<p>Note: You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
+</blockquote>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
+</span></code></pre></div>
+<p>Or by manually updating the value of <code>__version__</code> in <code>dagfactory/__init__.py</code>.</p>
+<p>Make sure the <a href="https://github.com/astronomer/dag-factory/blob/main/CHANGELOG.md">CHANGELOG file</a> is up-to-date.</p>
+<p>Create a release using the <a href="https://github.com/astronomer/dag-factory/releases/new">GitHub UI</a>. GitHub will update the package directly to <a href="https://pypi.org/project/dag-factory/">PyPI</a>.</p>
+<p>If you're a <a href="https://pypi.org/project/dag-factory/">project maintainer in PyPI</a>, it is also possible to create a release manually,
+by authenticating to PyPI and running the commands:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hatch<span class="w"> </span>build
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>hatch<span class="w"> </span>publish
+</span></code></pre></div></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
