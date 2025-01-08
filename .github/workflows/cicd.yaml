@@ -2,7 +2,7 @@ name: CI jobs
 
 on:
   push: # Run on pushes to the default branch
-    branches: [main, docs_job]
+    branches: [main]
   pull_request_target: # Also run on pull requests originated from forks
     branches: [main]
   release:
@@ -241,8 +241,8 @@ jobs:
 
       - name: Deploy Docs
         run: |
-          # git config user.name "oss-integrations-bot"
-          # git config user.email "oss-integrations-bot@astronomer.io"
+          git config user.name "oss-integrations-bot"
+          git config user.email "oss-integrations-bot@astronomer.io"
 
           git fetch origin gh-pages --depth=1
 
@@ -251,8 +251,6 @@ jobs:
           else
               hatch run docs:gh-deploy
           fi
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   Publish-Package:
     if: github.event_name == 'release'
