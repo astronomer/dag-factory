@@ -17,6 +17,8 @@ test_expand:
         op_args:
             request.output
       dependencies: [request]
+    # This task is intentionally placed after the "process" task to demonstrate that DAG Factory does not require tasks
+    # to be topologically ordered in the YAML file according to their dependencies.
     request:
       operator: airflow.operators.python.PythonOperator
       python_callable_name: make_list

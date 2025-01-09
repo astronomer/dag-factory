@@ -19,7 +19,7 @@ This document describes how to contribute to DAG Factory, covering:
 
 To contribute to the DAG Factory project:
 
-1. Please create a [GitHub Issue](https://github.com/astronomer/dag-factory/issues) describing a bug, enhancement, or feature request. 
+1. Please create a [GitHub Issue](https://github.com/astronomer/dag-factory/issues) describing a bug, enhancement, or feature request.
 2. Open a branch off of the `main` branch and create a Pull Request into the `main` branch from your feature branch.
 3. Link your issue to the pull request.
 4. After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.
@@ -28,9 +28,9 @@ To contribute to the DAG Factory project:
 
 ### Requirements
 
-* [Git](https://git-scm.com/)
-* [Python](https://www.python.org/) <= 3.12 (due to dependencies, such as ``google-re2`` not supporting Python 3.13 yet)
-* [Hatch](https://hatch.pypa.io/latest/)
+- [Git](https://git-scm.com/)
+- [Python](https://www.python.org/) <= 3.12 (due to dependencies, such as ``google-re2`` not supporting Python 3.13 yet)
+- [Hatch](https://hatch.pypa.io/latest/)
 
 Clone the **DAG Factory** repository and change the current working directory to the repo's root directory:
 
@@ -41,22 +41,22 @@ cd dag-factory/
 
 After cloning the project, there are two options for setting up the local development environment:
 
-* Use a Python virtual environment, or
-* Use Docker
+- Use a Python virtual environment, or
+- Use Docker
 
 ### Using a Python virtual environment for local development
 
 1. Install the project dependencies:
 
-```bash
-make setup
-```
+    ```bash
+    make setup
+    ```
 
 2. Activate the local python environment:
 
-```bash
-source venv/bin/activate
-```
+    ```bash
+    source venv/bin/activate
+    ```
 
 3. Set [Apache Airflow®](https://airflow.apache.org/) home to the ``dev/``, so you can see DAG Factory example DAGs.
 Disable loading Airflow standard example DAGs:
@@ -160,22 +160,16 @@ We use Markdown to author DAG Factory documentation.
 
 Similar to running tests, we also use hatch to manage the documentation.
 
-To build the documentation locally:
+To build and serve the documentation locally:
 
 ```bash
-hatch run docs:build
-```
-
-To serve the documentation locally in `localhost:8080`:
-
-```bash
-hatch run docs:serve
+hatch run docs:dev
 ```
 
 To release the documentation with the current project version and set it to the latest:
 
 ```bash
-hatch run docs:release
+hatch run docs:gh-release
 ```
 
 ## Releasing
