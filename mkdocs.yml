@@ -4,6 +4,8 @@ site_url: https://astronomer.github.io/dag-factory
 repo_url: https://github.com/astronomer/dag-factory
 repo_name: astronomer/dag-factory
 
+edit_uri: "blob/main/docs"
+
 theme:
   name: material
   features:
