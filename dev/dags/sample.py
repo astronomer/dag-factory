@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from random import randint
 
 from airflow.operators.python import get_current_context
@@ -43,3 +44,7 @@ def extract_last_name(full_name: str):
     context = get_current_context()
     context["custom_mapping_key"] = name
     return last_name
+
+
+def one_day_ago(execution_date: datetime):
+    return execution_date - timedelta(days=1)
