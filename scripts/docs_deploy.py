@@ -13,10 +13,7 @@ def deploy_docs(deploy_type: str):
 
     if deploy_type == "release":
         if _version.pre is not None:
-            # command = ["mike", "deploy", "--push", "dev"]
-            # TODO: Remove L17-L19
-            command = ["mike", "deploy", "--push", "--update-aliases", str(_version), "latest"]
-            set_default = True
+            command = ["mike", "deploy", "--push", "dev"]
         else:
             command = ["mike", "deploy", "--push", "--update-aliases", str(_version), "latest"]
             set_default = True
@@ -26,7 +23,7 @@ def deploy_docs(deploy_type: str):
     try:
         subprocess.run(command, capture_output=True, text=True, check=True)
         if set_default:
-            default_command = ["mike", "set-default", str(_version)]
+            default_command = ["mike", "set-default", "latest"]
             subprocess.run(default_command, capture_output=True, text=True, check=True)
     except subprocess.CalledProcessError as e:
         raise Exception(f"Error deploying: {e.stderr}")
