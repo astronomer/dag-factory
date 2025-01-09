@@ -192,7 +192,7 @@ jobs:
       - Run-Integration-Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - name: Set up Python 3.11
