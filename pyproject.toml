@@ -112,6 +112,7 @@ dependencies = [
     "mkdocs",
     "mike",
     "pymdown-extensions",
+    "mkdocs-material",
 ]
 
 [tool.hatch.envs.docs.scripts]
