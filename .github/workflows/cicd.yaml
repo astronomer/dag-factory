@@ -2,9 +2,9 @@ name: CI jobs
 
 on:
   push: # Run on pushes to the default branch
-    branches: [main]
+    branches: [main, docs-release-test]
   pull_request_target: # Also run on pull requests originated from forks
-    branches: [main]
+    branches: [main, docs-release-test]
   release:
     types: ['published']
 
@@ -218,6 +218,14 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
 
+  Check-Event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GITHUB_EVENT_NAME
+        run: echo $GITHUB_EVENT_NAME
+      - name: GITHUB_EVENT_ACTION
+        run: echo $GITHUB_EVENT_ACTION
+
   Deploy-Pages:
     permissions:
       contents: write
@@ -259,6 +267,7 @@ jobs:
       - Static-Check
       - Run-Unit-Tests
       - Code-Coverage
+      - Deploy-Pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
