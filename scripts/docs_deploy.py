@@ -13,8 +13,9 @@ def deploy_docs(deploy_type: str):
 
     if deploy_type == "release":
         if _version.pre is not None:
-            command = ["mike", "deploy", "--push", "dev"]
-            # TODO: Remove L17-L18
+            # command = ["mike", "deploy", "--push", "dev"]
+            # TODO: Remove L17-L19
+            command = ["mike", "deploy", "--push", "--update-aliases", str(_version), "latest"]
             set_default = True
         else:
             command = ["mike", "deploy", "--push", "--update-aliases", str(_version), "latest"]
