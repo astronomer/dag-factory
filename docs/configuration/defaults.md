@@ -31,7 +31,7 @@ the `default` block. These arguments are automatically inherited by every DAG de
 
 2. Specifying `default_args` directly in a DAG configuration
 
-    You can override or define specific default_args at the individual DAG level. This allows you to customize arguments
+    You can override or define specific `default_args` at the individual DAG level. This allows you to customize arguments
 for each DAG without affecting others.
 
     Example:
@@ -43,7 +43,7 @@ for each DAG without affecting others.
 3. Specifying `default_args` in a shared `defaults.yml`
 
     Starting DAG Factory 0.22.0, you can also keep the `default_args` in the `defaults.yml` file. The configuration
-from `defaults.yml` will be applied to all DAG Factory generated DAGs.
+from `defaults.yml` is applied to all DAG Factory generated DAGs.
 
     ```title="defaults.yml"
     --8<-- "dev/dags/defaults.yml"
