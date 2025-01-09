@@ -222,9 +222,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: GITHUB_EVENT_NAME
-        run: echo $GITHUB_EVENT_NAME
+        run: |
+          echo ${{ github.event_name }}
       - name: GITHUB_EVENT_ACTION
-        run: echo $GITHUB_EVENT_ACTION
+        run: echo ${{ github.event_action }}
 
   Deploy-Pages:
     permissions:
