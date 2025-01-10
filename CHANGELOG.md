@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add security policy by @tatiana in #339
 - Add Robust Support for Callbacks at Task and TaskGroup Level by @@jroach-astronomer in #322
 - Support `ExternalTaskSensor` `execution_date_fn` and `execution_delta` by @tatiana in #354
-
+- Refactor and add support for schedule conditions in DAG configuration by @ErickSeo in #320
 ### Fixed
 
 - Handle gracefully exceptions during telemetry collection by @tatiana in #335
