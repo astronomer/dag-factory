@@ -65,5 +65,4 @@ nav:
 plugins:
   - mike:
       alias_type: symlink
-      deploy_prefix: "docs"
   - search
