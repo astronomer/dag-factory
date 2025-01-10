@@ -22,7 +22,7 @@
     
     
       
-        <title>DAG Factory Quick Start Guide - DAG Factory</title>
+        <title>Astro CLI - DAG Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dag-factory-quick-start-guide" class="md-skip">
+        <a href="#dag-factory-quick-start-guide-with-astro-cli" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              DAG Factory Quick Start Guide
+              Astro CLI
             
           </span>
         </div>
@@ -216,7 +216,7 @@
   
     
   
-  Getting started
+  Getting Started
 
         </a>
       </li>
@@ -406,7 +406,7 @@
             
   
   <span class="md-ellipsis">
-    Getting started
+    Getting Started
   </span>
   
 
@@ -416,7 +416,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Getting started
+            Getting Started
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -431,7 +431,7 @@
         
   
   <span class="md-ellipsis">
-    DAG Factory Quick Start Guide
+    Airflow Standalone
   </span>
   
 
@@ -461,7 +461,7 @@
           
   
   <span class="md-ellipsis">
-    DAG Factory Quick Start Guide
+    Astro CLI
   </span>
   
 
@@ -472,7 +472,7 @@
         
   
   <span class="md-ellipsis">
-    DAG Factory Quick Start Guide
+    Astro CLI
   </span>
   
 
@@ -551,6 +551,24 @@
   <a href="#view-your-generated-dag" class="md-nav__link">
     <span class="md-ellipsis">
       View Your Generated DAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generated-dag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generated DAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Graph View
     </span>
   </a>
   
@@ -833,7 +851,7 @@
         
   
   <span class="md-ellipsis">
-    Traditional Operators: Using YAML instead of Python
+    Traditional Airflow Operators
   </span>
   
 
@@ -854,7 +872,7 @@
         
   
   <span class="md-ellipsis">
-    TaskFlow API: Using YAML instead of Python
+    TaskFlow API
   </span>
   
 
@@ -932,7 +950,7 @@
         
   
   <span class="md-ellipsis">
-    Contributor Covenant Code of Conduct
+    Code of Conduct
   </span>
   
 
@@ -1101,6 +1119,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#generated-dag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generated DAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Graph View
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1132,7 +1168,7 @@
   
 
 
-<h1 id="dag-factory-quick-start-guide">DAG Factory Quick Start Guide</h1>
+<h1 id="dag-factory-quick-start-guide-with-astro-cli">DAG Factory: Quick Start Guide With Astro CLI</h1>
 <p><strong>DAG Factory</strong> is a Python library <a href="https://airflow.apache.org">Apache Airflow®</a> that simplifies DAG creation using declarative YAML configuration files instead of Python.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>The minimum requirements for <strong>dag-factory</strong> are:</p>
@@ -1203,12 +1239,12 @@
 <p>Once you've set up your YAML configuration and Python script, start the Airflow environment with the following command:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astro dev start
 </span></code></pre></div>
-<p>This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at http://localhost:8080 🚀.</p>
+<p>This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at <code>http://localhost:8080</code> 🚀.</p>
 <h2 id="view-your-generated-dag">View Your Generated DAG</h2>
 <p>Once Airflow is up and running, you can login with the username <code>admin</code> and the password <code>admin</code>. You should be able to see your generated DAG in the Airflow UI.</p>
-<p><strong>Generated DAG</strong></p>
+<h2 id="generated-dag">Generated DAG</h2>
 <p><img alt="Airflow DAG" src="../../static/images/airflow-home.png" /></p>
-<p><strong>Graph View</strong></p>
+<h2 id="graph-view">Graph View</h2>
 <p><img alt="Airflow Home" src="../../static/images/airflow-dag.png" /></p>
 <p>Checkout <a href="https://github.com/astronomer/dag-factory/tree/main/dev/dags">examples</a> for generating more advanced DAGs.</p>
 
@@ -1246,7 +1282,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../quick-start-airflow-standalone/" class="md-footer__link md-footer__link--prev" aria-label="Previous: DAG Factory Quick Start Guide">
+          <a href="../quick-start-airflow-standalone/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Airflow Standalone">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1256,7 +1292,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                DAG Factory Quick Start Guide
+                Airflow Standalone
               </div>
             </div>
           </a>
