@@ -40,7 +40,6 @@ dependencies = [
 [project.optional-dependencies]
 tests = [
     "apache-airflow-providers-slack",
-    "build",
     "pytest>=6.0",
     "pytest-cov",
     "pre-commit",
@@ -52,7 +51,6 @@ tests = [
 
 [tool.hatch.envs.tests]
 dependencies = [
-    "build",
     "dag-factory[tests]",
     "apache-airflow~={matrix:airflow}.0,!=2.9.0,!=2.9.1",  # https://github.com/apache/airflow/pull/39670
     "httpx>=0.25.0",
@@ -112,12 +110,13 @@ dependencies = [
     "mkdocs",
     "mike",
     "pymdown-extensions",
+    "mkdocs-material",
 ]
 
 [tool.hatch.envs.docs.scripts]
 dev = "mkdocs build && mkdocs serve" # For local development and preventing publishing
-gh-deploy = "mike deploy --push dev"
-gh-release = "version=$(python -W ignore -c 'import dagfactory; print(dagfactory.__version__)') && mike deploy --push --update-aliases $version latest"
+gh-deploy = "python scripts/docs_deploy.py dev"
+gh-release = "python scripts/docs_deploy.py release"
 
 ######################################
 # THIRD PARTY TOOLS

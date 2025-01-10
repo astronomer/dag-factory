@@ -1,12 +1,10 @@
-PYTHON=venv/bin/python3
-
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: setup
 setup: ## Setup development environment
-	python3 -m venv venv
+	python -m venv venv
 	. venv/bin/activate && pip --no-cache-dir install ".[tests]"
 	@echo "To activate the virtual environment, run:"
 	@echo "source venv/bin/activate"
@@ -22,10 +20,10 @@ clean: ## Removes build and test artifacts
 
 
 .PHONY: build-whl
-build-whl: setup ## Build installable whl file
-	cd dev
-	rm -rf  dev/include/*
-	python3 -m build --outdir dev/include/
+build-whl: ## Build installable whl file
+	rm -rf dev/include/*
+	hatch build
+	cp dist/* dev/include/
 
 .PHONY: docker-run
 docker-run: build-whl ## Runs local Airflow for testing

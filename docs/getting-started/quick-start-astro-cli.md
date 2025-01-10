@@ -1,4 +1,4 @@
-# DAG Factory Quick Start Guide
+# DAG Factory: Quick Start Guide With Astro CLI
 
 **DAG Factory** is a Python library [Apache Airflow®](https://airflow.apache.org) that simplifies DAG creation using declarative YAML configuration files instead of Python.
 
@@ -27,7 +27,6 @@ Install DAG Factory in your Airflow environment:
 
 1. Add dag-factory as a dependency to the `requirements.txt` file created during the project initialization.
 
-
 ## Step 3: Define a DAG in YAML
 
 **DAG Factory** uses YAML files to define DAG configurations. Create a file named `example_dag_factory.yml` in the `$AIRFLOW_HOME/dags` folder with the following content:
@@ -52,17 +51,17 @@ Once you've set up your YAML configuration and Python script, start the Airflow 
 astro dev start
 ```
 
-This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at http://localhost:8080 🚀.
+This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at `http://localhost:8080` 🚀.
 
 ## View Your Generated DAG
 
 Once Airflow is up and running, you can login with the username `admin` and the password `admin`. You should be able to see your generated DAG in the Airflow UI.
 
-**Generated DAG**
+## Generated DAG
 
 ![Airflow DAG](../static/images/airflow-home.png)
 
-**Graph View**
+## Graph View
 
 ![Airflow Home](../static/images/airflow-dag.png)
 

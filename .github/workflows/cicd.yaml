@@ -83,7 +83,7 @@ jobs:
           key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -192,7 +192,7 @@ jobs:
       - Run-Integration-Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - name: Set up Python 3.11
@@ -212,7 +212,7 @@ jobs:
           coverage report
           coverage xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -246,7 +246,7 @@ jobs:
 
           git fetch origin gh-pages --depth=1
 
-          if [[ $GITHUB_EVENT_NAME == "release" && $GITHUB_EVENT_ACTION == "published" ]]; then
+          if [[ $GITHUB_EVENT_NAME == "release" ]]; then
               hatch run docs:gh-release
           else
               hatch run docs:gh-deploy
@@ -258,6 +258,8 @@ jobs:
     needs:
       - Static-Check
       - Run-Unit-Tests
+      - Run-Integration-Tests
+      - Deploy-Pages
       - Code-Coverage
     runs-on: ubuntu-latest
     steps:

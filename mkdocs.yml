@@ -1,4 +1,31 @@
-site_name: DAG Factory Documentation
+site_name: DAG Factory
+site_url: https://astronomer.github.io/dag-factory
+
+repo_url: https://github.com/astronomer/dag-factory
+repo_name: astronomer/dag-factory
+
+edit_uri: "blob/main/docs"
+
+theme:
+  name: material
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.sections
+    - navigation.tabs
+    - navigation.footer
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+
 extra:
   version:
     provider: mike
@@ -14,6 +41,28 @@ markdown_extensions:
       base_path: [ "." ]
   - pymdownx.superfences
 
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Airflow Standalone: getting-started/quick-start-airflow-standalone.md
+      - Astro CLI: getting-started/quick-start-astro-cli.md
+  - Configuration:
+      - configuration/configuring_workflows.md
+      - configuration/environment_variables.md
+      - configuration/defaults.md
+  - Features:
+      - features/dynamic_tasks.md
+  - Comparison:
+      - comparison/index.md
+      - Traditional Airflow Operators: comparison/traditional_operators.md
+      - TaskFlow API: comparison/taskflow_api.md
+  - Contributing:
+      - Code of Conduct: contributing/code_of_conduct.md
+      - contributing/contributors.md
+      - contributing/howto.md
+      - contributing/roles.md
+
 plugins:
   - mike:
       alias_type: symlink
+  - search

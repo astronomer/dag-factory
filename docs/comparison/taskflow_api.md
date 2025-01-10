@@ -7,7 +7,6 @@ The following section shows how to represent an Airflow DAG using TaskFlow API a
 DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
 to declare the workflow: one uses Python and the other uses YAML.
 
-
 ## Goal
 
 Let's say we'd like to create a workflow that performs the following:
@@ -18,7 +17,7 @@ Let's say we'd like to create a workflow that performs the following:
 
 We will implement all these steps using the Airflow `task` decorator, and the last task will generate a Markdown table similar to:
 
-```
+```text
 | package_name      |   last_day |   last_month |   last_week |
 |:------------------|-----------:|-------------:|------------:|
 | apache-airflow    |     852242 |     28194255 |     6253861 |
@@ -31,7 +30,6 @@ The main logic is implemented as plain Python functions in [pypi_stats.py](https
 ```title="pypi_stats.py"
 --8<-- "dev/dags/pypi_stats.py:pypi_stats"
 ```
-
 
 ## Implementation
 
@@ -48,7 +46,6 @@ As a reference, the following workflows run using Airflow 2.10.2 and DAG Factory
 ```title="example_pypi_stats_dagfactory.yml"
 --8<-- "dev/dags/comparison/example_pypi_stats_dagfactory.yml"
 ```
-
 
 ## Comparison
 
@@ -80,7 +77,6 @@ In both workflows, we are dynamically generating a task for each PyPI repo.
 #### Mapped Tasks: Alternative DAG Factory YAML
 
 ![alt text](../static/example_pypi_stats_dagfactory_mapped_tasks.png "YAML DAG mapped tasks")
-
 
 ### Airflow Code view
 
