@@ -49,15 +49,15 @@ nav:
   - Configuration:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
-      - configuration/defaults.md
+      - Airflow default_args: configuration/defaults.md
   - Features:
       - features/dynamic_tasks.md
   - Comparison:
       - comparison/index.md
-      - comparison/traditional_operators.md
-      - comparison/taskflow_api.md
+      - Traditional Airflow Operators: comparison/traditional_operators.md
+      - TaskFlow API: comparison/taskflow_api.md
   - Contributing:
-      - contributing/code_of_conduct.md
+      - Code of Conduct: contributing/code_of_conduct.md
       - contributing/contributors.md
       - contributing/howto.md
       - contributing/roles.md
