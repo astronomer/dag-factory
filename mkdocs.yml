@@ -43,9 +43,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Getting started:
-      - getting-started/quick-start-airflow-standalone.md
-      - getting-started/quick-start-astro-cli.md
+  - Getting Started:
+      - Airflow Standalone: getting-started/quick-start-airflow-standalone.md
+      - Astro CLI: getting-started/quick-start-astro-cli.md
   - Configuration:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
