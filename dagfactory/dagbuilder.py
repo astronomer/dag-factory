@@ -868,7 +868,6 @@ class DagBuilder:
         elif utils.check_dict_key(task_params, "execution_delta"):
             execution_delta = utils.get_time_delta(task_params["execution_delta"])
             task_params["execution_delta"] = execution_delta
-            # tati
         elif utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
             task_params, "execution_date_fn_file"
         ):
