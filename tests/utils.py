@@ -178,3 +178,7 @@ def _get_or_create_dagrun(
     )
     log.info("created dagrun %s", str(dr))
     return dr
+
+
+def one_hour_ago(execution_date: datetime):
+    return execution_date - datetime.timedelta(hours=1)
