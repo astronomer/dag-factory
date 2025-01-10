@@ -246,7 +246,7 @@ jobs:
 
           git fetch origin gh-pages --depth=1
 
-          if [[ $GITHUB_EVENT_NAME == "release" && $GITHUB_EVENT_ACTION == "published" ]]; then
+          if [[ $GITHUB_EVENT_NAME == "release" ]]; then
               hatch run docs:gh-release
           else
               hatch run docs:gh-deploy
@@ -258,6 +258,8 @@ jobs:
     needs:
       - Static-Check
       - Run-Unit-Tests
+      - Run-Integration-Tests
+      - Deploy-Pages
       - Code-Coverage
     runs-on: ubuntu-latest
     steps:
