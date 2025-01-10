@@ -5,13 +5,17 @@ from airflow.operators.empty import EmptyOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 with DAG(
-    dag_id="example_external_task_sensor_plain_airflow_producer", start_date=datetime(2025, 1, 1), schedule="@daily"
+    dag_id="example_external_task_sensor_plain_airflow_producer",
+    start_date=datetime(2025, 1, 1),
+    schedule_interval="@daily",
 ) as producer_dag:
     producer_task = EmptyOperator(task_id="producer_task")
 
 
 with DAG(
-    dag_id="example_external_task_sensor_plain_airflow_consumer", start_date=datetime(2025, 1, 1), schedule="@daily"
+    dag_id="example_external_task_sensor_plain_airflow_consumer",
+    start_date=datetime(2025, 1, 1),
+    schedule_interval="@daily",
 ) as consumer_dag:
 
     wait_for_producer_task = ExternalTaskSensor(
@@ -37,7 +41,9 @@ def one_day_ago(execution_date: datetime) -> datetime:
 
 
 with DAG(
-    dag_id="example_external_task_sensor_plain_airflow_consumer2", start_date=datetime(2025, 1, 2), schedule="@daily"
+    dag_id="example_external_task_sensor_plain_airflow_consumer2",
+    start_date=datetime(2025, 1, 2),
+    schedule_interval="@daily",
 ) as consumer_dag:
 
     wait_for_producer_task = ExternalTaskSensor(

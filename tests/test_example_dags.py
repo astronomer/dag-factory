@@ -31,6 +31,7 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
         "example_pypi_stats_plain_airflow",
     ],
     "2.7": ["example_map_index_template.py"],
+    "2.4": ["example_external_sensor_dag.py"],
 }
 
 
