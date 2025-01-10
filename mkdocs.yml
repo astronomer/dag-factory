@@ -49,7 +49,7 @@ nav:
   - Configuration:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
-      - Airflow default_args: configuration/defaults.md
+      - configuration/defaults.md
   - Features:
       - features/dynamic_tasks.md
   - Comparison:
