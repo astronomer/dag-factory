@@ -846,6 +846,7 @@ class DagBuilder:
 
         return sorted_tasks
 
+    @staticmethod
     def adjust_general_task_params(task_params: dict(str, Any)):
         """Adjusts in place the task params argument"""
         if utils.check_dict_key(task_params, "execution_timeout_secs"):
@@ -860,7 +861,14 @@ class DagBuilder:
             task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta_secs"])
             del task_params["execution_delta_secs"]
 
-        if utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
+        # Used by airflow.sensors.external_task_sensor.ExternalTaskSensor
+        if utils.check_dict_key(task_params, "execution_date_fn"):
+            python_callable: Callable = import_string(task_params["execution_date_fn"])
+            task_params["execution_date_fn"] = python_callable
+        elif utils.check_dict_key(task_params, "execution_delta"):
+            execution_delta = utils.get_time_delta(task_params["execution_delta"])
+            task_params["execution_delta"] = execution_delta
+        elif utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
             task_params, "execution_date_fn_file"
         ):
             task_params["execution_date_fn"]: Callable = utils.get_python_callable(

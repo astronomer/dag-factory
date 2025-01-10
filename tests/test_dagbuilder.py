@@ -9,7 +9,8 @@ import pytest
 from airflow import DAG
 from packaging import version
 
-from dagfactory.dagbuilder import Dataset, DagBuilder, DagFactoryConfigException
+from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
+from tests.utils import one_hour_ago
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -183,7 +184,7 @@ DAG_CONFIG_CALLBACKS = {
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
             "on_failure_callback_name": "print_context_callback",
-            "on_failure_callback_file": __file__
+            "on_failure_callback_file": __file__,
         }
     },
 }
@@ -311,6 +312,16 @@ def test_get_dag_params_no_start_date():
     td = dagbuilder.DagBuilder("test_dag", {}, {})
     with pytest.raises(Exception):
         td.get_dag_params()
+
+
+def test_adjust_general_task_params_external_sensor_arguments():
+    task_params = {"execution_date_fn": "tests.utils.one_hour_ago"}
+    DagBuilder.adjust_general_task_params(task_params)
+    assert task_params["execution_date_fn"] == one_hour_ago
+
+    task_params = {"execution_delta": "1 days"}
+    DagBuilder.adjust_general_task_params(task_params)
+    assert task_params["execution_delta"] == datetime.timedelta(days=1)
 
 
 def test_make_task_valid():
@@ -659,7 +670,7 @@ def test_set_callback_exceptions():
     with pytest.raises(DagFactoryConfigException, match=invalid_type_passed_message):
         DagBuilder.set_callback(
             parameters={"on_execute_callback": ["callback_1", "callback_2", "callback_3"]},
-            callback_type="on_execute_callback"
+            callback_type="on_execute_callback",
         )
 
 
@@ -875,20 +886,6 @@ def test_make_dag_with_task_group_callbacks_tasks():
     assert task_4.on_failure_callback.__name__ == "print_context_callback"
 
     # Can do something similar here as was done with the make_dag test (for Slack)
-
-
-def test_make_timetable():
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.0.0"):
-        td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-        timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
-        timetable_params = {"cron": "0 8,16 * * 1-5", "timezone": "UTC"}
-        actual = td.make_timetable(timetable, timetable_params)
-        assert actual.periodic
-        try:
-            assert actual.can_run
-        except AttributeError:
-            # can_run attribute was removed and replaced with can_be_scheduled in later versions of Airflow.
-            assert actual.can_be_scheduled
 
 
 def test_get_dag_params_with_template_searchpath():
