@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD007 -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +7,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.22.0] - 2025-01-10
+
+### Added
+
+- Propagate provided dag_display_name to built dag by @pankajkoti in #326
+- Add incipient documentation tooling by @tatiana in #328
+- Support loading `default_args` from shared `defaults.yml` by @pankajastro in #330
+- Add security policy by @tatiana in #339
+- Add Robust Support for Callbacks at Task and TaskGroup Level by @@jroach-astronomer in #322
+- Support `ExternalTaskSensor` `execution_date_fn` and `execution_delta` by @tatiana in #354
+- Refactor and add support for schedule conditions in DAG configuration by @ErickSeo in #320
+
+### Fixed
+
+- Handle gracefully exceptions during telemetry collection by @tatiana in #335
+- Adjust `markdownlint` configuration to enforce 4-space indentation for proper `mkdocs` rendering by @pankajkoti in #345
+
+### Docs
+
+- Create initial documentation index by @tatiana in #325
+- Use absolute URLs for failing links in docs/index.md by @pankajkoti in #331
+- Add quick start docs by @pankajastro in #324
+- Add docs comparing Python and YAML-based DAGs by @tatiana in #327
+- Add docs about project contributors and their roles by @tatiana in #341
+- Add documentation to support developers by @tatiana in #343
+- Add docs for configuring workflows, environment variables and defaults by @pankajkoti in #338
+- Add code of conduct for contributors and DAG factory community by @tatiana in #340
+- Document Dynamic Task Mapping feature by @pankajkoti in #344
+- Fix warning message 404 in code_of_conduct docs by @pankajastro in #346
+- Update theme for documentation by @pankajastro in #348
+- Fix markdownlint errors and some rendering improvements by @pankajastro in #356
+- Reword content in documentation by @yanmastin-astro in #336
+
+### Others
+
+- Improve integration tests scripts by @tatiana in #316
+- Add Markdown pre-commit checks by @tatiana in #329
+- Remove Airflow <> 2.0.0 check by @pankajastro in #334
+- Reduce telemetry timeout from 5 to 1 second by @tatiana in #337
+- Add GH action job to deploy docs by @pankajastro in #342
+- Enable Depandabot to scan outdated Github Actions dependencies by @tatiana in #347
+- Improve docs deploy job by @pankajastro in #352
+- Unify how we build dagfactory by @tatiana in #353
+- Fix running make docker run when previous versions were run locally by @tatiana in #362 
+- Install `jq` in `dev` container by @pankajastro in #363
+- Dependabot GitHub actions version upgrades in #349, #350, #351
 
 ## [0.21.0] - 2024-12-06
 
