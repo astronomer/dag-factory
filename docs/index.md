@@ -9,6 +9,7 @@ Are you new to DAG Factory? This is the place to start!
 * DAG Factory at a glance
     * [Quickstart with Airflow standalone](getting-started/quick-start-airflow-standalone.md)
     * [Quickstart with Astro CLI](getting-started/quick-start-astro-cli.md)
+* Install guide
 * [Using YAML instead of Python](./comparison/index.md)
     * [Traditional Airflow Operators](./comparison/traditional_operators.md)
     * [TaskFlow API](./comparison/taskflow_api.md)
