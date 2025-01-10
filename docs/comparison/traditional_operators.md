@@ -9,7 +9,6 @@ Below, we illustrate how to represent an Airflow DAG using traditional operators
 DAG Factory. Ultimately, both implementations use the same Airflow operators. The main difference is the language used
 to declare the workflow: one uses Python and the other uses YAML.
 
-
 ## Goal
 
 Let's say we'd like to create a workflow that performs the following:
@@ -21,7 +20,7 @@ Let's say we'd like to create a workflow that performs the following:
 We will implement the first two steps using `BashOperator` and the third step using `PythonOperator`.
 The last task will generate a `Markdown` snippet similar to:
 
-```
+```text
 | title                                                                       | url                                                                                                                    |
 |:----------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------|
 | I keep turning my Google Sheets into phone-friendly webapps                 | https://arstechnica.com/gadgets/2024/12/making-tiny-no-code-webapps-out-of-spreadsheets-is-a-weirdly-fulfilling-hobby/ |
@@ -33,8 +32,6 @@ The main logic is implemented as plain Python functions in [hacker_news.py](http
 ```title="pypi_stats.py"
 --8<-- "dev/dags/hacker_news.py:hacker_news"
 ```
-
-
 
 ## Implementation
 
@@ -51,7 +48,6 @@ As a reference, the following workflows run using Airflow 2.10.2 and DAG Factory
 ```title="example_hackernews_dagfactory.py"
 --8<-- "dev/dags/comparison/example_hackernews_dagfactory.yml"
 ```
-
 
 ## Comparison
 
