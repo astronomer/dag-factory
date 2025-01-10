@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Propagate provided dag_display_name to built dag by @pankajkoti in #326
-- Add incipient documentation tooling by @tatiana in # 328
+- Add incipient documentation tooling by @tatiana in #328
 - Support loading `default_args` from shared `defaults.yml` by @pankajastro in #330
 - Add security policy by @tatiana in #339
 - Add Robust Support for Callbacks at Task and TaskGroup Level by @@jroach-astronomer in #322
