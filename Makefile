@@ -22,6 +22,7 @@ clean: ## Removes build and test artifacts
 .PHONY: build-whl
 build-whl: ## Build installable whl file
 	rm -rf dev/include/*
+	rm -rf dist/*
 	hatch build
 	cp dist/* dev/include/
 
