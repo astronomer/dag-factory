@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable Depandabot to scan outdated Github Actions dependencies by @tatiana in #347
 - Improve docs deploy job by @pankajastro in #352
 - Unify how we build dagfactory by @tatiana in #353
+- Fix running make docker run when previous versions were run locally by @tatiana in #362 
+- Install `jq` in `dev` container by @pankajastro in #363
 - Dependabot GitHub actions version upgrades in #349, #350, #351
 
 ## [0.21.0] - 2024-12-06
