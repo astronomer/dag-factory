@@ -93,7 +93,7 @@ consumer_dag:
 
 ### Conditional Dataset Scheduling
 
-**dag-factory** (since version 0.22.0) supports conditional dataset scheduling DAGs. This feature is compatible with [Airflow 2.9 and later](https://www.astronomer.io/docs/learn/airflow-datasets/#conditional-dataset-scheduling).
+**dag-factory** (0.22.0+) supports conditional dataset scheduling DAGs. This feature is compatible with [Airflow 2.9+](https://www.astronomer.io/docs/learn/airflow-datasets/#conditional-dataset-scheduling).
 
 #### Logical operators for datasets
 Airflow supports two logical operators for combining dataset conditions:
