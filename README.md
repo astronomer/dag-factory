@@ -25,6 +25,7 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
   - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
   - [Multiple Configuration Files](#multiple-configuration-files)
   - [Datasets](#datasets)
+    - [Conditional Dataset](#conditional-dataset-scheduling)
   - [Callbacks](#callbacks)
   - [Custom Operators](#custom-operators)
 - [Notes](#notes)
@@ -88,7 +89,81 @@ consumer_dag:
       bash_command: "echo 'consumer datasets'"
 ```
 
-![datasets_example.png](img/datasets_example.png)
+![datasets_example.png](img/datasets/outlets/datasets_example.png)
+
+### Conditional Dataset Scheduling
+
+**dag-factory** (since version 0.22.0) supports conditional dataset scheduling DAGs. This feature is compatible with [Airflow 2.9 and later](https://www.astronomer.io/docs/learn/airflow-datasets/#conditional-dataset-scheduling).
+
+#### Logical operators for datasets
+Airflow supports two logical operators for combining dataset conditions:
+
+AND (``&``): Specifies that the DAG should be triggered only after all of the specified datasets have been updated.
+
+OR (``|``): Specifies that the DAG should be triggered when any of the specified datasets is updated.
+
+These operators enable you to configure your Airflow workflows to use more complex dataset update conditions, making them more dynamic and flexible.
+
+#### Requirements
+- **dag-factory** version 0.22.0 or higher
+- Airflow 2.9 or higher
+
+#### Examples of Conditional Dataset Scheduling
+
+Below are examples demonstrating how to configure a consumer DAG using conditional dataset scheduling.
+
+##### Example 1: String Condition
+
+```yaml
+consumer_dag:
+  default_args:
+    owner: "example_owner"
+    retries: 1
+    start_date: '2024-01-01'
+  description: "Example DAG consumer simple datasets"
+  schedule:
+    datasets: "((s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2) | s3://bucket-cjmm/raw/dataset_custom_3)"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'consumer datasets'"
+```
+
+##### Example 2: YAML Syntax
+
+```yaml
+consumer_dag:
+  default_args:
+    owner: "example_owner"
+    retries: 1
+    start_date: '2024-01-01'
+  description: "Example DAG consumer simple datasets"
+  schedule:
+    datasets: 
+      !or  
+        - !and  
+          - "s3://bucket-cjmm/raw/dataset_custom_1"  
+          - "s3://bucket-cjmm/raw/dataset_custom_2"
+        - "s3://bucket-cjmm/raw/dataset_custom_3"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'consumer datasets'"
+```
+
+---
+
+#### Visualization
+
+The following diagrams illustrate the dataset conditions described in the example configurations:
+
+1. **`s3://bucket-cjmm/raw/dataset_custom_1`** and **`s3://bucket-cjmm/raw/dataset_custom_2`** must both be updated for the first condition to be satisfied.
+2. Alternatively, **`s3://bucket-cjmm/raw/dataset_custom_3`** alone can satisfy the condition.
+
+![Graph Conditional Dataset 1](img/datasets/conditions/graph_conditional_dataset.png)
+![Graph Conditional Dataset 2](img/datasets/conditions/graph_conditional_dataset_2.png)
+
+
 
 ### Custom Operators
 
