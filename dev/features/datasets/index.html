@@ -1279,7 +1279,7 @@ The consumer dag will run when all the datasets are available.</p>
 <h4 id="examples-of-conditional-dataset-scheduling">Examples of Conditional Dataset Scheduling</h4>
 <p>Below are examples demonstrating how to configure a consumer DAG using conditional dataset scheduling.</p>
 <h5 id="example-1-string-condition">Example 1: String Condition</h5>
-<div class="language-text highlight"><span class="filename">example_dataset_condition_string.yml.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>consumer_dag:
+<div class="language-text highlight"><span class="filename">example_dataset_condition_string.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>consumer_dag:
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    owner: &quot;example_owner&quot;
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    retries: 1
@@ -1293,7 +1293,7 @@ The consumer dag will run when all the datasets are available.</p>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>      bash_command: &quot;echo &#39;consumer datasets&#39;&quot;
 </span></code></pre></div>
 <h5 id="example-2-yaml-syntax">Example 2: YAML Syntax</h5>
-<div class="language-text highlight"><span class="filename">example_dataset_yaml_syntax.yml.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>consumer_dag:
+<div class="language-text highlight"><span class="filename">example_dataset_yaml_syntax.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>consumer_dag:
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  default_args:
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    owner: &quot;example_owner&quot;
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    retries: 1
