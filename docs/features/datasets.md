@@ -36,13 +36,13 @@ Below are examples demonstrating how to configure a consumer DAG using condition
 
 ##### Example 1: String Condition
 
-```title="example_dataset_condition_string.yml.yml"
+```title="example_dataset_condition_string.yml"
 --8<-- "dev/dags/datasets/example_dataset_condition_string.yml"
 ```
 
 ##### Example 2: YAML Syntax
 
-```title="example_dataset_yaml_syntax.yml.yml"
+```title="example_dataset_yaml_syntax.yml"
 --8<-- "dev/dags/datasets/example_dataset_yaml_syntax.yml"
 ```
 
