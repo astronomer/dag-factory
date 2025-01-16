@@ -1,11 +1,7 @@
 # Datasets
-
-- [Datasets Outlets](#datasets-outlets)
-- [Conditional Dataset Scheduling](#conditional-dataset-scheduling)
+DAG Factory supports Airflow’s [Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
 
 ## Datasets Outlets
-
-DAG Factory supports Airflow’s [Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
 
 To leverage, you need to specify the `Dataset` in the `outlets` key in the configuration file. The `outlets` key is a list of strings that represent the dataset locations.
 In the `schedule` key of the consumer dag, you can set the `Dataset` you would like to schedule against. The key is a list of strings that represent the dataset locations.
