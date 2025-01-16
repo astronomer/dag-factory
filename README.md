@@ -98,9 +98,8 @@ consumer_dag:
 #### Logical operators for datasets
 Airflow supports two logical operators for combining dataset conditions:
 
-AND (``&``): Specifies that the DAG should be triggered only after all of the specified datasets have been updated.
-
-OR (``|``): Specifies that the DAG should be triggered when any of the specified datasets is updated.
+* AND (``&``): Specifies that the DAG should be triggered only after all of the specified datasets have been updated.
+* OR (``|``): Specifies that the DAG should be triggered when any of the specified datasets is updated.
 
 These operators enable you to configure your Airflow workflows to use more complex dataset update conditions, making them more dynamic and flexible.
 
