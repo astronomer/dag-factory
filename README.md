@@ -24,7 +24,6 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 - [Features](#features)
   - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
   - [Multiple Configuration Files](#multiple-configuration-files)
-  - [Datasets](#datasets)
   - [Callbacks](#callbacks)
   - [Custom Operators](#custom-operators)
 - [Notes](#notes)
@@ -49,46 +48,6 @@ If you want to split your DAG configuration into multiple files, you can do so b
 
     load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
 ```
-
-### Datasets
-
-**dag-factory** supports scheduling DAGs via [Apache Airflow Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
-
-To leverage, you need to specify the `Dataset` in the `outlets` key in the configuration file. The `outlets` key is a list of strings that represent the dataset locations.
-In the `schedule` key of the consumer dag, you can set the `Dataset` you would like to schedule against. The key is a list of strings that represent the dataset locations.
-The consumer dag will run when all the datasets are available.
-
-```yaml
-producer_dag:
-  default_args:
-    owner: "example_owner"
-    retries: 1
-    start_date: '2024-01-01'
-  description: "Example DAG producer simple datasets"
-  schedule_interval: "0 5 * * *"
-  tasks:
-    task_1:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 1"
-      outlets: [ 's3://bucket_example/raw/dataset1.json' ]
-    task_2:
-      bash_command: "echo 2"
-      dependencies: [ task_1 ]
-      outlets: [ 's3://bucket_example/raw/dataset2.json' ]
-consumer_dag:
-  default_args:
-    owner: "example_owner"
-    retries: 1
-    start_date: '2024-01-01'
-  description: "Example DAG consumer simple datasets"
-  schedule: [ 's3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json' ]
-  tasks:
-    task_1:
-      operator: airflow.operators.bash_operator.BashOperator
-      bash_command: "echo 'consumer datasets'"
-```
-
-![datasets_example.png](img/datasets_example.png)
 
 ### Custom Operators
 

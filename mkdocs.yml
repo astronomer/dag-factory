@@ -52,6 +52,7 @@ nav:
       - configuration/defaults.md
   - Features:
       - features/dynamic_tasks.md
+      - features/datasets.md
   - Comparison:
       - comparison/index.md
       - Traditional Airflow Operators: comparison/traditional_operators.md

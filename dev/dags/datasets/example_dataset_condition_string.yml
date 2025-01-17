@@ -1,0 +1,12 @@
+consumer_dag:
+  default_args:
+    owner: "example_owner"
+    retries: 1
+    start_date: '2024-01-01'
+  description: "Example DAG consumer simple datasets"
+  schedule:
+    datasets: "((s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2) | s3://bucket-cjmm/raw/dataset_custom_3)"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'consumer datasets'"
