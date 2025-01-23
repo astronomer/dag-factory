@@ -85,6 +85,7 @@ class DagFactory:
 
         :returns: dict from YAML config file
         """
+        print("config_filepath: ", config_filepath)
         # pylint: disable=consider-using-with
         try:
 
@@ -208,8 +209,17 @@ def load_yaml_dags(
     default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
     suffix=None,
 ):
+    load_dags(globals_dict, dags_folder, default_args_config_path, suffix)
+
+
+def load_dags(
+    globals_dict: Dict[str, Any],
+    dags_folder: str = airflow_conf.get("core", "dags_folder"),
+    default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
+    suffix=None,
+):
     """
-    Loads all the yaml/yml files in the dags folder
+    Loads all the yaml/yml/json files in the dags folder
 
     The dags folder is defaulted to the airflow dags folder if unspecified.
     And the prefix is set to yaml/yml by default. However, it can be
@@ -223,7 +233,7 @@ def load_yaml_dags(
     # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
-        suffix = [".yaml", ".yml"]
+        suffix = [".yaml", ".yml", ".json"]
     candidate_dag_files = []
     for suf in suffix:
         candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
