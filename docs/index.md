@@ -52,3 +52,5 @@ For further information, [read this](https://github.com/astronomer/dag-factory/b
 Check the project's [Security Policy](https://github.com/astronomer/dag-factory/blob/main/SECURITY.md) to learn
 how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
 security team are handled.
+
+<img alt=analytics referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" />
