@@ -43,6 +43,8 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     def _global_default_args(self):
+        # Possible change here/clarification needed; what if defaults.yml has more than default_args? In this case, we
+        # are "discarding" these values, and only holding onto the default_args. This is shown in build_dags
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():
@@ -133,11 +135,16 @@ class DagFactory:
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
 
-        if global_default_args is not None:
-            if "default_args" in default_config and "default_args" in global_default_args:
-                default_config = {
-                    "default_args": {**global_default_args["default_args"], **default_config["default_args"]}
-                }
+        # If global_default_args is None, then default_config will remain as is. Otherwise, we'll (try) go ahead and
+        # update the default args using global_default_args
+        if isinstance(global_default_args, dict):
+            # Previously, default_config was being overwritten completely to only container the default_args
+            # key-value pair. This was updated as part of issue-295 to not overwrite the entire default_config
+            # dictionary, and instead update the default_args key-value pair of the default_config dictionary
+            default_config["default_args"] = {
+                **global_default_args.get("default_args", {}),
+                **default_config.get("default_args", {}),
+            }
 
         dags: Dict[str, Any] = {}
 
@@ -162,7 +169,7 @@ class DagFactory:
     def register_dags(dags: Dict[str, DAG], globals: Dict[str, Any]) -> None:
         """Adds `dags` to `globals` so Airflow can discover them.
 
-        :param: dags: Dict of DAGs to be registered.
+        :param dags: Dict of DAGs to be registered.
         :param globals: The globals() from the file used to generate DAGs. The dag_id
             must be passed into globals() for Airflow to import
         """
