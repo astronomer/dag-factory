@@ -1009,8 +1009,9 @@ class DagBuilder:
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
-                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(task_params[key],
-                                                                                               "datasets"):
+                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
+                        task_params[key], "datasets"
+                    ):
                         file = task_params[key]["file"]
                         datasets_filter = task_params[key]["datasets"]
                         datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
