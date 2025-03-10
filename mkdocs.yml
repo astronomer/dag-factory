@@ -54,6 +54,7 @@ nav:
   - Features:
       - features/dynamic_tasks.md
       - features/datasets.md
+      - features/callbacks.md
   - Comparison:
       - comparison/index.md
       - Traditional Airflow Operators: comparison/traditional_operators.md
