@@ -2,52 +2,49 @@
 
 DAG Factory allows you to define Airflow
 [default_args](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#default-arguments) and
-additional DAG-level arguments in a `default` block. This block enables you to share common settings across all DAGs in
-your YAML configuration, with the arguments automatically applied to each DAG defined in the file.
+additional DAG-level arguments in a `default` block. This block enables you to share common settings and configurations
+across all DAGs in your YAML configuration, with the arguments automatically applied to each DAG defined in the file.
+This is one of DAG Factory's most powerful features; using defaults allows for the dynamic generation of more than a
+single DAG.
 
 ## Benefits of using the default block
 
 - Consistency: Ensures uniform configurations across all tasks and DAGs.
 - Maintainability: Reduces duplication by centralizing common properties.
 - Simplicity: Makes configurations easier to read and manage.
+- Dynamic Generation: Use a single default block to easily generate more than a single DAG.
 
-### Example usage of default block
+### Example usage of a default block for `default_args`
 
-```title="Usage of default block in YAML"
---8<-- "dev/dags/example_task_group.yml"
-```
+#### Specifying `default_args` in the `default` block
 
-The arguments specified in the `default` block, such as `default_args`, `default_view`, `max_active_runs`,
-`schedule_interval`, and any others defined, will be applied to all the DAGs in the YAML configuration.
+   Using a `default` block in a YAML file allows for those key-value pairs to be applied to each DAG that is defined in
+   that same file. One of the most common examples is using a `default` block to specify `default_args` for each DAG
+   defined in that file. These arguments are automatically inherited by every DAG defined in the file. Below is an example of this.
 
-## Multiple ways for specifying Airflow default_args
+   ```yaml title="Usage of default block for default_args in YAML"
+   --8<-- "dev/dags/example_dag_factory_default_args.yml"
+   ```
 
-DAG Factory offers flexibility in defining Airflow’s `default_args`. These can be specified in several ways, depending on your requirements.
+#### Specifying `default_args` directly in a DAG configuration
 
-1. Specifying `default_args` in the `default` block
+   You can override or define specific `default_args` at the individual DAG level. This allows you to customize
+   arguments for each DAG without affecting others. Not only can existing `default_args` be overridden directly in a DAG
+   configuration, but new arguments can be added.
 
-    As seen in the previous example, you can define shared `default_args` for all DAGs in the configuration YAML under
-the `default` block. These arguments are automatically inherited by every DAG defined in the file.
+   ```yaml
+   etl:
+     default_args:
+       start_date: '2024-12-31'
+       retries: 1  # A new default_arg was added
+  ...
+   ```
 
-2. Specifying `default_args` directly in a DAG configuration
+#### Specifying `default_args` in a shared `defaults.yml`
 
-    You can override or define specific default_args at the individual DAG level. This allows you to customize arguments
-for each DAG without affecting others.
-
-    Example:
-
-    ```title="DAG level default_args"
-    --8<-- "dev/dags/example_dag_factory.yml"
-    ```
-
-3. Specifying `default_args` in a shared `defaults.yml`
-
-    Starting DAG Factory 0.22.0, you can also keep the `default_args` in the `defaults.yml` file. The configuration
-from `defaults.yml` will be applied to all DAG Factory generated DAGs.
-
-    ```title="defaults.yml"
-    --8<-- "dev/dags/defaults.yml"
-    ```
+   Starting DAG Factory 0.22.0, you can also keep the `default_args` in the `defaults.yml` file. The configuration
+   from `defaults.yml` will be applied to all DAG Factory generated DAGs. **Be careful, these will be applied to all
+   generated DAGs.**
 
 Given the various ways to specify `default_args`, the following precedence order is applied when arguments are
 duplicated:
@@ -55,3 +52,19 @@ duplicated:
 1. In the DAG configuration
 2. In the `default` block within the workflow's YAML file
 3. In the `defaults.yml`
+
+### Example using of default block for dynamic DAG generation
+
+Not only can the `default` block in a YAML file be used to define `default_args` for one or more DAGs; it can also be
+used to create the skeleton of "templated" DAGs. In the example below, the `default` block is used to define not only
+the `default_args` of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this file.
+Each DAG (`machine_learning`, `data_science`, `artificial_intelligence`) will be defined using the values from the
+`default` block, and like with `default_args`, can override these values. **This is a powerful way to use DAG Factory
+to dynamically create DAGs using a single configuration.**
+
+
+```yaml title="Usage of default block in YAML"
+--8<-- "dev/dags/example_dag_factory_default_config.yml"
+```
+
+Currently, only `default_args` can be specified using the `defaults.yml` file.

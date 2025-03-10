@@ -259,6 +259,7 @@ def test_open_and_filter_yaml_config_datasets():
 
     assert actual == expected
 
+
 def get_datasets_map_uri_yaml_file():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
     file_path = "dev/dags/datasets/example_config_datasets.yml"
@@ -271,20 +272,24 @@ def get_datasets_map_uri_yaml_file():
 
     assert actual == expected
 
+
 def test_valid_uri():
     actual = utils.make_valid_variable_name("s3://bucket/dataset")
     expected = "s3___bucket_dataset"
     assert actual == expected
+
 
 def test_uri_with_special_characters():
     actual = utils.make_valid_variable_name("s3://bucket/dataset-1!@#$%^&*()")
     expected = "s3___bucket_dataset_1__________"
     assert actual == expected
 
+
 def test_uri_starting_with_number():
     actual = utils.make_valid_variable_name("123/bucket/dataset")
     expected = "_123_bucket_dataset"
     assert actual == expected
+
 
 def test_open_and_filter_yaml_config_datasets_file_notfound():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
@@ -292,6 +297,7 @@ def test_open_and_filter_yaml_config_datasets_file_notfound():
 
     with pytest.raises(Exception):
         utils.get_datasets_uri_yaml_file(file_path, datasets_names)
+
 
 def test_extract_dataset_names():
     expression = "((dataset_custom_1 & dataset_custom_2) | (dataset_custom_3))"
@@ -308,6 +314,7 @@ def test_extract_dataset_names():
     expected = []
     result = utils.extract_dataset_names(expression)
     assert result == expected
+
 
 def test_extract_storage_names():
     expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"

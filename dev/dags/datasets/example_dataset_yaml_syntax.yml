@@ -5,10 +5,10 @@ consumer_dag:
     start_date: '2024-01-01'
   description: "Example DAG consumer simple datasets"
   schedule:
-    datasets: 
-      !or  
-        - !and  
-          - "s3://bucket-cjmm/raw/dataset_custom_1"  
+    datasets:
+      !or
+        - !and
+          - "s3://bucket-cjmm/raw/dataset_custom_1"
           - "s3://bucket-cjmm/raw/dataset_custom_2"
         - "s3://bucket-cjmm/raw/dataset_custom_3"
   tasks:

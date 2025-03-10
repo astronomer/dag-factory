@@ -142,6 +142,9 @@ class DagBuilder:
             raise DagFactoryConfigException("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
 
+        # If there are no default_args, add an empty dictionary
+        dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
+
         if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
             dag_params["schedule_interval"] = None
 

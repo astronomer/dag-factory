@@ -7,6 +7,7 @@ default:
   default_view: tree
   max_active_runs: 1
   schedule_interval: 0 1 * * *
+
 example_task_group:
   description: "this dag uses task groups"
   task_groups:

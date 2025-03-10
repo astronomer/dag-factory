@@ -1,0 +1,23 @@
+default:
+  default_args:
+    start_date: '2024-01-01'
+  schedule_interval: 0 0 * * *
+  catchup: false
+  tags:
+    - "data engineering"
+
+etl:
+  tasks:
+    extract:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo extract"
+    transform:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo transform"
+      dependencies:
+      - extract
+    load:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo load"
+      dependencies:
+      - transform
