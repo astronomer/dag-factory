@@ -1007,6 +1007,7 @@ class DagBuilder:
             del task_params["variables_as_arguments"]
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+            print("task_params перед обработкой:", task_params)
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
                     if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
@@ -1021,7 +1022,8 @@ class DagBuilder:
                     else:
                         datasets_uri = task_params[key]
 
-                    task_params[key] = [Dataset(uri) for uri in datasets_uri]
+                    if key in task_params and datasets_uri:
+                        task_params[key] = [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(

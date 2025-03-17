@@ -1,16 +1,16 @@
 # Datasets
 DAG Factory supports Airflow’s [Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html).
 
-## Datasets Outlets
+## Datasets Outlets and Inlets
 
-To leverage, you need to specify the `Dataset` in the `outlets` key in the configuration file. The `outlets` key is a list of strings that represent the dataset locations.
+To leverage, you need to specify the `Dataset` in the `outlets` and `inlets` key in the configuration file. The `outlets`,`intlets`  key is a list of strings that represent the dataset locations.
 In the `schedule` key of the consumer dag, you can set the `Dataset` you would like to schedule against. The key is a list of strings that represent the dataset locations.
 The consumer dag will run when all the datasets are available.
 
-#### Example: Outlet
+#### Example: Outlet and Inlet
 
-```title="example_dag_datasets_outlet.yml"
---8<-- "dev/dags/datasets/example_dag_datasets_outlet.yml"
+```title="example_dag_datasets_outlet_inlet.yml"
+--8<-- "dev/dags/datasets/example_dag_datasets_outlet_inlet.yml"
 ```
 
 ![datasets_example.png](../static/images/datasets/outlets/datasets_example.png "Simple Dataset Producer")
