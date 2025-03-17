@@ -14,11 +14,11 @@
         <link rel="prev" href="../dynamic_tasks/">
       
       
-        <link rel="next" href="../callbacks/">
+        <link rel="next" href="../../comparison/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
       
       
 
@@ -605,8 +605,6 @@
       
         
       
-        
-      
     
     
       
@@ -721,19 +719,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#datasets-outlets" class="md-nav__link">
+  <a href="#datasets-outlets-and-inlets" class="md-nav__link">
     <span class="md-ellipsis">
-      Datasets Outlets
+      Datasets Outlets and Inlets
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Datasets Outlets">
+    <nav class="md-nav" aria-label="Datasets Outlets and Inlets">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-outlet" class="md-nav__link">
+  <a href="#example-outlet-and-inlet" class="md-nav__link">
     <span class="md-ellipsis">
-      Example: Outlet
+      Example: Outlet and Inlet
     </span>
   </a>
   
@@ -823,28 +821,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../callbacks/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Callbacks
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1142,19 +1118,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#datasets-outlets" class="md-nav__link">
+  <a href="#datasets-outlets-and-inlets" class="md-nav__link">
     <span class="md-ellipsis">
-      Datasets Outlets
+      Datasets Outlets and Inlets
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Datasets Outlets">
+    <nav class="md-nav" aria-label="Datasets Outlets and Inlets">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-outlet" class="md-nav__link">
+  <a href="#example-outlet-and-inlet" class="md-nav__link">
     <span class="md-ellipsis">
-      Example: Outlet
+      Example: Outlet and Inlet
     </span>
   </a>
   
@@ -1274,12 +1250,14 @@
 
 <h1 id="datasets">Datasets</h1>
 <p>DAG Factory supports Airflow’s <a href="https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html">Datasets</a>.</p>
-<h2 id="datasets-outlets">Datasets Outlets</h2>
-<p>To leverage, you need to specify the <code>Dataset</code> in the <code>outlets</code> key in the configuration file. The <code>outlets</code> key is a list of strings that represent the dataset locations.
-In the <code>schedule</code> key of the consumer dag, you can set the <code>Dataset</code> you would like to schedule against. The key is a list of strings that represent the dataset locations.
-The consumer dag will run when all the datasets are available.</p>
-<h4 id="example-outlet">Example: Outlet</h4>
-<div class="language-text highlight"><span class="filename">example_dag_datasets_outlet.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>producer_dag:
+<h2 id="datasets-outlets-and-inlets">Datasets Outlets and Inlets</h2>
+<p>To leverage datasets, you need to specify the <code>Dataset</code> in the <code>outlets</code> and <code>inlets</code> keys in the configuration file. 
+The <code>outlets</code> and <code>inlets</code> keys should contain a list of strings representing dataset locations.
+In the <code>schedule</code> key of the consumer DAG, you can set the <code>Dataset</code> that the DAG should be scheduled against. The key
+should contain a list of dataset locations.
+The consumer DAG will run when all the specified datasets become avai</p>
+<h4 id="example-outlet-and-inlet">Example: Outlet and Inlet</h4>
+<div class="language-text highlight"><span class="filename">example_dag_datasets_outlet_inlet.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>producer_dag:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;example_owner&quot;
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    retries: 1
@@ -1290,22 +1268,24 @@ The consumer dag will run when all the datasets are available.</p>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    task_1:
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      operator: airflow.operators.bash_operator.BashOperator
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      outlets: [ &#39;s3://bucket_example/raw/dataset1.json&#39; ]
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    task_2:
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [ task_1 ]
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      outlets: [ &#39;s3://bucket_example/raw/dataset2.json&#39; ]
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>consumer_dag:
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  default_args:
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    owner: &quot;example_owner&quot;
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    retries: 1
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    start_date: &#39;2024-01-01&#39;
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  description: &quot;Example DAG consumer simple datasets&quot;
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>  schedule: [ &#39;s3://bucket_example/raw/dataset1.json&#39;, &#39;s3://bucket_example/raw/dataset2.json&#39; ]
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  tasks:
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    task_1:
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>      bash_command: &quot;echo &#39;consumer datasets&#39;&quot;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      inlets: [ &#39;s3://bucket_example/raw/dataset1_source.json&#39; ]
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      outlets: [ &#39;s3://bucket_example/raw/dataset1.json&#39; ]
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    task_2:
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      bash_command: &quot;echo 2&quot;
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      dependencies: [ task_1 ]
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      inlets: [ &#39;s3://bucket_example/raw/dataset2_source.json&#39; ]
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      outlets: [ &#39;s3://bucket_example/raw/dataset2.json&#39; ]
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>consumer_dag:
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  default_args:
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    owner: &quot;example_owner&quot;
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    retries: 1
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    start_date: &#39;2024-01-01&#39;
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  description: &quot;Example DAG consumer simple datasets&quot;
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>  schedule: [ &#39;s3://bucket_example/raw/dataset1.json&#39;, &#39;s3://bucket_example/raw/dataset2.json&#39; ]
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  tasks:
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    task_1:
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>      bash_command: &quot;echo &#39;consumer datasets&#39;&quot;
 </span></code></pre></div>
 <p><img alt="datasets_example.png" src="../../static/images/datasets/outlets/datasets_example.png" title="Simple Dataset Producer" /></p>
 <h2 id="conditional-dataset-scheduling">Conditional Dataset Scheduling</h2>
@@ -1417,13 +1397,13 @@ The consumer dag will run when all the datasets are available.</p>
         
         
           
-          <a href="../callbacks/" class="md-footer__link md-footer__link--next" aria-label="Next: Callbacks">
+          <a href="../../comparison/" class="md-footer__link md-footer__link--next" aria-label="Next: Using YAML instead of Python">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Callbacks
+                Using YAML instead of Python
               </div>
             </div>
             <div class="md-footer__button md-icon">
