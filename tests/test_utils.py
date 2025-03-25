@@ -259,6 +259,7 @@ def test_open_and_filter_yaml_config_datasets():
 
     assert actual == expected
 
+
 def get_datasets_map_uri_yaml_file():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
     file_path = "dev/dags/datasets/example_config_datasets.yml"
@@ -271,20 +272,24 @@ def get_datasets_map_uri_yaml_file():
 
     assert actual == expected
 
+
 def test_valid_uri():
     actual = utils.make_valid_variable_name("s3://bucket/dataset")
     expected = "s3___bucket_dataset"
     assert actual == expected
+
 
 def test_uri_with_special_characters():
     actual = utils.make_valid_variable_name("s3://bucket/dataset-1!@#$%^&*()")
     expected = "s3___bucket_dataset_1__________"
     assert actual == expected
 
+
 def test_uri_starting_with_number():
     actual = utils.make_valid_variable_name("123/bucket/dataset")
     expected = "_123_bucket_dataset"
     assert actual == expected
+
 
 def test_open_and_filter_yaml_config_datasets_file_notfound():
     datasets_names = ["dataset_custom_1", "dataset_custom_2"]
@@ -292,6 +297,7 @@ def test_open_and_filter_yaml_config_datasets_file_notfound():
 
     with pytest.raises(Exception):
         utils.get_datasets_uri_yaml_file(file_path, datasets_names)
+
 
 def test_extract_dataset_names():
     expression = "((dataset_custom_1 & dataset_custom_2) | (dataset_custom_3))"
@@ -309,6 +315,7 @@ def test_extract_dataset_names():
     result = utils.extract_dataset_names(expression)
     assert result == expected
 
+
 def test_extract_storage_names():
     expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
     expected = ["s3://bucket-cjmm/raw/dataset_custom_1", "s3://bucket-cjmm/raw/dataset_custom_2"]
@@ -324,3 +331,57 @@ def test_extract_storage_names():
     expected = []
     result = utils.extract_storage_names(expression)
     assert result == expected
+
+
+def test_get_json_serialized_callable_dict():
+    # Test with dictionary input
+    data = {"key1": "value1", "key2": 123}
+    serializer = utils.get_json_serialized_callable(data)
+
+    # Verify it's callable
+    assert callable(serializer)
+
+    # Verify it returns correctly serialized JSON
+    result = serializer()
+    assert isinstance(result, str)
+    assert '"key1": "value1"' in result
+    assert '"key2": 123' in result
+
+
+def test_get_json_serialized_callable_valid_json_string():
+    # Test with a valid JSON string
+    json_str = '{"key1": "value1", "key2": 123}'
+    serializer = utils.get_json_serialized_callable(json_str)
+
+    # Verify it returns the same string
+    result = serializer()
+    assert result == json_str
+
+
+def test_get_json_serialized_callable_invalid_json_string():
+    # Test with an invalid JSON string
+    invalid_json = "{key1: value1, key2: 123}"  # Missing quotes
+
+    # Should raise ValueError
+    with pytest.raises(ValueError):
+        utils.get_json_serialized_callable(invalid_json)
+
+
+def test_get_json_serialized_callable_non_dict_non_str():
+    # Test with integer - should raise TypeError
+    with pytest.raises(TypeError):
+        utils.get_json_serialized_callable(123)
+
+    # Test with list - should raise TypeError
+    with pytest.raises(TypeError):
+        utils.get_json_serialized_callable([1, 2, 3])
+
+
+def test_get_json_serialized_callable_accepts_kwargs():
+    # The callable should accept arbitrary kwargs without affecting the result
+    data = {"key1": "value1"}
+    serializer = utils.get_json_serialized_callable(data)
+
+    # Call with unused kwargs
+    result = serializer(unused_param="test", another_param=123)
+    assert '"key1": "value1"' in result

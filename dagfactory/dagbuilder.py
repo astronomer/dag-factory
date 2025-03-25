@@ -32,8 +32,10 @@ except ImportError:
 
 # http sensor was moved in 2.4
 try:
+    from airflow.providers.http.operators.http import HttpOperator
     from airflow.providers.http.sensors.http import HttpSensor
 except ImportError:
+    from airflow.operators.http_operator import SimpleHttpOperator as HttpOperator
     from airflow.sensors.http_sensor import HttpSensor
 
 # sql sensor was moved in 2.4
@@ -427,6 +429,18 @@ class DagBuilder:
                     if task_params.get("init_containers") is not None
                     else None
                 )
+
+            # HttpOperator
+            if issubclass(operator_obj, HttpOperator):
+                headers = task_params.get("headers", {})
+                content_type = headers.get("Content-Type", "").lower()
+
+                if "data" in task_params and "application/json" in content_type:
+                    task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
+
+                    if "Content-Type" not in headers:
+                        headers["Content-Type"] = "application/json"
+                    task_params["headers"] = headers
 
             DagBuilder.adjust_general_task_params(task_params)
 
