@@ -431,7 +431,7 @@ class DagBuilder:
             DagBuilder.adjust_general_task_params(task_params)
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            expand_kwargs_kwargs: List[Dict[str, Union[Dict[str, Any], Any]]] = task_params.pop("expand_kwargs", [])
+            expand_kwargs_kwargs: List[Dict[str, Union[Dict[str, Any], Any]]] = {}
             # expand available only in airflow >= 2.3.0
             if (
                 utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
@@ -442,11 +442,16 @@ class DagBuilder:
                 # If there are partial_kwargs we should merge them with existing task_params
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
                     task_params.update(partial_kwargs)
-
+            # expand_kwargs available only in airflow >= 2.4.0
+            elif (
+                utils.check_dict_key(task_params, "expand_kwargs")
+            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+                expand_kwargs_kwargs = task_params["expand_kwargs"]
+                del task_params["expand_kwargs"]
             task: Union[BaseOperator, MappedOperator] = operator_obj(**task_params)
             if expand_kwargs:
                 task = operator_obj.partial(**task_params).expand(**expand_kwargs)
-            if expand_kwargs_kwargs:
+            elif expand_kwargs_kwargs:
                 task = operator_obj.partial(**task_params).expand_kwargs(expand_kwargs_kwargs)
         except Exception as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
