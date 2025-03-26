@@ -442,12 +442,14 @@ class DagBuilder:
                 # If there are partial_kwargs we should merge them with existing task_params
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
                     task_params.update(partial_kwargs)
+
             # expand_kwargs available only in airflow >= 2.4.0
-            elif (
+            if (
                 utils.check_dict_key(task_params, "expand_kwargs")
             ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
                 expand_kwargs_kwargs = task_params["expand_kwargs"]
                 del task_params["expand_kwargs"]
+
             task: Union[BaseOperator, MappedOperator] = operator_obj(**task_params)
             if expand_kwargs:
                 task = operator_obj.partial(**task_params).expand(**expand_kwargs)
