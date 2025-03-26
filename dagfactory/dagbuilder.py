@@ -442,11 +442,13 @@ class DagBuilder:
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
                     task_params.update(partial_kwargs)
 
-            task: Union[BaseOperator, MappedOperator] = (
-                operator_obj(**task_params)
-                if not expand_kwargs
-                else operator_obj.partial(**task_params).expand(**expand_kwargs)
-            )
+            expand_kwargs_kwargs = task_params.get("expand_kwargs", [])
+            
+            task: Union[BaseOperator, MappedOperator] = operator_obj(**task_params)
+            if expand_kwargs:
+                task = operator_obj.partial(**task_params).expand(**expand_kwargs)
+            if expand_kwargs_kwargs:
+                task = operator_obj.partial(**task_params).expand_kwargs(expand_kwargs_kwargs)
         except Exception as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
