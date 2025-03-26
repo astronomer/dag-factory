@@ -434,7 +434,7 @@ class DagBuilder:
             expand_kwargs_kwargs: List[Dict[str, Union[Dict[str, Any], Any]]] = task_params.pop("expand_kwargs", [])
             # expand available only in airflow >= 2.3.0
             if (
-                utils.check_dict_key(task_params, "expand") and utils.check_dict_key(task_params, "partial")
+                utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
             ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
                 # Getting expand and partial kwargs from task_params
                 (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
