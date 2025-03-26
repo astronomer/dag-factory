@@ -973,7 +973,7 @@ def test_multi_parameter_dynamic_task_mapping():
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand_kwargs": [{"op_args": {"request_output": "request.output"}}, "test": 1],
+            "expand_kwargs": [{"op_args": {"request": "request"}, "response": "hi", "abc": [23,2,1998]}],
         }
         actual = td.make_task(operator, task_params)
         assert isinstance(actual, MappedOperator)
