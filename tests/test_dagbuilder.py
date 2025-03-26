@@ -963,7 +963,7 @@ def test_dynamic_task_mapping():
 def test_multi_parameter_dynamic_task_mapping():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
-        error_message = "Dynamic task mapping with multiple parameter available only in Airflow >= 2.4.0"
+        error_message = "Dynamic task mapping with multiple Parameter available only in Airflow >= 2.4.0"
         with pytest.raises(Exception, match=error_message):
             td.build()
     else:
