@@ -975,7 +975,7 @@ def test_multi_parameter_dynamic_task_mapping():
             "partial": {"op_kwargs": {"test_id": "test"}},
             "expand_kwargs": [
                 {"op_args": {"request_output": "request.output"}},
-                {"op_args": {"request_output": "request.output"}}
+                {"op_args": {"request_output": "temp"}}
             ],
         }
         actual = td.make_task(operator, task_params)
