@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/contributing/code_of_conduct/">
+        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/features/callbacks/">
       
       
-        <link rel="prev" href="../../comparison/taskflow_api/">
+        <link rel="prev" href="../datasets/">
       
       
-        <link rel="next" href="../contributors/">
+        <link rel="next" href="../../comparison/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Code of Conduct - DAG Factory</title>
+        <title>Callbacks - DAG Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributor-covenant-code-of-conduct" class="md-skip">
+        <a href="#callbacks" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Code of Conduct
+              Callbacks
             
           </span>
         </div>
@@ -245,11 +245,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../features/dynamic_tasks/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dynamic_tasks/" class="md-tabs__link">
           
   
     
@@ -285,13 +287,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../contributing/code_of_conduct/" class="md-tabs__link">
           
   
     
@@ -594,8 +594,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -608,19 +610,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -632,7 +637,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Features
@@ -646,7 +651,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/dynamic_tasks/" class="md-nav__link">
+      <a href="../dynamic_tasks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -668,7 +673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/datasets/" class="md-nav__link">
+      <a href="../datasets/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -687,10 +692,31 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../features/callbacks/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Callbacks
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -700,6 +726,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#passing-a-string-that-points-to-a-callable" class="md-nav__link">
+    <span class="md-ellipsis">
+      Passing a string that points to a callable
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specifying-a-user-defined-py-file-and-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying a user-defined .py file and function
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-callbacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Provider callbacks
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -828,10 +901,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -846,22 +917,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -873,7 +941,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Contributing
@@ -884,31 +952,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Code of Conduct
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../contributing/code_of_conduct/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -918,131 +965,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#our-pledge" class="md-nav__link">
-    <span class="md-ellipsis">
-      Our Pledge
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#our-standards" class="md-nav__link">
-    <span class="md-ellipsis">
-      Our Standards
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#enforcement-responsibilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enforcement Responsibilities
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      Scope
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#enforcement" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enforcement
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#enforcement-guidelines" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enforcement Guidelines
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Enforcement Guidelines">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-correction" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Correction
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-warning" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Warning
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-temporary-ban" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Temporary Ban
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-permanent-ban" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Permanent Ban
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#attribution" class="md-nav__link">
-    <span class="md-ellipsis">
-      Attribution
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1055,7 +977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../contributors/" class="md-nav__link">
+      <a href="../../contributing/contributors/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1077,7 +999,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../howto/" class="md-nav__link">
+      <a href="../../contributing/howto/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1099,7 +1021,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../roles/" class="md-nav__link">
+      <a href="../../contributing/roles/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1148,105 +1070,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#our-pledge" class="md-nav__link">
+  <a href="#passing-a-string-that-points-to-a-callable" class="md-nav__link">
     <span class="md-ellipsis">
-      Our Pledge
+      Passing a string that points to a callable
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#our-standards" class="md-nav__link">
+  <a href="#specifying-a-user-defined-py-file-and-function" class="md-nav__link">
     <span class="md-ellipsis">
-      Our Standards
+      Specifying a user-defined .py file and function
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#enforcement-responsibilities" class="md-nav__link">
+  <a href="#provider-callbacks" class="md-nav__link">
     <span class="md-ellipsis">
-      Enforcement Responsibilities
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      Scope
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#enforcement" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enforcement
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#enforcement-guidelines" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enforcement Guidelines
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Enforcement Guidelines">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-correction" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Correction
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-warning" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Warning
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-temporary-ban" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Temporary Ban
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-permanent-ban" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Permanent Ban
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#attribution" class="md-nav__link">
-    <span class="md-ellipsis">
-      Attribution
+      Provider callbacks
     </span>
   </a>
   
@@ -1268,7 +1112,7 @@
 
 
   
-    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/contributing/code_of_conduct.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/features/callbacks.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1277,106 +1121,92 @@
     
       
     
-    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/contributing/code_of_conduct.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/features/callbacks.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="contributor-covenant-code-of-conduct">Contributor Covenant Code of Conduct</h1>
-<h2 id="our-pledge">Our Pledge</h2>
-<p>We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socioeconomic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.</p>
-<p>We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.</p>
-<h2 id="our-standards">Our Standards</h2>
-<p>Examples of behavior that contributes to a positive environment for our
-community include:</p>
+<h1 id="callbacks">Callbacks</h1>
+<p>DAG Factory supports the use of callbacks. These callbacks can be set at the DAG, TaskGroup, or Task level. The way
+that callbacks that can be configured for DAGs, TaskGroups, and Tasks differ slightly, and details around this can be 
+found in the <a href="https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#">Apache Airflow documentation</a>.</p>
+<p>Within DAG Factory itself, there are three approaches to defining callbacks. The goal is to make this process 
+intuitive and provide parity with the traditional DAG authoring experience. These approaches to configure callbacks
+are outlined below, each with an example of implementation. While proceeding examples are all defined for individual 
+Tasks, callbacks can also be defined using <code>default_args</code>, or at the DAG and TaskGroup level.</p>
 <ul>
-<li>Demonstrating empathy and kindness toward other people</li>
-<li>Being respectful of differing opinions, viewpoints, and experiences</li>
-<li>Giving and gracefully accepting constructive feedback</li>
-<li>Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience</li>
-<li>Focusing on what is best not just for us as individuals, but for the
-  overall community</li>
+<li><a href="#passing-a-string-that-points-to-a-callable">Passing a string that points to a callable</a></li>
+<li><a href="#specifying-a-user-defined-py-file-and-function">Specifying a user-defined <code>.py</code> and the function within that file to be executed</a></li>
+<li><a href="#provider-callbacks">Configuring callbacks from providers</a></li>
 </ul>
-<p>Examples of unacceptable behavior include:</p>
-<ul>
-<li>The use of sexualized language or imagery, and sexual attention or
-  advances of any kind</li>
-<li>Trolling, insulting or derogatory comments, and personal or political attacks</li>
-<li>Public or private harassment</li>
-<li>Publishing others' private information, such as a physical or email
-  address, without their explicit permission</li>
-<li>Other conduct which could reasonably be considered inappropriate in a
-  professional setting</li>
-</ul>
-<h2 id="enforcement-responsibilities">Enforcement Responsibilities</h2>
-<p>Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.</p>
-<p>Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned with this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.</p>
-<h2 id="scope">Scope</h2>
-<p>This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.</p>
-<h2 id="enforcement">Enforcement</h2>
-<p>Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-<a href="mailto:humans@astronomer.io">humans@astronomer.io</a>.</p>
-<p>All complaints will be reviewed and investigated promptly and fairly.</p>
-<p>All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.</p>
-<h2 id="enforcement-guidelines">Enforcement Guidelines</h2>
-<p>Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:</p>
-<h3 id="1-correction">1. Correction</h3>
-<p><strong>Community Impact</strong>: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.</p>
-<p><strong>Consequence</strong>: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.</p>
-<h3 id="2-warning">2. Warning</h3>
-<p><strong>Community Impact</strong>: A violation through a single incident or series
-of actions.</p>
-<p><strong>Consequence</strong>: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.</p>
-<h3 id="3-temporary-ban">3. Temporary Ban</h3>
-<p><strong>Community Impact</strong>: A serious violation of community standards, including
-sustained inappropriate behavior.</p>
-<p><strong>Consequence</strong>: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.</p>
-<h3 id="4-permanent-ban">4. Permanent Ban</h3>
-<p><strong>Community Impact</strong>: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior,  harassment of an
-individual, or aggression toward or disparagement of classes of individuals.</p>
-<p><strong>Consequence</strong>: A permanent ban from any sort of public interaction within
-the community.</p>
-<h2 id="attribution">Attribution</h2>
-<p>This Code of Conduct is adapted from the <a href="https://www.contributor-covenant.org/version/2/0/code_of_conduct/">Contributor Covenant</a>, version 2.0.</p>
-<p>Community Impact Guidelines were inspired by <a href="https://github.com/mozilla/inclusion">Mozilla's code of conduct
-enforcement ladder</a>.</p>
-<p>For answers to common questions about this code of conduct, see the <a href="https://www.contributor-covenant.org/faq/">FAQ</a>.
-Translations are available at <a href="https://www.contributor-covenant.org/translations/">this page</a>.</p>
+<h2 id="passing-a-string-that-points-to-a-callable">Passing a string that points to a callable</h2>
+<p>The most traditional way of configuring callbacks is by defining a custom function within the Airflow project and 
+assigning that callback to the desired Task. Using the syntax below, this can be implemented using DAG Factory. In this 
+case, the <code>output_standard_message</code> function is a user-defined function stored in the <code>include/custom_callbacks.py</code> 
+file. This function requires no parameters, and the YAML would take the form below.</p>
+<p>For this example to be implemented in DAG Factory, the <code>include/custom_callbacks.py</code> file must be on the Python 
+<code>sys.path</code>. If this is not the case, the full path to a <code>.py</code> function can be specified, as shown below.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">...</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">task_1</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_1&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">on_failure_callback</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include.custom_callbacks.output_standard_message</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nn">...</span>
+</span></code></pre></div>
+<p>Sometimes, a function may have parameters that need to be defined within the Task itself. Here, the 
+<code>output_custom_message</code> callback takes two key-word arguments; <code>param1</code>, and <code>param2</code>. These values are defined in the 
+YAML itself, offering DAG Factory authors an additional degree of flexibility and verbosity.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nn">...</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">task_2</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_2&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">on_success_callback</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">callback</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include.custom_callbacks.output_custom_message</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">param1</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Task</span><span class="nv"> </span><span class="s">status&quot;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nt">param2</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Successful!&quot;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nn">...</span>
+</span></code></pre></div>
+<h2 id="specifying-a-user-defined-py-file-and-function">Specifying a user-defined <code>.py</code> file and function</h2>
+<p>In addition to passing a string that points to a callback, the full path to the file and name of the callback can be 
+specified for a DAG, TaskGroup, or Task. This provides a viable option for defining a callback when the director the 
+<code>.py</code> file is stored in is not on the Python path.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nn">...</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">task_3</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_3&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">on_retry_callback_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_standard_message</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">on_retry_callback_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/local/airflow/include/custom_callbacks.py</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nn">...</span>
+</span></code></pre></div>
+<p>Note that this method for defining callbacks in DAG Factory does not allow for parameters to be passed to the callable
+within the YAML itself.</p>
+<h2 id="provider-callbacks">Provider callbacks</h2>
+<p>In addition to custom-built callbacks, there are a number of provider-built callbacks that can be used when defining a 
+DAG. With DAG Factory, these callbacks can be configured similar to how they would be when authoring a traditional DAG. 
+First, the type of callback is specified (<code>on_success_callback</code>, <code>on_failure_callback</code>, etc.). The <code>callback</code> key-value
+pair specifies the provider-built function to be executed. Then, the specific key-word arguments the callback takes can
+be specified, as shown below.</p>
+<p>Note that the provider package being used must be available on the Python <code>sys.path</code> path, meaning it may need to be
+<code>pip installed</code>.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nn">...</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">task_4</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_4&quot;</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">on_failure_callback</span><span class="p">:</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="nt">callback</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.providers.slack.notifications.slack.send_slack_notification</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="nt">slack_conn_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">slack_conn_id</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">text</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="no">:red_circle: Task Failed.</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="no">This task has failed and needs to be addressed.</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="no">Please remediate this issue ASAP.</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">channel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;#channel&quot;</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="nn">...</span>
+</span></code></pre></div>
 
 
 
@@ -1412,7 +1242,7 @@ Translations are available at <a href="https://www.contributor-covenant.org/tran
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../comparison/taskflow_api/" class="md-footer__link md-footer__link--prev" aria-label="Previous: TaskFlow API">
+          <a href="../datasets/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Datasets">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1422,20 +1252,20 @@ Translations are available at <a href="https://www.contributor-covenant.org/tran
                 Previous
               </span>
               <div class="md-ellipsis">
-                TaskFlow API
+                Datasets
               </div>
             </div>
           </a>
         
         
           
-          <a href="../contributors/" class="md-footer__link md-footer__link--next" aria-label="Next: Contributors">
+          <a href="../../comparison/" class="md-footer__link md-footer__link--next" aria-label="Next: Using YAML instead of Python">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Contributors
+                Using YAML instead of Python
               </div>
             </div>
             <div class="md-footer__button md-icon">
