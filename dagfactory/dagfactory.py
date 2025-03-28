@@ -43,8 +43,7 @@ class DagFactory:
             self.config: Dict[str, Any] = config
 
     def _global_default_args(self):
-        # Possible change here/clarification needed; what if defaults.yml has more than default_args? In this case, we
-        # are "discarding" these values, and only holding onto the default_args. This is shown in build_dags
+        """If a defaults.yml exists, use this as the global default arguments (to be applied to each DAG)."""
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():

@@ -46,12 +46,16 @@ single DAG.
    from `defaults.yml` will be applied to all DAG Factory generated DAGs. **Be careful, these will be applied to all
    generated DAGs.**
 
-Given the various ways to specify `default_args`, the following precedence order is applied when arguments are
-duplicated:
+   ```yaml title="defaults.yml"
+   --8<-- "dev/dags/defaults.yml"
+   ```
 
-1. In the DAG configuration
-2. In the `default` block within the workflow's YAML file
-3. In the `defaults.yml`
+   Given the various ways to specify `default_args`, the following precedence order is applied when arguments are
+   duplicated:
+
+   1. In the DAG configuration
+   2. In the `default` block within the workflow's YAML file
+   3. In the `defaults.yml`
 
 ### Example using of default block for dynamic DAG generation
 
