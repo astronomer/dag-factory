@@ -6,6 +6,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2025-03-28
+
+### Added
+
+- Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
+
+### Docs
+
+- Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
+- Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
+- Updating docs for callbacks by @jroach-astronomer in [#375](https://github.com/astronomer/dag-factory/pull/375)
+
+### Others
+
+- Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
+- Add Scraf Pixels by @pankajastro in [#373](https://github.com/astronomer/dag-factory/pull/373)
+
 ## [0.22.0] - 2025-01-10
 
 ### Added
@@ -430,7 +447,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.19.0...HEAD
 [0.19.0]: https://github.com/ajbosco/dag-factory/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.17.3...v0.18.0
