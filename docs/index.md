@@ -23,6 +23,7 @@ Are you new to DAG Factory? This is the place to start!
 
 * [Dynamic tasks](features/dynamic_tasks.md)
 * [Datasets scheduling](features/datasets.md)
+* [Callbacks](features/callbacks.md)
 
 ## Getting help
 

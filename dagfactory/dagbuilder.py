@@ -1009,20 +1009,24 @@ class DagBuilder:
                     task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
             del task_params["variables_as_arguments"]
 
-        if utils.check_dict_key(task_params, "outlets") and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
-            if utils.check_dict_key(task_params["outlets"], "file") and utils.check_dict_key(
-                task_params["outlets"], "datasets"
-            ):
-                file = task_params["outlets"]["file"]
-                datasets_filter = task_params["outlets"]["datasets"]
-                datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+        if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+            print("task_params перед обработкой:", task_params)
+            for key in ["inlets", "outlets"]:
+                if utils.check_dict_key(task_params, key):
+                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
+                        task_params[key], "datasets"
+                    ):
+                        file = task_params[key]["file"]
+                        datasets_filter = task_params[key]["datasets"]
+                        datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
 
-                del task_params["outlets"]["file"]
-                del task_params["outlets"]["datasets"]
-            else:
-                datasets_uri = task_params["outlets"]
+                        del task_params[key]["file"]
+                        del task_params[key]["datasets"]
+                    else:
+                        datasets_uri = task_params[key]
 
-            task_params["outlets"] = [Dataset(uri) for uri in datasets_uri]
+                    if key in task_params and datasets_uri:
+                        task_params[key] = [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(
