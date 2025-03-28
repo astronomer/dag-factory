@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
 
+### Fixed
+
+- Remediated ``default`` behavior, added documentation by @jroach-astronomer in [#378](https://github.com/astronomer/dag-factory/pull/378)
+
 ### Docs
 
 - Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
