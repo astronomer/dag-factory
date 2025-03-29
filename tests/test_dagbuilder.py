@@ -998,6 +998,28 @@ def test_dynamic_task_mapping():
         assert isinstance(actual, MappedOperator)
 
 
+def test_multi_parameter_dynamic_task_mapping():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
+        error_message = "Dynamic task mapping with multiple Parameter available only in Airflow >= 2.4.0"
+        with pytest.raises(Exception, match=error_message):
+            td.build()
+    else:
+        operator = "airflow.operators.python_operator.PythonOperator"
+        task_params = {
+            "task_id": "process",
+            "python_callable_name": "expand_task",
+            "python_callable_file": os.path.realpath(__file__),
+            "partial": {"op_kwargs": {"test_id": "test"}},
+            "expand_kwargs": [
+                {"op_args": {"request_output": "request.output"}},
+                {"op_args": {"request_output": "temp"}}
+            ],
+        }
+        actual = td.make_task(operator, task_params)
+        assert isinstance(actual, MappedOperator)
+
+
 def test_replace_expand_string_with_xcom():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
