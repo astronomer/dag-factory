@@ -2,6 +2,7 @@
 
 import ast
 import importlib.util
+import json
 import logging
 import os
 import re
@@ -320,3 +321,27 @@ def parse_list_datasets(datasets: Union[List[str], str]) -> str:
     if isinstance(datasets, list):
         datasets = " & ".join(datasets)
     return datasets
+
+
+def get_json_serialized_callable(data_obj):
+    """
+    Takes a dictionary object and returns a callable that
+    returns JSON serialized string. If it's already a string,
+    validates that it's valid JSON.
+
+    :param data_obj: dict or JSON-formatted str
+    :returns: callable returning JSON serialized str
+    """
+    if isinstance(data_obj, dict):
+        serialized_json = json.dumps(data_obj)
+    elif isinstance(data_obj, str):
+        try:
+            # Validate JSON string
+            json.loads(data_obj)
+            serialized_json = data_obj
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON provided: {e}")
+    else:
+        raise TypeError(f"data_obj must be a dict or str, not {type(data_obj)}")
+
+    return lambda **kwargs: serialized_json
