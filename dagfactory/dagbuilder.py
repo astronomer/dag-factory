@@ -8,6 +8,7 @@ import ast
 import inspect
 import os
 import re
+import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -95,18 +96,12 @@ except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-
-# TimeTable is introduced in Airflow 2.2.0
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
-    from airflow.timetables.base import Timetable
-else:
-    Timetable = None
-# pylint: disable=ungrouped-imports,invalid-name
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
     from airflow.models import MappedOperator
@@ -503,15 +498,6 @@ class DagBuilder:
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
-        # The Airflow version needs to be at least 2.2.0, and default args must be present. Basically saying here: if
-        # it's not the case that we're using at least Airflow 2.2.0 and default_args are present, then return the
-        # TaskGroup configuration without doing anything
-        if not (
-            version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
-            and isinstance(task_group_conf.get("default_args"), dict)
-        ):
-            return task_group_conf
-
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
             "on_execute_callback",
@@ -795,19 +781,20 @@ class DagBuilder:
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+        if dag_params.get("concurrency") is not None:
+            warnings.deprecated(
+                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
+            )
+            dag_kwargs["max_active_tasks"] = dag_params.get("concurrency")
+        else:
             dag_kwargs["max_active_tasks"] = dag_params.get(
                 "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
             )
 
-            if dag_params.get("timetable"):
-                timetable_args = dag_params.get("timetable")
-                dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                    timetable_args.get("callable"), timetable_args.get("params")
-                )
-        else:
-            dag_kwargs["concurrency"] = dag_params.get(
-                "concurrency", configuration.conf.getint("core", "dag_concurrency")
+        if dag_params.get("timetable"):
+            timetable_args = dag_params.get("timetable")
+            dag_kwargs["timetable"] = DagBuilder.make_timetable(
+                timetable_args.get("callable"), timetable_args.get("params")
             )
 
         dag_kwargs["catchup"] = dag_params.get(

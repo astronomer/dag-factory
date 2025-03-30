@@ -14,7 +14,7 @@ declaratively via configuration files.
 The minimum requirements for **dag-factory** are:
 
 - Python 3.8.0+
-- [Apache Airflow®](https://airflow.apache.org) 2.0+
+- [Apache Airflow®](https://airflow.apache.org) 2.3+
 
 For a gentle introduction, please take a look at our [Quickstart Guide](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-airflow-standalone/). For more examples, please see the
 [examples](/examples) folder.
@@ -22,12 +22,12 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 - [Quickstart](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-astro-cli/)
 - [Benefits](#benefits)
 - [Features](#features)
-  - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
-  - [Multiple Configuration Files](#multiple-configuration-files)
-  - [Callbacks](#callbacks)
-  - [Custom Operators](#custom-operators)
+    - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
+    - [Multiple Configuration Files](#multiple-configuration-files)
+    - [Callbacks](https://astronomer.github.io/dag-factory/dev/features/callbacks/)
+    - [Custom Operators](#custom-operators)
 - [Notes](#notes)
-  - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
+    - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
 - [Contributing](https://astronomer.github.io/dag-factory/latest/contributing/howto/)
 
 ## Benefits
@@ -64,7 +64,6 @@ If you want to split your DAG configuration into multiple files, you can do so b
 ```
 
 ![custom_operators.png](img/custom_operators.png)
-
 
 ## Notes
 

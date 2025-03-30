@@ -4,7 +4,7 @@ on:
   push: # Run on pushes to the default branch
     branches: [main]
   pull_request_target: # Also run on pull requests originated from forks
-    branches: [main]
+    branches: [main, bump_airflow]
   release:
     types: ['published']
 
@@ -35,15 +35,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        airflow-version: [ "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
         exclude:
-          # Apache Airflow versions prior to 2.3.0 have not been tested with Python 3.10
-          # See: https://airflow.apache.org/docs/apache-airflow/2.2.0/installation/prerequisites.html
-          - python-version: "3.10"
-            airflow-version: "2.2"
-          # Apache Airflow versions prior to 2.6.2 have not been tested with Python 3.11
-          - python-version: "3.11"
-            airflow-version: "2.2"
           - python-version: "3.11"
             airflow-version: "2.3"
           - python-version: "3.11"
@@ -56,8 +49,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.2"
           - python-version: "3.12"
             airflow-version: "2.3"
           - python-version: "3.12"
@@ -110,15 +101,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        airflow-version: [ 2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
         exclude:
-          # Apache Airflow versions prior to 2.3.0 have not been tested with Python 3.10
-          # See: https://airflow.apache.org/docs/apache-airflow/2.2.0/installation/prerequisites.html
-          - python-version: "3.10"
-            airflow-version: "2.2"
-          # Apache Airflow versions prior to 2.6.2 have not been tested with Python 3.11
-          - python-version: "3.11"
-            airflow-version: "2.2"
           - python-version: "3.11"
             airflow-version: "2.3"
           - python-version: "3.11"
@@ -131,8 +115,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.2"
           - python-version: "3.12"
             airflow-version: "2.3"
           - python-version: "3.12"
