@@ -8,7 +8,6 @@ import ast
 import inspect
 import os
 import re
-import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -781,15 +780,15 @@ class DagBuilder:
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
-        if dag_params.get("concurrency") is not None:
-            warnings.deprecated(
-                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
-            )
-            dag_kwargs["max_active_tasks"] = dag_params.get("concurrency")
-        else:
-            dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
-            )
+        # if dag_params.get("concurrency") is not None:
+        #     warnings.deprecated(
+        #         "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
+        #     )
+        #     dag_kwargs["max_active_tasks"] = dag_params.get("concurrency")
+        # else:
+        dag_kwargs["max_active_tasks"] = dag_params.get(
+            "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
+        )
 
         if dag_params.get("timetable"):
             timetable_args = dag_params.get("timetable")
