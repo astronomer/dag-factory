@@ -497,6 +497,15 @@ class DagBuilder:
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
+        # The Airflow version needs to be at least 2.2.0, and default args must be present. Basically saying here: if
+        # it's not the case that we're using at least Airflow 2.2.0 and default_args are present, then return the
+        # TaskGroup configuration without doing anything
+        if not (
+            version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
+            and isinstance(task_group_conf.get("default_args"), dict)
+        ):
+            return task_group_conf
+
         # Check the callback types that can be in the default_args of the TaskGroup
         for callback_type in [
             "on_execute_callback",
@@ -816,9 +825,7 @@ class DagBuilder:
 
         dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
 
-        # Jinja NativeEnvironment support has been added in Airflow 2.1.0
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.1.0"):
-            dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
+        dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
 
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 
