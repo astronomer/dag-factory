@@ -8,6 +8,7 @@ import ast
 import inspect
 import os
 import re
+import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -29,6 +30,8 @@ try:
 except ImportError:
     from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
+from airflow.providers.http.sensors.http import HttpSensor
+
 # http operator was renamed in providers-http 4.11.0
 try:
     from airflow.providers.http.operators.http import HttpOperator
@@ -43,11 +46,6 @@ except ImportError:
         # Fall back to dynamically importing the operator
         HTTP_OPERATOR_CLASS = None
 
-# http sensor was moved in 2.4
-try:
-    from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:
-    from airflow.sensors.http_sensor import HttpSensor
 
 # sql sensor was moved in 2.4
 try:
@@ -789,15 +787,15 @@ class DagBuilder:
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
-        # if dag_params.get("concurrency") is not None:
-        #     warnings.deprecated(
-        #         "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
-        #     )
-        #     dag_kwargs["max_active_tasks"] = dag_params.get("concurrency")
-        # else:
-        dag_kwargs["max_active_tasks"] = dag_params.get(
-            "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
-        )
+        if "concurrency" in dag_params:
+            warnings.warn(
+                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
+            )
+            dag_kwargs["max_active_tasks"] = dag_params["concurrency"]
+        else:
+            dag_kwargs["max_active_tasks"] = dag_params.get(
+                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
+            )
 
         if dag_params.get("timetable"):
             timetable_args = dag_params.get("timetable")
@@ -1135,9 +1133,6 @@ class DagBuilder:
         :param has_name_and_file:
         :returns: Callable
         """
-        # Check Airflow version, raise an exception otherwise
-        if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
-            raise DagFactoryException("Cannot parse callbacks with an Airflow version less than 2.0.0.")
 
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
         # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That
