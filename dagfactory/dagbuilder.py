@@ -93,18 +93,13 @@ except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+from airflow.models import MappedOperator
 from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
-    from airflow.models import MappedOperator
-else:
-    MappedOperator = None
-
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
     from airflow.datasets import Dataset
@@ -451,10 +446,7 @@ class DagBuilder:
             DagBuilder.adjust_general_task_params(task_params)
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            # expand available only in airflow >= 2.3.0
-            if (
-                utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
-            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+            if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
                 # Getting expand and partial kwargs from task_params
                 (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
 
@@ -895,12 +887,8 @@ class DagBuilder:
             if "operator" in task_conf:
                 operator: str = task_conf["operator"]
 
-                # Dynamic task mapping available only in Airflow >= 2.3.0
                 if task_conf.get("expand"):
-                    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-                        raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
-                    else:
-                        task_conf = self.replace_expand_values(task_conf, tasks_dict)
+                    task_conf = self.replace_expand_values(task_conf, tasks_dict)
 
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
