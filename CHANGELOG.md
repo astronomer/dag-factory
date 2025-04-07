@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: bumped http provider versions to 2.0+ by @a-chumagin in [#389](https://github.com/astronomer/dag-factory/pull/389)
 - Add --verbosity debug in astro-cli cmd by @pankajastro in [#390](https://github.com/astronomer/dag-factory/pull/390)
 - Add missing Python file for dynamic task example by @pankajastro in [#392](https://github.com/astronomer/dag-factory/pull/392)
+- Bump airflow >= 2.3 by @pankajastro in [#388](https://github.com/astronomer/dag-factory/pull/388)
 
 ## [0.22.0] - 2025-01-10
 
