@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/configuration/environment_variables/">
+        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/features/custom_operators/">
       
       
-        <link rel="prev" href="../configuring_workflows/">
+        <link rel="prev" href="../callbacks/">
       
       
-        <link rel="next" href="../defaults/">
+        <link rel="next" href="../http_task/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Environment variables - DAG Factory</title>
+        <title>Custom Operators - DAG Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#environment-variables" class="md-skip">
+        <a href="#custom-operators" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Environment variables
+              Custom Operators
             
           </span>
         </div>
@@ -233,13 +233,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../configuring_workflows/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../configuration/configuring_workflows/" class="md-tabs__link">
           
   
   
@@ -257,11 +255,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../features/dynamic_tasks/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dynamic_tasks/" class="md-tabs__link">
           
   
   
@@ -492,10 +492,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -509,22 +507,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -537,7 +532,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Configuration
@@ -551,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configuring_workflows/" class="md-nav__link">
+      <a href="../../configuration/configuring_workflows/" class="md-nav__link">
         
   
   
@@ -571,32 +566,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Environment variables
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../configuration/environment_variables/" class="md-nav__link">
         
   
   
@@ -607,35 +580,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#example-yaml-configuration-with-environment-variables" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example YAML Configuration with Environment Variables
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -648,7 +592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../defaults/" class="md-nav__link">
+      <a href="../../configuration/defaults/" class="md-nav__link">
         
   
   
@@ -675,8 +619,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -696,19 +642,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -721,7 +670,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Features
@@ -735,7 +684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/dynamic_tasks/" class="md-nav__link">
+      <a href="../dynamic_tasks/" class="md-nav__link">
         
   
   
@@ -758,7 +707,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/datasets/" class="md-nav__link">
+      <a href="../datasets/" class="md-nav__link">
         
   
   
@@ -781,7 +730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/callbacks/" class="md-nav__link">
+      <a href="../callbacks/" class="md-nav__link">
         
   
   
@@ -801,10 +750,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../features/custom_operators/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -815,6 +773,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -827,7 +786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/http_task/" class="md-nav__link">
+      <a href="../http_task/" class="md-nav__link">
         
   
   
@@ -850,7 +809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/multiple_configuration_files/" class="md-nav__link">
+      <a href="../multiple_configuration_files/" class="md-nav__link">
         
   
   
@@ -1160,23 +1119,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#example-yaml-configuration-with-environment-variables" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example YAML Configuration with Environment Variables
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1191,7 +1133,7 @@
 
 
   
-    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/configuration/environment_variables.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/features/custom_operators.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1200,44 +1142,24 @@
     
       
     
-    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/configuration/environment_variables.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/features/custom_operators.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="environment-variables">Environment variables</h1>
-<p>Starting release <code>0.20.0</code>, DAG Factory introduces support for referencing environment variables directly within YAML
-configuration files. This enhancement enables dynamic configuration paths and enhances workflow portability by
-resolving environment variables during DAG parsing.</p>
-<p>With this feature, DAG Factory removes the reliance on hard-coded paths, allowing for more flexible and adaptable
-configurations that work seamlessly across various environments.</p>
-<h2 id="example-yaml-configuration-with-environment-variables">Example YAML Configuration with Environment Variables</h2>
-<div class="language-text highlight"><span class="filename">Reference environment variable in YAML</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>example_dag:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  description: &quot;this is an example dag&quot;
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  render_template_as_native_obj: True
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  dag_display_name: &quot;Pretty Example DAG&quot;
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  tasks:
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    task_1:
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    task_2:
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [task_1]
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    task_3:
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      operator: airflow.operators.python_operator.PythonOperator
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      python_callable_name: print_hello
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      python_callable_file: $CONFIG_ROOT_DIR/print_hello.py
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      dependencies: [task_1]
+<h1 id="custom-operators">Custom Operators</h1>
+<p>The <strong>DAG-Factory</strong> supports <a href="https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html">custom operators</a>. To leverage, set the path to the custom operator within the <code>operator</code> key in the configuration file. You can add any additional parameters that the custom operator requires.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">...</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">begin</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.empty.EmptyOperator</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">make_bread_1</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customized.operators.breakfast_operators.MakeBreadOperator</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">bread_type</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Sourdough&#39;</span>
 </span></code></pre></div>
-<p>In the above example, <code>$CONFIG_ROOT_DIR</code> is used to reference an environment variable that points to the root
-directory of your DAG configurations. During DAG parsing, it will be resolved to the value specified for the
-<code>CONFIG_ROOT_DIR</code> environment variable.</p>
+<p><img alt="custom_operators.png" src="../../static/images/custom_operators.png" /></p>
 
 
 
@@ -1273,7 +1195,7 @@ directory of your DAG configurations. During DAG parsing, it will be resolved to
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../configuring_workflows/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuring Your Workflows">
+          <a href="../callbacks/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Callbacks">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1283,20 +1205,20 @@ directory of your DAG configurations. During DAG parsing, it will be resolved to
                 Previous
               </span>
               <div class="md-ellipsis">
-                Configuring Your Workflows
+                Callbacks
               </div>
             </div>
           </a>
         
         
           
-          <a href="../defaults/" class="md-footer__link md-footer__link--next" aria-label="Next: Defaults">
+          <a href="../http_task/" class="md-footer__link md-footer__link--next" aria-label="Next: HttpSensor">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Defaults
+                HttpSensor
               </div>
             </div>
             <div class="md-footer__button md-icon">
