@@ -21,13 +21,12 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 
 - [Quickstart](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-astro-cli/)
 - [Benefits](#benefits)
-- [Features](#features)
+- [Features](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
     - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
-    - [Multiple Configuration Files](#multiple-configuration-files)
-    - [Callbacks](https://astronomer.github.io/dag-factory/dev/features/callbacks/)
-    - [Custom Operators](#custom-operators)
-- [Notes](#notes)
-    - [HttpSensor (since 1.0.0)](#httpsensor-since-100)
+    - [Multiple Configuration Files](https://astronomer.github.io/dag-factory/latest/features/multiple_configuration_files/)
+    - [Callbacks](https://astronomer.github.io/dag-factory/latest/features/callbacks/)
+    - [Custom Operators](https://astronomer.github.io/dag-factory/latest/features/custom_operators/)
+    - [HttpSensor](https://astronomer.github.io/dag-factory/latest/features/http_task/)
 - [Contributing](https://astronomer.github.io/dag-factory/latest/contributing/howto/)
 
 ## Benefits
@@ -36,63 +35,6 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 - Construct DAGs without learning Airflow primitives
 - Avoid duplicative code
 - Everyone loves YAML! ;)
-
-## Features
-
-### Multiple Configuration Files
-
-If you want to split your DAG configuration into multiple files, you can do so by leveraging a suffix in the configuration file name.
-
-```python
-    from dagfactory import load_yaml_dags  # load relevant YAML files as airflow DAGs
-
-    load_yaml_dags(globals_dict=globals(), suffix=['dag.yaml'])
-```
-
-### Custom Operators
-
-**dag-factory** supports using custom operators. To leverage, set the path to the custom operator within the `operator` key in the configuration file. You can add any additional parameters that the custom operator requires.
-
-```yaml
-...
-  tasks:
-    begin:
-      operator: airflow.operators.dummy_operator.DummyOperator
-    make_bread_1:
-      operator: customized.operators.breakfast_operators.MakeBreadOperator
-      bread_type: 'Sourdough'
-```
-
-![custom_operators.png](img/custom_operators.png)
-
-## Notes
-
-### HttpSensor (since 1.0.0)
-
-The package `airflow.providers.http.sensors.http` is available for Airflow 2.0+
-
-The following example shows `response_check` logic in a python file:
-
-```yaml
-task_2:
-  operator: airflow.providers.http.sensors.http.HttpSensor
-  http_conn_id: 'test-http'
-  method: 'GET'
-  response_check_name: check_sensor
-  response_check_file: /path/to/example1/http_conn.py
-  dependencies: [task_1]
-```
-
-The `response_check` logic can also be provided as a lambda:
-
-```yaml
-task_2:
-  operator: airflow.providers.http.sensors.http.HttpSensor
-  http_conn_id: 'test-http'
-  method: 'GET'
-  response_check_lambda: 'lambda response: "ok" in response.text'
-  dependencies: [task_1]
-```
 
 ## License
 
