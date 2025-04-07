@@ -459,6 +459,7 @@ class DagBuilder:
             DagBuilder.adjust_general_task_params(task_params)
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+            expand_kwargs_kwargs: List[Dict[str, Union[Dict[str, Any], Any]]] = {}
             # expand available only in airflow >= 2.3.0
             if (
                 utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
@@ -470,11 +471,18 @@ class DagBuilder:
                 if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
                     task_params.update(partial_kwargs)
 
-            task: Union[BaseOperator, MappedOperator] = (
-                operator_obj(**task_params)
-                if not expand_kwargs
-                else operator_obj.partial(**task_params).expand(**expand_kwargs)
-            )
+            # expand_kwargs available only in airflow >= 2.4.0
+            if (
+                utils.check_dict_key(task_params, "expand_kwargs")
+            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+                expand_kwargs_kwargs = task_params["expand_kwargs"]
+                del task_params["expand_kwargs"]
+
+            task: Union[BaseOperator, MappedOperator] = operator_obj(**task_params)
+            if expand_kwargs:
+                task = operator_obj.partial(**task_params).expand(**expand_kwargs)
+            elif expand_kwargs_kwargs:
+                task = operator_obj.partial(**task_params).expand_kwargs(expand_kwargs_kwargs)
         except Exception as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task") from err
         return task
@@ -910,6 +918,12 @@ class DagBuilder:
                         raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
                     else:
                         task_conf = self.replace_expand_values(task_conf, tasks_dict)
+                if task_conf.get("expand_kwargs"):
+                    if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
+                        raise DagFactoryConfigException("Dynamic task mapping with multiple Parameter available only in Airflow >= 2.4.0")
+                    # TODO
+                    # else:
+                    # task_conf = self.replace_expand_values(task_conf, tasks_dict)
 
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task

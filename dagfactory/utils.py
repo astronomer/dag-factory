@@ -219,10 +219,11 @@ def get_expand_partial_kwargs(
 
     expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
     partial_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-    for expand_key, expand_value in task_params["expand"].items():
-        expand_kwargs[expand_key] = expand_value
-    # remove dag-factory specific parameter
-    del task_params["expand"]
+    if check_dict_key(task_params, "expand"):
+        for expand_key, expand_value in task_params["expand"].items():
+            expand_kwargs[expand_key] = expand_value
+        # remove dag-factory specific parameter
+        del task_params["expand"]
     if check_dict_key(task_params, "partial"):
         for partial_key, partial_value in task_params["partial"].items():
             partial_kwargs[partial_key] = partial_value
