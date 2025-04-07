@@ -30,6 +30,7 @@ theme:
 extra:
   version:
     provider: mike
+    alias: true
 
 markdown_extensions:
   - pymdownx.highlight:
