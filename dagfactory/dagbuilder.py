@@ -8,6 +8,7 @@ import ast
 import inspect
 import os
 import re
+import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -29,6 +30,8 @@ try:
 except ImportError:
     from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
+from airflow.providers.http.sensors.http import HttpSensor
+
 # http operator was renamed in providers-http 4.11.0
 try:
     from airflow.providers.http.operators.http import HttpOperator
@@ -43,11 +46,6 @@ except ImportError:
         # Fall back to dynamically importing the operator
         HTTP_OPERATOR_CLASS = None
 
-# http sensor was moved in 2.4
-try:
-    from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:
-    from airflow.sensors.http_sensor import HttpSensor
 
 # sql sensor was moved in 2.4
 try:
@@ -95,24 +93,13 @@ except ImportError:  # pragma: no cover
     from airflow.contrib.kubernetes.volume_mount import VolumeMount
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+from airflow.models import MappedOperator
+from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import V1Container, V1Pod
 
 from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-
-# TimeTable is introduced in Airflow 2.2.0
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
-    from airflow.timetables.base import Timetable
-else:
-    Timetable = None
-# pylint: disable=ungrouped-imports,invalid-name
-
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
-    from airflow.models import MappedOperator
-else:
-    MappedOperator = None
-
 
 if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
     from airflow.datasets import Dataset
@@ -459,10 +446,7 @@ class DagBuilder:
             DagBuilder.adjust_general_task_params(task_params)
 
             expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            # expand available only in airflow >= 2.3.0
-            if (
-                utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial")
-            ) and version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+            if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
                 # Getting expand and partial kwargs from task_params
                 (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
 
@@ -795,19 +779,20 @@ class DagBuilder:
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0"):
+        if "concurrency" in dag_params:
+            warnings.warn(
+                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
+            )
+            dag_kwargs["max_active_tasks"] = dag_params["concurrency"]
+        else:
             dag_kwargs["max_active_tasks"] = dag_params.get(
                 "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
             )
 
-            if dag_params.get("timetable"):
-                timetable_args = dag_params.get("timetable")
-                dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                    timetable_args.get("callable"), timetable_args.get("params")
-                )
-        else:
-            dag_kwargs["concurrency"] = dag_params.get(
-                "concurrency", configuration.conf.getint("core", "dag_concurrency")
+        if dag_params.get("timetable"):
+            timetable_args = dag_params.get("timetable")
+            dag_kwargs["timetable"] = DagBuilder.make_timetable(
+                timetable_args.get("callable"), timetable_args.get("params")
             )
 
         dag_kwargs["catchup"] = dag_params.get(
@@ -830,9 +815,7 @@ class DagBuilder:
 
         dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
 
-        # Jinja NativeEnvironment support has been added in Airflow 2.1.0
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.1.0"):
-            dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
+        dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
 
         dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 
@@ -904,12 +887,8 @@ class DagBuilder:
             if "operator" in task_conf:
                 operator: str = task_conf["operator"]
 
-                # Dynamic task mapping available only in Airflow >= 2.3.0
                 if task_conf.get("expand"):
-                    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-                        raise DagFactoryConfigException("Dynamic task mapping available only in Airflow >= 2.3.0")
-                    else:
-                        task_conf = self.replace_expand_values(task_conf, tasks_dict)
+                    task_conf = self.replace_expand_values(task_conf, tasks_dict)
 
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
@@ -1142,9 +1121,6 @@ class DagBuilder:
         :param has_name_and_file:
         :returns: Callable
         """
-        # Check Airflow version, raise an exception otherwise
-        if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
-            raise DagFactoryException("Cannot parse callbacks with an Airflow version less than 2.0.0.")
 
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
         # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That

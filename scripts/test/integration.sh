@@ -10,8 +10,8 @@ ls $AIRFLOW_HOME
 
 airflow db check
 
-# Necessary for overcoming the following issue with Airflow 2.2:
-# ERROR: Cannot install apache-airflow==2.2.0, apache-airflow==2.2.1, apache-airflow==2.2.2, apache-airflow==2.2.3, apache-airflow==2.2.4, apache-airflow==2.2.5, httpx>=0.25.0 and tabulate>=0.9.0 because these package versions have conflicting dependencies.
+# Necessary for overcoming the following issue with Airflow 2.3 and 2.4:
+# ImportError: Pandas requires version '0.9.0' or newer of 'tabulate' (version '0.8.9' currently installed)
 pip install "tabulate>=0.9.0"
 
 pytest -vv \
