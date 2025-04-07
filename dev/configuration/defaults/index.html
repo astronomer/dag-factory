@@ -657,9 +657,37 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-usage-of-default-block" class="md-nav__link">
+  <a href="#example-usage-of-a-default-block-for-default_args" class="md-nav__link">
     <span class="md-ellipsis">
-      Example usage of default block
+      Example usage of a default block for default_args
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example usage of a default block for default_args">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-the-default-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in the default block
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-directly-in-a-dag-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args directly in a DAG configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-a-shared-defaultsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in a shared defaults.yml
     </span>
   </a>
   
@@ -669,13 +697,18 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#multiple-ways-for-specifying-airflow-default_args" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#example-using-of-default-block-for-dynamic-dag-generation" class="md-nav__link">
     <span class="md-ellipsis">
-      Multiple ways for specifying Airflow default_args
+      Example using of default block for dynamic DAG generation
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1126,9 +1159,37 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-usage-of-default-block" class="md-nav__link">
+  <a href="#example-usage-of-a-default-block-for-default_args" class="md-nav__link">
     <span class="md-ellipsis">
-      Example usage of default block
+      Example usage of a default block for default_args
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example usage of a default block for default_args">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-the-default-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in the default block
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-directly-in-a-dag-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args directly in a DAG configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-a-shared-defaultsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in a shared defaults.yml
     </span>
   </a>
   
@@ -1138,13 +1199,18 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#multiple-ways-for-specifying-airflow-default_args" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#example-using-of-default-block-for-dynamic-dag-generation" class="md-nav__link">
     <span class="md-ellipsis">
-      Multiple ways for specifying Airflow default_args
+      Example using of default block for dynamic DAG generation
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1183,103 +1249,116 @@
 <h1 id="defaults">Defaults</h1>
 <p>DAG Factory allows you to define Airflow
 <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#default-arguments">default_args</a> and
-additional DAG-level arguments in a <code>default</code> block. This block enables you to share common settings across all DAGs in
-your YAML configuration, with the arguments automatically applied to each DAG defined in the file.</p>
+additional DAG-level arguments in a <code>default</code> block. This block enables you to share common settings and configurations
+across all DAGs in your YAML configuration, with the arguments automatically applied to each DAG defined in the file.
+This is one of DAG Factory's most powerful features; using defaults allows for the dynamic generation of more than a
+single DAG.</p>
 <h2 id="benefits-of-using-the-default-block">Benefits of using the default block</h2>
 <ul>
 <li>Consistency: Ensures uniform configurations across all tasks and DAGs.</li>
 <li>Maintainability: Reduces duplication by centralizing common properties.</li>
 <li>Simplicity: Makes configurations easier to read and manage.</li>
+<li>Dynamic Generation: Use a single default block to easily generate more than a single DAG.</li>
 </ul>
-<h3 id="example-usage-of-default-block">Example usage of default block</h3>
-<div class="language-text highlight"><span class="filename">Usage of default block in YAML</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>default:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: default_owner
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    retries: 1
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    retry_delay_sec: 300
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    start_date: 2024-01-01
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  default_view: tree
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  max_active_runs: 1
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  schedule_interval: 0 1 * * *
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>example_task_group:
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  description: &quot;this dag uses task groups&quot;
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  task_groups:
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    task_group_1:
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      tooltip: &quot;this is a task group&quot;
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [task_1]
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    task_group_2:
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      tooltip: &quot;this is a task group&quot;
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      parent_group_name: task_group_1
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  tasks:
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    task_1:
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    task_2:
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      task_group_name: task_group_1
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    task_4:
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>      bash_command: &quot;echo 4&quot;
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      task_group_name: task_group_2
+<h3 id="example-usage-of-a-default-block-for-default_args">Example usage of a default block for <code>default_args</code></h3>
+<h4 id="specifying-default_args-in-the-default-block">Specifying <code>default_args</code> in the <code>default</code> block</h4>
+<p>Using a <code>default</code> block in a YAML file allows for those key-value pairs to be applied to each DAG that is defined in
+   that same file. One of the most common examples is using a <code>default</code> block to specify <code>default_args</code> for each DAG
+   defined in that file. These arguments are automatically inherited by every DAG defined in the file. Below is an example of this.</p>
+<div class="language-yaml highlight"><span class="filename">Usage of default block for default_args in YAML</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">default</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;2024-01-01&#39;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">schedule_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0 0 * * *</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">tags</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;data</span><span class="nv"> </span><span class="s">engineering&quot;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">etl</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">extract</span><span class="p">:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">extract&quot;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nt">transform</span><span class="p">:</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">transform&quot;</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">load&quot;</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform</span>
 </span></code></pre></div>
-<p>The arguments specified in the <code>default</code> block, such as <code>default_args</code>, <code>default_view</code>, <code>max_active_runs</code>,
-<code>schedule_interval</code>, and any others defined, will be applied to all the DAGs in the YAML configuration.</p>
-<h2 id="multiple-ways-for-specifying-airflow-default_args">Multiple ways for specifying Airflow default_args</h2>
-<p>DAG Factory offers flexibility in defining Airflow’s <code>default_args</code>. These can be specified in several ways, depending on your requirements.</p>
-<ol>
-<li>
-<p>Specifying <code>default_args</code> in the <code>default</code> block</p>
-<p>As seen in the previous example, you can define shared <code>default_args</code> for all DAGs in the configuration YAML under
-the <code>default</code> block. These arguments are automatically inherited by every DAG defined in the file.</p>
-</li>
-<li>
-<p>Specifying <code>default_args</code> directly in a DAG configuration</p>
-<p>You can override or define specific default_args at the individual DAG level. This allows you to customize arguments
-for each DAG without affecting others.</p>
-<p>Example:</p>
-<div class="language-text highlight"><span class="filename">DAG level default_args</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>default:
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    catchup: false,
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    start_date: 2024-11-11
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>basic_example_dag:
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  default_args:
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    owner: &quot;custom_owner&quot;
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  description: &quot;this is an example dag&quot;
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  schedule_interval: &quot;0 3 * * *&quot;
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  render_template_as_native_obj: True
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  tasks:
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    task_1:
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    task_2:
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>      dependencies: [task_1]
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    task_3:
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>      operator: airflow.operators.bash_operator.BashOperator
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>      dependencies: [task_1]
-</span></code></pre></div>
-</li>
-<li>
-<p>Specifying <code>default_args</code> in a shared <code>defaults.yml</code></p>
+<h4 id="specifying-default_args-directly-in-a-dag-configuration">Specifying <code>default_args</code> directly in a DAG configuration</h4>
+<p>You can override or define specific <code>default_args</code> at the individual DAG level. This allows you to customize
+   arguments for each DAG without affecting others. Not only can existing <code>default_args</code> be overridden directly in a DAG
+   configuration, but new arguments can be added.</p>
+<p><code>yaml
+   etl:
+     default_args:
+       start_date: '2024-12-31'
+       retries: 1  # A new default_arg was added
+  ...</code></p>
+<h4 id="specifying-default_args-in-a-shared-defaultsyml">Specifying <code>default_args</code> in a shared <code>defaults.yml</code></h4>
 <p>Starting DAG Factory 0.22.0, you can also keep the <code>default_args</code> in the <code>defaults.yml</code> file. The configuration
-from <code>defaults.yml</code> will be applied to all DAG Factory generated DAGs.</p>
-<div class="language-text highlight"><span class="filename">defaults.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>default_args:
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  start_date: &quot;2025-01-01&quot;
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  owner: &quot;global_owner&quot;
+   from <code>defaults.yml</code> will be applied to all DAG Factory generated DAGs. <strong>Be careful, these will be applied to all
+   generated DAGs.</strong></p>
+<div class="language-yaml highlight"><span class="filename">defaults.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">default_args</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2025-01-01&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;global_owner&quot;</span>
 </span></code></pre></div>
-</li>
-</ol>
 <p>Given the various ways to specify <code>default_args</code>, the following precedence order is applied when arguments are
-duplicated:</p>
+   duplicated:</p>
 <ol>
 <li>In the DAG configuration</li>
 <li>In the <code>default</code> block within the workflow's YAML file</li>
 <li>In the <code>defaults.yml</code></li>
 </ol>
+<h3 id="example-using-of-default-block-for-dynamic-dag-generation">Example using of default block for dynamic DAG generation</h3>
+<p>Not only can the <code>default</code> block in a YAML file be used to define <code>default_args</code> for one or more DAGs; it can also be
+used to create the skeleton of "templated" DAGs. In the example below, the <code>default</code> block is used to define not only
+the <code>default_args</code> of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this file.
+Each DAG (<code>machine_learning</code>, <code>data_science</code>, <code>artificial_intelligence</code>) will be defined using the values from the
+<code>default</code> block, and like with <code>default_args</code>, can override these values. <strong>This is a powerful way to use DAG Factory
+to dynamically create DAGs using a single configuration.</strong></p>
+<div class="language-yaml highlight"><span class="filename">Usage of default block in YAML</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">default</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;2024-01-01&#39;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">schedule_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0 0 * * *</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">tags</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dynamic</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">extract</span><span class="p">:</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">extract&quot;</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">transform</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">transform&quot;</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transform</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="nt">machine_learning</span><span class="p">:</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">machine_larning&quot;</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="nt">data_science</span><span class="p">:</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">data_science&quot;</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="nt">artificial_intelligence</span><span class="p">:</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">artificial_intelligence&quot;</span>
+</span></code></pre></div>
+<p>Currently, only <code>default_args</code> can be specified using the <code>defaults.yml</code> file.</p>
 
 
 
