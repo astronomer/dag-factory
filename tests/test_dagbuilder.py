@@ -156,6 +156,28 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     },
 }
 
+DAG_CONFIG_ML = {
+    "tasks": {
+        "task_2": {
+            "bash_command": "echo 2",
+        }
+    }
+}
+
+DAG_CONFIG_DEFAULT_ML = {
+    "schedule_interval": "0 0 * * *",
+    "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
+    "tasks": {
+        "task_1": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+            "bash_command": "echo 1",
+        },
+        "task_2": {
+            "operator": "airflow.operators.bash_operator.BashOperator",
+        },
+    },
+}
+
 DAG_CONFIG_CALLBACKS = {
     "doc_md": "##here is a doc md string",
     "default_args": {
@@ -637,6 +659,22 @@ def test_make_task_groups_empty():
     assert task_groups == {}
 
 
+def test_dag_config_default():
+    td = dagbuilder.DagBuilder("test_dynamic_machine_learning_dag", DAG_CONFIG_ML, DAG_CONFIG_DEFAULT_ML)
+    dag = td.build()["dag"]
+
+    # Validate that the default values were applied to the machine_learning DAG
+    assert dag.dag_id == "test_dynamic_machine_learning_dag"
+    assert len(dag.tasks) == 2
+
+    task_1 = dag.task_dict["task_1"]
+    assert task_1.bash_command == "echo 1"
+
+    task_2 = dag.task_dict["task_2"]
+    assert task_2.bash_command == "echo 2"
+
+
+# These functions are used to mock callbacks for the tests below
 def print_context_callback(context, **kwargs):
     print(context)
 

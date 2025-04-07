@@ -29,6 +29,19 @@ try:
 except ImportError:
     from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
+# http operator was renamed in providers-http 4.11.0
+try:
+    from airflow.providers.http.operators.http import HttpOperator
+
+    HTTP_OPERATOR_CLASS = HttpOperator
+except ImportError:
+    try:
+        from airflow.providers.http.operators.http import SimpleHttpOperator
+
+        HTTP_OPERATOR_CLASS = SimpleHttpOperator
+    except ImportError:
+        # Fall back to dynamically importing the operator
+        HTTP_OPERATOR_CLASS = None
 
 # http sensor was moved in 2.4
 try:
@@ -141,6 +154,9 @@ class DagBuilder:
         except Exception as err:
             raise DagFactoryConfigException("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
+
+        # If there are no default_args, add an empty dictionary
+        dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
 
         if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
             dag_params["schedule_interval"] = None
@@ -427,6 +443,18 @@ class DagBuilder:
                     if task_params.get("init_containers") is not None
                     else None
                 )
+
+            # HttpOperator
+            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
+                headers = task_params.get("headers", {})
+                content_type = headers.get("Content-Type", "").lower()
+
+                if "data" in task_params and "application/json" in content_type:
+                    task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
+
+                    if "Content-Type" not in headers:
+                        headers["Content-Type"] = "application/json"
+                    task_params["headers"] = headers
 
             DagBuilder.adjust_general_task_params(task_params)
 

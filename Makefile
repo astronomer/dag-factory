@@ -23,6 +23,7 @@ clean: ## Removes build and test artifacts
 build-whl: ## Build installable whl file
 	rm -rf dev/include/*
 	rm -rf dist/*
+	mkdir -p dev/include
 	hatch build
 	cp dist/* dev/include/
 

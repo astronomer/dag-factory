@@ -30,7 +30,7 @@ classifiers = [
 ]
 dependencies = [
     "apache-airflow>=2.0",
-    "apache-airflow-providers-http",
+    "apache-airflow-providers-http>=2.0.0",
     "apache-airflow-providers-cncf-kubernetes",
     "pyyaml",
     "packaging",
@@ -62,10 +62,6 @@ pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow}
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 airflow = ["2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
 
-[tool.hatch.envs.tests.overrides]
-matrix.airflow.dependencies = [
-    { value = "typing_extensions<4.6", if = ["2.6"] },
-]
 
 [tool.hatch.envs.tests.scripts]
 freeze = "pip freeze"
