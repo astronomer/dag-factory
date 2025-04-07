@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.23.0] - 2025-03-28
+## [0.23.0a2] - 2025-04-08
 
 ### Added
 
@@ -22,11 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
 - Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
 - Updating docs for callbacks by @jroach-astronomer in [#375](https://github.com/astronomer/dag-factory/pull/375)
+- Add stable/latest docs version by @pankajastro in [#391](https://github.com/astronomer/dag-factory/pull/391)
 
 ### Others
 
 - Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
 - Add Scraf Pixels by @pankajastro in [#373](https://github.com/astronomer/dag-factory/pull/373)
+- feat: bumped http provider versions to 2.0+ by @a-chumagin in [#389](https://github.com/astronomer/dag-factory/pull/389)
+- Add --verbosity debug in astro-cli cmd by @pankajastro in [#390](https://github.com/astronomer/dag-factory/pull/390)
+- Add missing Python file for dynamic task example by @pankajastro in [#392](https://github.com/astronomer/dag-factory/pull/392)
 
 ## [0.22.0] - 2025-01-10
 
