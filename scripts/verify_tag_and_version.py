@@ -4,7 +4,7 @@ import os
 import re
 from pathlib import Path
 
-repo_dir = Path(__file__).parent.parent
+repo_dir = Path(__file__).parent.parent.parent
 
 path_of_init_file = Path(repo_dir / "dagfactory" / "__init__.py")
 version_file = path_of_init_file.read_text()
