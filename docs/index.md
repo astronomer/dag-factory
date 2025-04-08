@@ -24,6 +24,9 @@ Are you new to DAG Factory? This is the place to start!
 * [Dynamic tasks](features/dynamic_tasks.md)
 * [Datasets scheduling](features/datasets.md)
 * [Callbacks](features/callbacks.md)
+* [Custom operators](features/custom_operators.md)
+* [Multiple configuration files](features/multiple_configuration_files.md)
+* [HttpSensor](features/http_task.md)
 
 ## Getting help
 

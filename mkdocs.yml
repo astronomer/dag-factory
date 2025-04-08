@@ -56,6 +56,10 @@ nav:
       - features/dynamic_tasks.md
       - features/datasets.md
       - features/callbacks.md
+      - features/custom_operators.md
+      - features/http_task.md
+      - features/multiple_configuration_files.md
+
   - Comparison:
       - comparison/index.md
       - Traditional Airflow Operators: comparison/traditional_operators.md
