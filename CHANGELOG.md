@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
 - Updating docs for callbacks by @jroach-astronomer in [#375](https://github.com/astronomer/dag-factory/pull/375)
 - Add stable/latest docs version by @pankajastro in [#391](https://github.com/astronomer/dag-factory/pull/391)
+- Migrate old content to new documentation structure by @pankajastro in [#393](https://github.com/astronomer/dag-factory/pull/393)
 
 ### Others
 
