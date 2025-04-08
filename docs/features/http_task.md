@@ -1,6 +1,6 @@
 # HttpSensor
 
-The **DAG-Factory** supports the HttpSensor from the `airflow.providers.http.sensors.http` package.
+**DAG-Factory** supports the HttpSensor from the `airflow.providers.http.sensors.http` package.
 
 The example below demonstrates the response_check logic in a Python file:
 
