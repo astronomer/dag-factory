@@ -2,7 +2,7 @@ name: CI jobs
 
 on:
   push: # Run on pushes to the default branch
-    branches: [main, add_version_check_plugin]
+    branches: [main]
   pull_request_target: # Also run on pull requests originated from forks
     branches: [main]
   release:
@@ -199,21 +199,6 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
-
-  Test-Job:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Verify Git Tag and package version
-        run: python3 ./scripts/verify_tag_and_version.py
 
   Deploy-Pages:
     permissions:
