@@ -1,6 +1,6 @@
 # Custom Operators
 
-The **DAG-Factory** supports [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html). To leverage, set the path to the custom operator within the `operator` key in the configuration file. You can add any additional parameters that the custom operator requires.
+**DAG-Factory** supports [custom operators](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html). To leverage, set the path to the custom operator within the `operator` key in the configuration file. You can add any additional parameters that the custom operator requires.
 
 ```yaml
 ...
