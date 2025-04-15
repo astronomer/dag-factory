@@ -60,7 +60,7 @@ except ImportError:
 
 from airflow.sensors.python import PythonSensor
 
-if version.parse(AIRFLOW_VERSION).major < AIRFLOW3_MAJOR_VERSION:
+if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
     # k8s libraries are moved in v5.0.0
     try:
         from airflow.providers.cncf.kubernetes import get_provider_info
