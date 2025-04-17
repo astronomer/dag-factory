@@ -1,4 +1,4 @@
-FROM quay.io/astronomer/astro-runtime:12.2.0
+FROM quay.io/astronomer/astro-runtime:12.7.0
 
 ENV CONFIG_ROOT_DIR=/usr/local/airflow/dags/
 
