@@ -1,0 +1,6 @@
+apache-airflow
+apache-airflow-task-sdk
+apache-airflow-providers-standard
+apache-airflow-providers-fab
+psycopg2
+asyncpg
