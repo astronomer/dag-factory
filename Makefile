@@ -30,9 +30,9 @@ build-whl: ## Build installable whl file
 .PHONY: docker-run
 docker-run: build-whl ## Runs local Airflow for testing
 	@if ! lsof -i :8080 | grep LISTEN > /dev/null; then \
-		cd dev && astro dev start; \
+		cd dev && astro dev start --verbosity debug; \
 	else \
-		cd dev && astro dev restart; \
+		cd dev && astro dev restart --verbosity debug; \
 	fi
 
 .PHONY: docker-stop
