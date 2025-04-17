@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add --verbosity debug in astro-cli cmd by @pankajastro in [#390](https://github.com/astronomer/dag-factory/pull/390)
 - Add missing Python file for dynamic task example by @pankajastro in [#392](https://github.com/astronomer/dag-factory/pull/392)
 - Bump airflow >= 2.3 by @pankajastro in [#388](https://github.com/astronomer/dag-factory/pull/388)
+- Pin apache-airflow-providers-cncf-kubernetes<10.4.2 by @pankajastro in [#400](https://github.com/astronomer/dag-factory/pull/400)
+- Add tools for Dag-factory Airflow3 testing by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/395)
+- Add script to check version and tag by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/394)
 
 ## [0.22.0] - 2025-01-10
 
