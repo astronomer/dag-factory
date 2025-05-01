@@ -26,6 +26,10 @@ class DagFactory:
     :type config_filepath: str
     :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
     :type config: dict
+    :param default_args_config_path:
+    :type default_args_config_path: str
+    :param default_args:
+    :type default_args: dict
     """
 
     def __init__(
