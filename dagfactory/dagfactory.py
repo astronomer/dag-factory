@@ -24,11 +24,11 @@ class DagFactory:
     :param config_filepath: the filepath of the DAG factory YAML config file.
         Must be absolute path to file. Cannot be used with `config`.
     :type config_filepath: str
-    :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
+    :param config: DAG factory config dictionary. Cannot be used with `config_filepath`.
     :type config: dict
-    :param default_args_config_path:
+    :param default_args_config_path: The path to a file that contains the default arguments for that DAG.
     :type default_args_config_path: str
-    :param default_args:
+    :param default_args: A dictionary of default arguments for that DAG, as an alternative to default_args_config_path.
     :type default_args: dict
     """
 
