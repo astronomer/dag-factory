@@ -1,0 +1,32 @@
+my_complex_dag:
+  default_args:
+    owner: 'data_team'
+    start_date: 2023-02-15
+    retries: 3
+    retry_delay: { "__type": "timedelta", "args": [5] } # 5 minutes
+  schedule_interval: '0 0 * * *'
+  description: 'A more complex DAG with multiple tasks and dependencies.'
+  tags: ['example', 'complex']
+  catchup: False
+  tasks:
+    start_task:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "Starting the complex DAG"'
+    
+    middle_task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "Middle task 1 running"'
+      dependencies: [start_task]
+
+    middle_task_2:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "Middle task 2 running"'
+      env:
+        MY_VAR: 'my_value'
+        ANOTHER_VAR: 'another_value'
+      dependencies: [start_task]
+
+    end_task:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "Complex DAG finished"'
+      dependencies: [middle_task_1, middle_task_2]

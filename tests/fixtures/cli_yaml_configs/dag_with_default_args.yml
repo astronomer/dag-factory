@@ -1,0 +1,28 @@
+dag_with_defaults:
+  default_args:
+    owner: 'default_owner'
+    start_date: { "__type": "datetime", "args": [2022, 12, 1] }
+    email: ['test@example.com']
+    email_on_failure: True
+  schedule_interval: 'None' # Using 'None' as a string, will be converted to None object
+  description: 'DAG demonstrating default arguments application.'
+  catchup: True # Explicitly True
+  
+  tasks:
+    task_uses_defaults:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "I use default owner and email settings."'
+      # No owner or email specified, should inherit from default_args
+
+    task_overrides_defaults:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "I have a specific owner."'
+      owner: 'specific_owner' # Override default_args.owner
+      email_on_failure: False # Override default_args.email_on_failure
+      dependencies: [task_uses_defaults]
+
+    task_additional_args:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: 'echo "I have additional args and use defaults for others."'
+      retries: 5 # Not in default_args, specific to this task
+      dependencies: [task_overrides_defaults]
