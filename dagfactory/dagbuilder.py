@@ -30,7 +30,7 @@ except ImportError:
 try:
     from airflow.providers.cncf.kubernetes import get_provider_info
 
-    K8S_PROVIDER_VERSION = version.parse(get_provider_info.get_provider_info()["versions"])
+    K8S_PROVIDER_VERSION = version.parse(get_provider_info.get_provider_info()["versions"][0])
 except ImportError:
     K8S_PROVIDER_VERSION = "0"
 
