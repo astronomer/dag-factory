@@ -58,51 +58,31 @@ try:
 except ImportError:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
-from airflow.sensors.python import PythonSensor
-
-if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-    # k8s libraries are moved in v5.0.0
-    try:
-        from airflow.providers.cncf.kubernetes import get_provider_info
-
-        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
-    except ImportError:
-        K8S_PROVIDER_VERSION = "0"
-
-    # kubernetes operator
-    try:
-        if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
-            from airflow.kubernetes.pod import Port
-            from airflow.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
-            from airflow.kubernetes.volume import Volume
-            from airflow.kubernetes.volume_mount import VolumeMount
-        else:
-            from kubernetes.client.models import (
-                V1ContainerPort as Port,
-                V1EnvVar,
-                V1EnvVarSource,
-                V1ObjectFieldSelector,
-                V1Volume,
-                V1VolumeMount as VolumeMount,
-            )
-        from airflow.kubernetes.secret import Secret
-
-        if version.parse(K8S_PROVIDER_VERSION) < version.parse("10"):
-            from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-        else:
-            from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-    except ImportError:  # pragma: no cover
-        from airflow.contrib.kubernetes.pod import Port
-        from airflow.contrib.kubernetes.pod_runtime_info_env import PodRuntimeInfoEnv
-        from airflow.contrib.kubernetes.secret import Secret
-        from airflow.contrib.kubernetes.volume import Volume
-        from airflow.contrib.kubernetes.volume_mount import VolumeMount
-        from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
 from airflow.models import MappedOperator
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.secret import Secret
+from airflow.sensors.python import PythonSensor
 from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
-from kubernetes.client.models import V1Container, V1Pod
+from kubernetes.client.models import (
+    V1Affinity,
+    V1Container,
+    V1ContainerPort as Port,
+    V1EnvFromSource,
+    V1EnvVar,
+    V1EnvVarSource,
+    V1HostAlias,
+    V1LocalObjectReference,
+    V1ObjectFieldSelector,
+    V1Pod,
+    V1PodDNSConfig,
+    V1PodSecurityContext,
+    V1ResourceRequirements,
+    V1SecurityContext,
+    V1Toleration,
+    V1Volume,
+    V1VolumeMount as VolumeMount,
+)
 
 from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
@@ -271,6 +251,24 @@ class DagBuilder:
             raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
         return schedule
 
+    @staticmethod
+    def _create_volume(vol):
+        volume = V1Volume(name=vol.get("name"))
+        for k, v in vol["configs"].items():
+            snake_key = utils.convert_to_snake_case(k)
+            if hasattr(volume, snake_key):
+                setattr(volume, snake_key, v)
+            else:
+                raise DagFactoryException(f"Volume for KubernetesPodOperator does not have attribute {k}")
+        return volume
+
+    @staticmethod
+    def _create_env_vars(env_var):
+        return V1EnvVar(
+            name=env_var.get("name"),
+            value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(field_path=env_var.get("field_path"))),
+        )
+
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
@@ -369,76 +367,100 @@ class DagBuilder:
                     # Airflow 2.0 doesn't allow these to be passed to operator
                     del task_params["response_check_lambda"]
 
-            if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-                # KubernetesPodOperator
-                if issubclass(operator_obj, KubernetesPodOperator):
-                    task_params["secrets"] = (
-                        [Secret(**v) for v in task_params.get("secrets")]
-                        if task_params.get("secrets") is not None
-                        else None
-                    )
+            if issubclass(operator_obj, KubernetesPodOperator):
+                task_params["ports"] = (
+                    [Port(**v) for v in task_params.get("ports")] if task_params.get("ports") is not None else None
+                )
 
-                    task_params["ports"] = (
-                        [Port(**v) for v in task_params.get("ports")] if task_params.get("ports") is not None else None
-                    )
-                    task_params["volume_mounts"] = (
-                        [VolumeMount(**v) for v in task_params.get("volume_mounts")]
-                        if task_params.get("volume_mounts") is not None
-                        else None
-                    )
-                    if version.parse(K8S_PROVIDER_VERSION) < version.parse("5.0.0"):
-                        task_params["volumes"] = (
-                            [Volume(**v) for v in task_params.get("volumes")]
-                            if task_params.get("volumes") is not None
-                            else None
-                        )
-                        task_params["pod_runtime_info_envs"] = (
-                            [PodRuntimeInfoEnv(**v) for v in task_params.get("pod_runtime_info_envs")]
-                            if task_params.get("pod_runtime_info_envs") is not None
-                            else None
-                        )
-                    else:
-                        if task_params.get("volumes") is not None:
-                            task_params_volumes = []
-                            for vol in task_params.get("volumes"):
-                                resp = V1Volume(name=vol.get("name"))
-                                for k, v in vol["configs"].items():
-                                    snake_key = utils.convert_to_snake_case(k)
-                                    if hasattr(resp, snake_key):
-                                        setattr(resp, snake_key, v)
-                                    else:
-                                        raise DagFactoryException(
-                                            f"Volume for KubernetesPodOperator \
-                                            does not have attribute {k}"
-                                        )
-                                task_params_volumes.append(resp)
-                            task_params["volumes"] = task_params_volumes
-                        else:
-                            task_params["volumes"] = None
+                task_params["volume_mounts"] = (
+                    [VolumeMount(**v) for v in task_params.get("volume_mounts")]
+                    if task_params.get("volume_mounts") is not None
+                    else None
+                )
 
-                        task_params["pod_runtime_info_envs"] = (
-                            [
-                                V1EnvVar(
-                                    name=v.get("name"),
-                                    value_from=V1EnvVarSource(
-                                        field_ref=V1ObjectFieldSelector(field_path=v.get("field_path"))
-                                    ),
-                                )
-                                for v in task_params.get("pod_runtime_info_envs")
-                            ]
-                            if task_params.get("pod_runtime_info_envs") is not None
-                            else None
-                        )
-                    task_params["full_pod_spec"] = (
-                        V1Pod(**task_params.get("full_pod_spec"))
-                        if task_params.get("full_pod_spec") is not None
-                        else None
-                    )
-                    task_params["init_containers"] = (
-                        [V1Container(**v) for v in task_params.get("init_containers")]
-                        if task_params.get("init_containers") is not None
-                        else None
-                    )
+                task_params["volumes"] = (
+                    [DagBuilder._create_volume(vol) for vol in task_params["volumes"]]
+                    if task_params.get("volumes") is not None
+                    else None
+                )
+
+                task_params["env_vars"] = (
+                    [DagBuilder._create_env_vars(env_var) for env_var in task_params.get("env_vars")]
+                    if task_params.get("env_vars") is not None
+                    else None
+                )
+
+                task_params["env_from"] = (
+                    [V1EnvFromSource(**v) for v in task_params["env_from"]]
+                    if task_params.get("env_from") is not None
+                    else None
+                )
+
+                task_params["secrets"] = (
+                    [Secret(**v) for v in task_params.get("secrets")]
+                    if task_params.get("secrets") is not None
+                    else None
+                )
+
+                task_params["container_resources"] = (
+                    V1ResourceRequirements(**task_params["container_resources"])
+                    if task_params.get("container_resources") is not None
+                    else None
+                )
+
+                task_params["affinity"] = (
+                    V1Affinity(task_params["affinity"]) if task_params.get("affinity") is not None else None
+                )
+
+                task_params["image_pull_secrets"] = (
+                    [V1LocalObjectReference(**v) for v in task_params["image_pull_secrets"]]
+                    if task_params.get("image_pull_secrets") is not None
+                    else None
+                )
+
+                task_params["host_aliases"] = (
+                    [V1HostAlias(**v) for v in task_params.get("host_aliases")]
+                    if task_params.get("host_aliases") is not None
+                    else None
+                )
+
+                task_params["tolerations"] = (
+                    [V1Toleration(**v) for v in task_params.get("tolerations")]
+                    if task_params.get("tolerations") is not None
+                    else None
+                )
+
+                task_params["security_context"] = (
+                    V1PodSecurityContext(task_params["security_context"])
+                    if task_params.get("security_context") is not None
+                    else None
+                )
+
+                task_params["container_security_context"] = (
+                    V1SecurityContext(task_params["container_security_context"])
+                    if task_params.get("container_security_context") is not None
+                    else None
+                )
+
+                task_params["dns_config"] = (
+                    V1PodDNSConfig(task_params["dns_config"]) if task_params.get("dns_config") is not None else None
+                )
+
+                task_params["init_containers"] = (
+                    [V1Container(**v) for v in task_params.get("init_containers")]
+                    if task_params.get("init_containers") is not None
+                    else None
+                )
+
+                task_params["pod_runtime_info_envs"] = (
+                    [V1EnvVar(**v) for v in task_params.get("pod_runtime_info_envs")]
+                    if task_params.get("pod_runtime_info_envs") is not None
+                    else None
+                )
+
+                task_params["full_pod_spec"] = (
+                    V1Pod(**task_params.get("full_pod_spec")) if task_params.get("full_pod_spec") is not None else None
+                )
 
             # HttpOperator
             if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
