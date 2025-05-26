@@ -10,7 +10,7 @@ default:
   dagrun_timeout_sec: 600
   default_view: 'tree'
   orientation: 'LR'
-  schedule_interval: '0 1 * * *'
+  schedule: '0 1 * * *'
 example_dag:
   tasks:
     task_1:
@@ -34,10 +34,10 @@ example_dag:
         {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
         {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
       ]
-      pod_runtime_info_envs : [
-        {"name":"name","field_path":"field_path"},
-        {"name":"name","field_path":"field_path"},
-      ]
+#      pod_runtime_info_envs : [
+#        {"name":"name","field_path":"field_path"},
+#        {"name":"name","field_path":"field_path"},
+#      ]
       full_pod_spec : {
           "api_version": "api_version",
           "kind": "kind",

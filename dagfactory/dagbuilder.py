@@ -500,7 +500,7 @@ class DagBuilder:
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
         except Exception as err:
-            raise DagFactoryException(f"Failed to create {operator_obj} task") from err
+            raise DagFactoryException(f"Failed to create {operator_obj} task: {err}") from err
         return task
 
     @staticmethod
