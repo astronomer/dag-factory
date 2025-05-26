@@ -14,7 +14,7 @@ default:
 example_dag:
   tasks:
     task_1:
-      operator: airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
+      operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
       namespace: 'default'
       config_file : 'path_to_config_file'
       image : 'image'
@@ -55,7 +55,7 @@ example_dag:
       in_cluster: False
       dependencies: []
     task_2:
-      operator: airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
+      operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
       namespace: 'default'
       config_file : 'path_to_config_file'
       image : 'image'
