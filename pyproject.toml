@@ -29,7 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "apache-airflow>=2.4",
+    "apache-airflow>=2.3",
     "apache-airflow-providers-http>=2.0.0",
     "apache-airflow-providers-cncf-kubernetes<10.4.2", # https://github.com/astronomer/dag-factory/issues/397
     "pyyaml",
