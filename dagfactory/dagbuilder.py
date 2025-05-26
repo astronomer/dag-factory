@@ -439,7 +439,7 @@ class DagBuilder:
                     else None
                 )
 
-                if K8S_PROVIDER_VERSION >= version.parse("7.8.0"):
+                if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
                     # See PR: https://github.com/apache/airflow/pull/35063
                     task_params["host_aliases"] = (
                         [V1HostAlias(**v) for v in task_params.get("host_aliases")]
