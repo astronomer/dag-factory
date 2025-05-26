@@ -65,7 +65,11 @@ try:
 except ImportError:
     from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
-from airflow.providers.cncf.kubernetes.secret import Secret
+try:
+    from airflow.providers.cncf.kubernetes.secret import Secret
+except ImportError:
+    from airflow.kubernetes.secret import Secret
+
 from airflow.sensors.python import PythonSensor
 from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
