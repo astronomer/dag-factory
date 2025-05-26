@@ -27,6 +27,14 @@ except ImportError:
     from airflow import __version__ as AIRFLOW_VERSION
 
 
+try:
+    from airflow.providers.cncf.kubernetes import get_provider_info
+
+    K8S_PROVIDER_VERSION = version.parse(get_provider_info.get_provider_info()["versions"])
+except ImportError:
+    K8S_PROVIDER_VERSION = "0"
+
+
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
 # python operators were moved in 2.4
@@ -427,11 +435,13 @@ class DagBuilder:
                     else None
                 )
 
-                task_params["host_aliases"] = (
-                    [V1HostAlias(**v) for v in task_params.get("host_aliases")]
-                    if task_params.get("host_aliases") is not None
-                    else None
-                )
+                if K8S_PROVIDER_VERSION >= version.parse("7.8.0"):
+                    # See PR: https://github.com/apache/airflow/pull/35063
+                    task_params["host_aliases"] = (
+                        [V1HostAlias(**v) for v in task_params.get("host_aliases")]
+                        if task_params.get("host_aliases") is not None
+                        else None
+                    )
 
                 task_params["tolerations"] = (
                     [V1Toleration(**v) for v in task_params.get("tolerations")]
