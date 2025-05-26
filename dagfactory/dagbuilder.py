@@ -59,7 +59,12 @@ except ImportError:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
 from airflow.models import MappedOperator
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+try:
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+except ImportError:
+    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+
 from airflow.providers.cncf.kubernetes.secret import Secret
 from airflow.sensors.python import PythonSensor
 from airflow.timetables.base import Timetable
