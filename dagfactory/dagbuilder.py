@@ -91,13 +91,9 @@ from kubernetes.client.models import (
     V1ContainerPort as Port,
     V1EnvFromSource,
     V1EnvVar,
-    V1HostAlias,
     V1LocalObjectReference,
     V1Pod,
-    V1PodDNSConfig,
     V1PodSecurityContext,
-    V1ResourceRequirements,
-    V1SecurityContext,
     V1Toleration,
     V1Volume,
     V1VolumeMount as VolumeMount,
@@ -289,13 +285,10 @@ class DagBuilder:
             ("env_vars", V1EnvVar, "list"),
             ("env_from", V1EnvFromSource, "list"),
             ("secrets", Secret, "list"),
-            ("container_resources", V1ResourceRequirements, "single"),
             ("affinity", V1Affinity, "single"),
             ("image_pull_secrets", V1LocalObjectReference, "list"),
             ("tolerations", V1Toleration, "list"),
             ("security_context", V1PodSecurityContext, "single"),
-            ("container_security_context", V1SecurityContext, "single"),
-            ("dns_config", V1PodDNSConfig, "single"),
             ("init_containers", V1Container, "list"),
             ("pod_runtime_info_envs", V1EnvVar, "list"),
             ("full_pod_spec", V1Pod, "single"),
@@ -303,7 +296,24 @@ class DagBuilder:
 
         # Conditional field based on version
         if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
+            from kubernetes.client.models import V1HostAlias
+
             conversions.append(("host_aliases", V1HostAlias, "list"))
+
+        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.0.0"):
+            from kubernetes.client.models import V1PodDNSConfig
+
+            conversions.append(("dns_config", V1PodDNSConfig, "single"))
+
+        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("5.0.0"):
+            from kubernetes.client.models import V1ResourceRequirements
+
+            conversions.append(("container_resources", V1ResourceRequirements, "single"))
+
+        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("4.4.0"):
+            from kubernetes.client.models import V1SecurityContext
+
+            conversions.append(("container_security_context", V1SecurityContext, "single"))
 
         for key, cls, conv_type in conversions:
             if key in task_params and task_params[key] is not None:
