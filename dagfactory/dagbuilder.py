@@ -281,6 +281,43 @@ class DagBuilder:
                 raise DagFactoryException(f"Volume for KubernetesPodOperator does not have attribute {k}")
         return volume
 
+    @staticmethod
+    def _clean_kpo_task_params(task_params: dict) -> dict:
+        conversions = [
+            ("ports", Port, "list"),
+            ("volume_mounts", VolumeMount, "list"),
+            ("env_vars", V1EnvVar, "list"),
+            ("env_from", V1EnvFromSource, "list"),
+            ("secrets", Secret, "list"),
+            ("container_resources", V1ResourceRequirements, "single"),
+            ("affinity", V1Affinity, "single"),
+            ("image_pull_secrets", V1LocalObjectReference, "list"),
+            ("tolerations", V1Toleration, "list"),
+            ("security_context", V1PodSecurityContext, "single"),
+            ("container_security_context", V1SecurityContext, "single"),
+            ("dns_config", V1PodDNSConfig, "single"),
+            ("init_containers", V1Container, "list"),
+            ("pod_runtime_info_envs", V1EnvVar, "list"),
+            ("full_pod_spec", V1Pod, "single"),
+        ]
+
+        # Conditional field based on version
+        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
+            conversions.append(("host_aliases", V1HostAlias, "list"))
+
+        for key, cls, conv_type in conversions:
+            if key in task_params and task_params[key] is not None:
+                if conv_type == "list":
+                    task_params[key] = [cls(**v) for v in task_params[key]]
+                elif conv_type == "single":
+                    task_params[key] = cls(task_params[key])
+
+        # Special case for volumes that uses a different constructor
+        if task_params.get("volumes") is not None:
+            task_params["volumes"] = [DagBuilder._create_volume(vol) for vol in task_params["volumes"]]
+
+        return task_params
+
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
@@ -380,101 +417,7 @@ class DagBuilder:
                     del task_params["response_check_lambda"]
 
             if issubclass(operator_obj, KubernetesPodOperator):
-                task_params["ports"] = (
-                    [Port(**v) for v in task_params.get("ports")] if task_params.get("ports") is not None else None
-                )
-
-                task_params["volume_mounts"] = (
-                    [VolumeMount(**v) for v in task_params.get("volume_mounts")]
-                    if task_params.get("volume_mounts") is not None
-                    else None
-                )
-
-                task_params["volumes"] = (
-                    [DagBuilder._create_volume(vol) for vol in task_params["volumes"]]
-                    if task_params.get("volumes") is not None
-                    else None
-                )
-
-                task_params["env_vars"] = (
-                    [V1EnvVar(**env_var) for env_var in task_params.get("env_vars")]
-                    if task_params.get("env_vars") is not None
-                    else None
-                )
-
-                task_params["env_from"] = (
-                    [V1EnvFromSource(**v) for v in task_params["env_from"]]
-                    if task_params.get("env_from") is not None
-                    else None
-                )
-
-                task_params["secrets"] = (
-                    [Secret(**v) for v in task_params.get("secrets")]
-                    if task_params.get("secrets") is not None
-                    else None
-                )
-
-                task_params["container_resources"] = (
-                    V1ResourceRequirements(**task_params["container_resources"])
-                    if task_params.get("container_resources") is not None
-                    else None
-                )
-
-                task_params["affinity"] = (
-                    V1Affinity(task_params["affinity"]) if task_params.get("affinity") is not None else None
-                )
-
-                task_params["image_pull_secrets"] = (
-                    [V1LocalObjectReference(**v) for v in task_params["image_pull_secrets"]]
-                    if task_params.get("image_pull_secrets") is not None
-                    else None
-                )
-
-                if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
-                    # See PR: https://github.com/apache/airflow/pull/35063
-                    task_params["host_aliases"] = (
-                        [V1HostAlias(**v) for v in task_params.get("host_aliases")]
-                        if task_params.get("host_aliases") is not None
-                        else None
-                    )
-
-                task_params["tolerations"] = (
-                    [V1Toleration(**v) for v in task_params.get("tolerations")]
-                    if task_params.get("tolerations") is not None
-                    else None
-                )
-
-                task_params["security_context"] = (
-                    V1PodSecurityContext(task_params["security_context"])
-                    if task_params.get("security_context") is not None
-                    else None
-                )
-
-                task_params["container_security_context"] = (
-                    V1SecurityContext(task_params["container_security_context"])
-                    if task_params.get("container_security_context") is not None
-                    else None
-                )
-
-                task_params["dns_config"] = (
-                    V1PodDNSConfig(task_params["dns_config"]) if task_params.get("dns_config") is not None else None
-                )
-
-                task_params["init_containers"] = (
-                    [V1Container(**v) for v in task_params.get("init_containers")]
-                    if task_params.get("init_containers") is not None
-                    else None
-                )
-
-                task_params["pod_runtime_info_envs"] = (
-                    [V1EnvVar(**v) for v in task_params.get("pod_runtime_info_envs")]
-                    if task_params.get("pod_runtime_info_envs") is not None
-                    else None
-                )
-
-                task_params["full_pod_spec"] = (
-                    V1Pod(**task_params.get("full_pod_spec")) if task_params.get("full_pod_spec") is not None else None
-                )
+                task_params = DagBuilder._clean_kpo_task_params(task_params)
 
             # HttpOperator
             if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
