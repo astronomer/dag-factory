@@ -31,7 +31,7 @@ classifiers = [
 dependencies = [
     "apache-airflow>=2.3",
     "apache-airflow-providers-http>=2.0.0",
-    "apache-airflow-providers-cncf-kubernetes<10.4.2", # https://github.com/astronomer/dag-factory/issues/397
+    "apache-airflow-providers-cncf-kubernetes",
     "pyyaml",
     "packaging",
 ]

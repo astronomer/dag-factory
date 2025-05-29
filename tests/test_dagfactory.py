@@ -16,6 +16,9 @@ INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
+DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7 = os.path.join(
+    here, "fixtures/dag_factory_kubernetes_pod_operator_lt_2_7.yml"
+)
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
@@ -313,8 +316,16 @@ def test_generate_dags_invalid():
         td.generate_dags(globals())
 
 
-def test_kubernetes_pod_operator_dag():
+@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
+def test_kubernetes_pod_operator_dag_gt_2_7():
     td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR)
+    td.generate_dags(globals())
+    assert "example_dag" in globals()
+
+
+@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) <= version.parse("2.7.0"), reason="Requires Airflow <= 2.7.0")
+def test_kubernetes_pod_operator_dag_lte_2_7():
+    td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7)
     td.generate_dags(globals())
     assert "example_dag" in globals()
 
