@@ -9,7 +9,7 @@ DEFAULT_CONFIG_ROOT_DIR = os.getenv("DEFAULT_CONFIG_ROOT_DIR", "/usr/local/airfl
 
 CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 
-config_file = str(CONFIG_ROOT_DIR / "example_dag_factory.yml")
+config_file = str(CONFIG_ROOT_DIR / "kpo.yml")
 
 example_dag_factory = dagfactory.DagFactory(config_file)
 
