@@ -760,6 +760,8 @@ class DagBuilder:
                     parsed_schedule = relativedelta(**rd_args)
 
         # TODO: Handle BaseAsset or Collection[BaseAsset]
+        # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_assets.py#L182
+        # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_asset_with_watchers.py#L29
 
         return parsed_schedule
 
