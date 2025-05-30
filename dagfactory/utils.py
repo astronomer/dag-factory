@@ -9,6 +9,7 @@ import re
 import sys
 import types
 from datetime import date, datetime, timedelta
+from importlib import import_module
 from pathlib import Path
 from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
@@ -16,6 +17,13 @@ import pendulum
 import yaml
 
 from dagfactory.exceptions import DagFactoryException
+
+
+def _import_from_string(dotted_path: str):
+    """Import a class or function from a dotted path string."""
+    module_path, _, attr = dotted_path.rpartition(".")
+    module = import_module(module_path)
+    return getattr(module, attr)
 
 
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
