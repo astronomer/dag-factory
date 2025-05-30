@@ -727,6 +727,43 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
+    def _get_schedule_obj(dag_params: Dict[str, Any]):
+        schedule = dag_params.get("schedule")
+        parsed_schedule = None
+
+        if schedule is None:
+            return None
+
+        # Case 1: Schedule is a string (e.g., '@daily' or cron string)
+        if isinstance(schedule, str):
+            parsed_schedule = schedule
+
+        # Case 2: Schedule is a dictionary
+        elif isinstance(schedule, dict):
+            # Check for timetable
+            if "timetable" in schedule:
+                timetable_args = schedule["timetable"]
+                DagBuilder.make_timetable(timetable_args.get("callable"), timetable_args.get("params", {}))
+
+            # Check for timedelta
+            if "timedelta" in schedule:
+                td_args = schedule.get("timedelta")
+                if isinstance(td_args, dict):
+                    parsed_schedule = timedelta(**td_args)
+
+            # Check for relativedelta
+            if "relativedelta" in schedule:
+                from dateutil.relativedelta import relativedelta
+
+                rd_args = schedule.get("relativedelta")
+                if isinstance(rd_args, dict):
+                    parsed_schedule = relativedelta(**rd_args)
+
+        # TODO: Handle BaseAsset or Collection[BaseAsset]
+
+        return parsed_schedule
+
+    @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
         Configures the schedule for the DAG based on parameters and the Airflow version.
@@ -771,7 +808,7 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            dag_kwargs["schedule"] = dag_params.get("schedule")
+            dag_kwargs["schedule"] = DagBuilder._get_schedule_obj(dag_params)
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
