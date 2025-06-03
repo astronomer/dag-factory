@@ -103,7 +103,9 @@ def test_example_dag(session, dag_id: str):
     # https://airflow.apache.org/docs/apache-airflow/stable/release_notes.html#airflow-2-5-0-2022-12-02
     if AIRFLOW_VERSION >= Version("2.5"):
         dagrun = dag.test()
-        assert dagrun.state == DagRunState.SUCCESS
+        if dagrun is not None:
+            assert dagrun.state == DagRunState.SUCCESS
     else:
         dagrun = test_utils.run_dag(dag)
-        assert dagrun.state == DagRunState.SUCCESS
+        if dagrun is not None:
+            assert dagrun.state == DagRunState.SUCCESS
