@@ -33,6 +33,7 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     ],
     "2.7": ["example_map_index_template.py"],
     "2.4": ["example_external_sensor_dag.py"],
+    "2.9": ["example_map_index_template.py"],
 }
 
 # Add HTTP operator DAG to ignored files for providers-http versions without HttpOperator
