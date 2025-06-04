@@ -14,7 +14,7 @@ default:
 example_dag:
   tasks:
     task_1:
-      operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
+      operator: airflow.providers.cncf.kubernetes.operators.kubernetes_pod.KubernetesPodOperator
       namespace: 'default'
       config_file : 'path_to_config_file'
       image : 'image'
@@ -35,8 +35,8 @@ example_dag:
         {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
       ]
       pod_runtime_info_envs : [
-        {"name":"name","value":"field_path"},
-        {"name":"name","value":"field_path"},
+        { "name": "name","value": "field_path" },
+        { "name": "name","value": "field_path" },
       ]
       full_pod_spec : {
           "api_version": "api_version",
@@ -55,7 +55,7 @@ example_dag:
       in_cluster: False
       dependencies: []
     task_2:
-      operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
+      operator: airflow.providers.cncf.kubernetes.operators.kubernetes_pod.KubernetesPodOperator
       namespace: 'default'
       config_file : 'path_to_config_file'
       image : 'image'
