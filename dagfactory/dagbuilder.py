@@ -41,11 +41,10 @@ except ImportError:  # pragma: no cover
 
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
-try:
-    # Try Airflow 3
+try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
-    try:
-        # Try Airflow 2.4
+except ImportError:
+    try:  # Try Airflow 2.4+
         from airflow.operators.python import BranchPythonOperator, PythonOperator
     except ImportError:
         # Fallback to older versions
