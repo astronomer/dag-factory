@@ -6,6 +6,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0a3] - 2025-04-17
+
+### Added
+
+- Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
+- Add HttpOperator JSON serialization support with tests by @a-chumagin in [#382](https://github.com/astronomer/dag-factory/pull/382)
+
+### Fixed
+
+- Remediated ``default`` behavior, added documentation by @jroach-astronomer in [#378](https://github.com/astronomer/dag-factory/pull/378)
+
+### Docs
+
+- Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
+- Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
+- Updating docs for callbacks by @jroach-astronomer in [#375](https://github.com/astronomer/dag-factory/pull/375)
+- Add stable/latest docs version by @pankajastro in [#391](https://github.com/astronomer/dag-factory/pull/391)
+- Migrate old content to new documentation structure by @pankajastro in [#393](https://github.com/astronomer/dag-factory/pull/393)
+- Update Airflow supported version 2.3+ in docs by @pankajastro in [#412](https://github.com/astronomer/dag-factory/pull/412)
+
+### Others
+
+- Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
+- Add Scraf Pixels by @pankajastro in [#373](https://github.com/astronomer/dag-factory/pull/373)
+- feat: bumped http provider versions to 2.0+ by @a-chumagin in [#389](https://github.com/astronomer/dag-factory/pull/389)
+- Add --verbosity debug in astro-cli cmd by @pankajastro in [#390](https://github.com/astronomer/dag-factory/pull/390)
+- Add missing Python file for dynamic task example by @pankajastro in [#392](https://github.com/astronomer/dag-factory/pull/392)
+- Bump airflow >= 2.3 by @pankajastro in [#388](https://github.com/astronomer/dag-factory/pull/388)
+- Pin apache-airflow-providers-cncf-kubernetes<10.4.2 by @pankajastro in [#400](https://github.com/astronomer/dag-factory/pull/400)
+- Add tools for Dag-factory Airflow3 testing by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/395)
+- Add script to check version and tag by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/394)
+- Log error message if config file is not valid by @pankajastro in [#408](https://github.com/astronomer/dag-factory/pull/408)
+- Assert DagRunState in integration test by @pankajastro in [#415](https://github.com/astronomer/dag-factory/pull/415)
+- Upgrade KubernetesPodOperator by @pankajastro in [#407](https://github.com/astronomer/dag-factory/pull/407)
+
 ## [0.22.0] - 2025-01-10
 
 ### Added
@@ -430,7 +465,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/ajbosco/dag-factory/compare/v0.19.0...HEAD
 [0.19.0]: https://github.com/ajbosco/dag-factory/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/ajbosco/dag-factory/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/ajbosco/dag-factory/compare/v0.17.3...v0.18.0
