@@ -41,11 +41,14 @@ except ImportError:  # pragma: no cover
 
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
-# python operators were moved in 2.4
-try:
-    from airflow.operators.python import BranchPythonOperator, PythonOperator
-except ImportError:  # pragma: no cover
-    from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
+try:  # Try Airflow 3
+    from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
+except ImportError:
+    try:  # Try Airflow 2.4+
+        from airflow.operators.python import BranchPythonOperator, PythonOperator
+    except ImportError:
+        # Fallback to older versions
+        from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
 from airflow.providers.http.sensors.http import HttpSensor
 
@@ -70,6 +73,18 @@ try:
 except ImportError:  # pragma: no cover
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
+
+try:
+    # Try Airflow 3
+    from airflow.providers.standard.sensors.python import PythonSensor
+except ImportError:
+    try:
+        # Try Airflow 2.4
+        from airflow.sensors.python import PythonSensor
+    except ImportError:
+        # Fallback to older versions
+        from airflow.sensors.python import PythonSensor
+
 from airflow.models import MappedOperator
 
 try:
@@ -82,7 +97,6 @@ try:
 except ImportError:
     from airflow.kubernetes.secret import Secret
 
-from airflow.sensors.python import PythonSensor
 from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import (
