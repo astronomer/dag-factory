@@ -24,22 +24,22 @@ Install [Apache Airflow®](https://airflow.apache.org):
 
 1. Create a directory for your project and navigate to it:
 
-    ```commandline
-    mkdir dag-factory-quick-start && cd dag-factory-quick-start
-    ```
+   ```commandline
+   mkdir dag-factory-quick-start && cd dag-factory-quick-start
+   ```
 
 2. Set the `AIRFLOW_HOME` environment variable:
 
-    ```commandline
-    export AIRFLOW_HOME=$(pwd)
-    export AIRFLOW__CORE__LOAD_EXAMPLES=False
-    ```
+   ```commandline
+   export AIRFLOW_HOME=$(pwd)
+   export AIRFLOW__CORE__LOAD_EXAMPLES=False
+   ```
 
 3. Install Apache Airflow:
 
-    ```commandline
-    pip install apache-airflow
-    ```
+   ```commandline
+   pip install apache-airflow
+   ```
 
 ## Step 3: Install DAG Factory
 

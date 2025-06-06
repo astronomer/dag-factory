@@ -8,4 +8,7 @@ RUN apt-get update && apt-get install -y jq
 
 USER astro
 
-RUN pip install /usr/local/airflow/include/*.whl
+# Install uv for faster package management
+RUN pip install uv
+
+RUN uv pip install --system /usr/local/airflow/include/*.whl
