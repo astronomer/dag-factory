@@ -1130,6 +1130,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#additional-uv-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional uv Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#use-docker-for-local-development" class="md-nav__link">
     <span class="md-ellipsis">
       Use Docker for local development
@@ -1306,6 +1315,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#additional-uv-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional uv Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#use-docker-for-local-development" class="md-nav__link">
     <span class="md-ellipsis">
       Use Docker for local development
@@ -1437,7 +1455,8 @@
 <ul>
 <li><a href="https://git-scm.com/">Git</a></li>
 <li><a href="https://www.python.org/">Python</a> &lt;= 3.12 (due to dependencies, such as <code>google-re2</code> not supporting Python 3.13 yet)</li>
-<li><a href="https://hatch.pypa.io/latest/">Hatch</a></li>
+<li><a href="https://docs.astral.sh/uv/">uv</a> (for fast package management)</li>
+<li><a href="https://hatch.pypa.io/latest/">Hatch</a> (installed automatically via uv)</li>
 </ul>
 <p>Clone the <strong>DAG Factory</strong> repository and change the current working directory to the repo's root directory:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/astronomer/dag-factory.git
@@ -1449,30 +1468,48 @@
 <li>Use Docker</li>
 </ul>
 <h3 id="using-a-python-virtual-environment-for-local-development">Using a Python virtual environment for local development</h3>
+<p>DAG Factory uses <a href="https://docs.astral.sh/uv/">uv</a> for fast and reliable package management. The setup process is significantly faster than traditional pip-based installations.</p>
 <ol>
-<li>
-<p>Install the project dependencies:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>make<span class="w"> </span>setup
+<li>Install the project dependencies:</li>
+</ol>
+<p><strong>Recommended: uv setup (fast, reproducible builds)</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>sync<span class="w"> </span>--dev
 </span></code></pre></div>
-</li>
-<li>
-<p>Activate the local python environment:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<p><strong>Alternative: Traditional setup</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>make<span class="w"> </span>setup
 </span></code></pre></div>
+<p>Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.</p>
+<ol>
+<li>Activate the local python environment:</li>
+</ol>
+<p><strong>For uv setup:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</span></code></pre></div>
+<p><strong>For traditional setup:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</span></code></pre></div>
+<h3 id="additional-uv-commands">Additional uv Commands</h3>
+<p>Once you're set up with uv, you can use these helpful commands:</p>
+<ul>
+<li><code>uv sync</code> - Sync dependencies from the lockfile</li>
+<li><code>uv lock --upgrade</code> - Update the lockfile with latest dependency versions</li>
+<li><code>uv add &lt;package&gt;</code> - Add a new dependency</li>
+<li>
+<p><code>uv remove &lt;package&gt;</code> - Remove a dependency</p>
 </li>
 <li>
 <p>Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs.
-Disable loading Airflow standard example DAGs:</p>
+   Disable loading Airflow standard example DAGs:</p>
 </li>
-</ol>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__LOAD_EXAMPLES</span><span class="o">=</span><span class="nb">false</span>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__LOAD_EXAMPLES</span><span class="o">=</span><span class="nb">false</span>
 </span></code></pre></div>
 <p>Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):</p>
 <blockquote>
 <p>Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code> to the SQL connection string.</p>
 </blockquote>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>airflow<span class="w"> </span>standalone
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>airflow<span class="w"> </span>standalone
 </span></code></pre></div>
 <p>After Airflow is running, you can access the Airflow UI at <code>http://localhost:8080</code>.</p>
 <blockquote>
@@ -1480,21 +1517,21 @@ Disable loading Airflow standard example DAGs:</p>
 </blockquote>
 <h3 id="use-docker-for-local-development">Use Docker for local development</h3>
 <p>It is also possible to build the development environment using <a href="https://www.docker.com/products/docker-desktop/">Docker</a>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>docker-run
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>make<span class="w"> </span>docker-run
 </span></code></pre></div>
 <p>After the sandbox is running, you can access the Airflow UI at <code>http://localhost:8080</code>.</p>
 <p>This approach builds a DAG Factory wheel, so if there are code changes, you must stop and restart the containers:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>make<span class="w"> </span>docker-stop
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>make<span class="w"> </span>docker-stop
 </span></code></pre></div>
 <h2 id="testing-application-with-hatch">Testing application with hatch</h2>
 <p>The tests are developed using PyTest and run using hatch.</p>
 <p>The <a href="https://github.com/astronomer/dag-factory/blob/main/pyproject.toml">pyproject. toml</a> file currently defines a matrix of supported versions of Python and Airflow against which a user can run the tests.</p>
 <h3 id="run-unit-tests">Run unit tests</h3>
 <p>To run unit tests using Python 3.10 and Airflow 2.5, use the following:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
 </span></code></pre></div>
 <p>It is also possible to run the tests using all the matrix combinations, by using:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
 </span></code></pre></div>
 <h3 id="run-integration-tests">Run integration tests</h3>
 <blockquote>
@@ -1502,32 +1539,32 @@ Disable loading Airflow standard example DAGs:</p>
 They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-existing <code>airflow.cfg</code> and <code>airflow.db</code> files.</p>
 </blockquote>
 <p>First, set the following environment variables:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span><span class="s2">&quot;/dev/dags&quot;</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>dev/dags:<span class="nv">$PYTHONPATH</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span><span class="s2">&quot;/dev/dags&quot;</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>dev/dags:<span class="nv">$PYTHONPATH</span>
 </span></code></pre></div>
 <p>To run the integration tests using Python 3.9 and Airflow 2.9, use</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
 </span></code></pre></div>
 <h2 id="pre-commit-and-linting">Pre-Commit and linting</h2>
 <p>We use pre-commit to run several checks on the code before committing. To install pre-commit hooks, run:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>pre-commit<span class="w"> </span>install
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>pre-commit<span class="w"> </span>install
 </span></code></pre></div>
 <p>To run the checks manually, run the following:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 </span></code></pre></div>
 <p>Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using <code>hatch</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
 </span></code></pre></div>
 <h2 id="write-docs">Write docs</h2>
 <p>We use Markdown to author DAG Factory documentation.</p>
 <p>Similar to running tests, we also use hatch to manage the documentation.</p>
 <p>To build and serve the documentation locally:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:dev
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:dev
 </span></code></pre></div>
 <p>To release the documentation with the current project version and set it to the latest:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:gh-release
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:gh-release
 </span></code></pre></div>
 <h2 id="releasing">Releasing</h2>
 <p>We currently use <a href="https://github.com/pypa/hatch">hatch</a> for building and distributing <code>dag-factory</code>.</p>
@@ -1536,15 +1573,15 @@ They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-exi
 <blockquote>
 <p>Note: You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
 </blockquote>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
 </span></code></pre></div>
 <p>Or by manually updating the value of <code>__version__</code> in <code>dagfactory/__init__.py</code>.</p>
 <p>Make sure the <a href="https://github.com/astronomer/dag-factory/blob/main/CHANGELOG.md">CHANGELOG file</a> is up-to-date.</p>
 <p>Create a release using the <a href="https://github.com/astronomer/dag-factory/releases/new">GitHub UI</a>. GitHub will update the package directly to <a href="https://pypi.org/project/dag-factory/">PyPI</a>.</p>
 <p>If you're a <a href="https://pypi.org/project/dag-factory/">project maintainer in PyPI</a>, it is also possible to create a release manually,
 by authenticating to PyPI and running the commands:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>build
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>hatch<span class="w"> </span>publish
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hatch<span class="w"> </span>build
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>hatch<span class="w"> </span>publish
 </span></code></pre></div>
 
 
