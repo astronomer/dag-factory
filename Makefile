@@ -25,7 +25,7 @@ build-whl: ## Build installable whl file
 	rm -rf dev/include/*
 	rm -rf dist/*
 	mkdir -p dev/include
-	hatch build
+	uv build --wheel --sdist
 	cp dist/* dev/include/
 
 .PHONY: docker-run

@@ -226,6 +226,6 @@ If you're a [project maintainer in PyPI](https://pypi.org/project/dag-factory/),
 by authenticating to PyPI and running the commands:
 
 ```bash
-hatch build
-hatch publish
+uv build --wheel --sdist
+uv publish --token <your-pypi-token>
 ```

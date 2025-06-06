@@ -56,7 +56,6 @@ dev-dependencies = [
     "pytest>=6.0",
     "pytest-cov",
     "apache-airflow-providers-slack",
-    "hatch",  # Keep hatch for building and publishing
     "httpx>=0.25.0",
     "pandas",
 ]

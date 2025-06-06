@@ -253,9 +253,5 @@ jobs:
           architecture: "x64"
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
-      - run: uv tool install hatch
-      - run: hatch build
-      - run: hatch publish
-    env:
-      HATCH_INDEX_USER: __token__
-      HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
+      - run: uv build --wheel --sdist
+      - run: uv publish --token ${{ secrets.PYPI_TOKEN }}
