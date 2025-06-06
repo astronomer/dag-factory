@@ -12,17 +12,15 @@ DAG_FACTORY_ROOT="$PWD"
 cd "$AIRFLOW_REPO_DIR"
 git checkout main && git pull
 
-pip uninstall -y apache-airflow-core
-pip uninstall -y apache-airflow-task-sdk
-pip uninstall -y apache-airflow-providers-fab
-pip uninstall -y apache-airflow
-pip uninstall -y apache-airflow-providers-git
+uv pip uninstall apache-airflow-core || true
+uv pip uninstall apache-airflow-task-sdk || true
+uv pip uninstall apache-airflow-providers-fab || true
+uv pip uninstall apache-airflow || true
+uv pip uninstall apache-airflow-providers-git || true
 
 rm -rf dist
 
-pip install uv
-
-pip install -e "$AIRFLOW_REPO_DIR/dev/breeze" --force
+uv pip install -e "$AIRFLOW_REPO_DIR/dev/breeze" --force
 
 breeze release-management prepare-provider-distributions \
       --distributions-list celery,common.io,common.compat,fab,standard,openlineage,git \
@@ -35,6 +33,6 @@ uv build --package apache-airflow-task-sdk --wheel
 
 cd ..
 
-pip install dist/*
+uv pip install dist/*
 
 cd "$DAG_FACTORY_ROOT"

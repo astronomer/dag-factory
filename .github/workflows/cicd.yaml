@@ -6,14 +6,13 @@ on:
   pull_request_target: # Also run on pull requests originated from forks
     branches: [main]
   release:
-    types: ['published']
+    types: ["published"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-
   Static-Check:
     runs-on: ubuntu-latest
     steps:
@@ -26,7 +25,7 @@ jobs:
           python-version: "3.12"
           architecture: "x64"
 
-      - run: pip3 install hatch
+      - run: uv tool install hatch
       - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
@@ -34,8 +33,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        airflow-version:
+          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
         exclude:
           - python-version: "3.11"
             airflow-version: "2.3"
@@ -69,6 +69,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/uv
             ~/.cache/pip
             .local/share/hatch/
           key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
@@ -80,11 +81,10 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          python -m pip install uv
-          uv pip install --system hatch
+          uv tool install hatch
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
-      - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
+      - name: Test DAG Factory against Airflow ${{ matrix.python-version }} and Python ${{ matrix.python-version }}
         run: |
           hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
 
@@ -100,8 +100,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        airflow-version:
+          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
         exclude:
           - python-version: "3.11"
             airflow-version: "2.3"
@@ -135,6 +136,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/uv
             ~/.cache/pip
             .local/share/hatch/
           key: integration-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
@@ -146,8 +148,7 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          python -m pip install uv
-          uv pip install --system hatch
+          uv tool install hatch
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
@@ -183,7 +184,7 @@ jobs:
           python-version: "3.11"
       - name: Install coverage
         run: |
-          pip3 install coverage
+          uv tool install coverage
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
@@ -219,7 +220,7 @@ jobs:
           architecture: "x64"
 
       - name: Install packages and dependencies
-        run: pip install hatch
+        run: uv tool install hatch
 
       - name: Deploy Docs
         run: |
@@ -248,11 +249,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          architecture: 'x64'
+          python-version: "3.10"
+          architecture: "x64"
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
-      - run: pip3 install hatch
+      - run: uv tool install hatch
       - run: hatch build
       - run: hatch publish
     env:

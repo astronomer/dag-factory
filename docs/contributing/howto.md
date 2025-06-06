@@ -29,8 +29,9 @@ To contribute to the DAG Factory project:
 ### Requirements
 
 - [Git](https://git-scm.com/)
-- [Python](https://www.python.org/) <= 3.12 (due to dependencies, such as ``google-re2`` not supporting Python 3.13 yet)
-- [Hatch](https://hatch.pypa.io/latest/)
+- [Python](https://www.python.org/) <= 3.12 (due to dependencies, such as `google-re2` not supporting Python 3.13 yet)
+- [uv](https://docs.astral.sh/uv/) (for fast package management)
+- [Hatch](https://hatch.pypa.io/latest/) (installed automatically via uv)
 
 Clone the **DAG Factory** repository and change the current working directory to the repo's root directory:
 
@@ -46,20 +47,49 @@ After cloning the project, there are two options for setting up the local develo
 
 ### Using a Python virtual environment for local development
 
+DAG Factory uses [uv](https://docs.astral.sh/uv/) for fast and reliable package management. The setup process is significantly faster than traditional pip-based installations.
+
 1. Install the project dependencies:
 
-    ```bash
-    make setup
-    ```
+   **Recommended: uv setup (fast, reproducible builds)**
+
+   ```bash
+   uv sync --dev
+   ```
+
+   **Alternative: Traditional setup**
+
+   ```bash
+   make setup
+   ```
+
+   Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
 
 2. Activate the local python environment:
 
-    ```bash
-    source venv/bin/activate
-    ```
+   **For uv setup:**
 
-3. Set [Apache Airflow®](https://airflow.apache.org/) home to the ``dev/``, so you can see DAG Factory example DAGs.
-Disable loading Airflow standard example DAGs:
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   **For traditional setup:**
+
+   ```bash
+   source venv/bin/activate
+   ```
+
+### Additional uv Commands
+
+Once you're set up with uv, you can use these helpful commands:
+
+- `uv sync` - Sync dependencies from the lockfile
+- `uv lock --upgrade` - Update the lockfile with latest dependency versions
+- `uv add <package>` - Add a new dependency
+- `uv remove <package>` - Remove a dependency
+
+3. Set [Apache Airflow®](https://airflow.apache.org/) home to the `dev/`, so you can see DAG Factory example DAGs.
+   Disable loading Airflow standard example DAGs:
 
 ```bash
 export AIRFLOW_HOME=$(pwd)/dev/
@@ -68,15 +98,15 @@ export AIRFLOW__CORE__LOAD_EXAMPLES=false
 
 Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):
 
-> Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable ``AIRFLOW__DATABASE__SQL_ALCHEMY_CONN`` to the SQL connection string.
+> Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
 
 ```bash
 airflow standalone
 ```
 
-After Airflow is running, you can access the Airflow UI at ``http://localhost:8080``.
+After Airflow is running, you can access the Airflow UI at `http://localhost:8080`.
 
-> Note: whenever you want to start the development server, you need to activate the ``virtualenv`` and set the ``environment variables``
+> Note: whenever you want to start the development server, you need to activate the `virtualenv` and set the `environment variables`
 
 ### Use Docker for local development
 
@@ -86,7 +116,7 @@ It is also possible to build the development environment using [Docker](https://
 make docker-run
 ```
 
-After the sandbox is running, you can access the Airflow UI at ``http://localhost:8080``.
+After the sandbox is running, you can access the Airflow UI at `http://localhost:8080`.
 
 This approach builds a DAG Factory wheel, so if there are code changes, you must stop and restart the containers:
 
@@ -148,7 +178,7 @@ To run the checks manually, run the following:
 pre-commit run --all-files
 ```
 
-Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using ``hatch``:
+Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using `hatch`:
 
 ```bash
 hatch run tests.py3.9-2.9:static-check
@@ -174,7 +204,7 @@ hatch run docs:gh-release
 
 ## Releasing
 
-We currently use [hatch](https://github.com/pypa/hatch) for building and distributing ``dag-factory``.
+We currently use [hatch](https://github.com/pypa/hatch) for building and distributing `dag-factory`.
 
 We use GitHub actions to create and deploy new releases. To create a new release, update the latest release version.
 
