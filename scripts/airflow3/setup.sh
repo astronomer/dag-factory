@@ -11,6 +11,6 @@ uv venv "$(pwd)/scripts/airflow3/venv-af3"
 echo "Installing dependencies..."
 uv pip install --python "$(pwd)/scripts/airflow3/venv-af3/bin/python" --pre -r "$(pwd)/scripts/airflow3/requirements.txt"
 
-uv pip install --python "$(pwd)/scripts/airflow3/venv-af3/bin/python" ".[test]"
+uv pip install --python "$(pwd)/scripts/airflow3/venv-af3/bin/python" ".[tests]"
 
 echo "uv virtual environment setup and dependencies installed successfully!"
