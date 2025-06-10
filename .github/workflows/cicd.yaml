@@ -84,7 +84,7 @@ jobs:
           uv tool install hatch
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
-      - name: Test DAG Factory against Airflow ${{ matrix.python-version }} and Python ${{ matrix.python-version }}
+      - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
         run: |
           hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
 
