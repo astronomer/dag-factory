@@ -1,0 +1,19 @@
+# The DAG ID is taken from the filename (example.dag.yaml)
+
+# DAG parameters
+default_args:
+  owner: airflow
+  start_date: 2025-01-01
+  end_date: 2025-01-01
+
+schedule_interval: "@daily"
+description: "Example DAG using the new single-file format"
+
+tasks:
+  - task_id: task_1
+    operator: airflow.operators.bash_operator.BashOperator
+    bash_command: "echo 1"
+  - task_id: task_2
+    operator: airflow.operators.bash_operator.BashOperator
+    bash_command: "echo 2"
+    dependencies: [task_1]
