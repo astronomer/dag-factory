@@ -108,7 +108,7 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-        except Exception as err:
+        except (OSError, yaml.YAMLError) as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
 
@@ -158,7 +158,7 @@ class DagFactory:
             try:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
                 dags[dag["dag_id"]]: DAG = dag["dag"]
-            except Exception as err:
+            except (DagFactoryException, DagFactoryConfigException) as err:
                 raise DagFactoryException(f"Failed to generate dag {dag_name}: {err}") from err
 
         return dags
@@ -239,7 +239,7 @@ def load_yaml_dags(
         try:
             factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
             factory.generate_dags(globals_dict)
-        except Exception:  # pylint: disable=broad-except
+        except (DagFactoryException, DagFactoryConfigException, OSError, yaml.YAMLError):  # pylint: disable=broad-except
             logging.exception("Failed to load dag from %s", config_file_path)
         else:
             logging.info("DAG loaded: %s", config_file_path)

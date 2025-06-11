@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
 import pendulum
+from pendulum.tz.exceptions import InvalidTimezone
 import yaml
 
 from dagfactory.exceptions import DagFactoryException
@@ -32,7 +33,7 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     """
     try:
         local_tz: pendulum.timezone = pendulum.timezone(timezone)
-    except Exception as err:
+    except (InvalidTimezone, ValueError) as err:
         raise DagFactoryException("Failed to create timezone") from err
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)

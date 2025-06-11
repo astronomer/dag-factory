@@ -3,6 +3,7 @@ import os
 
 import pendulum
 import pytest
+from dagfactory.exceptions import DagFactoryException
 
 from dagfactory import utils
 
@@ -243,7 +244,7 @@ def test_is_partial_duplicated():
     task_params = {"key_3": "value3", "key_4": "value4"}
     try:
         utils.is_partial_duplicated(partial_kwargs, task_params)
-    except Exception as e:
+    except DagFactoryException as e:
         assert str(e) == "Duplicated partial kwarg! It's already in task_params."
 
 

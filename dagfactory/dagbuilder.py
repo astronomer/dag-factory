@@ -153,7 +153,7 @@ class DagBuilder:
         """
         try:
             dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
-        except Exception as err:
+        except (TypeError, AttributeError) as err:
             raise DagFactoryConfigException("Failed to merge config with default config") from err
         dag_params["dag_id"]: str = self.dag_name
 
@@ -272,11 +272,11 @@ class DagBuilder:
         try:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             timetable_obj: Callable[..., Timetable] = import_string(timetable)
-        except Exception as err:
+        except ImportError as err:
             raise DagFactoryException(f"Failed to import timetable {timetable} due to: {err}") from err
         try:
             schedule: Timetable = timetable_obj(**timetable_params)
-        except Exception as err:  # pragma: no cover
+        except TypeError as err:  # pragma: no cover
             raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
         return schedule
 
@@ -355,7 +355,7 @@ class DagBuilder:
         try:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
-        except Exception as err:
+        except ImportError as err:
             raise DagFactoryException(f"Failed to import operator: {operator}") from err
         # pylint: disable=too-many-nested-blocks
         try:
@@ -471,7 +471,7 @@ class DagBuilder:
                 if not expand_kwargs
                 else operator_obj.partial(**task_params).expand(**expand_kwargs)
             )
-        except Exception as err:
+        except (TypeError, DagFactoryException, ValueError) as err:
             raise DagFactoryException(f"Failed to create {operator_obj} task: {err}") from err
         return task
 
