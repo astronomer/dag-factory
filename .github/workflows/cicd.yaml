@@ -25,6 +25,9 @@ jobs:
         with:
           version: "0.7.12"
 
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -83,6 +86,9 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.7.12"
+
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -156,6 +162,9 @@ jobs:
         with:
           version: "0.7.12"
 
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -199,6 +208,9 @@ jobs:
         with:
           version: "0.7.12"
 
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -241,6 +253,9 @@ jobs:
         with:
           version: "0.7.12"
 
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -279,6 +294,9 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.7.12"
+
+      - name: Debug - Random Number
+        run: echo "Random number: $RANDOM"
 
       - uses: actions/setup-python@v5
         with:
