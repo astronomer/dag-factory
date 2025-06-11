@@ -9,7 +9,7 @@ description = "Dynamically build Apache Airflow DAGs from YAML files"
 authors = [{ name = "Astronomer", email = "humans@astronomer.io" }]
 readme = "README.md"
 license = "Apache-2.0"
-license-files = { paths = ["LICENSE"] }
+license-files = ["LICENSE"]
 requires-python = ">=3.8"
 keywords = ["airflow", "apache-airflow", "provider", "astronomer", "dag"]
 classifiers = [
@@ -29,7 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "apache-airflow>=2.3",
+    "apache-airflow>=2.3,<3.0",
     "apache-airflow-providers-http>=2.0.0",
     "apache-airflow-providers-cncf-kubernetes",
     "pyyaml",
@@ -44,6 +44,42 @@ tests = [
     "pytest-cov",
     "pre-commit",
 ]
+
+######################################
+# UV CONFIGURATION
+######################################
+
+[tool.uv]
+dev-dependencies = [
+    "dag-factory[tests]",
+    "pre-commit",
+    "pytest>=6.0",
+    "pytest-cov",
+    "apache-airflow-providers-slack",
+    "httpx>=0.25.0",
+    "pandas",
+]
+
+# Respect existing constraints for Airflow compatibility
+constraint-dependencies = [
+    "apache-airflow>=2.3",
+]
+
+[tool.uv.workspace]
+# Enable workspace mode for better dependency management
+members = ["."]
+
+[tool.uv.pip]
+# Use more efficient resolution strategy
+resolution = "highest"
+# Respect existing pip-compatible behavior for scripts
+system = false
+# Optimize for CI/CD performance
+compile-bytecode = true
+
+[tool.uv.sources]
+# Add custom package sources if needed in the future
+# Example: custom-package = { url = "https://custom-repo.com/simple" }
 
 ######################################
 # TESTING
