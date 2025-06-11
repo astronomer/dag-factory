@@ -25,6 +25,11 @@ jobs:
           python-version: "3.12"
           architecture: "x64"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+
       - run: uv tool install hatch
       - run: hatch run tests.py3.12-2.10:static-check
 
@@ -78,6 +83,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
 
       - name: Install packages and dependencies
         run: |
@@ -146,6 +156,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+
       - name: Install packages and dependencies
         run: |
           uv tool install hatch
@@ -182,6 +197,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
       - name: Install coverage
         run: |
           uv tool install coverage
@@ -219,6 +238,11 @@ jobs:
           python-version: "3.12"
           architecture: "x64"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
+
       - name: Install packages and dependencies
         run: uv tool install hatch
 
@@ -251,6 +275,10 @@ jobs:
         with:
           python-version: "3.10"
           architecture: "x64"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.12"
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
       - run: uv build --wheel --sdist
