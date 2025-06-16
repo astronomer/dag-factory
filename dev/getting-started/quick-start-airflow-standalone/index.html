@@ -1393,7 +1393,7 @@
 <p>The minimum requirements for <strong>dag-factory</strong> are:</p>
 <ul>
 <li>Python 3.8.0+</li>
-<li><a href="https://airflow.apache.org">Apache Airflow®</a> 2.3+</li>
+<li><a href="https://airflow.apache.org">Apache Airflow®</a> 2.0+</li>
 </ul>
 <h2 id="step-1-create-a-python-virtual-environment">Step 1: Create a Python Virtual Environment</h2>
 <p>Create and activate a virtual environment:</p>
@@ -1403,21 +1403,23 @@
 <h2 id="step-2-install-apache-airflow">Step 2: Install Apache Airflow</h2>
 <p>Install <a href="https://airflow.apache.org">Apache Airflow®</a>:</p>
 <ol>
-<li>Create a directory for your project and navigate to it:</li>
-</ol>
+<li>
+<p>Create a directory for your project and navigate to it:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>mkdir dag-factory-quick-start &amp;&amp; cd dag-factory-quick-start
 </span></code></pre></div>
-<ol>
-<li>Set the <code>AIRFLOW_HOME</code> environment variable:</li>
-</ol>
+</li>
+<li>
+<p>Set the <code>AIRFLOW_HOME</code> environment variable:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>export AIRFLOW_HOME=$(pwd)
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>export AIRFLOW__CORE__LOAD_EXAMPLES=False
 </span></code></pre></div>
-<ol>
-<li>Install Apache Airflow:</li>
-</ol>
+</li>
+<li>
+<p>Install Apache Airflow:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip install apache-airflow
 </span></code></pre></div>
+</li>
+</ol>
 <h2 id="step-3-install-dag-factory">Step 3: Install DAG Factory</h2>
 <p>Install the DAG Factory library in your virtual environment:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip install dag-factory
