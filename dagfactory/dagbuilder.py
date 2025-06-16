@@ -733,6 +733,16 @@ class DagBuilder:
         from airflow.sdk import Asset  # Make sure this import is valid and available
 
         def _init_asset(asset_dict) -> Asset:
+            if "watchers" in asset_dict:
+                watchers_list = []
+                for watcher in asset_dict.get("watchers"):
+                    watcher_class = import_string(watcher.get("class"))
+                    trigger_class = import_string(watcher.get("trigger").get("class"))
+                    trigger__class_params = watcher.get("trigger").get("params")
+                    watchers_list.append(
+                        watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger__class_params))
+                    )
+                asset_dict["watchers"] = watchers_list
             return Asset(**asset_dict)
 
         def _combine_assets(assets, op):
@@ -752,6 +762,8 @@ class DagBuilder:
                 return _init_asset(data)
             else:
                 raise ValueError(f"Invalid asset entry: {data}")
+        elif isinstance(data, list):
+            return [_init_asset(asset) for asset in data]
         else:
             raise TypeError(f"Unexpected data type: {type(data)}")
 

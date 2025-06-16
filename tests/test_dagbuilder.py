@@ -1162,7 +1162,41 @@ class TestTopologicalSortTasks:
         assert task_names.index("task3") < task_names.index("task4")
 
     def test_asset_schedule(self):
-        from airflow.sdk import Asset, AssetAll, AssetAny
+        from airflow.providers.standard.triggers.file import FileDeleteTrigger
+        from airflow.sdk import Asset, AssetAll, AssetAny, AssetWatcher
+
+        # TODO
+        # Asset or Timetable: https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_assets.py#L182C14-L185C1
+
+        yaml_str = """
+          - uri: s3://dag1/output_1.txt
+            extra:
+              hi: bye
+          - uri: s3://dag2/output_1.txt
+            extra:
+                hi: bye
+        """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        ]
+
+        assert parsed_schedule.__eq__(expected)
 
         yaml_str = """
           and:
@@ -1192,6 +1226,8 @@ class TestTopologicalSortTasks:
                 watchers=[],
             ),
         )
+
+        assert parsed_schedule.__eq__(expected)
 
         yaml_str = """
                   or:
@@ -1267,3 +1303,34 @@ class TestTopologicalSortTasks:
             ),
         )
         assert parsed_schedule.__eq__(expected)
+
+        yaml_str = """
+                 - uri: s3://dag1/output_1.txt
+                   extra:
+                     hi: bye
+                   watchers:
+                        - class: airflow.sdk.AssetWatcher
+                          name: test_asset_watcher
+                          trigger:
+                            class: airflow.providers.standard.triggers.file.FileDeleteTrigger
+                            params:
+                                filepath: "/temp/file.txt"
+        """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[
+                    AssetWatcher(
+                        name="test_asset_watcher",
+                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                    )
+                ],
+            )
+        ]
+        parsed_schedule.__eq__(expected)
