@@ -738,9 +738,9 @@ class DagBuilder:
                 for watcher in asset_dict.get("watchers"):
                     watcher_class = import_string(watcher.get("class"))
                     trigger_class = import_string(watcher.get("trigger").get("class"))
-                    trigger__class_params = watcher.get("trigger").get("params")
+                    trigger_class_params = watcher.get("trigger").get("params")
                     watchers_list.append(
-                        watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger__class_params))
+                        watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_class_params))
                     )
                 asset_dict["watchers"] = watchers_list
             return Asset(**asset_dict)
