@@ -727,6 +727,35 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
+    def _asset_schedule(data):
+        from functools import reduce
+
+        from airflow.sdk import Asset  # Make sure this import is valid and available
+
+        def _init_asset(asset_dict) -> Asset:
+            return Asset(**asset_dict)
+
+        def _combine_assets(assets, op):
+            if op == "or":
+                return reduce(lambda a, b: a | b, assets)
+            elif op == "and":
+                return reduce(lambda a, b: a & b, assets)
+            else:
+                raise ValueError(f"Unknown operator: {op}")
+
+        if isinstance(data, dict):
+            if "or" in data:
+                return _combine_assets([DagBuilder._asset_schedule(item) for item in data["or"]], op="or")
+            elif "and" in data:
+                return _combine_assets([DagBuilder._asset_schedule(item) for item in data["and"]], op="and")
+            elif "uri" in data:
+                return _init_asset(data)
+            else:
+                raise ValueError(f"Invalid asset entry: {data}")
+        else:
+            raise TypeError(f"Unexpected data type: {type(data)}")
+
+    @staticmethod
     def _get_schedule_obj(dag_params: Dict[str, Any]):
         schedule = dag_params.get("schedule")
         parsed_schedule = None
@@ -740,10 +769,15 @@ class DagBuilder:
 
         # Case 2: Schedule is a dictionary
         elif isinstance(schedule, dict):
+            # Conditional Schedule
+            if "and" or "or" or "uri" in dict:
+                parsed_schedule = DagBuilder._asset_schedule(schedule)
             # Check for timetable
             if "timetable" in schedule:
                 timetable_args = schedule["timetable"]
-                DagBuilder.make_timetable(timetable_args.get("callable"), timetable_args.get("params", {}))
+                parsed_schedule = DagBuilder.make_timetable(
+                    timetable_args.get("callable"), timetable_args.get("params", {})
+                )
 
             # Check for timedelta
             if "timedelta" in schedule:
@@ -758,8 +792,6 @@ class DagBuilder:
                 rd_args = schedule.get("relativedelta")
                 if isinstance(rd_args, dict):
                     parsed_schedule = relativedelta(**rd_args)
-
-        # TODO: Handle BaseAsset or Collection[BaseAsset]
         # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_assets.py#L182
         # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_asset_with_watchers.py#L29
 
