@@ -74,12 +74,13 @@ schedule:
 
 ```yaml
 schedule:
-  - uri: s3://dag1/output_1.txt
-    extra:
-      hi: bye
-  - uri: s3://dag2/output_1.txt
-    extra:
-      hi: bye
+  type: assets
+    - uri: s3://dag1/output_1.txt
+      extra:
+        hi: bye
+    - uri: s3://dag2/output_1.txt
+      extra:
+        hi: bye
 ```
 
 #### AND (explicit composition)
