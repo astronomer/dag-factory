@@ -730,9 +730,9 @@ class DagBuilder:
     def _asset_schedule(data):
         from functools import reduce
 
-        from airflow.sdk import Asset  # Make sure this import is valid and available
+        from airflow.sdk import Asset
 
-        def _init_asset(asset_dict) -> Asset:
+        def _init_asset(asset_dict: dict) -> Asset:
             if "watchers" in asset_dict:
                 watchers_list = []
                 for watcher in asset_dict.get("watchers"):
@@ -804,9 +804,6 @@ class DagBuilder:
                 rd_args = schedule.get("relativedelta")
                 if isinstance(rd_args, dict):
                     parsed_schedule = relativedelta(**rd_args)
-        # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_assets.py#L182
-        # https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_asset_with_watchers.py#L29
-
         return parsed_schedule
 
     @staticmethod

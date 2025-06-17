@@ -1334,3 +1334,7 @@ class TestTopologicalSortTasks:
             )
         ]
         parsed_schedule.__eq__(expected)
+
+    def test_get_schedule_obj(self):
+        # TODO
+        pass
