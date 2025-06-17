@@ -52,6 +52,7 @@ nav:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
       - configuration/defaults.md
+      - configuration/schedule.md
   - Features:
       - features/dynamic_tasks.md
       - features/datasets.md
