@@ -727,7 +727,7 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
-    def _asset_schedule(data):
+    def _asset_schedule(value):
         from functools import reduce
 
         from airflow.sdk import Asset
@@ -736,8 +736,8 @@ class DagBuilder:
             if "watchers" in asset_dict:
                 watchers_list = []
                 for watcher in asset_dict.get("watchers"):
-                    watcher_class = import_string(watcher.get("class"))
-                    trigger_class = import_string(watcher.get("trigger").get("class"))
+                    watcher_class = import_string(watcher.get("callable"))
+                    trigger_class = import_string(watcher.get("trigger").get("callable"))
                     trigger_class_params = watcher.get("trigger").get("params")
                     watchers_list.append(
                         watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_class_params))
@@ -753,58 +753,60 @@ class DagBuilder:
             else:
                 raise ValueError(f"Unknown operator: {op}")
 
-        if isinstance(data, dict):
-            if "or" in data:
-                return _combine_assets([DagBuilder._asset_schedule(item) for item in data["or"]], op="or")
-            elif "and" in data:
-                return _combine_assets([DagBuilder._asset_schedule(item) for item in data["and"]], op="and")
-            elif "uri" in data:
-                return _init_asset(data)
+        if isinstance(value, dict):
+            if "or" in value:
+                return _combine_assets([DagBuilder._asset_schedule(item) for item in value["or"]], op="or")
+            elif "and" in value:
+                return _combine_assets([DagBuilder._asset_schedule(item) for item in value["and"]], op="and")
+            elif "uri" in value:
+                return _init_asset(value)
             else:
-                raise ValueError(f"Invalid asset entry: {data}")
-        elif isinstance(data, list):
-            return [_init_asset(asset) for asset in data]
+                raise ValueError(f"Invalid asset entry: {value}")
+        elif isinstance(value, list):
+            return [_init_asset(asset) for asset in value]
         else:
-            raise TypeError(f"Unexpected data type: {type(data)}")
+            raise TypeError(f"Unexpected data type: {type(value)}")
 
     @staticmethod
     def _get_schedule_obj(dag_params: Dict[str, Any]):
         schedule = dag_params.get("schedule")
-        parsed_schedule = None
-
         if schedule is None:
             return None
 
         # Case 1: Schedule is a string (e.g., '@daily' or cron string)
         if isinstance(schedule, str):
-            parsed_schedule = schedule
+            return schedule
 
         # Case 2: Schedule is a dictionary
-        elif isinstance(schedule, dict):
-            # Conditional Schedule
-            if "and" or "or" or "uri" in dict:
-                parsed_schedule = DagBuilder._asset_schedule(schedule)
-            # Check for timetable
-            if "timetable" in schedule:
-                timetable_args = schedule["timetable"]
-                parsed_schedule = DagBuilder.make_timetable(
-                    timetable_args.get("callable"), timetable_args.get("params", {})
-                )
+        if isinstance(schedule, dict):
+            schedule_type = schedule.get("type")
+            value = schedule.get("value")
 
-            # Check for timedelta
-            if "timedelta" in schedule:
+            if schedule_type == "cron":
+                return value
+
+            elif schedule_type == "timetable":
+                if isinstance(value, dict):
+                    return DagBuilder.make_timetable(value.get("callable"), value.get("params", {}))
+
+            elif schedule_type == "timedelta":
                 td_args = schedule.get("timedelta")
                 if isinstance(td_args, dict):
-                    parsed_schedule = timedelta(**td_args)
+                    return timedelta(**td_args)
 
-            # Check for relativedelta
-            if "relativedelta" in schedule:
+            elif schedule_type == "relativedelta":
                 from dateutil.relativedelta import relativedelta
 
-                rd_args = schedule.get("relativedelta")
-                if isinstance(rd_args, dict):
-                    parsed_schedule = relativedelta(**rd_args)
-        return parsed_schedule
+                return relativedelta(**value)
+
+            elif schedule_type == "assets":
+                return DagBuilder._asset_schedule(value)
+            else:
+                raise DagFactoryException(f"Schedule type {schedule_type} is not supported.")
+        else:
+            raise DagFactoryException(f"Unexpected value for schedule: {schedule}")
+
+        return None
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:

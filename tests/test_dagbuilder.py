@@ -1309,10 +1309,10 @@ class TestTopologicalSortTasks:
                    extra:
                      hi: bye
                    watchers:
-                        - class: airflow.sdk.AssetWatcher
+                        - callable: airflow.sdk.AssetWatcher
                           name: test_asset_watcher
                           trigger:
-                            class: airflow.providers.standard.triggers.file.FileDeleteTrigger
+                            callable: airflow.providers.standard.triggers.file.FileDeleteTrigger
                             params:
                                 filepath: "/temp/file.txt"
         """
@@ -1336,5 +1336,44 @@ class TestTopologicalSortTasks:
         parsed_schedule.__eq__(expected)
 
     def test_get_schedule_obj(self):
-        # TODO
-        pass
+
+        yaml_str = """
+        schedule: "* * * * *"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "* * * * *"
+
+        yaml_str = """
+        schedule: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        yaml_str = """
+        schedule:
+            type: cron
+            value: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        yaml_str = """
+        schedule:
+            type: cron
+            value: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        yaml_str = """
+        schedule:
+            type: timetable
+            value: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
