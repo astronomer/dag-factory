@@ -10,7 +10,7 @@ import yaml
 from airflow import DAG
 from packaging import version
 
-from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
 from tests.utils import one_hour_ago
 
 try:
@@ -1161,12 +1161,10 @@ class TestTopologicalSortTasks:
         assert task_names.index("task2") < task_names.index("task4")
         assert task_names.index("task3") < task_names.index("task4")
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Require at least Airflow 3.0.0")
     def test_asset_schedule(self):
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
         from airflow.sdk import Asset, AssetAll, AssetAny, AssetWatcher
-
-        # TODO
-        # Asset or Timetable: https://github.com/apache/airflow/blob/6041b77666a582a1659d1d1efeaf27b53425ef6a/airflow-core/src/airflow/example_dags/example_assets.py#L182C14-L185C1
 
         yaml_str = """
           - uri: s3://dag1/output_1.txt
@@ -1335,6 +1333,7 @@ class TestTopologicalSortTasks:
         ]
         parsed_schedule.__eq__(expected)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Require at least Airflow 3.0.0")
     def test_get_schedule_obj(self):
 
         yaml_str = """
