@@ -786,13 +786,10 @@ class DagBuilder:
                 return value
 
             elif schedule_type == "timetable":
-                if isinstance(value, dict):
-                    return DagBuilder.make_timetable(value.get("callable"), value.get("params", {}))
+                return DagBuilder.make_timetable(value.get("callable"), value.get("params", {}))
 
             elif schedule_type == "timedelta":
-                td_args = schedule.get("timedelta")
-                if isinstance(td_args, dict):
-                    return timedelta(**td_args)
+                return timedelta(**value)
 
             elif schedule_type == "relativedelta":
                 from dateutil.relativedelta import relativedelta

@@ -1369,11 +1369,74 @@ class TestTopologicalSortTasks:
         schedule = DagBuilder._get_schedule_obj(data)
         assert schedule == "@daily"
 
+        from airflow.timetables.trigger import CronTriggerTimetable
+
         yaml_str = """
         schedule:
             type: timetable
-            value: "@daily"
+            value:
+                callable: airflow.timetables.trigger.CronTriggerTimetable
+                params:
+                    cron: "* * * * *"
+                    timezone: UTC
         """
         data = yaml.safe_load(yaml_str)
         schedule = DagBuilder._get_schedule_obj(data)
-        assert schedule == "@daily"
+        assert schedule.__eq__(CronTriggerTimetable(cron="* * * * *", timezone="UTC"))
+
+        yaml_str = """
+        schedule:
+            type: timedelta
+            value:
+                seconds: 30
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(datetime.timedelta(seconds=30))
+
+        from dateutil.relativedelta import relativedelta
+
+        yaml_str = """
+        schedule:
+            type: relativedelta
+            value:
+                month: 1
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(relativedelta(month=1))
+
+        from airflow.sdk import Asset, AssetAny
+
+        yaml_str = """
+        schedule:
+            type: assets
+            value:
+                or:
+                    - uri: s3://dag1/output_1.txt
+                      extra:
+                          hi: bye
+                    - uri: s3://dag2/output_1.txt
+                      extra:
+                          hi: bye
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(
+            AssetAny(
+                Asset(
+                    name="s3://dag1/output_1.txt",
+                    uri="s3://dag1/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+                Asset(
+                    name="s3://dag2/output_1.txt",
+                    uri="s3://dag2/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+            )
+        )
