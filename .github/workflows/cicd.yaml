@@ -9,7 +9,7 @@ on:
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
   pull_request_target:
-    branches: [main]
+    branches: [main, add_af_2.11_ci]
   # run on releases
   release:
     types: ["published"]
