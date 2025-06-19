@@ -13,16 +13,23 @@ Below are the supported scheduling types, each with consistent structure and exa
 ## Example Overview
 
 | Type            | Description                           | Use Case Example                    |
-| --------------- | ------------------------------------- |-------------------------------------|
+|-----------------| ------------------------------------- |-------------------------------------|
 | `cron`          | Run based on a cron string            | Every day at midnight               |
 | `timedelta`     | Fixed intervals between runs          | Every 6 hours                       |
 | `relativedelta` | Calendar-aware schedule (e.g. months) | Every 1st of the month              |
 | `timetable`     | Advanced Airflow timetables           | Custom trigger logic                |
 | `assets`        | Trigger based on asset readiness      | When data `X` and `Y` are available |
+| `datasets`      | Trigger based on asset readiness      | When data `X` and `Y` are available |
 
 ## Schema Options
 
 ### 1. Cron-Based Schedule
+
+```yaml
+schedule: "0 0 * * *"
+```
+
+Or,
 
 ```yaml
 schedule:
@@ -114,4 +121,10 @@ schedule:
             class: airflow.providers.standard.triggers.file.FileDeleteTrigger
             params:
               filepath: "/temp/file.txt"
+```
+
+### 6. Datasets-Based Triggering
+
+```yaml
+schedule: [ 's3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json' ]
 ```
