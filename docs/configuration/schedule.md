@@ -13,13 +13,13 @@ Below are the supported scheduling types, each with consistent structure and exa
 ## Example Overview
 
 | Type            | Description                           | Use Case Example                    |
-|-----------------| ------------------------------------- |-------------------------------------|
+|-----------------|---------------------------------------|-------------------------------------|
 | `cron`          | Run based on a cron string            | Every day at midnight               |
 | `timedelta`     | Fixed intervals between runs          | Every 6 hours                       |
 | `relativedelta` | Calendar-aware schedule (e.g. months) | Every 1st of the month              |
 | `timetable`     | Advanced Airflow timetables           | Custom trigger logic                |
 | `assets`        | Trigger based on asset readiness      | When data `X` and `Y` are available |
-| `datasets`      | Trigger based on asset readiness      | When data `X` and `Y` are available |
+| `datasets`      | Trigger based on datasets readiness   | When data `X` and `Y` are available |
 
 ## Schema Options
 
