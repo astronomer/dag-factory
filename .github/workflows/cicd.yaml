@@ -72,7 +72,7 @@ jobs:
             airflow-version: "2.7"
           - python-version: "3.12"
             airflow-version: "2.8"
-          - python-version: "2.8"
+          - python-version: "3.8"
             airflow-version: "2.11"
     steps:
       - uses: actions/checkout@v4
@@ -146,7 +146,7 @@ jobs:
             airflow-version: "2.7"
           - python-version: "3.12"
             airflow-version: "2.8"
-          - python-version: "2.8"
+          - python-version: "3.8"
             airflow-version: "2.11"
     steps:
       - uses: actions/checkout@v4
