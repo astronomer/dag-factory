@@ -6,10 +6,11 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
+import yaml
 from airflow import DAG
 from packaging import version
 
-from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
 from tests.utils import one_hour_ago
 
 try:
@@ -1020,6 +1021,7 @@ def test_replace_expand_string_with_xcom():
         assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
         assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
+
 @pytest.mark.skipif(
     version.parse(AIRFLOW_VERSION) <= version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
@@ -1049,7 +1051,6 @@ def test_replace_expand_string_with_xcom():
         ),
     ],
 )
-
 @patch("dagfactory.dagbuilder.utils.get_datasets_uri_yaml_file", new_callable=mock_open)
 def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inlets, expected_outlets):
     """Tests if the `make_task()` function correctly handles `inlets` and `outlets` parameters."""
@@ -1075,6 +1076,7 @@ def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inle
     # Assertions to check if the actual results match the expected values
     assert actual.inlets == [Dataset(uri) for uri in expected_inlets]
     assert actual.outlets == [Dataset(uri) for uri in expected_outlets]
+
 
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
 def test_make_nested_task_groups():
@@ -1158,3 +1160,282 @@ class TestTopologicalSortTasks:
         assert task_names.index("task1") < task_names.index("task3")
         assert task_names.index("task2") < task_names.index("task4")
         assert task_names.index("task3") < task_names.index("task4")
+
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Require at least Airflow 3.0.0")
+    def test_asset_schedule(self):
+        from airflow.providers.standard.triggers.file import FileDeleteTrigger
+        from airflow.sdk import Asset, AssetAll, AssetAny, AssetWatcher
+
+        yaml_str = """
+          - uri: s3://dag1/output_1.txt
+            extra:
+              hi: bye
+          - uri: s3://dag2/output_1.txt
+            extra:
+                hi: bye
+        """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        ]
+
+        assert parsed_schedule.__eq__(expected)
+
+        yaml_str = """
+          and:
+              - uri: s3://dag1/output_1.txt
+                extra:
+                  hi: bye
+              - uri: s3://dag2/output_1.txt
+                extra:
+                  hi: bye
+            """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = AssetAll(
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+
+        assert parsed_schedule.__eq__(expected)
+
+        yaml_str = """
+                  or:
+                      - uri: s3://dag1/output_1.txt
+                        extra:
+                          hi: bye
+                      - uri: s3://dag2/output_1.txt
+                        extra:
+                          hi: bye
+                    """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = AssetAny(
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+
+        assert parsed_schedule.__eq__(expected)
+
+        yaml_str = """
+        or:
+          - and:
+              - uri: s3://dag1/output_1.txt
+                extra:
+                  hi: bye
+              - uri: s3://dag2/output_1.txt
+                extra:
+                  hi: bye
+          - uri: s3://dag3/output_3.txt
+            extra:
+              hi: bye
+        """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = AssetAny(
+            AssetAll(
+                Asset(
+                    name="s3://dag1/output_1.txt",
+                    uri="s3://dag1/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+                Asset(
+                    name="s3://dag2/output_1.txt",
+                    uri="s3://dag2/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+            ),
+            Asset(
+                name="s3://dag3/output_3.txt",
+                uri="s3://dag3/output_3.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+        assert parsed_schedule.__eq__(expected)
+
+        yaml_str = """
+                 - uri: s3://dag1/output_1.txt
+                   extra:
+                     hi: bye
+                   watchers:
+                        - callable: airflow.sdk.AssetWatcher
+                          name: test_asset_watcher
+                          trigger:
+                            callable: airflow.providers.standard.triggers.file.FileDeleteTrigger
+                            params:
+                                filepath: "/temp/file.txt"
+        """
+
+        data = yaml.safe_load(yaml_str)
+        parsed_schedule = DagBuilder._asset_schedule(data)
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[
+                    AssetWatcher(
+                        name="test_asset_watcher",
+                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                    )
+                ],
+            )
+        ]
+        parsed_schedule.__eq__(expected)
+
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Require at least Airflow 3.0.0")
+    def test_get_schedule_obj(self):
+
+        yaml_str = """
+        schedule: "* * * * *"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "* * * * *"
+
+        yaml_str = """
+        schedule: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        yaml_str = """
+        schedule:
+            type: cron
+            value: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        yaml_str = """
+        schedule:
+            type: cron
+            value: "@daily"
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule == "@daily"
+
+        from airflow.timetables.trigger import CronTriggerTimetable
+
+        yaml_str = """
+        schedule:
+            type: timetable
+            value:
+                callable: airflow.timetables.trigger.CronTriggerTimetable
+                params:
+                    cron: "* * * * *"
+                    timezone: UTC
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(CronTriggerTimetable(cron="* * * * *", timezone="UTC"))
+
+        yaml_str = """
+        schedule:
+            type: timedelta
+            value:
+                seconds: 30
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(datetime.timedelta(seconds=30))
+
+        from dateutil.relativedelta import relativedelta
+
+        yaml_str = """
+        schedule:
+            type: relativedelta
+            value:
+                month: 1
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(relativedelta(month=1))
+
+        from airflow.sdk import Asset, AssetAny
+
+        yaml_str = """
+        schedule:
+            type: assets
+            value:
+                or:
+                    - uri: s3://dag1/output_1.txt
+                      extra:
+                          hi: bye
+                    - uri: s3://dag2/output_1.txt
+                      extra:
+                          hi: bye
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._get_schedule_obj(data)
+        assert schedule.__eq__(
+            AssetAny(
+                Asset(
+                    name="s3://dag1/output_1.txt",
+                    uri="s3://dag1/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+                Asset(
+                    name="s3://dag2/output_1.txt",
+                    uri="s3://dag2/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+            )
+        )
