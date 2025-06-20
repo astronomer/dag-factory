@@ -821,7 +821,6 @@ class DagBuilder:
         dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-
             dag_kwargs["default_view"] = dag_params.get(
                 "default_view", configuration.conf.get("webserver", "dag_default_view")
             )
@@ -881,7 +880,16 @@ class DagBuilder:
             tags.append("dagfactory")
         dag.tags = tags
 
-        tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
+        # Process tasks from either dictionary or list format
+        tasks: Dict[str, Dict[str, Any]] = dag_params.get("tasks", {})
+
+        # Convert list format to dictionary format for consistent processing
+        if isinstance(tasks, list):
+            tasks_dict_compat: Dict[str, Dict[str, Any]] = {}
+            for task in tasks:
+                task_id = task.pop("task_id")
+                tasks_dict_compat[task_id] = task
+            tasks = tasks_dict_compat
 
         # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
