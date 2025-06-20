@@ -1127,6 +1127,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Using a Python virtual environment for local development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-install-the-project-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Install the project dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-activate-the-local-python-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Activate the local python environment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1135,6 +1159,21 @@
       Additional uv Commands
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Additional uv Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3-set-apache-airflow-home-to-the-dev-so-you-can-see-dag-factory-example-dags" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Set Apache Airflow® home to the dev/, so you can see DAG Factory example DAGs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1312,6 +1351,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Using a Python virtual environment for local development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-install-the-project-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Install the project dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-activate-the-local-python-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Activate the local python environment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1320,6 +1383,21 @@
       Additional uv Commands
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Additional uv Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3-set-apache-airflow-home-to-the-dev-so-you-can-see-dag-factory-example-dags" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Set Apache Airflow® home to the dev/, so you can see DAG Factory example DAGs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1446,7 +1524,9 @@
 <p>To contribute to the DAG Factory project:</p>
 <ol>
 <li>Please create a <a href="https://github.com/astronomer/dag-factory/issues">GitHub Issue</a> describing a bug, enhancement, or feature request.</li>
-<li>Open a branch off of the <code>main</code> branch and create a Pull Request into the <code>main</code> branch from your feature branch.</li>
+<li><a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo">Fork the repository</a> and clone your fork locally.</li>
+<li>Open a feature branch off of the main branch in your fork</li>
+<li>Make your changes, push the branch to your fork, and open a Pull Request from your feature branch into the <code>main</code> branch of the upstream repository.</li>
 <li>Link your issue to the pull request.</li>
 <li>After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.</li>
 </ol>
@@ -1469,23 +1549,19 @@
 </ul>
 <h3 id="using-a-python-virtual-environment-for-local-development">Using a Python virtual environment for local development</h3>
 <p>DAG Factory uses <a href="https://docs.astral.sh/uv/">uv</a> for fast and reliable package management. The setup process is significantly faster than traditional pip-based installations.</p>
-<ol>
-<li>Install the project dependencies:</li>
-</ol>
-<p><strong>Recommended: uv setup (fast, reproducible builds)</strong></p>
+<h4 id="1-install-the-project-dependencies">1. Install the project dependencies</h4>
+<p>Recommended: uv setup (fast, reproducible builds)</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>sync<span class="w"> </span>--dev
 </span></code></pre></div>
-<p><strong>Alternative: Traditional setup</strong></p>
+<p>Alternative: Traditional setup</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>make<span class="w"> </span>setup
 </span></code></pre></div>
 <p>Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.</p>
-<ol>
-<li>Activate the local python environment:</li>
-</ol>
-<p><strong>For uv setup:</strong></p>
+<h4 id="2-activate-the-local-python-environment">2. Activate the local python environment</h4>
+<p>For uv setup:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 </span></code></pre></div>
-<p><strong>For traditional setup:</strong></p>
+<p>For traditional setup:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
 </span></code></pre></div>
 <h3 id="additional-uv-commands">Additional uv Commands</h3>
@@ -1494,14 +1570,10 @@
 <li><code>uv sync</code> - Sync dependencies from the lockfile</li>
 <li><code>uv lock --upgrade</code> - Update the lockfile with latest dependency versions</li>
 <li><code>uv add &lt;package&gt;</code> - Add a new dependency</li>
-<li>
-<p><code>uv remove &lt;package&gt;</code> - Remove a dependency</p>
-</li>
-<li>
-<p>Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs.
-   Disable loading Airflow standard example DAGs:</p>
-</li>
+<li><code>uv remove &lt;package&gt;</code> - Remove a dependency</li>
 </ul>
+<h4 id="3-set-apache-airflow-home-to-the-dev-so-you-can-see-dag-factory-example-dags">3. Set <a href="https://airflow.apache.org/">Apache Airflow®</a> home to the <code>dev/</code>, so you can see DAG Factory example DAGs</h4>
+<p>Disable loading Airflow standard example DAGs:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__LOAD_EXAMPLES</span><span class="o">=</span><span class="nb">false</span>
 </span></code></pre></div>
