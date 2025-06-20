@@ -317,14 +317,14 @@ def test_generate_dags_invalid():
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
-def test_kubernetes_pod_operator_dag_gt_2_7():
+def test_kubernetes_pod_operator_dag_gte_2_7():
     td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR)
     td.generate_dags(globals())
     assert "example_dag" in globals()
 
 
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) <= version.parse("2.7.0"), reason="Requires Airflow <= 2.7.0")
-def test_kubernetes_pod_operator_dag_lte_2_7():
+@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("2.7.0"), reason="Requires Airflow < 2.7.0")
+def test_kubernetes_pod_operator_dag_lt_2_7():
     td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7)
     td.generate_dags(globals())
     assert "example_dag" in globals()
