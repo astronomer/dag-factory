@@ -1,6 +1,6 @@
 default:
   default_args:
-    catchup: false,
+    catchup: false
     start_date: 2024-11-11
 
 # ----8<---   [ start: example_dag_yaml_configuration ]
