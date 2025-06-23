@@ -16,6 +16,113 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
+from kubernetes.client import models as k8s
+
+
+# --- Define Constructor for V1ResourceRequirements ---
+def v1_resource_requirements_constructor(loader, node):
+    # This extracts the mapping (dictionary) from the YAML node
+    data = loader.construct_mapping(node, deep=True)
+    # Then, it passes the extracted data as keyword arguments to the V1ResourceRequirements constructor
+    return k8s.V1ResourceRequirements(**data)
+
+
+# --- Define Constructor for V1Container ---
+def v1_container_constructor(loader, node):
+    data = loader.construct_mapping(node, deep=True)
+    # Special handling for 'resources' if it needs to be an actual V1ResourceRequirements object
+    if "resources" in data and data["resources"] is not None:
+        # If the 'resources' field itself was tagged, it would have been constructed
+        # by v1_resource_requirements_constructor already.
+        # If it's just a raw dict, you might need to convert it here.
+        # However, if your YAML is structured as:
+        # resources: !kubernetes.client.models.V1ResourceRequirements
+        #   limits: ...
+        # Then deep=True on construct_mapping(node) will have already processed it
+        # into a V1ResourceRequirements object due to its own constructor.
+        # So, typically, you can just pass it directly if the nested tagging is correct.
+
+        # This line is safer if you're not sure if 'deep=True' would have caught it
+        # or if the data might come in as a dict from other sources.
+        if isinstance(data["resources"], dict):
+            # Manually construct if it's still a dict (meaning no tag was there or it was already processed)
+            resource_node = yaml.nodes.MappingNode(
+                tag="!kubernetes.client.models.V1ResourceRequirements", value=list(data["resources"].items())
+            )
+            data["resources"] = v1_resource_requirements_constructor(loader, resource_node)
+
+    # Convert snake_case to camelCase for securityContext if present, as k8s models expect that.
+    # Airflow/Kubernetes models often use snake_case for Python attributes but camelCase for JSON fields.
+    # The k8s client library usually handles this mapping automatically when you pass dictionary keys
+    # matching the original JSON (camelCase) or the Python attribute names (snake_case).
+    # However, if you are explicitly passing `securityContext` as a dict key, ensure it matches the model's expected `_security_context` or `security_context` property.
+    if "securityContext" in data and data["securityContext"] is not None:
+        data["security_context"] = k8s.V1PodSecurityContext(**data.pop("securityContext"))
+
+    return k8s.V1Container(**data)
+
+
+# --- Define Constructor for V1PodSpec ---
+def v1_pod_spec_constructor(loader, node):
+    data = loader.construct_mapping(node, deep=True)
+
+    if "containers" in data and data["containers"] is not None:
+        converted_containers = []
+        for container_data in data["containers"]:
+            # Each item in the YAML list needs to be explicitly converted if not tagged correctly
+            # If your YAML is like:
+            # containers:
+            #   - !kubernetes.client.models.V1Container
+            #     name: "base"
+            # then deep=True would have already handled it.
+            # If it's just:
+            # containers:
+            #   - name: "base"
+            # then container_data will be a dict and needs manual conversion here.
+            if isinstance(container_data, dict):
+                container_node = yaml.nodes.MappingNode(
+                    tag="!kubernetes.client.models.V1Container", value=list(container_data.items())
+                )
+                converted_containers.append(v1_container_constructor(loader, container_node))
+            else:  # It's already the object if tagged
+                converted_containers.append(container_data)
+        data["containers"] = converted_containers
+
+    # Handle securityContext, etc. if they are direct fields of PodSpec
+    if "securityContext" in data and data["securityContext"] is not None and isinstance(data["securityContext"], dict):
+        data["security_context"] = k8s.V1PodSecurityContext(**data.pop("securityContext"))
+
+    return k8s.V1PodSpec(**data)
+
+
+# --- Define Constructor for V1Pod ---
+def v1_pod_constructor(loader, node):
+    data = loader.construct_mapping(node, deep=True)
+
+    if "spec" in data and data["spec"] is not None:
+        # If 'spec' itself was tagged !kubernetes.client.models.V1PodSpec,
+        # then deep=True would have already made it a V1PodSpec object.
+        # If not, convert it from a dict.
+        if isinstance(data["spec"], dict):
+            spec_node = yaml.nodes.MappingNode(
+                tag="!kubernetes.client.models.V1PodSpec", value=list(data["spec"].items())
+            )
+            data["spec"] = v1_pod_spec_constructor(loader, spec_node)
+
+    return k8s.V1Pod(**data)
+
+
+class DAGFactoryLoader(yaml.FullLoader):
+    pass
+
+
+DAGFactoryLoader.add_constructor(
+    "!kubernetes.client.models.V1ResourceRequirements", v1_resource_requirements_constructor
+)
+DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1Container", v1_container_constructor)
+DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1PodSpec", v1_pod_spec_constructor)
+DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1Pod", v1_pod_constructor)
+
 
 class DagFactory:
     """
@@ -89,25 +196,25 @@ class DagFactory:
         # pylint: disable=consider-using-with
         try:
 
-            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __join(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
 
-            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __or(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return " | ".join([f"({str(i)})" for i in seq])
 
-            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __and(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return " & ".join([f"({str(i)})" for i in seq])
 
-            yaml.add_constructor("!join", __join, yaml.FullLoader)
-            yaml.add_constructor("!or", __or, yaml.FullLoader)
-            yaml.add_constructor("!and", __and, yaml.FullLoader)
+            DAGFactoryLoader.add_constructor("!join", __join)
+            DAGFactoryLoader.add_constructor("!or", __or)
+            DAGFactoryLoader.add_constructor("!and", __and)
 
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=DAGFactoryLoader)
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config

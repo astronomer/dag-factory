@@ -154,7 +154,7 @@ class DagBuilder:
         try:
             dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
         except Exception as err:
-            raise DagFactoryConfigException("Failed to merge config with default config") from err
+            raise DagFactoryConfigException(f"Failed to merge config with default config {err}") from err
         dag_params["dag_id"]: str = self.dag_name
 
         # If there are no default_args, add an empty dictionary
