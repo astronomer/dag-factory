@@ -20,9 +20,11 @@ This document describes how to contribute to DAG Factory, covering:
 To contribute to the DAG Factory project:
 
 1. Please create a [GitHub Issue](https://github.com/astronomer/dag-factory/issues) describing a bug, enhancement, or feature request.
-2. Open a branch off of the `main` branch and create a Pull Request into the `main` branch from your feature branch.
-3. Link your issue to the pull request.
-4. After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.
+2. [Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and clone your fork locally.
+3. Open a feature branch off of the main branch in your fork
+4. Make your changes, push the branch to your fork, and open a Pull Request from your feature branch into the ``main`` branch of the upstream repository.
+5. Link your issue to the pull request.
+6. After you complete development on your feature branch, request a review. A maintainer will merge your PR after all reviewers approve it.
 
 ## Set up a local development environment
 
@@ -49,35 +51,35 @@ After cloning the project, there are two options for setting up the local develo
 
 DAG Factory uses [uv](https://docs.astral.sh/uv/) for fast and reliable package management. The setup process is significantly faster than traditional pip-based installations.
 
-1. Install the project dependencies:
+#### 1. Install the project dependencies
 
-   **Recommended: uv setup (fast, reproducible builds)**
+Recommended: uv setup (fast, reproducible builds)
 
-   ```bash
-   uv sync --dev
-   ```
+```bash
+uv sync --dev
+```
 
-   **Alternative: Traditional setup**
+Alternative: Traditional setup
 
-   ```bash
-   make setup
-   ```
+```bash
+make setup
+```
 
-   Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
+Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
 
-2. Activate the local python environment:
+#### 2. Activate the local python environment
 
-   **For uv setup:**
+For uv setup:
 
-   ```bash
-   source .venv/bin/activate
-   ```
+```bash
+source .venv/bin/activate
+```
 
-   **For traditional setup:**
+For traditional setup:
 
-   ```bash
-   source venv/bin/activate
-   ```
+```bash
+source venv/bin/activate
+```
 
 ### Additional uv Commands
 
@@ -88,7 +90,8 @@ Once you're set up with uv, you can use these helpful commands:
 - `uv add <package>` - Add a new dependency
 - `uv remove <package>` - Remove a dependency
 
-3. Set [Apache Airflow®](https://airflow.apache.org/) home to the `dev/`, so you can see DAG Factory example DAGs.
+#### 3. Set [Apache Airflow®](https://airflow.apache.org/) home to the `dev/`, so you can see DAG Factory example DAGs
+
    Disable loading Airflow standard example DAGs:
 
 ```bash
