@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add stable/latest docs version by @pankajastro in [#391](https://github.com/astronomer/dag-factory/pull/391)
 - Migrate old content to new documentation structure by @pankajastro in [#393](https://github.com/astronomer/dag-factory/pull/393)
 - Update Airflow supported version 2.3+ in docs by @pankajastro in [#412](https://github.com/astronomer/dag-factory/pull/412)
+- Doc: Add step to fork repo in contributing guide  by @pankajastro in [#427](https://github.com/astronomer/dag-factory/pull/427)
 
 ### Others
 
@@ -40,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log error message if config file is not valid by @pankajastro in [#408](https://github.com/astronomer/dag-factory/pull/408)
 - Assert DagRunState in integration test by @pankajastro in [#415](https://github.com/astronomer/dag-factory/pull/415)
 - Upgrade KubernetesPodOperator by @pankajastro in [#407](https://github.com/astronomer/dag-factory/pull/407)
+- Fix import path for BranchPythonOperator, PythonOperator and PythonSensor by @pankajastro in [#414](https://github.com/astronomer/dag-factory/pull/414)
+- Move to uv for package management by @jlaneve in [#419](https://github.com/astronomer/dag-factory/pull/419)
+- Install uv in CI by @jlaneve in [#421](https://github.com/astronomer/dag-factory/pull/421)
+- Bump astral-sh/setup-uv from 5 to 6 by @dependabot in [#423](https://github.com/astronomer/dag-factory/pull/423)
+- Add AF 2.11 in test matrix by @pankajastro in [#425](https://github.com/astronomer/dag-factory/pull/425)
 
 ## [0.22.0] - 2025-01-10
 
