@@ -104,11 +104,11 @@ class DAGFactoryLoader(yaml.FullLoader):
     pass
 
 
-# DAGFactoryLoader.add_constructor(
-#     "!!kubernetes.client.models.V1ResourceRequirements", KubernetesConstructor.resource_requirements_constructor
-# )
-# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Container", KubernetesConstructor.container_constructor)
-# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1PodSpec", KubernetesConstructor.pod_spec_constructor)
-# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Pod", KubernetesConstructor.pod_constructor)
+DAGFactoryLoader.add_constructor(
+    "!!kubernetes.client.models.V1ResourceRequirements", KubernetesConstructor.resource_requirements_constructor
+)
+DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Container", KubernetesConstructor.container_constructor)
+DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1PodSpec", KubernetesConstructor.pod_spec_constructor)
+DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Pod", KubernetesConstructor.pod_constructor)
 # Handle unknown tag dynamically
 DAGFactoryLoader.add_constructor(None, _dynamic_object_constructor)
