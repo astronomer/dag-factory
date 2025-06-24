@@ -99,6 +99,12 @@ export AIRFLOW_HOME=$(pwd)/dev/
 export AIRFLOW__CORE__LOAD_EXAMPLES=false
 ```
 
+   Set CONFIG_ROOT_DIR for locating DAG config files:
+
+```bash
+export CONFIG_ROOT_DIR=$AIRFLOW_HOME/dags
+```
+
 Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):
 
 > Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
