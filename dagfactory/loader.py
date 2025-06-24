@@ -64,8 +64,9 @@ class KubernetesConstructor:
 
 
 def _dynamic_object_constructor(loader, node):
-    tag = node.tag.lstrip("!")
-    parts = tag.split(".")
+    tag = node.tag.strip("")
+    class_path = node.tag.split(":")[2]
+    parts = class_path.split(".")
     module_name = ".".join(parts[:-1])
     class_name = parts[-1]
 
@@ -103,11 +104,11 @@ class DAGFactoryLoader(yaml.FullLoader):
     pass
 
 
-DAGFactoryLoader.add_constructor(
-    "!kubernetes.client.models.V1ResourceRequirements", KubernetesConstructor.resource_requirements_constructor
-)
-DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1Container", KubernetesConstructor.container_constructor)
-DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1PodSpec", KubernetesConstructor.pod_spec_constructor)
-DAGFactoryLoader.add_constructor("!kubernetes.client.models.V1Pod", KubernetesConstructor.pod_constructor)
+# DAGFactoryLoader.add_constructor(
+#     "!!kubernetes.client.models.V1ResourceRequirements", KubernetesConstructor.resource_requirements_constructor
+# )
+# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Container", KubernetesConstructor.container_constructor)
+# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1PodSpec", KubernetesConstructor.pod_spec_constructor)
+# DAGFactoryLoader.add_constructor("!!kubernetes.client.models.V1Pod", KubernetesConstructor.pod_constructor)
 # Handle unknown tag dynamically
 DAGFactoryLoader.add_constructor(None, _dynamic_object_constructor)
