@@ -6,7 +6,7 @@
 
 The minimum requirements for **dag-factory** are:
 
-- Python 3.8.0+
+- Python 3.9.0+
 - [Apache Airflow®](https://airflow.apache.org) 2.3+
 
 ## Step 1: Create a Python Virtual Environment
