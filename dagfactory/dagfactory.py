@@ -13,7 +13,11 @@ from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from tests.test_example_dags import AIRFLOW_VERSION
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:  # pragma: no cover
+    from airflow import __version__ as AIRFLOW_VERSION
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
