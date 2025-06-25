@@ -10,11 +10,11 @@ from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
-from tests.utils import one_hour_ago
+from tests.utils import get_sql_sensor, one_hour_ago
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:
+except ImportError:  # Airflow < 2.4
     from airflow.sensors.http_sensor import HttpSensor
 
 try:
@@ -27,10 +27,14 @@ try:
 except ImportError:
     from airflow.operators.bash_operator import BashOperator
 
-try:
-    from airflow.operators.python import PythonOperator
+try:  # Try Airflow 3
+    from airflow.providers.standard.operators.python import PythonOperator
 except ImportError:
-    from airflow.operators.python_operator import PythonOperator
+    try:  # Try Airflow 2.4+
+        from airflow.operators.python import PythonOperator
+    except ImportError:
+        # Fallback to older versions
+        from airflow.operators.python_operator import PythonOperator
 
 try:
     from airflow.version import version as AIRFLOW_VERSION
@@ -468,7 +472,7 @@ def test_make_http_sensor_lambda():
 
 def test_make_sql_sensor_success():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -476,7 +480,7 @@ def test_make_sql_sensor_success():
         "success_check_name": "print_test",
         "success_check_file": os.path.realpath(__file__),
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert callable(actual.success)
     assert isinstance(actual, SqlSensor)
@@ -484,14 +488,14 @@ def test_make_sql_sensor_success():
 
 def test_make_sql_sensor_success_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
         "success_check_lambda": "lambda res: res > 0",
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert callable(actual.success)
     assert isinstance(actual, SqlSensor)
@@ -499,7 +503,7 @@ def test_make_sql_sensor_success_lambda():
 
 def test_make_sql_sensor_failure():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -507,7 +511,7 @@ def test_make_sql_sensor_failure():
         "failure_check_name": "print_test",
         "failure_check_file": os.path.realpath(__file__),
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert not callable(actual.success)
     assert callable(actual.failure)
@@ -516,14 +520,14 @@ def test_make_sql_sensor_failure():
 
 def test_make_sql_sensor_failure_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
         "failure_check_lambda": "lambda res: res > 0",
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert not callable(actual.success)
     assert callable(actual.failure)
@@ -1020,6 +1024,7 @@ def test_replace_expand_string_with_xcom():
         assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
         assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
+
 @pytest.mark.skipif(
     version.parse(AIRFLOW_VERSION) <= version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
@@ -1049,7 +1054,6 @@ def test_replace_expand_string_with_xcom():
         ),
     ],
 )
-
 @patch("dagfactory.dagbuilder.utils.get_datasets_uri_yaml_file", new_callable=mock_open)
 def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inlets, expected_outlets):
     """Tests if the `make_task()` function correctly handles `inlets` and `outlets` parameters."""
@@ -1075,6 +1079,7 @@ def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inle
     # Assertions to check if the actual results match the expected values
     assert actual.inlets == [Dataset(uri) for uri in expected_inlets]
     assert actual.outlets == [Dataset(uri) for uri in expected_outlets]
+
 
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
 def test_make_nested_task_groups():

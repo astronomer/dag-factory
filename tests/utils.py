@@ -15,6 +15,7 @@ from airflow.utils import timezone
 from airflow.utils.session import provide_session
 from airflow.utils.state import DagRunState, State
 from airflow.utils.types import DagRunType
+from packaging import version
 from sqlalchemy.orm.session import Session
 
 try:
@@ -28,6 +29,11 @@ except ImportError:
     NEW_SESSION: settings.SASession = cast(settings.SASession, None)
 
 log = logging.getLogger(__name__)
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:
+    from airflow import __version__ as AIRFLOW_VERSION
 
 
 def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
@@ -182,3 +188,10 @@ def _get_or_create_dagrun(
 
 def one_hour_ago(execution_date: datetime):
     return execution_date - datetime.timedelta(hours=1)
+
+
+def get_sql_sensor():
+    if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
+        return "airflow.sensors.sql_sensor.SqlSensor"
+    else:
+        return "airflow.providers.common.sql.sensors.sql.SqlSensor"
