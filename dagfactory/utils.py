@@ -343,3 +343,35 @@ def get_json_serialized_callable(data_obj):
         raise TypeError(f"data_obj must be a dict or str, not {type(data_obj)}")
 
     return lambda **kwargs: serialized_json
+
+
+def update_yaml_structure(data):
+    operator_map = {
+        "airflow.operators.dummy_operator.DummyOperator": "airflow.providers.standard.operators.empty.EmptyOperator",
+        "airflow.operators.bash.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
+        "airflow.operators.bash_operator.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
+        "airflow.operators.python_operator.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
+        "airflow.operators.python.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
+    }
+    if isinstance(data, dict):
+        keys_to_update = []
+        for key, value in data.items():
+            # Recursively process nested dictionaries or lists
+            if isinstance(value, (dict, list)):
+                update_yaml_structure(value)
+
+            # Mark keys to rename after loop (avoid modifying dict while iterating)
+            if key == "schedule_interval":
+                keys_to_update.append(("schedule_interval", "schedule"))
+            if key == "operator":
+                data[key] = operator_map[value]
+
+        # Perform renames after iteration
+        for old_key, new_key in keys_to_update:
+            data[new_key] = data.pop(old_key)
+
+    elif isinstance(data, list):
+        for item in data:
+            update_yaml_structure(item)
+
+    return data
