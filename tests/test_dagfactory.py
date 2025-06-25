@@ -7,6 +7,8 @@ from airflow import __version__ as AIRFLOW_VERSION
 from airflow.models.variable import Variable
 from packaging import version
 
+from tests.utils import get_schedule_key
+
 here = os.path.dirname(__file__)
 
 from dagfactory import dagfactory, load_yaml_dags
@@ -32,7 +34,7 @@ DAG_FACTORY_CONFIG = {
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "@daily",
+        get_schedule_key(): "@daily",
     },
     "example_dag": {
         "tasks": {
@@ -56,7 +58,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
             "on_retry_callback": f"{__name__}.print_context_callback",
         },
         "description": "this is an example dag",
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
@@ -118,13 +120,13 @@ def test_load_config_valid():
             "dagrun_timeout_sec": 600,
             "default_view": "tree",
             "orientation": "LR",
-            "schedule_interval": "0 1 * * *",
+            get_schedule_key(): "0 1 * * *",
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            "schedule_interval": "0 3 * * *",
+            get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -144,7 +146,7 @@ def test_load_config_valid():
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            "schedule_interval": "None",
+            get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -201,7 +203,7 @@ def test_get_dag_configs():
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            "schedule_interval": "0 3 * * *",
+            get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -221,7 +223,7 @@ def test_get_dag_configs():
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            "schedule_interval": "None",
+            get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
                     "operator": "airflow.operators.bash_operator.BashOperator",
@@ -281,7 +283,7 @@ def test_get_default_config():
         "dagrun_timeout_sec": 600,
         "default_view": "tree",
         "orientation": "LR",
-        "schedule_interval": "0 1 * * *",
+        get_schedule_key(): "0 1 * * *",
     }
     actual = td.get_default_config()
     assert actual == expected
@@ -413,7 +415,7 @@ def test_dagfactory_dict():
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "@daily",
+        get_schedule_key(): "@daily",
     }
     expected_dag = {
         "example_dag": {
