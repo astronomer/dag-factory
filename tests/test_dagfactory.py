@@ -3,7 +3,12 @@ import logging
 import os
 
 import pytest
-from airflow import __version__ as AIRFLOW_VERSION
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:  # pragma: no cover
+    from airflow import __version__ as AIRFLOW_VERSION
+
 from airflow.models.variable import Variable
 from packaging import version
 

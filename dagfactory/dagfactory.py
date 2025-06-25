@@ -117,8 +117,9 @@ class DagFactory:
 
                 # This for the CI
                 if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("TEST_MODE"):
-                    if "schedule_interval" in config:
-                        config["schedule"] = config.pop("schedule_interval")
+                    for dag_name, dag_config in config.items():
+                        if isinstance(dag_config, dict) and "schedule_interval" in dag_config:
+                            dag_config["schedule"] = dag_config.pop("schedule_interval")
 
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
