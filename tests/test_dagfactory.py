@@ -370,17 +370,17 @@ example_dag2:
   tasks:
     task_1:
       bash_command: echo 1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_2:
       bash_command: echo 2
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_3:
       bash_command: echo 3
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
 
 ```"""
 
