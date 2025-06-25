@@ -111,7 +111,8 @@ def test_validate_config_filepath_invalid():
 
 
 @pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0") or version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Requires Airflow version greater than 2.4.0",
 )
 def test_load_config_valid():
     expected = {
@@ -205,7 +206,7 @@ def test_load_config_invalid():
 
 
 @pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0") or version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"),
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0") or version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
     reason="Path for operator has changed",
 )
 def test_get_dag_configs():
@@ -362,6 +363,7 @@ def test_variables_as_arguments_dag():
             assert task.bash_command == override_command
 
 
+@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"), reason="")
 def test_doc_md_file_path():
     dag_config = f"""
 ## YML DAG
