@@ -103,6 +103,8 @@ jobs:
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
         run: |
           hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
+        env:
+          TEST_MODE: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
@@ -181,6 +183,7 @@ jobs:
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
+          TEST_MODE: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4

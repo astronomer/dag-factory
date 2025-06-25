@@ -9,9 +9,11 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
+from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
+from tests.test_example_dags import AIRFLOW_VERSION
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -108,6 +110,12 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+
+                # This for the CI
+                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("TEST_MODE"):
+                    if "schedule_interval" in config:
+                        config["schedule"] = config.pop("schedule_interval")
+
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
