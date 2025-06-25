@@ -10,7 +10,7 @@ from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
-from tests.utils import get_sql_sensor, one_hour_ago
+from tests.utils import get_python_operator, get_sql_sensor, one_hour_ago
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -146,12 +146,12 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "schedule_interval": "0 4 * * *",
     "tasks": {
         "request": {
-            "operator": "airflow.operators.python_operator.PythonOperator",
+            "operator": get_python_operator(),
             "python_callable_name": "example_task_mapping",
             "python_callable_file": os.path.realpath(__file__),
         },
         "process_1": {
-            "operator": "airflow.operators.python_operator.PythonOperator",
+            "operator": get_python_operator(),
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
@@ -396,7 +396,7 @@ def example_task_mapping():
 
 def test_make_python_operator():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator()
     task_params = {
         "task_id": "test_task",
         "python_callable_name": "print_test",
@@ -410,7 +410,7 @@ def test_make_python_operator():
 
 def test_make_python_operator_with_callable_str():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator()
     task_params = {
         "task_id": "test_task",
         "python_callable": "builtins.print",
@@ -423,7 +423,7 @@ def test_make_python_operator_with_callable_str():
 
 def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator()
     task_params = {"task_id": "test_task", "python_callable_name": "print_test"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -431,7 +431,7 @@ def test_make_python_operator_missing_param():
 
 def test_make_python_operator_missing_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -990,7 +990,7 @@ def test_dynamic_task_mapping():
         with pytest.raises(Exception, match=error_message):
             td.build()
     else:
-        operator = "airflow.operators.python_operator.PythonOperator"
+        operator = get_python_operator()
         task_params = {
             "task_id": "process",
             "python_callable_name": "expand_task",
@@ -1073,7 +1073,7 @@ def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inle
     # Mock the response of `get_datasets_uri_yaml_file` to return expected values
     mock_read_file.return_value = expected_inlets + expected_outlets
 
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator()
     actual = td.make_task(operator, task_params)
 
     # Assertions to check if the actual results match the expected values

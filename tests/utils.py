@@ -190,6 +190,16 @@ def one_hour_ago(execution_date: datetime):
     return execution_date - datetime.timedelta(hours=1)
 
 
+def get_python_operator():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version >= version.parse("3.0.0"):
+        return "airflow.providers.standard.operators.python.PythonOperator"
+    elif airflow_version >= version.parse("2.4.0"):
+        return "airflow.operators.python.PythonOperator"
+    else:
+        return "airflow.operators.python_operator.PythonOperator"
+
+
 def get_sql_sensor():
     if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
         return "airflow.sensors.sql_sensor.SqlSensor"
