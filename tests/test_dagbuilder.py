@@ -10,7 +10,14 @@ from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
-from tests.utils import get_bash_operator, get_http_sensor, get_python_operator, get_sql_sensor, one_hour_ago
+from tests.utils import (
+    get_bash_operator,
+    get_http_sensor,
+    get_python_operator,
+    get_schedule_key,
+    get_sql_sensor,
+    one_hour_ago,
+)
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -65,14 +72,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
-    "schedule_interval": "0 1 * * *",
+    get_schedule_key(): "0 1 * * *",
 }
 DAG_CONFIG = {
     "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "dag_display_name": "Pretty example dag",
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
     "tasks": {
@@ -95,7 +102,7 @@ DAG_CONFIG = {
 }
 DAG_CONFIG_TASK_GROUP = {
     "default_args": {"owner": "custom_owner"},
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -143,7 +150,7 @@ DAG_CONFIG_TASK_GROUP = {
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
-    "schedule_interval": "0 4 * * *",
+    get_schedule_key(): "0 4 * * *",
     "tasks": {
         "request": {
             "operator": get_python_operator(),
@@ -169,7 +176,7 @@ DAG_CONFIG_ML = {
 }
 
 DAG_CONFIG_DEFAULT_ML = {
-    "schedule_interval": "0 0 * * *",
+    get_schedule_key(): "0 0 * * *",
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
@@ -193,7 +200,7 @@ DAG_CONFIG_CALLBACKS = {
         "on_skipped_callback": f"{__name__}.print_context_callback",
     },
     "description": "this is an example dag",
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "tags": ["tag1", "tag2"],
     # This includes each of the four options (str function, str function with params, file and name, provider)
     "on_execute_callback": f"{__name__}.print_context_callback",
@@ -224,7 +231,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             "param_2": "value_2",
         },
     },
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -306,7 +313,7 @@ def test_get_dag_params():
             "retry_delay": datetime.timedelta(seconds=300),
         },
         "description": "this is an example dag",
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
@@ -571,7 +578,7 @@ def test_get_dag_params_dag_with_task_group():
             "retries": 1,
             "retry_delay": datetime.timedelta(seconds=300),
         },
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "task_groups": {
             "task_group_1": {
                 "tooltip": "this is a task group",

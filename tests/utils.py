@@ -198,6 +198,14 @@ def get_http_sensor():
         return "airflow.providers.http.sensors.http.HttpSensor"
 
 
+def get_schedule_key():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version < version.parse("2.4.0"):
+        return "schedule_interval"
+    else:
+        return "schedule"
+
+
 def get_bash_operator():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version >= version.parse("3.0.0"):
