@@ -774,7 +774,11 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            dag_kwargs["schedule"] = dag_params.get("schedule")
+            schedule = dag_params.get("schedule")
+            if schedule == "None":
+                dag_kwargs["schedule"] = None
+            else:
+                dag_kwargs["schedule"] = schedule
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:

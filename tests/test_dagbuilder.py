@@ -6,7 +6,11 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-from airflow import DAG
+
+try:
+    from airflow.sdk.definitions import DAG
+except ImportError:
+    from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
@@ -50,11 +54,10 @@ except ImportError:
 
 from dagfactory import dagbuilder
 
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+try:
+    from airflow.sdk.definitions.mappedoperator import MappedOperator
+except ImportError:
     from airflow.models import MappedOperator
-else:
-    MappedOperator = None
-# pylint: disable=ungrouped-imports,invalid-name
 
 here = Path(__file__).parent
 
@@ -564,8 +567,7 @@ def test_build():
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
         assert actual["dag"].dag_display_name == "Pretty example dag"
-    if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-        assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
+    assert sorted(actual["dag"].tags) == sorted(["tag1", "tag2", "dagfactory"])
 
 
 def test_get_dag_params_dag_with_task_group():
@@ -827,13 +829,21 @@ def test_make_dag_with_callbacks_default_args():
 
             # Assert that these callbacks have been applied at the Task-level
             assert callback_type in task_1.__dict__
-            assert callable(task_1.__dict__[callback_type])
-            assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+                assert callable(task_1.__dict__[callback_type][0])
+                assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
+            else:
+                assert callable(task_1.__dict__[callback_type])
+                assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
         # Assert that these callbacks have been applied at the Task-level
         assert "on_failure_callback" in task_1.__dict__
-        assert callable(task_1.__dict__["on_failure_callback"])
-        assert task_1.__dict__["on_failure_callback"].__name__ == "print_context_callback"
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(task_1.__dict__["on_failure_callback"][0])
+            assert task_1.__dict__["on_failure_callback"][0].__name__ == "print_context_callback"
+        else:
+            assert callable(task_1.__dict__["on_failure_callback"])
+            assert task_1.__dict__["on_failure_callback"].__name__ == "print_context_callback"
 
 
 @pytest.mark.callbacks
@@ -863,7 +873,8 @@ def test_make_dag_with_task_group_callbacks():
         dag = td.build()["dag"]  # Also, pull the dag
 
         # Basic checks to ensure the DAG was built as expected
-        assert dag.task_count == 4
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+            assert dag.task_count == 4
         assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
         assert (
             "task_group_1.task_1" in dag.task_dict
@@ -899,16 +910,32 @@ def test_make_dag_with_task_group_callbacks_default_args():
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
         assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
-        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
-        assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
+            assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
+        else:
+            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
+            assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
 
         # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
         # validated but checking the type, "callab-ility", name, and parameters configured with it
-        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
-        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
-        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
+            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
+            assert (
+                dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
+                == "empty_callback_with_params"
+            )
+            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
+            assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
+        else:
+            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
+            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
+            assert (
+                dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
+            )
+            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
+            assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
 
 @pytest.mark.callbacks
@@ -922,19 +949,30 @@ def test_make_dag_with_task_group_callbacks_tasks():
     dag = td.build()["dag"]
 
     task_4 = dag.task_dict["task_4"]
-    assert callable(task_4.on_execute_callback)
-    assert task_4.on_execute_callback.__name__ == "print_context_callback"
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert callable(task_4.on_execute_callback[0])
+        assert task_4.on_execute_callback[0].__name__ == "print_context_callback"
 
-    assert isinstance(task_4.on_success_callback, functools.partial)
-    assert callable(task_4.on_success_callback)
-    assert task_4.on_success_callback.func.__name__ == "empty_callback_with_params"
-    assert "param_2" in task_4.on_success_callback.keywords
-    assert task_4.on_success_callback.keywords["param_2"] == "value_2"
+        assert isinstance(task_4.on_success_callback[0], functools.partial)
+        assert callable(task_4.on_success_callback[0])
+        assert task_4.on_success_callback[0].func.__name__ == "empty_callback_with_params"
+        assert "param_2" in task_4.on_success_callback[0].keywords
+        assert task_4.on_success_callback[0].keywords["param_2"] == "value_2"
 
-    assert callable(task_4.on_failure_callback)
-    assert task_4.on_failure_callback.__name__ == "print_context_callback"
+        assert callable(task_4.on_failure_callback[0])
+        assert task_4.on_failure_callback[0].__name__ == "print_context_callback"
+    else:
+        assert callable(task_4.on_execute_callback)
+        assert task_4.on_execute_callback.__name__ == "print_context_callback"
 
-    # Can do something similar here as was done with the make_dag test (for Slack)
+        assert isinstance(task_4.on_success_callback, functools.partial)
+        assert callable(task_4.on_success_callback)
+        assert task_4.on_success_callback.func.__name__ == "empty_callback_with_params"
+        assert "param_2" in task_4.on_success_callback.keywords
+        assert task_4.on_success_callback.keywords["param_2"] == "value_2"
+
+        assert callable(task_4.on_failure_callback)
+        assert task_4.on_failure_callback.__name__ == "print_context_callback"
 
 
 def test_get_dag_params_with_template_searchpath():
