@@ -105,6 +105,9 @@ def test_validate_config_filepath_invalid():
         dagfactory.DagFactory._validate_config_filepath("config.yml")
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+)
 def test_load_config_valid():
     expected = {
         "default": {
@@ -196,6 +199,9 @@ def test_load_config_invalid():
         dagfactory.DagFactory._load_config(INVALID_YAML)
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+)
 def test_get_dag_configs():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     expected = {
