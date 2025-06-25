@@ -205,7 +205,8 @@ def test_load_config_invalid():
 
 
 @pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0") or version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"),
+    reason="Path for operator has changed",
 )
 def test_get_dag_configs():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
@@ -343,6 +344,10 @@ def test_kubernetes_pod_operator_dag_lt_2_7():
     assert "example_dag" in globals()
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Skipping this because yaml import old version of operator",
+)
 def test_variables_as_arguments_dag():
     override_command = "value_from_variable"
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
@@ -413,7 +418,10 @@ def test_doc_md_callable():
 def test_schedule_interval():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    schedule_interval = globals()["example_dag2"].schedule_interval
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        schedule_interval = globals()["example_dag2"].schedule_interval
+    else:
+        schedule_interval = globals()["example_dag2"].schedule
     assert schedule_interval is None
 
 
@@ -499,6 +507,10 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
     assert "Loading DAGs from tests/fixtures" in caplog.messages
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Skipping this because yaml import old version of operator",
+)
 def test_yml_dag_rendering_in_docs():
     dag_path = os.path.join(here, "fixtures/dag_md_docs.yml")
     td = dagfactory.DagFactory(dag_path)
