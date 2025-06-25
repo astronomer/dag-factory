@@ -192,7 +192,7 @@ def one_hour_ago(execution_date: datetime):
 
 def get_http_sensor():
     airflow_version = version.parse(AIRFLOW_VERSION)
-    if airflow_version >= version.parse("2.4.0"):
+    if airflow_version < version.parse("2.4.0"):
         return "airflow.sensors.http_sensor.HttpSensor"
     else:
         return "airflow.providers.http.sensors.http.HttpSensor"
