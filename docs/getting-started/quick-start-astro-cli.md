@@ -6,7 +6,7 @@
 
 The minimum requirements for **dag-factory** are:
 
-- Python 3.8.0+
+- Python 3.9.0+
 - [Astro CLI](https://www.astronomer.io/docs/astro/cli/overview/)
 
 ## Step 1: Initialize Airflow Project
