@@ -50,7 +50,10 @@ except ImportError:
         # Fallback to older versions
         from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
-from airflow.providers.http.sensors.http import HttpSensor
+try:
+    from airflow.providers.http.sensors.http import HttpSensor
+except ImportError:  # Airflow < 2.4
+    from airflow.sensors.http_sensor import HttpSensor
 
 # http operator was renamed in providers-http 4.11.0
 try:

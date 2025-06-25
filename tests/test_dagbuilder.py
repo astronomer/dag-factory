@@ -10,7 +10,7 @@ from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
-from tests.utils import get_python_operator, get_sql_sensor, one_hour_ago
+from tests.utils import get_bash_operator, get_http_sensor, get_python_operator, get_sql_sensor, one_hour_ago
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -77,17 +77,17 @@ DAG_CONFIG = {
     "render_template_as_native_obj": True,
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 2",
             "dependencies": ["task_1"],
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 3",
             "dependencies": ["task_1"],
         },
@@ -108,32 +108,32 @@ DAG_CONFIG_TASK_GROUP = {
     },
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
         },
         "task_4": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
         },
         "task_5": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 5",
             "task_group_name": "task_group_2",
         },
         "task_6": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 6",
             "task_group_name": "task_group_2",
             "dependencies": ["task_5"],
@@ -173,11 +173,11 @@ DAG_CONFIG_DEFAULT_ML = {
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
         },
     },
 }
@@ -206,7 +206,7 @@ DAG_CONFIG_CALLBACKS = {
     "on_failure_callback_file": __file__,
     "tasks": {
         "task_1": {  # Make sure that default_args are applied to this Task
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
             "on_failure_callback_name": "print_context_callback",
@@ -239,12 +239,12 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
     },
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 1",
             "task_group_name": "task_group_1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
             "on_failure_callback": {
@@ -254,7 +254,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             },
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
@@ -264,7 +264,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         # - String with parameters
         # - File name and path
         "task_4": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
             "on_execute_callback": f"{__name__}.print_context_callback",
@@ -314,17 +314,17 @@ def test_get_dag_params():
         "tags": ["tag1", "tag2"],
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
             },
             "task_2": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
             },
             "task_3": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
             },
@@ -352,7 +352,7 @@ def test_adjust_general_task_params_external_sensor_arguments():
 
 def test_make_task_valid():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator()
     task_params = {
         "task_id": "test_task",
         "bash_command": "echo 1",
@@ -374,7 +374,7 @@ def test_make_task_bad_operator():
 
 def test_make_task_missing_required_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -439,7 +439,7 @@ def test_make_python_operator_missing_params():
 
 def test_make_http_sensor():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -456,7 +456,7 @@ def test_make_http_sensor():
 
 def test_make_http_sensor_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -536,7 +536,7 @@ def test_make_sql_sensor_failure_lambda():
 
 def test_make_http_sensor_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -582,32 +582,32 @@ def test_get_dag_params_dag_with_task_group():
         },
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 1",
             },
             "task_2": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 2",
                 "task_group_name": "task_group_1",
             },
             "task_3": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 3",
                 "task_group_name": "task_group_1",
                 "dependencies": ["task_2"],
             },
             "task_4": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 4",
                 "dependencies": ["task_group_1"],
             },
             "task_5": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 5",
                 "task_group_name": "task_group_2",
             },
             "task_6": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator(),
                 "bash_command": "echo 6",
                 "task_group_name": "task_group_2",
                 "dependencies": ["task_5"],
@@ -973,7 +973,7 @@ def test_get_dag_params_with_render_template_as_native_obj():
 
 def test_make_task_with_duplicated_partial_kwargs():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator()
     task_params = {
         "task_id": "task_bash",
         "bash_command": "echo 2",
