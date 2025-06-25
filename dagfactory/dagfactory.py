@@ -12,6 +12,7 @@ from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
+from dagfactory.loader import DAGFactoryLoader
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -89,25 +90,25 @@ class DagFactory:
         # pylint: disable=consider-using-with
         try:
 
-            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __join(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
 
-            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __or(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return " | ".join([f"({str(i)})" for i in seq])
 
-            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            def __and(loader: DAGFactoryLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return " & ".join([f"({str(i)})" for i in seq])
 
-            yaml.add_constructor("!join", __join, yaml.FullLoader)
-            yaml.add_constructor("!or", __or, yaml.FullLoader)
-            yaml.add_constructor("!and", __and, yaml.FullLoader)
+            yaml.add_constructor("!join", __join, DAGFactoryLoader)
+            yaml.add_constructor("!or", __or, DAGFactoryLoader)
+            yaml.add_constructor("!and", __and, DAGFactoryLoader)
 
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=DAGFactoryLoader)
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
