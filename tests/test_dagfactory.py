@@ -361,8 +361,11 @@ def test_variables_as_arguments_dag(monkeypatch):
             assert task.bash_command == override_command
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Skipping this because yaml import old version of operator",
+)
 def test_doc_md_file_path(monkeypatch):
-    monkeypatch.setenv("TEST_MODE", "true")
     dag_config = f"""
 ## YML DAG
 ```yaml
