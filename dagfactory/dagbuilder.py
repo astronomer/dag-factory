@@ -775,7 +775,7 @@ class DagBuilder:
                     schedule.pop("datasets")
         else:
             schedule = dag_params.get("schedule")
-            if schedule == "None":
+            if schedule.strip().lower() == "none":
                 dag_kwargs["schedule"] = None
             else:
                 dag_kwargs["schedule"] = schedule
