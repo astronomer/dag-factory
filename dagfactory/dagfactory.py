@@ -116,7 +116,8 @@ class DagFactory:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
 
-                # This for the CI
+                # This will only invoke in the CI
+                # Make yaml DAG compatible for Airflow 3
                 if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("TEST_MODE"):
                     config = update_yaml_structure(config)
 

@@ -16,4 +16,3 @@ fi
 rm -rf airflow.*
 pip freeze | grep airflow
 airflow db reset -y
-# airflow db init

@@ -63,6 +63,7 @@ def get_dag_bag() -> DagBag:
             file.writelines([f"{dagfile}\n"])
 
         if AIRFLOW_VERSION >= Version("3.0.0"):
+            # TODO: https://github.com/astronomer/dag-factory/issues/437
             file.writelines(["example_dag_datasets.py\n"])
             file.writelines(["example_pypi_stats_plain_airflow.py\n"])
             file.writelines(["example_hackernews_plain_airflow.py\n"])

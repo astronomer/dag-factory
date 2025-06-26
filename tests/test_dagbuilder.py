@@ -829,6 +829,7 @@ def test_make_dag_with_callbacks_default_args():
 
             # Assert that these callbacks have been applied at the Task-level
             assert callback_type in task_1.__dict__
+            # Airflow 3 callback type is sequence
             if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
                 assert callable(task_1.__dict__[callback_type][0])
                 assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
@@ -838,6 +839,7 @@ def test_make_dag_with_callbacks_default_args():
 
         # Assert that these callbacks have been applied at the Task-level
         assert "on_failure_callback" in task_1.__dict__
+        # Airflow 3 callback type is sequence
         if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
             assert callable(task_1.__dict__["on_failure_callback"][0])
             assert task_1.__dict__["on_failure_callback"][0].__name__ == "print_context_callback"
@@ -910,6 +912,7 @@ def test_make_dag_with_task_group_callbacks_default_args():
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
         assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
+        # Airflow 3 callback type is sequence
         if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
             assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
             assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
@@ -919,6 +922,7 @@ def test_make_dag_with_task_group_callbacks_default_args():
 
         # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
         # validated but checking the type, "callab-ility", name, and parameters configured with it
+        # Airflow 3 callback type is sequence
         if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
             assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
             assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
@@ -949,6 +953,7 @@ def test_make_dag_with_task_group_callbacks_tasks():
     dag = td.build()["dag"]
 
     task_4 = dag.task_dict["task_4"]
+    # Airflow 3 callback type is sequence
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
         assert callable(task_4.on_execute_callback[0])
         assert task_4.on_execute_callback[0].__name__ == "print_context_callback"

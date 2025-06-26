@@ -346,6 +346,12 @@ def get_json_serialized_callable(data_obj):
 
 
 def update_yaml_structure(data):
+    """Convert an Airflow 2-style YAML DAG config to be compatible with Airflow 3.
+
+    This function updates the DAG YAML structure to match changes introduced in Airflow 3,
+    such as replacing deprecated fields (e.g., 'schedule_interval' → 'schedule') and
+    adjusting operator import paths to the new module layout.
+    """
     operator_map = {
         "airflow.operators.dummy_operator.DummyOperator": "airflow.providers.standard.operators.empty.EmptyOperator",
         "airflow.operators.bash.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
