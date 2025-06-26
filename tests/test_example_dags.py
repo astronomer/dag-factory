@@ -62,6 +62,11 @@ def get_dag_bag() -> DagBag:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([f"{dagfile}\n"])
 
+        if AIRFLOW_VERSION >= Version("3.0.0"):
+            file.writelines(["example_dag_datasets.py\n"])
+            file.writelines(["example_pypi_stats_plain_airflow.py\n"])
+            file.writelines(["example_hackernews_plain_airflow.py\n"])
+
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())

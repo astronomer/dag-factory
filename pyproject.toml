@@ -31,9 +31,6 @@ dependencies = [
     "apache-airflow>=2.3",
     "apache-airflow-providers-http>=2.0.0",
     "apache-airflow-providers-cncf-kubernetes",
-    "apache-airflow-task-sdk",
-    "apache-airflow-providers-standard",
-    "apache-airflow-providers-fab",
     "pyyaml",
     "packaging",
 ]
@@ -46,6 +43,12 @@ tests = [
     "pytest-cov",
     "pre-commit",
 ]
+airflow3 = [
+    "apache-airflow>=3.0",  # Ensures this extra is only used with Airflow 3+
+    "apache-airflow-providers-standard",
+    "apache-airflow-providers-fab"
+]
+
 
 ######################################
 # UV CONFIGURATION
