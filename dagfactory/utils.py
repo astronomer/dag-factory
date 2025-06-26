@@ -364,7 +364,7 @@ def update_yaml_structure(data):
             if key == "schedule_interval":
                 keys_to_update.append(("schedule_interval", "schedule"))
             if key == "operator":
-                data[key] = operator_map[value]
+                data[key] = operator_map[value] if operator_map.get(value) is not None else value
 
         # Perform renames after iteration
         for old_key, new_key in keys_to_update:
