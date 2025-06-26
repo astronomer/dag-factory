@@ -1,5 +1,7 @@
 # Scheduling in DAG-Factory
 
+- *Released in version: 0.23.0*
+
 DAG-Factory offers flexible scheduling options so your DAGs can run on time or based on data availability. Whether you're triggering DAGs on a cron schedule, a time delta, or when an upstream asset is ready, you can configure it easily using the schedule field in your YAML.
 
 Below are the supported scheduling types, each with consistent structure and examples to help you get started.
