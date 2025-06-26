@@ -118,7 +118,7 @@ class DagFactory:
 
                 # This will only invoke in the CI
                 # Make yaml DAG compatible for Airflow 3
-                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("TEST_MODE"):
+                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
                     config = update_yaml_structure(config)
 
         except Exception as err:

@@ -104,7 +104,7 @@ jobs:
         run: |
           hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
         env:
-          TEST_MODE: true
+          AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
@@ -183,7 +183,7 @@ jobs:
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
-          TEST_MODE: true
+          AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
