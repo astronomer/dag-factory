@@ -190,7 +190,7 @@ def one_hour_ago(execution_date: datetime):
     return execution_date - datetime.timedelta(hours=1)
 
 
-def get_http_sensor():
+def get_http_sensor_path():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version < version.parse("2.4.0"):
         return "airflow.sensors.http_sensor.HttpSensor"
@@ -206,7 +206,7 @@ def get_schedule_key():
         return "schedule"
 
 
-def get_bash_operator():
+def get_bash_operator_path():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version >= version.parse("3.0.0"):
         return "airflow.providers.standard.operators.bash.BashOperator"
@@ -216,7 +216,7 @@ def get_bash_operator():
         return "airflow.operators.bash_operator.BashOperator"
 
 
-def get_python_operator():
+def get_python_operator_path():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version >= version.parse("3.0.0"):
         return "airflow.providers.standard.operators.python.PythonOperator"
@@ -226,7 +226,7 @@ def get_python_operator():
         return "airflow.operators.python_operator.PythonOperator"
 
 
-def get_sql_sensor():
+def get_sql_sensor_path():
     if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
         return "airflow.sensors.sql_sensor.SqlSensor"
     else:

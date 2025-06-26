@@ -15,11 +15,11 @@ from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
 from tests.utils import (
-    get_bash_operator,
-    get_http_sensor,
-    get_python_operator,
+    get_bash_operator_path,
+    get_http_sensor_path,
+    get_python_operator_path,
     get_schedule_key,
-    get_sql_sensor,
+    get_sql_sensor_path,
     one_hour_ago,
 )
 
@@ -87,17 +87,17 @@ DAG_CONFIG = {
     "render_template_as_native_obj": True,
     "tasks": {
         "task_1": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
         },
         "task_2": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "dependencies": ["task_1"],
         },
         "task_3": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "dependencies": ["task_1"],
         },
@@ -118,32 +118,32 @@ DAG_CONFIG_TASK_GROUP = {
     },
     "tasks": {
         "task_1": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
         },
         "task_3": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
         },
         "task_4": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
         },
         "task_5": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 5",
             "task_group_name": "task_group_2",
         },
         "task_6": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 6",
             "task_group_name": "task_group_2",
             "dependencies": ["task_5"],
@@ -156,12 +156,12 @@ DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     get_schedule_key(): "0 4 * * *",
     "tasks": {
         "request": {
-            "operator": get_python_operator(),
+            "operator": get_python_operator_path(),
             "python_callable_name": "example_task_mapping",
             "python_callable_file": os.path.realpath(__file__),
         },
         "process_1": {
-            "operator": get_python_operator(),
+            "operator": get_python_operator_path(),
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
@@ -183,11 +183,11 @@ DAG_CONFIG_DEFAULT_ML = {
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
         },
     },
 }
@@ -216,7 +216,7 @@ DAG_CONFIG_CALLBACKS = {
     "on_failure_callback_file": __file__,
     "tasks": {
         "task_1": {  # Make sure that default_args are applied to this Task
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
             "on_failure_callback_name": "print_context_callback",
@@ -249,12 +249,12 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
     },
     "tasks": {
         "task_1": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "task_group_name": "task_group_1",
         },
         "task_2": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
             "on_failure_callback": {
@@ -264,7 +264,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             },
         },
         "task_3": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
@@ -274,7 +274,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         # - String with parameters
         # - File name and path
         "task_4": {
-            "operator": get_bash_operator(),
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
             "on_execute_callback": f"{__name__}.print_context_callback",
@@ -324,17 +324,17 @@ def test_get_dag_params():
         "tags": ["tag1", "tag2"],
         "tasks": {
             "task_1": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
             },
             "task_2": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
             },
             "task_3": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
             },
@@ -362,7 +362,7 @@ def test_adjust_general_task_params_external_sensor_arguments():
 
 def test_make_task_valid():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_bash_operator()
+    operator = get_bash_operator_path()
     task_params = {
         "task_id": "test_task",
         "bash_command": "echo 1",
@@ -384,7 +384,7 @@ def test_make_task_bad_operator():
 
 def test_make_task_missing_required_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_bash_operator()
+    operator = get_bash_operator_path()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -406,7 +406,7 @@ def example_task_mapping():
 
 def test_make_python_operator():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_python_operator()
+    operator = get_python_operator_path()
     task_params = {
         "task_id": "test_task",
         "python_callable_name": "print_test",
@@ -420,7 +420,7 @@ def test_make_python_operator():
 
 def test_make_python_operator_with_callable_str():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_python_operator()
+    operator = get_python_operator_path()
     task_params = {
         "task_id": "test_task",
         "python_callable": "builtins.print",
@@ -433,7 +433,7 @@ def test_make_python_operator_with_callable_str():
 
 def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_python_operator()
+    operator = get_python_operator_path()
     task_params = {"task_id": "test_task", "python_callable_name": "print_test"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -441,7 +441,7 @@ def test_make_python_operator_missing_param():
 
 def test_make_python_operator_missing_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_python_operator()
+    operator = get_python_operator_path()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -449,7 +449,7 @@ def test_make_python_operator_missing_params():
 
 def test_make_http_sensor():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_http_sensor()
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -466,7 +466,7 @@ def test_make_http_sensor():
 
 def test_make_http_sensor_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_http_sensor()
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -482,7 +482,7 @@ def test_make_http_sensor_lambda():
 
 def test_make_sql_sensor_success():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    sensor = get_sql_sensor()
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -498,7 +498,7 @@ def test_make_sql_sensor_success():
 
 def test_make_sql_sensor_success_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    sensor = get_sql_sensor()
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -513,7 +513,7 @@ def test_make_sql_sensor_success_lambda():
 
 def test_make_sql_sensor_failure():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    sensor = get_sql_sensor()
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -530,7 +530,7 @@ def test_make_sql_sensor_failure():
 
 def test_make_sql_sensor_failure_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    sensor = get_sql_sensor()
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -546,7 +546,7 @@ def test_make_sql_sensor_failure_lambda():
 
 def test_make_http_sensor_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = get_http_sensor()
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -591,32 +591,32 @@ def test_get_dag_params_dag_with_task_group():
         },
         "tasks": {
             "task_1": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
             "task_2": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "task_group_name": "task_group_1",
             },
             "task_3": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "task_group_name": "task_group_1",
                 "dependencies": ["task_2"],
             },
             "task_4": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 4",
                 "dependencies": ["task_group_1"],
             },
             "task_5": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 5",
                 "task_group_name": "task_group_2",
             },
             "task_6": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 6",
                 "task_group_name": "task_group_2",
                 "dependencies": ["task_5"],
@@ -1023,7 +1023,7 @@ def test_get_dag_params_with_render_template_as_native_obj():
 
 def test_make_task_with_duplicated_partial_kwargs():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    operator = get_bash_operator()
+    operator = get_bash_operator_path()
     task_params = {
         "task_id": "task_bash",
         "bash_command": "echo 2",
@@ -1040,7 +1040,7 @@ def test_dynamic_task_mapping():
         with pytest.raises(Exception, match=error_message):
             td.build()
     else:
-        operator = get_python_operator()
+        operator = get_python_operator_path()
         task_params = {
             "task_id": "process",
             "python_callable_name": "expand_task",
@@ -1123,7 +1123,7 @@ def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inle
     # Mock the response of `get_datasets_uri_yaml_file` to return expected values
     mock_read_file.return_value = expected_inlets + expected_outlets
 
-    operator = get_python_operator()
+    operator = get_python_operator_path()
     actual = td.make_task(operator, task_params)
 
     # Assertions to check if the actual results match the expected values

@@ -12,7 +12,7 @@ except ImportError:  # pragma: no cover
 from airflow.models.variable import Variable
 from packaging import version
 
-from tests.utils import get_bash_operator, get_schedule_key
+from tests.utils import get_bash_operator_path, get_schedule_key
 
 here = os.path.dirname(__file__)
 
@@ -44,7 +44,7 @@ DAG_FACTORY_CONFIG = {
     "example_dag": {
         "tasks": {
             "task_1": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
         },
@@ -70,7 +70,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         "sla_miss_callback": f"{__name__}.print_context_callback",
         "tasks": {
             "task_1": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -79,7 +79,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
             "task_2": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -88,7 +88,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
             "task_3": {
-                "operator": get_bash_operator(),
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -138,16 +138,16 @@ def test_load_config_valid(monkeypatch):
             get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -158,16 +158,16 @@ def test_load_config_valid(monkeypatch):
             get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -179,7 +179,7 @@ def test_load_config_valid(monkeypatch):
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
@@ -188,7 +188,7 @@ def test_load_config_valid(monkeypatch):
             "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
             },
@@ -220,16 +220,16 @@ def test_get_dag_configs(monkeypatch):
             get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -240,16 +240,16 @@ def test_get_dag_configs(monkeypatch):
             get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -261,7 +261,7 @@ def test_get_dag_configs(monkeypatch):
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
@@ -270,7 +270,7 @@ def test_get_dag_configs(monkeypatch):
             "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
             },
@@ -443,7 +443,7 @@ def test_dagfactory_dict():
         "example_dag": {
             "tasks": {
                 "task_1": {
-                    "operator": get_bash_operator(),
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
