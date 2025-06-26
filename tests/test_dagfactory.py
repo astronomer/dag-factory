@@ -111,10 +111,10 @@ def test_validate_config_filepath_invalid():
 
 
 @pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0") or version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
-    reason="Requires Airflow version greater than 2.4.0",
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
-def test_load_config_valid():
+def test_load_config_valid(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "true")
     expected = {
         "default": {
             "default_args": {
