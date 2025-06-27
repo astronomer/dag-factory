@@ -6,16 +6,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.23.0a3] - 2025-04-17
+## [0.23.0a7] - 2025-06-27
 
 ### Added
 
 - Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
 - Add HttpOperator JSON serialization support with tests by @a-chumagin in [#382](https://github.com/astronomer/dag-factory/pull/382)
+-
 
 ### Fixed
 
 - Remediated ``default`` behavior, added documentation by @jroach-astronomer in [#378](https://github.com/astronomer/dag-factory/pull/378)
+- Fix schedule for AF3 by @pankajastro in [#413](https://github.com/astronomer/dag-factory/pull/413)
 
 ### Docs
 
@@ -26,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrate old content to new documentation structure by @pankajastro in [#393](https://github.com/astronomer/dag-factory/pull/393)
 - Update Airflow supported version 2.3+ in docs by @pankajastro in [#412](https://github.com/astronomer/dag-factory/pull/412)
 - Doc: Add step to fork repo in contributing guide  by @pankajastro in [#427](https://github.com/astronomer/dag-factory/pull/427)
+- Add setting CONFIG_ROOT_DIR in the contribution doc by @gyli in [#432](https://github.com/astronomer/dag-factory/pull/432)
+- Add scheduling docs for Airflow 3 by @pankajastro in [#424](https://github.com/astronomer/dag-factory/pull/424)
 
 ### Others
 
@@ -46,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Install uv in CI by @jlaneve in [#421](https://github.com/astronomer/dag-factory/pull/421)
 - Bump astral-sh/setup-uv from 5 to 6 by @dependabot in [#423](https://github.com/astronomer/dag-factory/pull/423)
 - Add AF 2.11 in test matrix by @pankajastro in [#425](https://github.com/astronomer/dag-factory/pull/425)
+- fix example_dag_factory.yml typo causing catchup: false to not be respected by @RNHTTR in [#431](https://github.com/astronomer/dag-factory/pull/431)
+- Drop Python 3.8 support by @pankajastro in [#435](https://github.com/astronomer/dag-factory/pull/435)
+- Remove expandvars in utils.get_python_callable by @gyli in [#440](https://github.com/astronomer/dag-factory/pull/440)
+- Enable Airflow 3 tests in CI by @pankajastro in [#436](https://github.com/astronomer/dag-factory/pull/436)
 
 ## [0.22.0] - 2025-01-10
 
