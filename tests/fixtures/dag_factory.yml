@@ -21,34 +21,34 @@ example_dag:
   tasks:
     task_1:
       bash_command: echo 1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_2:
       bash_command: echo 2
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_3:
       bash_command: echo 3
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
 example_dag2:
   doc_md_file_path: $PWD/tests/fixtures/mydocfile.md
   schedule_interval: None
   tasks:
     task_1:
       bash_command: echo 1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_2:
       bash_command: echo 2
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_3:
       bash_command: echo 3
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
 example_dag3:
   doc_md_python_arguments:
     arg1: arg1
@@ -58,7 +58,7 @@ example_dag3:
   tasks:
     task_1:
       bash_command: echo 1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
 example_dag4:
   vars:
     arg1: &arg1 'hello'
@@ -66,4 +66,4 @@ example_dag4:
   tasks:
     task_1:
       bash_command: !join ['echo ', *arg2]
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator

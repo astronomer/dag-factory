@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 from random import randint
 
-from airflow.operators.python import get_current_context
+try:
+    from airflow.providers.standard.operators.python import get_current_context
+except ImportError:
+    from airflow.operators.python import get_current_context
 
 
 def build_numbers_list():

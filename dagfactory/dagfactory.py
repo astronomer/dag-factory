@@ -9,9 +9,16 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
+from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
+from dagfactory.utils import update_yaml_structure
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:  # pragma: no cover
+    from airflow import __version__ as AIRFLOW_VERSION
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -108,6 +115,12 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+
+                # This will only invoke in the CI
+                # Make yaml DAG compatible for Airflow 3
+                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
+                    config = update_yaml_structure(config)
+
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config

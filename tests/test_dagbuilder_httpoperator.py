@@ -6,10 +6,10 @@ from pathlib import Path
 import pendulum
 import pytest
 from airflow import DAG
-from airflow.utils.module_loading import import_string
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryException
+from tests.utils import get_schedule_key
 
 # Get current directory and project root
 here = Path(__file__).parent
@@ -19,11 +19,13 @@ UTC = pendulum.timezone("UTC")
 # Get the appropriate HTTP operator based on what's available
 try:
     from airflow.providers.http.operators.http import HttpOperator
+
     HTTP_OPERATOR_CLASS = HttpOperator
     HTTP_OPERATOR_PATH = "airflow.providers.http.operators.http.HttpOperator"
 except ImportError:
     try:
         from airflow.providers.http.operators.http import SimpleHttpOperator
+
         HTTP_OPERATOR_CLASS = SimpleHttpOperator
         HTTP_OPERATOR_PATH = "airflow.providers.http.operators.http.SimpleHttpOperator"
     except ImportError:
@@ -74,7 +76,7 @@ DAG_CONFIG = {
 def test_http_operator_json_serialization(headers, data, expected_headers, expected_callable):
     """Test that HTTP operator properly handles JSON data serialization"""
     td = DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    
+
     task_params = {
         "task_id": "test_http_task",
         "http_conn_id": "test_conn",
@@ -168,7 +170,7 @@ def test_dag_with_http_operator():
     # Create a config with HTTP operator tasks
     http_dag_config = {
         "default_args": {"owner": "test_owner", "start_date": datetime.date(2023, 1, 1)},
-        "schedule_interval": "0 0 * * *",
+        get_schedule_key(): "0 0 * * *",
         "tasks": {
             "http_task_json": {
                 "operator": HTTP_OPERATOR_PATH,
@@ -279,7 +281,7 @@ def test_http_operator_from_yaml():
     # Test plaintext task
     plain_task = dag.get_task("send_request_plain_text")
     assert plain_task.headers.get("Content-Type") == "text/plain"
-    
+
     # For non-JSON content type, data handling may differ between operator versions
     if isinstance(plain_task.data, dict):
         assert plain_task.data == {"data": "fake_data", "test": "plain_text"}

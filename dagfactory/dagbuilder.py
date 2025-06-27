@@ -50,7 +50,10 @@ except ImportError:
         # Fallback to older versions
         from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
-from airflow.providers.http.sensors.http import HttpSensor
+try:
+    from airflow.providers.http.sensors.http import HttpSensor
+except ImportError:  # Airflow < 2.4
+    from airflow.sensors.http_sensor import HttpSensor
 
 # http operator was renamed in providers-http 4.11.0
 try:
@@ -771,7 +774,11 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            dag_kwargs["schedule"] = dag_params.get("schedule")
+            schedule = dag_params.get("schedule")
+            if schedule.strip().lower() == "none":
+                dag_kwargs["schedule"] = None
+            else:
+                dag_kwargs["schedule"] = schedule
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:

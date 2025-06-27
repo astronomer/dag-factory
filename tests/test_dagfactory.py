@@ -3,9 +3,16 @@ import logging
 import os
 
 import pytest
-from airflow import __version__ as AIRFLOW_VERSION
+
+try:
+    from airflow.version import version as AIRFLOW_VERSION
+except ImportError:  # pragma: no cover
+    from airflow import __version__ as AIRFLOW_VERSION
+
 from airflow.models.variable import Variable
 from packaging import version
+
+from tests.utils import get_bash_operator_path, get_schedule_key
 
 here = os.path.dirname(__file__)
 
@@ -32,12 +39,12 @@ DAG_FACTORY_CONFIG = {
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "@daily",
+        get_schedule_key(): "@daily",
     },
     "example_dag": {
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
         },
@@ -56,14 +63,14 @@ DAG_FACTORY_CALLBACK_CONFIG = {
             "on_retry_callback": f"{__name__}.print_context_callback",
         },
         "description": "this is an example dag",
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
         "sla_miss_callback": f"{__name__}.print_context_callback",
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -72,7 +79,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
             "task_2": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -81,7 +88,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
             "task_3": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
                 "on_failure_callback": f"{__name__}.print_context_callback",
@@ -103,7 +110,11 @@ def test_validate_config_filepath_invalid():
         dagfactory.DagFactory._validate_config_filepath("config.yml")
 
 
-def test_load_config_valid():
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+)
+def test_load_config_valid(monkeypatch):
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
         "default": {
             "default_args": {
@@ -118,25 +129,25 @@ def test_load_config_valid():
             "dagrun_timeout_sec": 600,
             "default_view": "tree",
             "orientation": "LR",
-            "schedule_interval": "0 1 * * *",
+            get_schedule_key(): "0 1 * * *",
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            "schedule_interval": "0 3 * * *",
+            get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -144,19 +155,19 @@ def test_load_config_valid():
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            "schedule_interval": "None",
+            get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -168,7 +179,7 @@ def test_load_config_valid():
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
@@ -177,7 +188,7 @@ def test_load_config_valid():
             "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
             },
@@ -194,26 +205,31 @@ def test_load_config_invalid():
         dagfactory.DagFactory._load_config(INVALID_YAML)
 
 
-def test_get_dag_configs():
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"),
+    reason="Require Airflow >=2.4.0",
+)
+def test_get_dag_configs(monkeypatch):
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     expected = {
         "example_dag": {
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            "schedule_interval": "0 3 * * *",
+            get_schedule_key(): "0 3 * * *",
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -221,19 +237,19 @@ def test_get_dag_configs():
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            "schedule_interval": "None",
+            get_schedule_key(): "None",
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
                 "task_2": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
                 "task_3": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
@@ -245,7 +261,7 @@ def test_get_dag_configs():
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
@@ -254,7 +270,7 @@ def test_get_dag_configs():
             "vars": {"arg1": "hello", "arg2": "hello world"},
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
             },
@@ -281,7 +297,7 @@ def test_get_default_config():
         "dagrun_timeout_sec": 600,
         "default_view": "tree",
         "orientation": "LR",
-        "schedule_interval": "0 1 * * *",
+        get_schedule_key(): "0 1 * * *",
     }
     actual = td.get_default_config()
     assert actual == expected
@@ -330,7 +346,8 @@ def test_kubernetes_pod_operator_dag_lt_2_7():
     assert "example_dag" in globals()
 
 
-def test_variables_as_arguments_dag():
+def test_variables_as_arguments_dag(monkeypatch):
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     override_command = "value_from_variable"
     if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
         os.environ["AIRFLOW_VAR_VAR1"] = override_command
@@ -344,7 +361,11 @@ def test_variables_as_arguments_dag():
             assert task.bash_command == override_command
 
 
-def test_doc_md_file_path():
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Skipping this because yaml import old version of operator",
+)
+def test_doc_md_file_path(monkeypatch):
     dag_config = f"""
 ## YML DAG
 ```yaml
@@ -368,17 +389,17 @@ example_dag2:
   tasks:
     task_1:
       bash_command: echo 1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_2:
       bash_command: echo 2
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
     task_3:
       bash_command: echo 3
       dependencies:
       - task_1
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
 
 ```"""
 
@@ -400,7 +421,10 @@ def test_doc_md_callable():
 def test_schedule_interval():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    schedule_interval = globals()["example_dag2"].schedule_interval
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        schedule_interval = globals()["example_dag2"].schedule_interval
+    else:
+        schedule_interval = globals()["example_dag2"].schedule
     assert schedule_interval is None
 
 
@@ -413,13 +437,13 @@ def test_dagfactory_dict():
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        "schedule_interval": "@daily",
+        get_schedule_key(): "@daily",
     }
     expected_dag = {
         "example_dag": {
             "tasks": {
                 "task_1": {
-                    "operator": "airflow.operators.bash_operator.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
             },
@@ -486,6 +510,10 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
     assert "Loading DAGs from tests/fixtures" in caplog.messages
 
 
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"),
+    reason="Skipping this because yaml import old version of operator",
+)
 def test_yml_dag_rendering_in_docs():
     dag_path = os.path.join(here, "fixtures/dag_md_docs.yml")
     td = dagfactory.DagFactory(dag_path)
