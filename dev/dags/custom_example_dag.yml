@@ -1,0 +1,35 @@
+custom_example_dag:
+  description: "this is an example dag"
+  schedule_interval: "@daily"
+  catchup: false
+  render_template_as_native_obj: True
+  tasks:
+    task_1:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 1"
+      executor_config:
+        pod_override:
+          __type__: kubernetes.client.models.V1Pod
+          spec:
+            __type__: kubernetes.client.models.V1PodSpec
+            containers:
+              __type__: builtins.list
+              items:
+                - __type__: kubernetes.client.models.V1Container
+                  name: "base"
+                  resources:
+                    __type__: kubernetes.client.models.V1ResourceRequirements
+                    limits:
+                      cpu: "1"
+                      memory: "1024Mi"
+                    requests:
+                      cpu: "0.5"
+                      memory: "512Mi"
+    task_2:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 2"
+      dependencies: [task_1]
+    task_3:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 2"
+      dependencies: [task_1]
