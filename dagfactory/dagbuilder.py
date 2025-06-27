@@ -788,6 +788,9 @@ class DagBuilder:
         if schedule is None:
             return None
 
+        if schedule.strip().lower() == "none":
+            return None
+
         # Case 1: If schedule is a string, return it directly
         if isinstance(schedule, str):
             return schedule

@@ -11,9 +11,11 @@ try:
     from airflow.sdk.definitions import DAG
 except ImportError:
     from airflow import DAG
+import yaml
+from airflow import DAG
 from packaging import version
 
-from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
 from tests.utils import (
     get_bash_operator_path,
     get_http_sensor_path,
@@ -22,13 +24,6 @@ from tests.utils import (
     get_sql_sensor_path,
     one_hour_ago,
 )
-
-import yaml
-from airflow import DAG
-from packaging import version
-
-from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
-
 
 try:
     from airflow.providers.http.sensors.http import HttpSensor
@@ -1226,7 +1221,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule == expected
+        assert parsed_schedule.__eq__(expected)
 
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
@@ -1259,7 +1254,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule == expected
+        assert parsed_schedule.__eq__(expected)
 
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
@@ -1305,7 +1300,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule == expected
+        assert parsed_schedule.__eq__(expected)
 
     def test_asset_schedule_with_watcher(self):
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
@@ -1438,7 +1433,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert schedule == expected
+        assert schedule.__eq__(expected)
 
 
 class TestTopologicalSortTasks:
