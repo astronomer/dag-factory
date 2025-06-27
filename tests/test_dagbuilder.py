@@ -23,6 +23,7 @@ from tests.utils import (
     get_schedule_key,
     get_sql_sensor_path,
     one_hour_ago,
+    read_yml,
 )
 
 try:
@@ -62,6 +63,7 @@ except ImportError:
     from airflow.models import MappedOperator
 
 here = Path(__file__).parent
+schedule_path = here / "schedule"
 
 PROJECT_ROOT_PATH = str(here.parent)
 UTC = pendulum.timezone("UTC")
@@ -1161,15 +1163,8 @@ class TestSchedule:
     def test_asset_schedule_list_of_assets(self):
         from airflow.sdk import Asset
 
-        yaml_str = """
-          - uri: s3://dag1/output_1.txt
-            extra:
-              hi: bye
-          - uri: s3://dag2/output_1.txt
-            extra:
-                hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
+        schedule_data = read_yml(schedule_path / "list_asset.yml")
+        data = schedule_data["schedule"]["value"]
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = [
@@ -1193,16 +1188,8 @@ class TestSchedule:
     def test_asset_schedule_with_and_operator(self):
         from airflow.sdk import Asset, AssetAll
 
-        yaml_str = """
-          and:
-              - uri: s3://dag1/output_1.txt
-                extra:
-                  hi: bye
-              - uri: s3://dag2/output_1.txt
-                extra:
-                  hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
+        schedule_data = read_yml(schedule_path / "and_asset.yml")
+        data = schedule_data["schedule"]["value"]
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = AssetAll(
@@ -1226,16 +1213,9 @@ class TestSchedule:
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
-        yaml_str = """
-          or:
-              - uri: s3://dag1/output_1.txt
-                extra:
-                  hi: bye
-              - uri: s3://dag2/output_1.txt
-                extra:
-                  hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
+        schedule_data = read_yml(schedule_path / "or_asset.yml")
+        data = schedule_data["schedule"]["value"]
+
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = AssetAny(
@@ -1259,20 +1239,9 @@ class TestSchedule:
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
-        yaml_str = """
-        or:
-          - and:
-              - uri: s3://dag1/output_1.txt
-                extra:
-                  hi: bye
-              - uri: s3://dag2/output_1.txt
-                extra:
-                  hi: bye
-          - uri: s3://dag3/output_3.txt
-            extra:
-              hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
+        schedule_data = read_yml(schedule_path / "nested_asset.yml")
+        data = schedule_data["schedule"]["value"]
+
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = AssetAny(
@@ -1306,19 +1275,9 @@ class TestSchedule:
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
         from airflow.sdk import Asset, AssetWatcher
 
-        yaml_str = """
-          - uri: s3://dag1/output_1.txt
-            extra:
-              hi: bye
-            watchers:
-              - callable: airflow.sdk.AssetWatcher
-                name: test_asset_watcher
-                trigger:
-                  callable: airflow.providers.standard.triggers.file.FileDeleteTrigger
-                  params:
-                    filepath: "/temp/file.txt"
-        """
-        data = yaml.safe_load(yaml_str)
+        schedule_data = read_yml(schedule_path / "asset_with_watcher.yml")
+        data = schedule_data["schedule"]["value"]
+
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = [
@@ -1335,7 +1294,7 @@ class TestSchedule:
                 ],
             )
         ]
-        assert parsed_schedule == expected
+        assert parsed_schedule.__eq__(expected)
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
@@ -1344,58 +1303,32 @@ class TestSchedule:
         assert schedule == "* * * * *"
 
     def test_resolve_schedule_cron_string_alias(self):
-        yaml_str = "schedule: '@daily'"
-        data = yaml.safe_load(yaml_str)
+        data = read_yml(schedule_path / "cron.yml")
         schedule = DagBuilder._resolve_schedule(data)
         assert schedule == "@daily"
 
     def test_resolve_schedule_cron_type_value(self):
-        yaml_str = """
-        schedule:
-            type: cron
-            value: "@daily"
-        """
-        data = yaml.safe_load(yaml_str)
+        data = read_yml(schedule_path / "cron_dict.yml")
         schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == "@daily"
+        assert schedule == "0 0 * * *"
 
     def test_resolve_schedule_timetable_type(self):
         from airflow.timetables.trigger import CronTriggerTimetable
 
-        yaml_str = """
-        schedule:
-            type: timetable
-            value:
-                callable: airflow.timetables.trigger.CronTriggerTimetable
-                params:
-                    cron: "* * * * *"
-                    timezone: UTC
-        """
-        data = yaml.safe_load(yaml_str)
+        data = read_yml(schedule_path / "timetable.yml")
         schedule = DagBuilder._resolve_schedule(data)
         assert schedule == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
 
     def test_resolve_schedule_timedelta_type(self):
-        yaml_str = """
-        schedule:
-            type: timedelta
-            value:
-                seconds: 30
-        """
-        data = yaml.safe_load(yaml_str)
+
+        data = read_yml(schedule_path / "timedelta.yml")
         schedule = DagBuilder._resolve_schedule(data)
         assert schedule == datetime.timedelta(seconds=30)
 
     def test_resolve_schedule_relativedelta_type(self):
         from dateutil.relativedelta import relativedelta
 
-        yaml_str = """
-        schedule:
-            type: relativedelta
-            value:
-                month: 1
-        """
-        data = yaml.safe_load(yaml_str)
+        data = read_yml(schedule_path / "relativedelta.yml")
         schedule = DagBuilder._resolve_schedule(data)
         assert schedule == relativedelta(month=1)
 

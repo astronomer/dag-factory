@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from typing import Any
 
+import yaml
 from airflow.configuration import secrets_backend_list
 from airflow.exceptions import AirflowSkipException
 from airflow.models.dag import DAG
@@ -231,3 +232,8 @@ def get_sql_sensor_path():
         return "airflow.sensors.sql_sensor.SqlSensor"
     else:
         return "airflow.providers.common.sql.sensors.sql.SqlSensor"
+
+
+def read_yml(path):
+    with open(path, "r") as file:
+        return yaml.safe_load(file)
