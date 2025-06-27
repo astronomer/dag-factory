@@ -13,7 +13,7 @@ from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import update_yaml_structure
+from dagfactory.utils import cast_with_type, update_yaml_structure
 
 try:
     from airflow.version import version as AIRFLOW_VERSION
@@ -115,6 +115,7 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+                config = cast_with_type(config)
 
                 # This will only invoke in the CI
                 # Make yaml DAG compatible for Airflow 3

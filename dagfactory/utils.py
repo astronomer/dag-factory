@@ -9,7 +9,6 @@ import re
 import sys
 import types
 from datetime import date, datetime, timedelta
-from importlib import import_module
 from pathlib import Path
 from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
@@ -19,11 +18,14 @@ import yaml
 from dagfactory.exceptions import DagFactoryException
 
 
-def _import_from_string(dotted_path: str):
-    """Import a class or function from a dotted path string."""
-    module_path, _, attr = dotted_path.rpartition(".")
-    module = import_module(module_path)
-    return getattr(module, attr)
+def _import_from_string(class_path):
+    """Dynamically import a class from a string."""
+    try:
+        module_path, class_name = class_path.rsplit(".", 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name)
+    except (ImportError, AttributeError) as e:
+        raise ImportError(f"Could not import '{class_path}': {e}")
 
 
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
@@ -387,5 +389,27 @@ def update_yaml_structure(data):
     elif isinstance(data, list):
         for item in data:
             update_yaml_structure(item)
+
+    return data
+
+
+def cast_with_type(data):
+    """Recursively cast dictionaries with a __type__ key."""
+    if isinstance(data, dict):
+        # Handle typed list
+        if data.get("__type__") == "builtins.list" and "items" in data:
+            return [cast_with_type(item) for item in data["items"]]
+
+        # Normal typed dict
+        processed = {k: cast_with_type(v) for k, v in data.items() if k != "__type__"}
+
+        if "__type__" in data:
+            class_type = _import_from_string(data["__type__"])
+            return class_type(**processed)
+
+        return processed
+
+    elif isinstance(data, list):
+        return [cast_with_type(item) for item in data]
 
     return data
