@@ -1,4 +1,4 @@
-# Scheduling in DAG-Factory
+# Scheduling
 
 - *Released in version: 0.23.0*
 
@@ -27,102 +27,62 @@ Below are the supported scheduling types, each with consistent structure and exa
 
 ### 1. Cron-Based Schedule
 
-```yaml
-schedule: "0 0 * * *"
+```yaml title="Corn Schedule"
+--8<-- "tests/schedule/cron.yml"
 ```
 
 Or,
 
-```yaml
-schedule:
-  type: cron
-  value: "0 0 * * *"
+```yaml title="Corn Schedule"
+--8<-- "tests/schedule/cron_dict.yml"
 ```
 
 ### 2. Timedelta Schedule
 
-```yaml
-schedule:
-  type: timedelta
-  value:
-    days: 0
-    seconds: 0
-    microseconds: 0
-    milliseconds: 0
-    minutes: 0
-    hours: 6
-    weeks: 0
+```yaml title="Timedelta Schedule"
+--8<-- "tests/schedule/timedelta.yml"
 ```
 
 ### 3. RelativeDelta Schedule
 
-```yaml
-schedule:
-  type: relativedelta
-  value:
-    months: 1
-    days: 0
+```yaml title="Relativedelta Schedule"
+--8<-- "tests/schedule/relativedelta.yml"
 ```
 
 ## 4. Timetable (Advanced Scheduling)
 
-```yaml
-schedule:
-  type: timetable
-  value:
-    callable: airflow.timetables.trigger.CronTriggerTimetable
-    params:
-      cron: "0 1 * * 3"
-      timezone: "UTC"
-
+```yaml title="Timetable Schedule"
+--8<-- "tests/schedule/timetable.yml"
 ```
 
 ### 5. Asset-Based Triggering
 
 #### OR (default when list is provided)
 
-```yaml
-schedule:
-  type: assets
-    - uri: s3://dag1/output_1.txt
-      extra:
-        hi: bye
-    - uri: s3://dag2/output_1.txt
-      extra:
-        hi: bye
+```yaml title="OR Condition"
+--8<-- "tests/schedule/list_asset.yml"
+```
+
+```yaml title="OR Condition"
+--8<-- "tests/schedule/or_asset.yml"
 ```
 
 #### AND (explicit composition)
 
-```yaml
-schedule:
-  type: assets
-  value:
-    and:
-      - uri: s3://dag1/output_1.txt
-        extra:
-          hi: bye
-      - uri: s3://dag2/output_1.txt
-        extra:
-          hi: bye
+```yaml title="AND Condition"
+--8<-- "tests/schedule/and_asset.yml"
+```
+
+#### Nested And Or Condition
+
+```yaml title="Nested AND OR Condition"
+--8<-- "tests/schedule/nested_asset.yml"
 ```
 
 #### With Watchers
 
-```yaml
-schedule:
-  type: assets
-  value:
-    - uri: s3://dag1/output_1.txt
-      extra:
-        hi: bye
-      watchers:
-        - class: airflow.sdk.AssetWatcher
-          name: test_asset_watcher
-          trigger:
-            class: airflow.providers.standard.triggers.file.FileDeleteTrigger
-            params:
-              filepath: "/temp/file.txt"
+```yaml title="Assert with watcher"
+--8<-- "tests/schedule/asset_with_watcher.yml"
 ```
 
 ### 6. Datasets-Based Triggering

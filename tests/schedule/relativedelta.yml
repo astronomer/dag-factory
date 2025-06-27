@@ -1,0 +1,4 @@
+schedule:
+  type: relativedelta
+  value:
+      month: 1
