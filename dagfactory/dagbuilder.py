@@ -11,12 +11,13 @@ import re
 import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
-from functools import partial
+from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
+from dateutil.relativedelta import relativedelta
 from packaging import version
 
 from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
@@ -730,6 +731,93 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
+    def _init_watchers(watchers_data):
+        """Initialize watcher objects from configuration."""
+        from dagfactory.utils import _import_from_string
+
+        watchers = []
+        for watcher in watchers_data:
+            watcher_class = _import_from_string(watcher["callable"])
+            trigger_data = watcher.get("trigger", {})
+            trigger_class = _import_from_string(trigger_data.get("callable"))
+            trigger_params = trigger_data.get("params", {})
+            watchers.append(watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_params)))
+        return watchers
+
+    @staticmethod
+    def _init_asset(asset_dict: dict):
+        from airflow.sdk import Asset
+
+        """Initialize an Asset from its configuration dictionary."""
+        if "watchers" in asset_dict:
+            asset_dict["watchers"] = DagBuilder._init_watchers(asset_dict["watchers"])
+        return Asset(**asset_dict)
+
+    @staticmethod
+    def _combine_assets(assets, op: str):
+        """Combine a list of Asset objects using logical operators."""
+        if op == "or":
+            return reduce(lambda a, b: a | b, assets)
+        elif op == "and":
+            return reduce(lambda a, b: a & b, assets)
+        else:
+            raise ValueError(f"Unknown operator: {op}")
+
+    @staticmethod
+    def _asset_schedule(value):
+        """Recursively parse and construct assets or combinations of assets."""
+        if isinstance(value, dict):
+            if "or" in value:
+                assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
+                return DagBuilder._combine_assets(assets, "or")
+            elif "and" in value:
+                assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
+                return DagBuilder._combine_assets(assets, "and")
+            elif "uri" in value:
+                return DagBuilder._init_asset(value)
+            else:
+                raise ValueError(f"Invalid asset entry: {value}")
+        elif isinstance(value, list):
+            return [DagBuilder._init_asset(asset) for asset in value]
+        else:
+            raise TypeError(f"Unexpected data type: {type(value)}")
+
+    @staticmethod
+    def _resolve_schedule(dag_params):
+        schedule = dag_params.get("schedule")
+        if schedule is None:
+            return None
+
+        if isinstance(schedule, str) and schedule.strip().lower() == "none":
+            return None
+
+        # Case 1: If schedule is a string, return it directly
+        if isinstance(schedule, str):
+            return schedule
+
+        # Case 2: If schedule is a dictionary
+        if isinstance(schedule, dict):
+            schedule_type = schedule.get("type")
+            value = schedule.get("value")
+
+            dispatch = {
+                "cron": lambda v: v,
+                "timetable": lambda v: DagBuilder.make_timetable(v.get("callable"), v.get("params", {})),
+                "timedelta": lambda v: timedelta(**v),
+                "relativedelta": lambda v: relativedelta(**v),
+                "assets": lambda v: DagBuilder._asset_schedule(v),
+            }
+
+            try:
+                handler = dispatch[schedule_type]
+            except KeyError:
+                raise DagFactoryException(f"Schedule type {schedule_type} is not supported.")
+
+            return handler(value)
+
+        raise DagFactoryException(f"Unexpected value for schedule: {schedule}")
+
+    @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
         Configures the schedule for the DAG based on parameters and the Airflow version.
@@ -774,11 +862,7 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            schedule = dag_params.get("schedule")
-            if schedule.strip().lower() == "none":
-                dag_kwargs["schedule"] = None
-            else:
-                dag_kwargs["schedule"] = schedule
+            dag_kwargs["schedule"] = DagBuilder._resolve_schedule(dag_params)
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
