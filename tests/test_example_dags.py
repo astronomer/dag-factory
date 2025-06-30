@@ -13,12 +13,13 @@ except ImportError:
     from airflow.models.dag import DAG
 
 import airflow
-import pytest
 from airflow.models.dagbag import DagBag
+from airflow.utils import timezone
 from airflow.utils.db import create_default_connections
 from airflow.utils.session import provide_session
 from airflow.utils.state import DagRunState
 from packaging.version import Version
+import pytest
 
 from . import utils as test_utils
 
@@ -96,7 +97,7 @@ def test_example_dag(session, dag_id: str):
 
     dag_run = None
     if AIRFLOW_VERSION >= Version("3.0"):
-        dag_run = test_utils.run_dag(dag)
+        dag_run = dag.test(logical_date=timezone.utcnow())
     elif AIRFLOW_VERSION >= Version("2.5"):
         dag_run = dag.test()
     else:
