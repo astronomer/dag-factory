@@ -8,7 +8,12 @@ from typing import Any
 import yaml
 from airflow.configuration import secrets_backend_list
 from airflow.exceptions import AirflowSkipException
-from airflow.models.dag import DAG
+
+try:
+    from airflow.sdk.definitions.dag import DAG
+except ImportError:
+    from airflow.models.dag import DAG
+
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
@@ -39,6 +44,10 @@ except ImportError:
 
 def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
     return test_dag(dag=dag, conn_file_path=conn_file_path)
+
+
+def new_test_dag(dag: DAG):
+    return dag.test(logical_date=timezone.utcnow())
 
 
 # DAG.test() was added in Airflow version 2.5.0. And to test on older Airflow versions, we need to copy the
