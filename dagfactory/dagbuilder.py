@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import ast
-
-# pylint: disable=ungrouped-imports
 import inspect
 import os
 import re
@@ -14,9 +12,18 @@ from datetime import datetime, timedelta
 from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from airflow import DAG, configuration
-from airflow.models import BaseOperator, Variable
+from airflow import configuration
 from airflow.utils.module_loading import import_string
+
+try:
+    from airflow.sdk.bases.operator import BaseOperator
+    from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.variable import Variable
+except ImportError:
+    from airflow import DAG
+    from airflow.models import BaseOperator, Variable
+
+
 from dateutil.relativedelta import relativedelta
 from packaging import version
 

@@ -8,7 +8,11 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from airflow.configuration import conf as airflow_conf
-from airflow.models import DAG
+
+try:
+    from airflow.sdk.definitions.dag import DAG
+except ImportError:
+    from airflow.models import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
