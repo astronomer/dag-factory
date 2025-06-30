@@ -31,8 +31,13 @@ mv /tmp/constraint.txt.tmp /tmp/constraint.txt
 pip install uv
 uv pip install pip --upgrade
 
-# Install Airflow with constraints
-uv pip install --no-cache-dir "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
+
+if [ "$AIRFLOW_VERSION" = "3.0" ] ; then
+  uv pip install "apache-airflow>3.0.2" --constraint /tmp/constraint.txt
+else
+  # Install Airflow with constraints
+  uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
+if;
 
 # uv pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 rm /tmp/constraint.txt
