@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from airflow.utils import timezone
+
 try:
     from functools import cache
 except ImportError:
@@ -92,7 +94,9 @@ def test_example_dag(session, dag_id: str):
     # This feature is available since Airflow 2.5:
     # https://airflow.apache.org/docs/apache-airflow/stable/release_notes.html#airflow-2-5-0-2022-12-02
     dag_run = None
-    if AIRFLOW_VERSION >= Version("2.5"):
+    if AIRFLOW_VERSION >= Version("3.0"):
+        dag_run = dag.test(logical_date=timezone.utcnow())
+    elif AIRFLOW_VERSION >= Version("2.5"):
         dag_run = dag.test()
     else:
         dag_run = test_utils.run_dag(dag)
