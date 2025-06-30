@@ -7,9 +7,15 @@ try:
 except ImportError:
     from functools import lru_cache as cache
 
+try:
+    from airflow.sdk.definitions.dag import DAG
+except ImportError:
+    from airflow.models.dag import DAG
+
 import airflow
 import pytest
 from airflow.models.dagbag import DagBag
+from airflow.utils import timezone
 from airflow.utils.db import create_default_connections
 from airflow.utils.session import provide_session
 from airflow.utils.state import DagRunState
@@ -87,11 +93,11 @@ def get_dag_ids() -> list[str]:
 @pytest.mark.parametrize("dag_id", get_dag_ids())
 def test_example_dag(session, dag_id: str):
     dag_bag = get_dag_bag()
-    dag = dag_bag.get_dag(dag_id)
+    dag: DAG = dag_bag.get_dag(dag_id)
 
     dag_run = None
     if AIRFLOW_VERSION >= Version("3.0"):
-        dag_run = test_utils.new_test_dag(dag)
+        dag_run = dag.test(logical_date=timezone.utcnow())
     elif AIRFLOW_VERSION >= Version("2.5"):
         dag_run = dag.test()
     else:

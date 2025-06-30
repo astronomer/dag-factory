@@ -1124,8 +1124,12 @@ class DagBuilder:
         if utils.check_dict_key(task_params, "variables_as_arguments"):
             variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
             for variable in variables:
-                if Variable.get(variable["variable"], default_var=None) is not None:
-                    task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
+                if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
+                    if Variable.get(variable["variable"], default_var=None) is not None:
+                        task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
+                else:
+                    if Variable.get(variable["variable"], default=None) is not None:
+                        task_params[variable["attribute"]] = Variable.get(variable["variable"], default=None)
             del task_params["variables_as_arguments"]
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
