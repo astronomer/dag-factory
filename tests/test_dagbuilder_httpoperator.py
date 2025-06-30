@@ -10,6 +10,11 @@ from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryException
 from tests.utils import get_schedule_key
 
+try:
+    from airflow.sdk.definitions import DAG
+except ImportError:
+    from airflow.models.dag import DAG
+
 # Get current directory and project root
 here = Path(__file__).parent
 PROJECT_ROOT_PATH = str(here.parent)
@@ -197,7 +202,7 @@ def test_dag_with_http_operator():
 
     # Verify DAG was created successfully
     assert dag_obj["dag_id"] == "test_http_dag"
-    # assert isinstance(dag_obj["dag"], DAG)
+    assert isinstance(dag_obj["dag"], DAG)
 
     # Verify tasks were created correctly
     dag = dag_obj["dag"]

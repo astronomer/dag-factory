@@ -10,7 +10,7 @@ import pytest
 try:
     from airflow.sdk.definitions import DAG
 except ImportError:
-    from airflow import DAG
+    from airflow.models.dag import DAG
 import yaml
 from packaging import version
 
@@ -641,7 +641,7 @@ def test_build_task_groups():
     task_group_1 = {t for t in actual["dag"].task_dict if t.startswith("task_group_1")}
     task_group_2 = {t for t in actual["dag"].task_dict if t.startswith("task_group_2")}
     assert actual["dag_id"] == "test_dag"
-    # assert isinstance(actual["dag"], DAG)
+    assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 6
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_group_1.task_2"}
     assert actual["dag"].task_dict["task_group_1.task_2"].downstream_task_ids == {"task_group_1.task_3"}

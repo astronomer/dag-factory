@@ -20,8 +20,8 @@ try:
     from airflow.sdk.definitions.dag import DAG
     from airflow.sdk.definitions.variable import Variable
 except ImportError:
-    from airflow import DAG
     from airflow.models import BaseOperator, Variable
+    from airflow.models.dag import DAG
 
 
 from dateutil.relativedelta import relativedelta
