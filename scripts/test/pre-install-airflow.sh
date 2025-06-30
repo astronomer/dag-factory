@@ -28,7 +28,7 @@ curl -sSL "$CONSTRAINT_URL" -o /tmp/constraint.txt
 sed '/PyYAML==/d' /tmp/constraint.txt > /tmp/constraint.txt.tmp
 mv /tmp/constraint.txt.tmp /tmp/constraint.txt
 # Install Airflow with constraints
-uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
+uv pip install --force-reinstall "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
 
-uv pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
+uv pip install --force-reinstall apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 rm /tmp/constraint.txt
