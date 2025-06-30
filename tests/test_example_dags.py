@@ -96,7 +96,7 @@ def test_example_dag(session, dag_id: str):
 
     dag_run = None
     if AIRFLOW_VERSION >= Version("3.0"):
-        dag_run = test_utils.run_dag()
+        dag_run = test_utils.run_dag(dag)
     elif AIRFLOW_VERSION >= Version("2.5"):
         dag_run = dag.test()
     else:
