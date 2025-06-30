@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import ast
-import inspect
-import os
-import re
-import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial, reduce
+import inspect
+import os
+import re
 from typing import Any, Callable, Dict, List, Tuple, Union
+import warnings
 
 from airflow import configuration
 from airflow.utils.module_loading import import_string

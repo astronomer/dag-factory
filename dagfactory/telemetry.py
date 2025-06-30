@@ -5,8 +5,8 @@ import platform
 from urllib import parse
 from urllib.parse import urlencode
 
-import httpx
 from airflow import __version__ as airflow_version
+import httpx
 
 import dagfactory
 from dagfactory import constants, settings

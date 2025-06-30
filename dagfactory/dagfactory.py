@@ -1,13 +1,13 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 
+from itertools import chain
 import logging
 import os
-from itertools import chain
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import yaml
 from airflow.configuration import conf as airflow_conf
+import yaml
 
 try:
     from airflow.sdk.definitions.dag import DAG
