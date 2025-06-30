@@ -159,14 +159,17 @@ target-version = ['py39', 'py310', 'py311', 'py312']
 
 [tool.ruff]
 line-length = 120
+fix = true
 
 [tool.ruff.lint]
 select = ["C901", "D300", "I", "F"]
 ignore = ["F541", "C901"]
 
+
 [tool.ruff.lint.isort]
 combine-as-imports = true
 known-first-party = ["dagfactory", "tests"]
+force-sort-within-sections = true
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
