@@ -12,7 +12,6 @@ try:
 except ImportError:
     from airflow import DAG
 import yaml
-from airflow import DAG
 from packaging import version
 
 from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
