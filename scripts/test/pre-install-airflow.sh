@@ -13,8 +13,13 @@ fi
 
 echo "${VIRTUAL_ENV}"
 
-CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-$AIRFLOW_VERSION.0/constraints-$PYTHON_VERSION.txt"
-curl -sSL $CONSTRAINT_URL -o /tmp/constraint.txt
+if [ "$AIRFLOW_VERSION" = "3.0" ] ; then
+  CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-$AIRFLOW_VERSION.2/constraints-$PYTHON_VERSION.txt"
+else
+  CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-$AIRFLOW_VERSION.0/constraints-$PYTHON_VERSION.txt"
+fi;
+
+curl -sSL "$CONSTRAINT_URL" -o /tmp/constraint.txt
 # Workaround to remove PyYAML constraint that will work on both Linux and MacOS
 sed '/PyYAML==/d' /tmp/constraint.txt > /tmp/constraint.txt.tmp
 mv /tmp/constraint.txt.tmp /tmp/constraint.txt
