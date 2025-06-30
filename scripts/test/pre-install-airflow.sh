@@ -27,8 +27,21 @@ curl -sSL "$CONSTRAINT_URL" -o /tmp/constraint.txt
 # Workaround to remove PyYAML constraint that will work on both Linux and MacOS
 sed '/PyYAML==/d' /tmp/constraint.txt > /tmp/constraint.txt.tmp
 mv /tmp/constraint.txt.tmp /tmp/constraint.txt
+
+pip install uv
+uv pip install pip --upgrade
+
 # Install Airflow with constraints
 uv pip install --force-reinstall "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
 
 uv pip install --force-reinstall apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 rm /tmp/constraint.txt
+
+actual_version=$(airflow version | cut -d. -f1,2)
+
+if [ "$actual_version" = $AIRFLOW_VERSION ]; then
+    echo "Version is as expected: $AIRFLOW_VERSION"
+else
+    echo "Version does not match. Expected: $AIRFLOW_VERSION, but got: $actual_version"
+    exit 1
+fi
