@@ -38,7 +38,7 @@ else
   uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
 fi;
 
-# uv pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
+uv pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 rm /tmp/constraint.txt
 
 actual_version=$(airflow version | cut -d. -f1,2)
