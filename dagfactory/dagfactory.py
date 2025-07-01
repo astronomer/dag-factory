@@ -45,7 +45,7 @@ class DagFactory:
         self.default_args_config_path = default_args_config_path
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
-            self.config: Dict[str, Any] = DagFactory._load_dag_config(config_filepath=config_filepath)
+            self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
 

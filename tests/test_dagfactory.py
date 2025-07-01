@@ -194,15 +194,17 @@ def test_load_dag_config_valid(monkeypatch):
             },
         },
     }
-    actual = dagfactory.DagFactory._load_dag_config(TEST_DAG_FACTORY)
+    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
+    actual = td._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
 def test_load_dag_config_invalid():
+    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     with pytest.raises(Exception):
-        dagfactory.DagFactory._load_dag_config(INVALID_YAML)
+        td._load_dag_config(INVALID_YAML)
 
 
 @pytest.mark.skipif(
