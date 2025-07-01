@@ -1122,7 +1122,6 @@ class DagBuilder:
             del task_params["variables_as_arguments"]
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
-            print("task_params перед обработкой:", task_params)
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
                     if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
