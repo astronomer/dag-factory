@@ -1,0 +1,16 @@
+example_jinja2_template_dag:
+  default_args:
+    start_date: "2025-01-01"
+  schedule_interval: "@daily"
+  description: "A DAG that uses Airflow's built-in Jinja templates"
+  catchup: false
+  tasks:
+    print_execution_date:
+      operator: "airflow.operators.bash.BashOperator"
+      bash_command: "echo 'Execution date is {{ ds }}'"
+
+    print_next_execution:
+      operator: "airflow.operators.bash.BashOperator"
+      bash_command: "echo 'Next execution date is {{ macros.ds_add(ds, 1) }}'"
+      dependencies:
+      - print_execution_date

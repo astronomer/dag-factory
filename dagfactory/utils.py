@@ -1,16 +1,16 @@
 """Module contains various utilities used by dag-factory"""
 
 import ast
+from datetime import date, datetime, timedelta
+from importlib import import_module
 import importlib.util
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 import types
-from datetime import date, datetime, timedelta
-from importlib import import_module
-from pathlib import Path
 from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Union
 
 import pendulum
