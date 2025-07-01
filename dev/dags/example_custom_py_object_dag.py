@@ -8,7 +8,7 @@ import dagfactory
 DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
 CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 
-config_file = str(CONFIG_ROOT_DIR / "custom_example_dag.yml")
+config_file = str(CONFIG_ROOT_DIR / "example_custom_py_object_dag.yml")
 
 example_dag_factory = dagfactory.DagFactory(config_file)
 
