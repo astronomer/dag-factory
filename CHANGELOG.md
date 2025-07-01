@@ -6,13 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.23.0a7] - 2025-06-27
+## [0.23.0a8] - 2025-07-01
 
 ### Added
 
 - Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
 - Add HttpOperator JSON serialization support with tests by @a-chumagin in [#382](https://github.com/astronomer/dag-factory/pull/382)
--
+- Add support for custom Python object by @pankajastro in [#444](https://github.com/astronomer/dag-factory/pull/444)
 
 ### Fixed
 
@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop Python 3.8 support by @pankajastro in [#435](https://github.com/astronomer/dag-factory/pull/435)
 - Remove expandvars in utils.get_python_callable by @gyli in [#440](https://github.com/astronomer/dag-factory/pull/440)
 - Enable Airflow 3 tests in CI by @pankajastro in [#436](https://github.com/astronomer/dag-factory/pull/436)
+- Delete unused img folder by @pankajastro in [#446](https://github.com/astronomer/dag-factory/pull/446)
+- Clean print statement by @pankajastro [#447](https://github.com/astronomer/dag-factory/pull/447)
 
 ## [0.22.0] - 2025-01-10
 
