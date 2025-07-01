@@ -51,6 +51,7 @@ class DagFactory:
 
     def _load_yaml_config(self, config_filepath: str) -> Dict[str, Any]:
         """For loading yaml config file, including DAG config and default args config."""
+
         def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
             seq = loader.construct_sequence(node)
             return "".join([str(i) for i in seq])
@@ -72,7 +73,6 @@ class DagFactory:
             config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
             config = cast_with_type(config)
         return config
-
 
     def _global_default_args(self) -> Optional[Dict[str, Any]]:
         """If a defaults.yml exists, use this as the global default arguments (to be applied to each DAG)."""
