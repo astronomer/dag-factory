@@ -1,10 +1,12 @@
 import datetime
 import os
+from unittest.mock import patch
 
 import pendulum
 import pytest
 
 from dagfactory import utils
+from dagfactory.utils import cast_with_type
 
 NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 CET = pendulum.timezone("Europe/Amsterdam")
@@ -385,3 +387,52 @@ def test_get_json_serialized_callable_accepts_kwargs():
     # Call with unused kwargs
     result = serializer(unused_param="test", another_param=123)
     assert '"key1": "value1"' in result
+
+
+class DummyClass:
+    def __init__(self, a=None, b=None):
+        self.a = a
+        self.b = b
+
+    def __eq__(self, other):
+        return isinstance(other, DummyClass) and self.a == other.a and self.b == other.b
+
+
+class TestCustomType:
+
+    @patch("dagfactory.utils._import_from_string")
+    def test_cast_simple_dict_with_type(self, mock_import):
+        mock_import.return_value = DummyClass
+        data = {"__type__": "path.to.DummyClass", "a": 1, "b": 2}
+        result = cast_with_type(data)
+        assert result == DummyClass(a=1, b=2)
+
+    @patch("dagfactory.utils._import_from_string")
+    def test_nested_dict(self, mock_import):
+        mock_import.return_value = DummyClass
+        data = {"__type__": "path.to.DummyClass", "a": {"__type__": "path.to.DummyClass", "a": 10, "b": 20}, "b": 5}
+        result = cast_with_type(data)
+        assert result == DummyClass(a=DummyClass(a=10, b=20), b=5)
+
+    def test_list_without_type(self):
+        data = [1, 2, {"x": 3}]
+        result = cast_with_type(data)
+        assert result == [1, 2, {"x": 3}]
+
+    @patch("dagfactory.utils._import_from_string")
+    def test_typed_list(self, mock_import):
+        mock_import.return_value = DummyClass
+        data = {
+            "__type__": "builtins.list",
+            "items": [
+                {"__type__": "path.to.DummyClass", "a": 1, "b": 2},
+                {"__type__": "path.to.DummyClass", "a": 3, "b": 4},
+            ],
+        }
+        result = cast_with_type(data)
+        expected = [DummyClass(a=1, b=2), DummyClass(a=3, b=4)]
+        assert result == expected
+
+    def test_non_dict_non_list(self):
+        assert cast_with_type("hello") == "hello"
+        assert cast_with_type(123) == 123
