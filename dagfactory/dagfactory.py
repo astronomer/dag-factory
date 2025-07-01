@@ -45,17 +45,40 @@ class DagFactory:
         self.default_args_config_path = default_args_config_path
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
-            self.config: Dict[str, Any] = DagFactory._load_config(config_filepath=config_filepath)
+            self.config: Dict[str, Any] = DagFactory._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
 
-    def _global_default_args(self):
+    def _load_yaml_config(self, config_filepath: str) -> Dict[str, Any]:
+        """For loading yaml config file, including DAG config and default args config."""
+        def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            seq = loader.construct_sequence(node)
+            return "".join([str(i) for i in seq])
+
+        def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            seq = loader.construct_sequence(node)
+            return " | ".join([f"({str(i)})" for i in seq])
+
+        def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
+            seq = loader.construct_sequence(node)
+            return " & ".join([f"({str(i)})" for i in seq])
+
+        yaml.add_constructor("!join", __join, yaml.FullLoader)
+        yaml.add_constructor("!or", __or, yaml.FullLoader)
+        yaml.add_constructor("!and", __and, yaml.FullLoader)
+
+        with open(config_filepath, "r", encoding="utf-8") as fp:
+            config_with_env = os.path.expandvars(fp.read())
+            config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+        return config
+
+
+    def _global_default_args(self) -> Optional[Dict[str, Any]]:
         """If a defaults.yml exists, use this as the global default arguments (to be applied to each DAG)."""
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():
-            with open(default_args_yml, "r") as file:
-                return yaml.safe_load(file)
+            return self._load_yaml_config(default_args_yml)
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -86,40 +109,19 @@ class DagFactory:
         if not os.path.isabs(config_filepath):
             raise DagFactoryConfigException("DAG Factory `config_filepath` must be absolute path")
 
-    @staticmethod
-    def _load_config(config_filepath: str) -> Dict[str, Any]:
+    def _load_dag_config(self, config_filepath: str) -> Dict[str, Any]:
         """
-        Loads YAML config file to dictionary
+        Loads DAG config file to dictionary
 
         :returns: dict from YAML config file
         """
         # pylint: disable=consider-using-with
         try:
-
-            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return "".join([str(i) for i in seq])
-
-            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " | ".join([f"({str(i)})" for i in seq])
-
-            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " & ".join([f"({str(i)})" for i in seq])
-
-            yaml.add_constructor("!join", __join, yaml.FullLoader)
-            yaml.add_constructor("!or", __or, yaml.FullLoader)
-            yaml.add_constructor("!and", __and, yaml.FullLoader)
-
-            with open(config_filepath, "r", encoding="utf-8") as fp:
-                config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-
-                # This will only invoke in the CI
-                # Make yaml DAG compatible for Airflow 3
-                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
-                    config = update_yaml_structure(config)
+            config = self._load_yaml_config(config_filepath)
+            # This will only invoke in the CI
+            # Make yaml DAG compatible for Airflow 3
+            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
+                config = update_yaml_structure(config)
 
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err

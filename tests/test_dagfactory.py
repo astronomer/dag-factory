@@ -113,7 +113,7 @@ def test_validate_config_filepath_invalid():
 @pytest.mark.skipif(
     version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
-def test_load_config_valid(monkeypatch):
+def test_load_dag_config_valid(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
         "default": {
@@ -194,15 +194,15 @@ def test_load_config_valid(monkeypatch):
             },
         },
     }
-    actual = dagfactory.DagFactory._load_config(TEST_DAG_FACTORY)
+    actual = dagfactory.DagFactory._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
-def test_load_config_invalid():
+def test_load_dag_config_invalid():
     with pytest.raises(Exception):
-        dagfactory.DagFactory._load_config(INVALID_YAML)
+        dagfactory.DagFactory._load_dag_config(INVALID_YAML)
 
 
 @pytest.mark.skipif(
