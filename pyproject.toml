@@ -57,6 +57,7 @@ dev-dependencies = [
     "apache-airflow-providers-slack",
     "httpx>=0.25.0",
     "pandas",
+    "hatch",
 ]
 
 # Respect existing constraints for Airflow compatibility
