@@ -1443,7 +1443,7 @@
 <p>The minimum requirements for <strong>dag-factory</strong> are:</p>
 <ul>
 <li>Python 3.9.0+</li>
-<li><a href="https://airflow.apache.org">Apache Airflow®</a> 2.3+</li>
+<li><a href="https://airflow.apache.org">Apache Airflow®</a> 2.4+</li>
 </ul>
 <h2 id="step-1-create-a-python-virtual-environment">Step 1: Create a Python Virtual Environment</h2>
 <p>Create and activate a virtual environment:</p>
@@ -1491,14 +1491,14 @@
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>  render_template_as_native_obj: True
 </span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>  tasks:
 </span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    task_1:
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>      bash_command: &quot;echo 1&quot;
 </span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    task_2:
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>      bash_command: &quot;echo 2&quot;
 </span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>      dependencies: [task_1]
 </span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    task_3:
-</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>      operator: airflow.operators.bash_operator.BashOperator
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>      bash_command: &quot;echo 2&quot;
 </span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>      dependencies: [task_1]
 </span></code></pre></div>
