@@ -3,13 +3,12 @@ import logging
 import os
 
 import pytest
+from airflow.version import version as AIRFLOW_VERSION
 
 try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:  # pragma: no cover
-    from airflow import __version__ as AIRFLOW_VERSION
-
-from airflow.models.variable import Variable
+    from airflow.sdk.definitions.variable import Variable
+except ImportError:
+    from airflow.models.variable import Variable
 from packaging import version
 
 from tests.utils import get_bash_operator_path, get_schedule_key

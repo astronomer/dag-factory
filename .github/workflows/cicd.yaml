@@ -3,7 +3,7 @@ name: CI jobs
 on:
   # run on pushes to the default branch
   push:
-    branches: [main]
+    branches: [main, drop-AF2.3]
   # run on pull requests originated from forks based on the `main` branch.
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
@@ -46,10 +46,8 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         airflow-version:
-          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -60,8 +58,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"
@@ -120,10 +116,8 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         airflow-version:
-          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -134,8 +128,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"

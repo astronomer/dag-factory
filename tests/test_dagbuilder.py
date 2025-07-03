@@ -10,9 +10,11 @@ import pytest
 try:
     from airflow.sdk.definitions import DAG
 except ImportError:
-    from airflow import DAG
+    from airflow.models import DAG
 import yaml
-from airflow import DAG
+from airflow.providers.common.sql.sensors.sql import SqlSensor
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
@@ -27,33 +29,16 @@ from tests.utils import (
 )
 
 try:
-    from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:  # Airflow < 2.4
-    from airflow.sensors.http_sensor import HttpSensor
-
-try:
-    from airflow.sensors.sql_sensor import SqlSensor
+    from airflow.providers.standard.operators.bash import BashOperator
 except ImportError:
-    from airflow.providers.common.sql.sensors.sql import SqlSensor
-
-try:
     from airflow.operators.bash import BashOperator
-except ImportError:
-    from airflow.operators.bash_operator import BashOperator
+
 
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import PythonOperator
 except ImportError:
-    try:  # Try Airflow 2.4+
-        from airflow.operators.python import PythonOperator
-    except ImportError:
-        # Fallback to older versions
-        from airflow.operators.python_operator import PythonOperator
+    from airflow.operators.python import PythonOperator
 
-try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:
-    from airflow import __version__ as AIRFLOW_VERSION
 
 from dagfactory import dagbuilder
 
