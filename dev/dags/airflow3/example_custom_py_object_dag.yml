@@ -1,11 +1,11 @@
-custom_example_dag:
+custom_python_object:
   description: "this is an example dag"
-  schedule_interval: "@daily"
+  schedule: "@daily"
   catchup: false
   render_template_as_native_obj: True
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 1"
       executor_config:
         pod_override:
@@ -26,10 +26,10 @@ custom_example_dag:
                       cpu: "0.5"
                       memory: "512Mi"
     task_2:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
