@@ -9,7 +9,7 @@ try:
 except ImportError:
     from airflow.decorators import task
     from airflow.models.dag import DAG
-from pypi_stats import fetch_pypi_stats_data, get_pypi_projects_list, summarize
+from dev.dags.pypi_stats import fetch_pypi_stats_data, get_pypi_projects_list, summarize
 
 with DAG(dag_id="example_pypi_stats_plain_airflow", schedule=None, start_date=datetime(2022, 3, 4)) as dag:
 
