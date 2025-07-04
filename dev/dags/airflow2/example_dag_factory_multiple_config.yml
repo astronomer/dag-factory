@@ -1,6 +1,5 @@
 default:
   default_args:
-    catchup: false,
     owner: "default_owner"
     start_date: 2024-11-11
     on_success_callback_name: print_hello_from_callback
@@ -8,6 +7,7 @@ default:
   schedule_interval: "0 1 * * *"
   on_failure_callback_name: print_hello_from_callback
   on_failure_callback_file: $CONFIG_ROOT_DIR/print_hello.py
+  catchup: false
 
 
 # ----8<---   [ start: environment_variable_example ]

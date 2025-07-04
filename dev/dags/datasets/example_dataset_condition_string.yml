@@ -1,7 +1,7 @@
 consumer_dag:
+  catchup: false
   default_args:
     owner: "example_owner"
-    retries: 1
     start_date: '2024-01-01'
   description: "Example DAG consumer simple datasets"
   schedule:

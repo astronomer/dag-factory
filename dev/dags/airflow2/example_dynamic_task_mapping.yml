@@ -4,7 +4,7 @@ test_expand:
     start_date: 2 days
   description: "test expand"
   schedule_interval: "0 3 * * *"
-  default_view: "graph"
+  catchup: false
   tasks:
     process:
       operator: airflow.operators.python.PythonOperator
