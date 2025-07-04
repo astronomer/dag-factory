@@ -2,13 +2,6 @@ default:
   default_args:
     owner: "default_owner"
     start_date: '2023-07-14'
-    retries: 1
-    retry_delay_sec: 300
-  concurrency: 1
-  max_active_runs: 1
-  dagrun_timeout_sec: 600
-  default_view: "tree"
-  orientation: "LR"
 
 example_simple_dataset_producer_dag:
   description: "Example DAG producer simple datasets"
