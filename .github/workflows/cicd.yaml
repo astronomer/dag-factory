@@ -188,7 +188,6 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
           AUTO_CONVERT_TO_AF3: true
 
-
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
         with:
