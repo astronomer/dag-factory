@@ -1,19 +1,19 @@
-example_hackernews_dagfactory:
-  default_args:
-    start_date: 2022-03-04
-  tasks:
-    fetch_top_ten_news:
-      operator: airflow.operators.bash.BashOperator
-      bash_command: "curl -s https://hacker-news.firebaseio.com/v0/topstories.json  | jq -c -r '.[0:10]'"
-    fetch_first_top_news:
-      operator: airflow.operators.bash.BashOperator
-      bash_command: "echo {{ task_instance.xcom_pull(task_ids='fetch_top_ten_news') }} | jq -c -r '.[0]' |  xargs -I {} curl -s 'https://hacker-news.firebaseio.com/v0/item/{}.json'"
-      dependencies: [fetch_top_ten_news]
-    fetch_second_top_news:
-      operator: airflow.operators.bash.BashOperator
-      bash_command: "echo {{ task_instance.xcom_pull(task_ids='fetch_top_ten_news') }} | jq -c -r '.[1]' |  xargs -I {} curl -s 'https://hacker-news.firebaseio.com/v0/item/{}.json'"
-      dependencies: [fetch_top_ten_news]
-    summarize:
-      operator: airflow.operators.python.PythonOperator
-      python_callable: hacker_news.summarize
-      dependencies: [fetch_first_top_news, fetch_second_top_news]
+#example_hackernews_dagfactory:
+#  default_args:
+#    start_date: 2022-03-04
+#  tasks:
+#    fetch_top_ten_news:
+#      operator: airflow.operators.bash.BashOperator
+#      bash_command: "curl -s https://hacker-news.firebaseio.com/v0/topstories.json  | jq -c -r '.[0:10]'"
+#    fetch_first_top_news:
+#      operator: airflow.operators.bash.BashOperator
+#      bash_command: "echo {{ task_instance.xcom_pull(task_ids='fetch_top_ten_news') }} | jq -c -r '.[0]' |  xargs -I {} curl -s 'https://hacker-news.firebaseio.com/v0/item/{}.json'"
+#      dependencies: [fetch_top_ten_news]
+#    fetch_second_top_news:
+#      operator: airflow.operators.bash.BashOperator
+#      bash_command: "echo {{ task_instance.xcom_pull(task_ids='fetch_top_ten_news') }} | jq -c -r '.[1]' |  xargs -I {} curl -s 'https://hacker-news.firebaseio.com/v0/item/{}.json'"
+#      dependencies: [fetch_top_ten_news]
+#    summarize:
+#      operator: airflow.operators.python.PythonOperator
+#      python_callable: hacker_news.summarize
+#      dependencies: [fetch_first_top_news, fetch_second_top_news]
