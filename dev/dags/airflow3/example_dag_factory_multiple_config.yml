@@ -3,13 +3,8 @@ default:
     catchup: false,
     owner: "default_owner"
     start_date: 2024-11-11
-    retries: 1
-    retry_delay_sec: 30
     on_success_callback_name: print_hello_from_callback
     on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
-  concurrency: 1
-  max_active_runs: 1
-  dagrun_timeout_sec: 600
   schedule: "0 1 * * *"
   on_failure_callback_name: print_hello_from_callback
   on_failure_callback_file: $CONFIG_ROOT_DIR/print_hello.py

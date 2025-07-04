@@ -4,7 +4,6 @@ taskflow:
     start_date: 2 days
   description: "Example of TaskFlow powered DAG that includes dynamic task mapping"
   schedule: "0 3 * * *"
-  default_view: "graph"
   tasks:
     some_number:
       decorator: airflow.sdk.definitions.decorators.task
