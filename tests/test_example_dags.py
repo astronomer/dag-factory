@@ -27,6 +27,7 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     ],
     "2.7": ["example_map_index_template.py"],
     "2.9": ["example_map_index_template.py"],
+    "3.0": ["example_load_airflow3_dags.py"],
 }
 
 
@@ -60,6 +61,7 @@ def get_dag_bag() -> DagBag:
             file.writelines(["example_dag_datasets.py\n"])
             file.writelines(["example_pypi_stats_plain_airflow.py\n"])
             file.writelines(["example_hackernews_plain_airflow.py\n"])
+            file.writelines(["example_load_airflow2_dags.py\n"])
 
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
