@@ -5,7 +5,6 @@ example_map_index_template:
     start_date: 2 days
   description: "Example of TaskFlow powered DAG that includes dynamic task mapping"
   schedule_interval: "0 3 * * *"
-  default_view: "graph"
   tasks:
     dynamic_task_with_named_mapping:
       decorator: airflow.decorators.task
