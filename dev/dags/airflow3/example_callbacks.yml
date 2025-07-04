@@ -1,0 +1,57 @@
+callbacks:
+  default_args:
+    start_date: "2025-01-01"
+    # Callbacks at be set at the default_args level. These callbacks are then passed to each Task. Fun fact;
+    # default_args can be overridden within a Task
+    on_retry_callback: print_hello.print_hello_from_callback
+    on_failure_callback:
+      callback: airflow.providers.slack.notifications.slack.send_slack_notification
+      slack_conn_id: slack_conn_id
+      text: |
+        :red_circle: Task Failed.
+        This task has failed and needs to be addressed.
+        Please remediate this issue ASAP.
+      channel: "#channel"
+  schedule: "@daily"
+  catchup: False
+  # These callbacks are set at the DAG-level, vs. the callbacks set above in default_args that are passed onto each
+  # Task. Previously, the same "on_success_callback" configuration was set as part of task_2
+  on_execute_callback_name: print_hello_from_callback
+  on_execute_callback_file: $CONFIG_ROOT_DIR/print_hello.py
+  on_success_callback:
+    callback: customized.callbacks.custom_callbacks.output_message
+    param1: param1
+    param2: param2
+  task_groups:
+    task_group_1:
+      default_args:
+        on_success_callback: print_hello.print_hello_from_callback
+      dependencies: [task_1, task_2]
+  tasks:
+    start:
+      operator: airflow.operators.empty.EmptyOperator
+      on_success_callback_name: print_hello_from_callback
+      on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 1"
+      on_success_callback:
+        callback: customized.callbacks.custom_callbacks.output_message
+        param1: param1
+        param2: param2
+      dependencies: [start]
+    task_2:
+      operator: airflow.providers.standard.operators.bash.BashOperator
+      bash_command: "echo 2"
+      on_success_callback_name: print_hello_from_callback
+      on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
+      dependencies: [start]
+    task_3:
+      operator: airflow.providers.standard.operators.bash.BashOperator
+      bash_command: "echo 3"
+      task_group_name: task_group_1
+    end:
+      operator: airflow.providers.standard.operators.bash.BashOperator
+      bash_command: "echo -1"
+      dependencies:
+        - task_group_1
