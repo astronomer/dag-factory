@@ -3,7 +3,7 @@ name: CI jobs
 on:
   # run on pushes to the default branch
   push:
-    branches: [main]
+    branches: [main, validate_operators]
   # run on pull requests originated from forks based on the `main` branch.
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
@@ -187,6 +187,7 @@ jobs:
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
           AUTO_CONVERT_TO_AF3: true
+
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
