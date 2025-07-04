@@ -51,3 +51,7 @@ def extract_last_name(full_name: str):
 
 def one_day_ago(execution_date: datetime):
     return execution_date - timedelta(days=1)
+
+
+def read_params(params):
+    print("params: ", params)
