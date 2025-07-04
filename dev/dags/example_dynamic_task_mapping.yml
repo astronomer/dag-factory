@@ -7,7 +7,7 @@ test_expand:
   default_view: "graph"
   tasks:
     process:
-      operator: airflow.operators.python_operator.PythonOperator
+      operator: airflow.operators.python.PythonOperator
       python_callable_name: consume_value
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
       partial:

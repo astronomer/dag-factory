@@ -17,16 +17,11 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
+from airflow.version import version as AIRFLOW_VERSION
 from dateutil.relativedelta import relativedelta
 from packaging import version
 
 from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
-
-try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:  # pragma: no cover
-    from airflow import __version__ as AIRFLOW_VERSION
-
 
 try:
     from airflow.providers.cncf.kubernetes import get_provider_info
@@ -45,16 +40,10 @@ INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
 except ImportError:
-    try:  # Try Airflow 2.4+
-        from airflow.operators.python import BranchPythonOperator, PythonOperator
-    except ImportError:
-        # Fallback to older versions
-        from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
+    from airflow.operators.python import BranchPythonOperator, PythonOperator
 
-try:
-    from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:  # Airflow < 2.4
-    from airflow.sensors.http_sensor import HttpSensor
+from airflow.providers.common.sql.sensors.sql import SqlSensor
+from airflow.providers.http.sensors.http import HttpSensor
 
 # http operator was renamed in providers-http 4.11.0
 try:
@@ -71,23 +60,12 @@ except ImportError:  # pragma: no cover
         HTTP_OPERATOR_CLASS = None
 
 
-# sql sensor was moved in 2.4
-try:
-    from airflow.sensors.sql_sensor import SqlSensor
-except ImportError:  # pragma: no cover
-    from airflow.providers.common.sql.sensors.sql import SqlSensor
-
-
 try:
     # Try Airflow 3
     from airflow.providers.standard.sensors.python import PythonSensor
 except ImportError:
-    try:
-        # Try Airflow 2.4
-        from airflow.sensors.python import PythonSensor
-    except ImportError:
-        # Fallback to older versions
-        from airflow.sensors.python import PythonSensor
+    from airflow.sensors.python import PythonSensor
+
 
 from airflow.models import MappedOperator
 
@@ -101,6 +79,7 @@ try:
 except ImportError:
     from airflow.kubernetes.secret import Secret
 
+from airflow.datasets import Dataset
 from airflow.timetables.base import Timetable
 from airflow.utils.task_group import TaskGroup
 from kubernetes.client.models import (
@@ -120,12 +99,6 @@ from kubernetes.client.models import (
 from dagfactory import parsers, utils
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
-    from airflow.datasets import Dataset
-else:
-    Dataset = None
-
-
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 
@@ -136,7 +109,7 @@ class DagBuilder:
 
     :param dag_name: the name of the DAG
     :param dag_config: a dictionary containing configuration for the DAG
-    :param default_config: a dictitionary containing defaults for all DAGs
+    :param default_config: a dictionary containing defaults for all DAGs
         in the YAML file
     """
 

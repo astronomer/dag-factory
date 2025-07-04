@@ -9,16 +9,12 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 from airflow.configuration import conf as airflow_conf
 from airflow.models import DAG
+from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 from dagfactory.utils import cast_with_type, update_yaml_structure
-
-try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:  # pragma: no cover
-    from airflow import __version__ as AIRFLOW_VERSION
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]

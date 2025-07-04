@@ -368,6 +368,8 @@ def update_yaml_structure(data):
         "airflow.operators.bash_operator.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
         "airflow.operators.python_operator.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
         "airflow.operators.python.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
+        "airflow.sensors.external_task.ExternalTaskSensor": "airflow.providers.standard.sensors.external_task.ExternalTaskSensor",
+        "airflow.sensors.external_task_sensor.ExternalTaskSensor": "airflow.providers.standard.sensors.external_task.ExternalTaskSensor",
     }
     if isinstance(data, dict):
         keys_to_update = []

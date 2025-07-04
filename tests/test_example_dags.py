@@ -1,11 +1,7 @@
 from __future__ import annotations
 
+from functools import cache
 from pathlib import Path
-
-try:
-    from functools import cache
-except ImportError:
-    from functools import lru_cache as cache
 
 import airflow
 import pytest
@@ -23,8 +19,6 @@ AIRFLOW_VERSION = Version(airflow.__version__)
 IGNORED_DAG_FILES = ["example_callbacks.py", "example_http_operator_task.py"]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
-    # TaskFlow examples unrelated to dynamic task mapping work in earlier versions
-    "2.3": ["example_dynamic_task_mapping.py", "example_taskflow.py"],
     "2.5": [
         "example_pypi_stats_dagfactory",
         "example_hackernews_dagfactory",
@@ -32,7 +26,6 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
         "example_pypi_stats_plain_airflow",
     ],
     "2.7": ["example_map_index_template.py"],
-    "2.4": ["example_external_sensor_dag.py"],
     "2.9": ["example_map_index_template.py"],
 }
 

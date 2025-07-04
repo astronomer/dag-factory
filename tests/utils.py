@@ -13,28 +13,14 @@ from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
 from airflow.utils import timezone
-from airflow.utils.session import provide_session
+from airflow.utils.session import NEW_SESSION, provide_session
 from airflow.utils.state import DagRunState, State
 from airflow.utils.types import DagRunType
+from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 from sqlalchemy.orm.session import Session
 
-try:
-    from airflow.utils.session import NEW_SESSION
-except ImportError:
-    # Airflow < 2.3 did not have NEW_SESSION in airflow.utils.session
-    from typing import cast
-
-    from airflow import settings
-
-    NEW_SESSION: settings.SASession = cast(settings.SASession, None)
-
 log = logging.getLogger(__name__)
-
-try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:
-    from airflow import __version__ as AIRFLOW_VERSION
 
 
 def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
@@ -211,27 +197,20 @@ def get_bash_operator_path():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version >= version.parse("3.0.0"):
         return "airflow.providers.standard.operators.bash.BashOperator"
-    elif airflow_version >= version.parse("2.4.0"):
-        return "airflow.operators.bash.BashOperator"
     else:
-        return "airflow.operators.bash_operator.BashOperator"
+        return "airflow.operators.bash.BashOperator"
 
 
 def get_python_operator_path():
     airflow_version = version.parse(AIRFLOW_VERSION)
     if airflow_version >= version.parse("3.0.0"):
         return "airflow.providers.standard.operators.python.PythonOperator"
-    elif airflow_version >= version.parse("2.4.0"):
-        return "airflow.operators.python.PythonOperator"
     else:
-        return "airflow.operators.python_operator.PythonOperator"
+        return "airflow.operators.python.PythonOperator"
 
 
 def get_sql_sensor_path():
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"):
-        return "airflow.sensors.sql_sensor.SqlSensor"
-    else:
-        return "airflow.providers.common.sql.sensors.sql.SqlSensor"
+    return "airflow.providers.common.sql.sensors.sql.SqlSensor"
 
 
 def read_yml(path):
