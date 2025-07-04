@@ -2,8 +2,6 @@ default:
   default_args:
     owner: "default_owner"
     start_date: 2020-01-01
-  default_view: "tree"
-  orientation: "LR"
   schedule_interval: "0 1 * * *"
 
 example_breadfast:
