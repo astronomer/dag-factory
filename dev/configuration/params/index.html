@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/configuration/configuring_workflows/">
+        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/configuration/params/">
       
       
-        <link rel="prev" href="../../getting-started/quick-start-astro-cli/">
+        <link rel="prev" href="../defaults/">
       
       
-        <link rel="next" href="../environment_variables/">
+        <link rel="next" href="../schedule/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Configuring Your Workflows - DAG Factory</title>
+        <title>Params - DAG Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#configuring-your-workflows" class="md-skip">
+        <a href="#params" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Configuring Your Workflows
+              Params
             
           </span>
         </div>
@@ -239,7 +239,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../configuring_workflows/" class="md-tabs__link">
           
   
   
@@ -552,32 +552,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Configuring Your Workflows
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../configuring_workflows/" class="md-nav__link">
         
   
   
@@ -588,59 +566,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#key-elements-of-workflow-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key Elements of Workflow Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key Elements of Workflow Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example-dag-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example DAG Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#check-out-more-configuration-params" class="md-nav__link">
-    <span class="md-ellipsis">
-      Check out more configuration params
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -696,10 +621,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../params/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Params
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -710,6 +657,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-dag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example DAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1266,35 +1260,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#key-elements-of-workflow-configuration" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
-      Key Elements of Workflow Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key Elements of Workflow Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example-dag-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example DAG Configuration
+      Key Features
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#check-out-more-configuration-params" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#example-dag" class="md-nav__link">
     <span class="md-ellipsis">
-      Check out more configuration params
+      Example DAG
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use
+    </span>
+  </a>
   
 </li>
       
@@ -1314,7 +1302,7 @@
 
 
   
-    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/configuration/configuring_workflows.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/configuration/params.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1323,47 +1311,47 @@
     
       
     
-    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/configuration/configuring_workflows.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/configuration/params.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="configuring-your-workflows">Configuring Your Workflows</h1>
-<p>DAG Factory allows you to define workflows in a structured, configuration-driven way using YAML files.
-You can define multiple workflows within a single YAML file based on your requirements.</p>
-<h2 id="key-elements-of-workflow-configuration">Key Elements of Workflow Configuration</h2>
+<h1 id="params">Params</h1>
+<p><strong>Params</strong> in Airflow are a way to pass dynamic runtime configuration to tasks within a DAG. They allow tasks to be more flexible by enabling templated values to be injected during execution.</p>
+<h2 id="key-features">Key Features</h2>
 <ul>
-<li><strong>dag_id</strong>: Unique identifier for your DAG.</li>
-<li><strong>default_args</strong>: Common arguments for all tasks.</li>
-<li><strong>schedule</strong>/<strong>schedule_interval</strong>: Specifies the execution schedule.</li>
-<li><strong>tasks</strong>: Defines the <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html">Airflow tasks</a> in your workflow.</li>
+<li>Available in DAG and task definitions.</li>
+<li>Can be templated using Jinja.</li>
+<li>Useful for customizing task behavior without modifying code.</li>
 </ul>
-<h3 id="example-dag-configuration">Example DAG Configuration</h3>
-<div class="language-text highlight"><span class="filename">example_dag_factory.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>basic_example_dag:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  description: &quot;this is an example dag&quot;
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  render_template_as_native_obj: True
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  tasks:
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    task_1:
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    task_2:
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      dependencies: [task_1]
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    task_3:
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      dependencies: [task_1]
+<h2 id="example-dag">Example DAG</h2>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">default</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-01-01</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">example_params</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">params</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">model_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">input_uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;This</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">DAG-Factory</span><span class="nv"> </span><span class="s">example</span><span class="nv"> </span><span class="s">dag</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">param&quot;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">schedule_interval</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@daily&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">task_1</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">&#39;Running</span><span class="nv"> </span><span class="s">task</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">model</span><span class="nv"> </span><span class="s">version</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">params.model_version</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">url:</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">params.input_uri</span><span class="nv"> </span><span class="s">}}&#39;&quot;</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="nt">task_2</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.python.PythonOperator</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="nt">params</span><span class="p">:</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="nt">my_param</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">python_callable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sample.read_params</span>
 </span></code></pre></div>
-<h3 id="check-out-more-configuration-params">Check out more configuration params</h3>
+<h2 id="when-to-use">When to Use</h2>
 <ul>
-<li><a href="../environment_variables/">Environment variables</a></li>
-<li><a href="../defaults/">Defaults</a></li>
+<li>You want to reuse the same DAG for different input values.</li>
+<li>You want to change a task’s behavior at runtime.</li>
 </ul>
 
 
@@ -1400,7 +1388,7 @@ You can define multiple workflows within a single YAML file based on your requir
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../getting-started/quick-start-astro-cli/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Astro CLI">
+          <a href="../defaults/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Defaults">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1410,20 +1398,20 @@ You can define multiple workflows within a single YAML file based on your requir
                 Previous
               </span>
               <div class="md-ellipsis">
-                Astro CLI
+                Defaults
               </div>
             </div>
           </a>
         
         
           
-          <a href="../environment_variables/" class="md-footer__link md-footer__link--next" aria-label="Next: Environment variables">
+          <a href="../schedule/" class="md-footer__link md-footer__link--next" aria-label="Next: Scheduling">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Environment variables
+                Scheduling
               </div>
             </div>
             <div class="md-footer__button md-icon">
