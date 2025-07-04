@@ -6,6 +6,7 @@ default:
 example_simple_dataset_producer_dag:
   description: "Example DAG producer simple datasets"
   schedule_interval: "0 5 * * *"
+  catchup: false
   tasks:
     task_1:
       operator: airflow.operators.bash.BashOperator
@@ -22,6 +23,7 @@ example_simple_dataset_producer_dag:
 example_simple_dataset_consumer_dag:
   description: "Example DAG consumer simple datasets"
   schedule: ['s3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json']
+  catchup: false
   tasks:
     task_1:
       operator: airflow.operators.bash.BashOperator
@@ -30,6 +32,7 @@ example_simple_dataset_consumer_dag:
 example_custom_config_dataset_producer_dag:
   description: "Example DAG producer custom config datasets"
   schedule_interval: "0 5 * * *"
+  catchup: false
   tasks:
     task_1:
       operator: airflow.operators.bash.BashOperator
@@ -40,6 +43,7 @@ example_custom_config_dataset_producer_dag:
 
 example_custom_config_dataset_consumer_dag:
   description: "Example DAG consumer custom config datasets"
+  catchup: false
   schedule:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: ['dataset_custom_1', 'dataset_custom_2']
@@ -50,6 +54,7 @@ example_custom_config_dataset_consumer_dag:
 
 example_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
+  catchup: false
   schedule:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: "((dataset_custom_1 & dataset_custom_2) | dataset_custom_3)"
@@ -60,6 +65,7 @@ example_custom_config_condition_dataset_consumer_dag:
 
 example_without_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
+  catchup: false
   schedule:
     datasets:
       !or

@@ -1,16 +1,16 @@
-#example_pypi_stats_dagfactory:
-#  default_args:
-#    start_date: 2022-03-04
-#  tasks:
-#    get_pypi_projects_list:
-#      decorator: airflow.decorators.task
-#      python_callable: pypi_stats.get_pypi_projects_list
-#    fetch_pypi_stats_data:
-#      decorator: airflow.decorators.task
-#      python_callable: pypi_stats.fetch_pypi_stats_data
-#      expand:
-#        package_name: +get_pypi_projects_list
-#    summarize:
-#      decorator: airflow.decorators.task
-#      python_callable: pypi_stats.summarize
-#      values: +fetch_pypi_stats_data
+example_pypi_stats_dagfactory:
+  default_args:
+    start_date: 2022-03-04
+  tasks:
+    get_pypi_projects_list:
+      decorator: airflow.decorators.task
+      python_callable: pypi_stats.get_pypi_projects_list
+    fetch_pypi_stats_data:
+      decorator: airflow.decorators.task
+      python_callable: pypi_stats.fetch_pypi_stats_data
+      expand:
+        package_name: +get_pypi_projects_list
+    summarize:
+      decorator: airflow.decorators.task
+      python_callable: pypi_stats.summarize
+      values: +fetch_pypi_stats_data

@@ -10,6 +10,7 @@ example_breadfast:
     start_date: 2 days
   description: "this is an customized operator dag"
   schedule_interval: "0 3 * * *"
+  catchup: false
   tasks:
     begin:
       operator: airflow.operators.empty.EmptyOperator
