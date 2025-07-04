@@ -27,7 +27,6 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     ],
     "2.7": ["example_map_index_template.py"],
     "2.9": ["example_map_index_template.py"],
-    "3.0": ["example_load_airflow3_dags.py"],
 }
 
 
@@ -55,6 +54,9 @@ def get_dag_bag() -> DagBag:
         for dagfile in IGNORED_DAG_FILES:
             print(f"Adding {dagfile} to .airflowignore")
             file.writelines([f"{dagfile}\n"])
+
+        if AIRFLOW_VERSION < Version("3.0.0"):
+            file.writelines(["example_load_airflow3_dags.py\n"])
 
         if AIRFLOW_VERSION >= Version("3.0.0"):
             # TODO: https://github.com/astronomer/dag-factory/issues/437
