@@ -32,7 +32,7 @@ Install DAG Factory in your Airflow environment:
 **DAG Factory** uses YAML files to define DAG configurations. Create a file named `example_dag_factory.yml` in the `$AIRFLOW_HOME/dags` folder with the following content:
 
 ```title="example_dag_factory.yml"
---8<-- "dev/dags/example_dag_factory.yml"
+--8<-- "dev/dags/airflow2/example_dag_factory.yml"
 ```
 
 ## Step 4: Generate the DAG from YAML
@@ -40,7 +40,7 @@ Install DAG Factory in your Airflow environment:
 Create a Python script named `example_dag_factory.py` in the `$AIRFLOW_HOME/dags` folder. This script will generate the DAG from the YAML configuration
 
 ```title="example_dag_factory.py"
---8<-- "dev/dags/example_dag_factory.py"
+--8<-- "dev/dags/airflow2/example_dag_factory.py"
 ```
 
 ## Step 5: Start Airflow Project

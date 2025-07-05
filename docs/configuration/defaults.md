@@ -23,7 +23,7 @@ single DAG.
    defined in that file. These arguments are automatically inherited by every DAG defined in the file. Below is an example of this.
 
    ```yaml title="Usage of default block for default_args in YAML"
-   --8<-- "dev/dags/example_dag_factory_default_args.yml"
+   --8<-- "dev/dags/airflow2/example_dag_factory_default_args.yml"
    ```
 
 #### Specifying `default_args` directly in a DAG configuration
@@ -71,11 +71,14 @@ single DAG.
    ```
 
 ### Specifying `default_args` in a `.py` file
+```yaml title="Usage of default block in YAML"
+--8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
+```
 
    In the `.py` used to instantiate a DAG defined using YAML, default arguments in the form of a Python dictionary can
    be set using the `default_args_config_dict` parameter in the `DAGFactory` class. This mirrors the functionality of
    manually specifying a `default_args_config_ypath` in the `DAGFactory` class.
 
-   ```python title="Usage of default_args_config_dict in .py file"
-   --8<-- "dev/dags/example_dag_factory_default_config_dict.py:13:19"
-   ```
+```python title="Usage of default_args_config_dict in .py file"
+--8<-- "dev/dags/example_dag_factory_default_config_dict.py:13:19"
+```
