@@ -9,7 +9,7 @@ except ImportError:
     from airflow.operators.bash import BashOperator
     from airflow.operators.python import PythonOperator
 
-from dev.dags.hacker_news import summarize
+from hacker_news import summarize
 
 with DAG(dag_id="example_hackernews_plain_airflow", schedule=None, start_date=datetime(2022, 3, 4)) as dag:
 
