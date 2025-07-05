@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 
 try:
-    from airflow.providers.http.operators.http import HttpOperator
+    from airflow.providers.http.operators.http import HttpOperator  # noqa: F401
+
     HTTP_OPERATOR_AVAILABLE = True
 except ImportError:
     HTTP_OPERATOR_AVAILABLE = False

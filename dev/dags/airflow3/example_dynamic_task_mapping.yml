@@ -1,13 +1,12 @@
-test_expand:
+dynamic_task_map:
   default_args:
     owner: "custom_owner"
     start_date: 2 days
   description: "test expand"
-  schedule_interval: "0 3 * * *"
-  default_view: "graph"
+  schedule: "0 3 * * *"
   tasks:
     process:
-      operator: airflow.operators.python.PythonOperator
+      operator: airflow.providers.standard.operators.python.PythonOperator
       python_callable_name: consume_value
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
       partial:
@@ -20,6 +19,6 @@ test_expand:
     # This task is intentionally placed after the "process" task to demonstrate that DAG Factory does not require tasks
     # to be topologically ordered in the YAML file according to their dependencies.
     request:
-      operator: airflow.operators.python.PythonOperator
+      operator: airflow.providers.standard.operators.python.PythonOperator
       python_callable_name: make_list
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py

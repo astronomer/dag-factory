@@ -8,9 +8,8 @@ example_external_task_sensor_dag_factory_consumer:
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       mode: poke
-      timeout: 600
+      timeout: 300
       poke_interval: 30
-      retries: 2
     consumer_task:
       operator: airflow.operators.empty.EmptyOperator
 

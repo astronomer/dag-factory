@@ -23,7 +23,7 @@ single DAG.
    defined in that file. These arguments are automatically inherited by every DAG defined in the file. Below is an example of this.
 
    ```yaml title="Usage of default block for default_args in YAML"
-   --8<-- "dev/dags/example_dag_factory_default_args.yml"
+   --8<-- "dev/dags/airflow2/example_dag_factory_default_args.yml"
    ```
 
 #### Specifying `default_args` directly in a DAG configuration
@@ -66,9 +66,8 @@ Each DAG (`machine_learning`, `data_science`, `artificial_intelligence`) will be
 `default` block, and like with `default_args`, can override these values. **This is a powerful way to use DAG Factory
 to dynamically create DAGs using a single configuration.**
 
-
 ```yaml title="Usage of default block in YAML"
---8<-- "dev/dags/example_dag_factory_default_config.yml"
+--8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
 ```
 
 Currently, only `default_args` can be specified using the `defaults.yml` file.

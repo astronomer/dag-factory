@@ -1,6 +1,6 @@
-example_callbacks:
+callbacks:
   default_args:
-    start_date: "2024-01-01"
+    start_date: "2025-01-01"
     # Callbacks at be set at the default_args level. These callbacks are then passed to each Task. Fun fact;
     # default_args can be overridden within a Task
     on_retry_callback: print_hello.print_hello_from_callback
@@ -12,7 +12,7 @@ example_callbacks:
         This task has failed and needs to be addressed.
         Please remediate this issue ASAP.
       channel: "#channel"
-  schedule_interval: "@daily"
+  schedule: "@daily"
   catchup: False
   # These callbacks are set at the DAG-level, vs. the callbacks set above in default_args that are passed onto each
   # Task. Previously, the same "on_success_callback" configuration was set as part of task_2
@@ -41,17 +41,17 @@ example_callbacks:
         param2: param2
       dependencies: [start]
     task_2:
-      operator: airflow.operators.bash.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 2"
       on_success_callback_name: print_hello_from_callback
       on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
       dependencies: [start]
     task_3:
-      operator: airflow.operators.bash.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 3"
       task_group_name: task_group_1
     end:
-      operator: airflow.operators.bash.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo -1"
       dependencies:
         - task_group_1
