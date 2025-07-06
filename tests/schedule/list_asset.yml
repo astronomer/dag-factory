@@ -1,9 +1,11 @@
 schedule:
-  type: assets
-  value:
-    - uri: s3://dag1/output_1.txt
+  __type__: builtins.list
+  items:
+    - __type__: airflow.sdk.Asset
+      uri: s3://dag1/output_1.txt
       extra:
         hi: bye
-    - uri: s3://dag2/output_1.txt
+    - __type__: airflow.sdk.Asset
+      uri: s3://dag2/output_1.txt
       extra:
         hi: bye
