@@ -1,6 +1,6 @@
 # Params
 
-**Params** in Airflow are a way to pass dynamic runtime configuration to tasks within a DAG. They allow tasks to be more flexible by enabling templated values to be injected during execution.
+[**Params**](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/params.html) in Airflow are a way to pass dynamic runtime configuration to tasks within a DAG. They allow tasks to be more flexible by enabling templated values to be injected during execution.
 
 ## Key Features
 

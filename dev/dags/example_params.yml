@@ -1,6 +1,6 @@
 default:
+  catchup: false
   default_args:
-    catchup: false
     start_date: 2025-01-01
 
 example_params:

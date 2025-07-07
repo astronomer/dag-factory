@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from random import randint
+from typing import Any
 
 try:
     from airflow.providers.standard.operators.python import get_current_context
@@ -53,5 +54,7 @@ def one_day_ago(execution_date: datetime):
     return execution_date - timedelta(days=1)
 
 
-def read_params(params):
+def read_params(params: dict[str, Any]) -> None:
     print("params: ", params)
+    print("model_version:", params["model_version"])
+    print("my_param:", params["my_param"])
