@@ -1151,7 +1151,7 @@ class TestSchedule:
 
         schedule_data = read_yml(schedule_path / "list_asset.yml")
         data = schedule_data["schedule"]
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        parsed_schedule = DagBuilder._asset_schedule(cast_with_type(data))
 
         expected = [
             Asset(
