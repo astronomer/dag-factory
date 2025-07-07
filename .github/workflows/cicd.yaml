@@ -200,6 +200,7 @@ jobs:
     needs:
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -243,6 +244,7 @@ jobs:
       - Static-Check
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     steps:
       - uses: actions/checkout@v4
         with:
@@ -283,6 +285,7 @@ jobs:
       - Run-Integration-Tests
       - Deploy-Pages
       - Code-Coverage
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
