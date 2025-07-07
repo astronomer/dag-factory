@@ -303,4 +303,4 @@ jobs:
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
       - run: uv build --wheel --sdist
-      - run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+      - run: uv publish
