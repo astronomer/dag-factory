@@ -811,7 +811,10 @@ class DagBuilder:
             if DagBuilder._is_asset(schedule):
                 dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
             else:
-                dag_kwargs["schedule"] = schedule
+                if isinstance(dag_kwargs["schedule"], str) and dag_kwargs["schedule"].lower() == "none":
+                    dag_kwargs["schedule"] = None
+                else:
+                    dag_kwargs["schedule"] = schedule
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
