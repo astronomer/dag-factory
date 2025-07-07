@@ -31,12 +31,6 @@ Below are the supported scheduling types, each with consistent structure and exa
 --8<-- "tests/schedule/cron.yml"
 ```
 
-Or,
-
-```yaml title="Corn Schedule"
---8<-- "tests/schedule/cron_dict.yml"
-```
-
 ### 2. Timedelta Schedule
 
 ```yaml title="Timedelta Schedule"
