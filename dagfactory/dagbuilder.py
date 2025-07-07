@@ -811,7 +811,7 @@ class DagBuilder:
             if DagBuilder._is_asset(schedule):
                 dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
             else:
-                if isinstance(dag_params["schedule"], str) and dag_kwargs["schedule"].lower() == "none":
+                if isinstance(dag_params["schedule"], str) and dag_params["schedule"].lower() == "none":
                     dag_kwargs["schedule"] = None
                 else:
                     dag_kwargs["schedule"] = schedule
