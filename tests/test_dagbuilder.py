@@ -18,6 +18,7 @@ from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.utils import cast_with_type
 from tests.utils import (
     get_bash_operator_path,
     get_http_sensor_path,
@@ -1149,7 +1150,7 @@ class TestSchedule:
         from airflow.sdk import Asset
 
         schedule_data = read_yml(schedule_path / "list_asset.yml")
-        data = schedule_data["schedule"]["value"]
+        data = schedule_data["schedule"]
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = [
@@ -1174,7 +1175,8 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAll
 
         schedule_data = read_yml(schedule_path / "and_asset.yml")
-        data = schedule_data["schedule"]["value"]
+        schedule_data = cast_with_type(schedule_data)
+        data = schedule_data["schedule"]
         parsed_schedule = DagBuilder._asset_schedule(data)
 
         expected = AssetAll(
@@ -1199,7 +1201,8 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAny
 
         schedule_data = read_yml(schedule_path / "or_asset.yml")
-        data = schedule_data["schedule"]["value"]
+        schedule_data = cast_with_type(schedule_data)
+        data = schedule_data["schedule"]
 
         parsed_schedule = DagBuilder._asset_schedule(data)
 
@@ -1225,7 +1228,8 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAll, AssetAny
 
         schedule_data = read_yml(schedule_path / "nested_asset.yml")
-        data = schedule_data["schedule"]["value"]
+        schedule_data = cast_with_type(schedule_data)
+        data = schedule_data["schedule"]
 
         parsed_schedule = DagBuilder._asset_schedule(data)
 
@@ -1261,7 +1265,8 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetWatcher
 
         schedule_data = read_yml(schedule_path / "asset_with_watcher.yml")
-        data = schedule_data["schedule"]["value"]
+        schedule_data = cast_with_type(schedule_data)
+        data = schedule_data["schedule"]
 
         parsed_schedule = DagBuilder._asset_schedule(data)
 
@@ -1284,56 +1289,55 @@ class TestSchedule:
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
         data = yaml.safe_load(yaml_str)
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == "* * * * *"
+        schedule_data = {}
+        DagBuilder.configure_schedule(data, schedule_data)
+        assert schedule_data["schedule"] == "* * * * *"
 
     def test_resolve_schedule_cron_string_alias(self):
         data = read_yml(schedule_path / "cron.yml")
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == "@daily"
-
-    def test_resolve_schedule_cron_type_value(self):
-        data = read_yml(schedule_path / "cron_dict.yml")
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == "0 0 * * *"
+        schedule_data = {}
+        DagBuilder.configure_schedule(data, schedule_data)
+        assert schedule_data["schedule"] == "@daily"
 
     def test_resolve_schedule_timetable_type(self):
         from airflow.timetables.trigger import CronTriggerTimetable
 
         data = read_yml(schedule_path / "timetable.yml")
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
+        schedule_data = {}
+        DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
+        assert schedule_data["schedule"] == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
 
     def test_resolve_schedule_timedelta_type(self):
 
         data = read_yml(schedule_path / "timedelta.yml")
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == datetime.timedelta(seconds=30)
+        schedule_data = {}
+        DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
+        assert schedule_data["schedule"] == datetime.timedelta(seconds=30)
 
     def test_resolve_schedule_relativedelta_type(self):
         from dateutil.relativedelta import relativedelta
 
         data = read_yml(schedule_path / "relativedelta.yml")
-        schedule = DagBuilder._resolve_schedule(data)
-        assert schedule == relativedelta(month=1)
+        schedule_data = {}
+        DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
+        assert schedule_data["schedule"] == relativedelta(hour=18)
 
     def test_resolve_schedule_asset_any_type(self):
         from airflow.sdk import Asset, AssetAny
 
         yaml_str = """
         schedule:
-            type: assets
-            value:
-                or:
-                    - uri: s3://dag1/output_1.txt
-                      extra:
-                          hi: bye
-                    - uri: s3://dag2/output_1.txt
-                      extra:
-                          hi: bye
+            or:
+                - uri: s3://dag1/output_1.txt
+                  extra:
+                      hi: bye
+                - uri: s3://dag2/output_1.txt
+                  extra:
+                      hi: bye
         """
         data = yaml.safe_load(yaml_str)
-        schedule = DagBuilder._resolve_schedule(data)
+        schedule_data = {}
+        DagBuilder.configure_schedule(data, schedule_data)
 
         expected = AssetAny(
             Asset(
@@ -1351,7 +1355,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
 
 class TestTopologicalSortTasks:
