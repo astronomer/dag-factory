@@ -9,7 +9,7 @@ on:
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
   pull_request_target:
-    branches: [main]
+    branches: [main, restric_ci]
   # run on releases
   release:
     types: ["published"]
@@ -19,7 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  Authorize:
+    environment: ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      'external' || 'internal' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
+
   Static-Check:
+    needs: Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +49,7 @@ jobs:
       - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -110,6 +120,7 @@ jobs:
           include-hidden-files: true
 
   Run-Integration-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
