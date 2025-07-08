@@ -8,7 +8,11 @@ from typing import Any
 import yaml
 from airflow.configuration import secrets_backend_list
 from airflow.exceptions import AirflowSkipException
-from airflow.models.dag import DAG
+
+try:
+    from airflow.sdk.definitions.dag import DAG
+except ImportError:
+    from airflow.models.dag import DAG
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
