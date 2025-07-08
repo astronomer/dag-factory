@@ -1,4 +1,5 @@
-etl:
+daily_etl:
+  schedule: "@daily"
   tasks:
     extract:
       operator: airflow.operators.bash_operator.BashOperator
