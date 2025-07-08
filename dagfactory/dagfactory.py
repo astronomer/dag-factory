@@ -40,7 +40,9 @@ class DagFactory:
         config_filepath: Optional[str] = None,
         config: Optional[dict] = None,
         default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
-        default_args: Optional[dict] = None,  # By default, this is None (we'll fall back to default_args_config_path)
+        default_args_config_dict: Optional[
+            dict
+        ] = None,  # By default, this is None (we'll fall back to default_args_config_path)
     ) -> None:
         # Handle the config(_filepath)
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
@@ -50,10 +52,10 @@ class DagFactory:
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
-              
+
         # These default args are a bit different; these are not the "default" structure that is applied to certain DAGs.
         # These are in-fact the "default" default_args
-        if default_args:
+        if default_args_config_dict:
             # Log a warning if the default_args parameter is specified. If both the default_args and
             # default_args_file_path are passed, we'll throw an exception.
             logging.warning("Manually specifying `default_args` will override the values in the `defaults.yml` file.")
@@ -63,7 +65,7 @@ class DagFactory:
 
         # We'll still go ahead and set both values. They'll be referenced in _global_default_args.
         self.default_args_config_path: str = default_args_config_path
-        self.default_args: Optional[dict] = default_args
+        self.default_args_config_dict: Optional[dict] = default_args_config_dict
 
     def _load_yaml_config(self, config_filepath: str) -> Dict[str, Any]:
         """For loading yaml config file, including DAG config and default args config."""
@@ -95,8 +97,8 @@ class DagFactory:
         If self.default_args exists, use this as the global default_args (to be applied to each DAG). Otherwise, fall
         back to the defaults.yml file.
         """
-        if self.default_args:
-            return self.default_args
+        if self.default_args_config_dict:
+            return self.default_args_config_dict
 
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
