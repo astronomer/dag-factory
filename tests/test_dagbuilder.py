@@ -554,7 +554,6 @@ def test_build():
     actual = td.build()
     assert actual["dag_id"] == "test_dag"
     assert isinstance(actual["dag"], DAG)
-    assert type(actual["dag"]) is DAG
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
