@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from airflow.listeners import hookimpl
-
-try:
-    from airflow.sdk.definitions import DAG
-except ImportError:
-    from airflow.models.dag import DAG
+from airflow.models.dag import DAG
 from airflow.models.dagrun import DagRun
 
 from dagfactory import telemetry
