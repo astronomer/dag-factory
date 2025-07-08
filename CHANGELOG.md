@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.0a8] - 2025-07-01
 
+### Breaking Change
+
+- Drop Airflow 2.2 Support by @pankajastro in [#388](https://github.com/astronomer/dag-factory/pull/388)
+- Drop Python 3.8 support by @pankajastro in [#435](https://github.com/astronomer/dag-factory/pull/435)
+- Drop Airflow 2.3 Support by @pankajastro in [#456](https://github.com/astronomer/dag-factory/pull/456)
+
+### Airflow 3 Support
+
+- Add tools for Dag-factory Airflow3 testing by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/395)
+- Fix schedule args for Airflow 3 by @pankajastro in [#413](https://github.com/astronomer/dag-factory/pull/413)
+- Fix import path for BranchPythonOperator, PythonOperator and PythonSensor by @pankajastro in [#414](https://github.com/astronomer/dag-factory/pull/414)
+- Add scheduling docs for Airflow 3 by @pankajastro in [#424](https://github.com/astronomer/dag-factory/pull/424)
+- Enable Airflow 3 tests in CI by @pankajastro in [#436](https://github.com/astronomer/dag-factory/pull/436)
+- Add env AUTO_CONVERT_TO_AF3 in Dockerfile by @pankajastro in [#455](https://github.com/astronomer/dag-factory/pull/455)
+- Validate DAG's on Airflow 3 by @pankajastro in [#457](https://github.com/astronomer/dag-factory/pull/457)
+- Refactor schedule to use the Python object @pankajastro in [#458](https://github.com/astronomer/dag-factory/pull/458)
+- Fix CI and various imports Fix for Airflow 3 @pankajastro in [#463](https://github.com/astronomer/dag-factory/pull/463)
+
 ### Added
 
 - Add support for defining inlets by @IvanSviridov in [#380](https://github.com/astronomer/dag-factory/pull/380)
@@ -18,10 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remediated ``default`` behavior, added documentation by @ghost in [#378](https://github.com/astronomer/dag-factory/pull/378)
-- Fix schedule for AF3 by @pankajastro in [#413](https://github.com/astronomer/dag-factory/pull/413)
+- Upgrade KubernetesPodOperator by @pankajastro in [#407](https://github.com/astronomer/dag-factory/pull/407)
+- Log error message if config file is not valid by @pankajastro in [#408](https://github.com/astronomer/dag-factory/pull/408)
 
 ### Docs
 
+- Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
 - Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
 - Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
 - Updating docs for callbacks by @ghost in [#375](https://github.com/astronomer/dag-factory/pull/375)
@@ -30,38 +50,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update Airflow supported version 2.3+ in docs by @pankajastro in [#412](https://github.com/astronomer/dag-factory/pull/412)
 - Doc: Add step to fork repo in contributing guide  by @pankajastro in [#427](https://github.com/astronomer/dag-factory/pull/427)
 - Add setting CONFIG_ROOT_DIR in the contribution doc by @gyli in [#432](https://github.com/astronomer/dag-factory/pull/432)
-- Add scheduling docs for Airflow 3 by @pankajastro in [#424](https://github.com/astronomer/dag-factory/pull/424)
+- Add DAG example showcasing runtime params usage by @pankajastro in [#449](https://github.com/astronomer/dag-factory/pull/449)
+- Add jinja2 template example by @pankajastro in [#450](https://github.com/astronomer/dag-factory/pull/450)
 
 ### Others
 
-- Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
 - Add Scraf Pixels by @pankajastro in [#373](https://github.com/astronomer/dag-factory/pull/373)
 - feat: bumped http provider versions to 2.0+ by @a-chumagin in [#389](https://github.com/astronomer/dag-factory/pull/389)
 - Add --verbosity debug in astro-cli cmd by @pankajastro in [#390](https://github.com/astronomer/dag-factory/pull/390)
 - Add missing Python file for dynamic task example by @pankajastro in [#392](https://github.com/astronomer/dag-factory/pull/392)
-- Bump airflow >= 2.3 by @pankajastro in [#388](https://github.com/astronomer/dag-factory/pull/388)
 - Pin apache-airflow-providers-cncf-kubernetes<10.4.2 by @pankajastro in [#400](https://github.com/astronomer/dag-factory/pull/400)
-- Add tools for Dag-factory Airflow3 testing by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/395)
 - Add script to check version and tag by @pankajastro in [#395](https://github.com/astronomer/dag-factory/pull/394)
-- Log error message if config file is not valid by @pankajastro in [#408](https://github.com/astronomer/dag-factory/pull/408)
 - Assert DagRunState in integration test by @pankajastro in [#415](https://github.com/astronomer/dag-factory/pull/415)
-- Upgrade KubernetesPodOperator by @pankajastro in [#407](https://github.com/astronomer/dag-factory/pull/407)
-- Fix import path for BranchPythonOperator, PythonOperator and PythonSensor by @pankajastro in [#414](https://github.com/astronomer/dag-factory/pull/414)
 - Move to uv for package management by @jlaneve in [#419](https://github.com/astronomer/dag-factory/pull/419)
 - Install uv in CI by @jlaneve in [#421](https://github.com/astronomer/dag-factory/pull/421)
 - Bump astral-sh/setup-uv from 5 to 6 by @dependabot in [#423](https://github.com/astronomer/dag-factory/pull/423)
 - Add AF 2.11 in test matrix by @pankajastro in [#425](https://github.com/astronomer/dag-factory/pull/425)
 - fix example_dag_factory.yml typo causing catchup: false to not be respected by @RNHTTR in [#431](https://github.com/astronomer/dag-factory/pull/431)
-- Drop Python 3.8 support by @pankajastro in [#435](https://github.com/astronomer/dag-factory/pull/435)
 - Remove expandvars in utils.get_python_callable by @gyli in [#440](https://github.com/astronomer/dag-factory/pull/440)
-- Enable Airflow 3 tests in CI by @pankajastro in [#436](https://github.com/astronomer/dag-factory/pull/436)
 - Delete unused img folder by @pankajastro in [#446](https://github.com/astronomer/dag-factory/pull/446)
 - Clean print statement by @pankajastro [#447](https://github.com/astronomer/dag-factory/pull/447)
 - Add hatch to uv dev dependencies by @gyli in [#453](https://github.com/astronomer/dag-factory/pull/453)
-- Add env AUTO_CONVERT_TO_AF3 in Dockerfile by @pankajastro in [#455](https://github.com/astronomer/dag-factory/pull/455)
-- Drop Airflow 2.3 by @pankajastro in [#456](https://github.com/astronomer/dag-factory/pull/456)
 - Restrict the CI by @pankajastro in [#460](https://github.com/astronomer/dag-factory/pull/460)
 - Remove PyPI token for releasing packages by @tatiana in [#461](https://github.com/astronomer/dag-factory/pull/461)
+- Change CI on trigger event to pull_request from pull_request_target by @pankajkoti in [](https://github.com/astronomer/dag-factory/pull/464)
 
 ## [0.22.0] - 2025-01-10
 
