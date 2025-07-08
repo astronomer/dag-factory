@@ -492,6 +492,20 @@ def test_build_dag_with_global_default():
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
+def test_build_dag_with_global_default_dict():
+    dags= dagfactory.DagFactory(
+        config=DAG_FACTORY_CONFIG, default_args={
+            "default_args": {
+                "start_date": "2025-01-01",
+                "owner": "global_owner",
+                "depends_on_past": True
+            }
+        }
+    ).build_dags()
+
+    assert dags.get("example_dag").tasks[0].depends_on_past == True
+
+
 def test_load_invalid_yaml_logs_error(caplog):
     caplog.set_level(logging.ERROR)
     load_yaml_dags(
