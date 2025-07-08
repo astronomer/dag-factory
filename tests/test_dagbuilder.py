@@ -8,9 +8,10 @@ import pendulum
 import pytest
 
 try:
-    from airflow.sdk.definitions import DAG
+    from airflow.sdk.definitions.dag import DAG
 except ImportError:
     from airflow.models import DAG
+
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor
@@ -553,6 +554,7 @@ def test_build():
     actual = td.build()
     assert actual["dag_id"] == "test_dag"
     assert isinstance(actual["dag"], DAG)
+    assert type(actual["dag"]) is DAG
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
