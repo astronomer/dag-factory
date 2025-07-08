@@ -7,7 +7,7 @@ import pendulum
 import pytest
 
 try:
-    from airflow.sdk.definitions import DAG  # noqa: F401
+    from airflow.sdk.definitions.dag import DAG  # noqa: F401
 except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
