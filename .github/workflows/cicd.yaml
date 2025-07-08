@@ -8,7 +8,7 @@ on:
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
-  pull_request_target:
+  pull_request:
     branches: [main]
   # run on releases
   release:
