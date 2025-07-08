@@ -22,9 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add scheduling docs for Airflow 3 by @pankajastro in [#424](https://github.com/astronomer/dag-factory/pull/424)
 - Enable Airflow 3 tests in CI by @pankajastro in [#436](https://github.com/astronomer/dag-factory/pull/436)
 - Add env AUTO_CONVERT_TO_AF3 in Dockerfile by @pankajastro in [#455](https://github.com/astronomer/dag-factory/pull/455)
-- Validate DAG's on Airflow 3 by @pankajastro in [#457](https://github.com/astronomer/dag-factory/pull/457)
-- Refactor schedule to use the Python object @pankajastro in [#458](https://github.com/astronomer/dag-factory/pull/458)
-- Fix CI and various imports Fix for Airflow 3 @pankajastro in [#463](https://github.com/astronomer/dag-factory/pull/463)
+- Validate DAG's on Airflow 3 by @pankajastro in [#457](https://github.com/astronomer/dag-factory/pull/457) WIP
+- Refactor schedule to use the Python object @pankajastro in [#458](https://github.com/astronomer/dag-factory/pull/458) WIP
+- Fix CI and various imports Fix for Airflow 3 @pankajastro in [#463](https://github.com/astronomer/dag-factory/pull/463) WIP
 
 ### Added
 
@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HttpOperator JSON serialization support with tests by @a-chumagin in [#382](https://github.com/astronomer/dag-factory/pull/382)
 - Add support for custom Python object by @pankajastro in [#444](https://github.com/astronomer/dag-factory/pull/444)
 - Support env var in default by @gyli in [#452](https://github.com/astronomer/dag-factory/pull/452)
+- Pass default arguments via dictionary in .py file by @jroachgolf84 in [#465](https://github.com/astronomer/dag-factory/pull/465) WIP
 
 ### Fixed
 
@@ -51,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doc: Add step to fork repo in contributing guide  by @pankajastro in [#427](https://github.com/astronomer/dag-factory/pull/427)
 - Add setting CONFIG_ROOT_DIR in the contribution doc by @gyli in [#432](https://github.com/astronomer/dag-factory/pull/432)
 - Add DAG example showcasing runtime params usage by @pankajastro in [#449](https://github.com/astronomer/dag-factory/pull/449)
-- Add jinja2 template example by @pankajastro in [#450](https://github.com/astronomer/dag-factory/pull/450)
+- Add jinja2 template example by @pankajastro in [#450](https://github.com/astronomer/dag-factory/pull/450) WIP
 
 ### Others
 
@@ -73,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add hatch to uv dev dependencies by @gyli in [#453](https://github.com/astronomer/dag-factory/pull/453)
 - Restrict the CI by @pankajastro in [#460](https://github.com/astronomer/dag-factory/pull/460)
 - Remove PyPI token for releasing packages by @tatiana in [#461](https://github.com/astronomer/dag-factory/pull/461)
-- Change CI on trigger event to pull_request from pull_request_target by @pankajkoti in [](https://github.com/astronomer/dag-factory/pull/464)
+- Change CI on trigger event to pull_request from pull_request_target by @pankajkoti in [#464](https://github.com/astronomer/dag-factory/pull/464)
 
 ## [0.22.0] - 2025-01-10
 
