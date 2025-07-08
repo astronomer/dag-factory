@@ -11,7 +11,7 @@ CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 config_file = str(CONFIG_ROOT_DIR / "example_dag_factory_default_config_dict.yml")
 
 example_dag_factory = dagfactory.DagFactory(
-    config_file, default_args_config_dict={"start_date": "2025-01-01", "owner": "global_owner"}
+    config_file, default_args_config_dict={"default_args": {"start_date": "2025-01-01", "owner": "global_owner"}}
 )
 
 # Creating task dependencies
