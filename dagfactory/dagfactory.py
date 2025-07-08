@@ -44,9 +44,7 @@ class DagFactory:
         config_filepath: Optional[str] = None,
         config: Optional[dict] = None,
         default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
-        default_args_config_dict: Optional[
-            dict
-        ] = None,  # By default, this is None (we'll fall back to default_args_config_path)
+        default_args_config_dict: Optional[dict] = None,
     ) -> None:
         # Handle the config(_filepath)
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
