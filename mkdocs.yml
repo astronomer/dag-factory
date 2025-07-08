@@ -52,6 +52,8 @@ nav:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
       - configuration/defaults.md
+      - configuration/params.md
+      - configuration/schedule.md
   - Features:
       - features/dynamic_tasks.md
       - features/datasets.md
@@ -59,6 +61,7 @@ nav:
       - features/custom_operators.md
       - features/http_task.md
       - features/multiple_configuration_files.md
+      - features/custom_python_object.md
 
   - Comparison:
       - comparison/index.md

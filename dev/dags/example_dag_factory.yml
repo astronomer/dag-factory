@@ -1,6 +1,6 @@
 default:
   default_args:
-    catchup: false,
+    catchup: false
     start_date: 2024-11-11
 
 # ----8<---   [ start: example_dag_yaml_configuration ]
@@ -12,14 +12,14 @@ basic_example_dag:
   render_template_as_native_obj: True
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
     task_2:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
 # ----8<---   [ end: example_dag_yaml_configuration ]

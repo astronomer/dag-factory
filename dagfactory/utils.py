@@ -18,6 +18,16 @@ import yaml
 from dagfactory.exceptions import DagFactoryException
 
 
+def _import_from_string(class_path):
+    """Dynamically import a class from a string."""
+    try:
+        module_path, class_name = class_path.rsplit(".", 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name)
+    except (ImportError, AttributeError) as e:
+        raise ImportError(f"Could not import '{class_path}': {e}")
+
+
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
     """
     Takes value from DAG config and generates valid datetime. Defaults to
@@ -113,8 +123,6 @@ def get_python_callable(python_callable_name, python_callable_file):
     :returns: python callable
     :type: callable
     """
-
-    python_callable_file = os.path.expandvars(python_callable_file)
 
     if not os.path.isabs(python_callable_file):
         raise DagFactoryException("`python_callable_file` must be absolute path")
@@ -345,3 +353,65 @@ def get_json_serialized_callable(data_obj):
         raise TypeError(f"data_obj must be a dict or str, not {type(data_obj)}")
 
     return lambda **kwargs: serialized_json
+
+
+def update_yaml_structure(data):
+    """Convert an Airflow 2-style YAML DAG config to be compatible with Airflow 3.
+
+    This function updates the DAG YAML structure to match changes introduced in Airflow 3,
+    such as replacing deprecated fields (e.g., 'schedule_interval' → 'schedule') and
+    adjusting operator import paths to the new module layout.
+    """
+    operator_map = {
+        "airflow.operators.dummy_operator.DummyOperator": "airflow.providers.standard.operators.empty.EmptyOperator",
+        "airflow.operators.bash.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
+        "airflow.operators.bash_operator.BashOperator": "airflow.providers.standard.operators.bash.BashOperator",
+        "airflow.operators.python_operator.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
+        "airflow.operators.python.PythonOperator": "airflow.providers.standard.operators.python.PythonOperator",
+        "airflow.sensors.external_task.ExternalTaskSensor": "airflow.providers.standard.sensors.external_task.ExternalTaskSensor",
+        "airflow.sensors.external_task_sensor.ExternalTaskSensor": "airflow.providers.standard.sensors.external_task.ExternalTaskSensor",
+    }
+    if isinstance(data, dict):
+        keys_to_update = []
+        for key, value in data.items():
+            # Recursively process nested dictionaries or lists
+            if isinstance(value, (dict, list)):
+                update_yaml_structure(value)
+
+            # Mark keys to rename after loop (avoid modifying dict while iterating)
+            if key == "schedule_interval":
+                keys_to_update.append(("schedule_interval", "schedule"))
+            if key == "operator":
+                data[key] = operator_map[value] if operator_map.get(value) is not None else value
+
+        # Perform renames after iteration
+        for old_key, new_key in keys_to_update:
+            data[new_key] = data.pop(old_key)
+
+    elif isinstance(data, list):
+        for item in data:
+            update_yaml_structure(item)
+
+    return data
+
+
+def cast_with_type(data):
+    """Recursively cast dictionaries with a __type__ key."""
+    if isinstance(data, dict):
+        # Handle typed list
+        if data.get("__type__") == "builtins.list" and "items" in data:
+            return [cast_with_type(item) for item in data["items"]]
+
+        # Normal typed dict
+        processed = {k: cast_with_type(v) for k, v in data.items() if k != "__type__"}
+
+        if "__type__" in data:
+            class_type = _import_from_string(data["__type__"])
+            return class_type(**processed)
+
+        return processed
+
+    elif isinstance(data, list):
+        return [cast_with_type(item) for item in data]
+
+    return data

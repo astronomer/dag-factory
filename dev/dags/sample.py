@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
 from random import randint
+from typing import Any
 
-from airflow.operators.python import get_current_context
+try:
+    from airflow.providers.standard.operators.python import get_current_context
+except ImportError:
+    from airflow.operators.python import get_current_context
 
 
 def build_numbers_list():
@@ -48,3 +52,9 @@ def extract_last_name(full_name: str):
 
 def one_day_ago(execution_date: datetime):
     return execution_date - timedelta(days=1)
+
+
+def read_params(params: dict[str, Any]) -> None:
+    print("params: ", params)
+    print("model_version:", params["model_version"])
+    print("my_param:", params["my_param"])

@@ -6,46 +6,49 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-from airflow import DAG
+
+try:
+    from airflow.sdk.definitions import DAG
+except ImportError:
+    from airflow.models import DAG
+import yaml
+from airflow.providers.common.sql.sensors.sql import SqlSensor
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
-from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException, Dataset
-from tests.utils import one_hour_ago
+from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
+from tests.utils import (
+    get_bash_operator_path,
+    get_http_sensor_path,
+    get_python_operator_path,
+    get_schedule_key,
+    get_sql_sensor_path,
+    one_hour_ago,
+    read_yml,
+)
 
 try:
-    from airflow.providers.http.sensors.http import HttpSensor
+    from airflow.providers.standard.operators.bash import BashOperator
 except ImportError:
-    from airflow.sensors.http_sensor import HttpSensor
-
-try:
-    from airflow.sensors.sql_sensor import SqlSensor
-except ImportError:
-    from airflow.providers.common.sql.sensors.sql import SqlSensor
-
-try:
     from airflow.operators.bash import BashOperator
-except ImportError:
-    from airflow.operators.bash_operator import BashOperator
 
-try:
+
+try:  # Try Airflow 3
+    from airflow.providers.standard.operators.python import PythonOperator
+except ImportError:
     from airflow.operators.python import PythonOperator
-except ImportError:
-    from airflow.operators.python_operator import PythonOperator
 
-try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:
-    from airflow import __version__ as AIRFLOW_VERSION
 
 from dagfactory import dagbuilder
 
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):
+try:
+    from airflow.sdk.definitions.mappedoperator import MappedOperator
+except ImportError:
     from airflow.models import MappedOperator
-else:
-    MappedOperator = None
-# pylint: disable=ungrouped-imports,invalid-name
 
 here = Path(__file__).parent
+schedule_path = here / "schedule"
 
 PROJECT_ROOT_PATH = str(here.parent)
 UTC = pendulum.timezone("UTC")
@@ -61,29 +64,29 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
-    "schedule_interval": "0 1 * * *",
+    get_schedule_key(): "0 1 * * *",
 }
 DAG_CONFIG = {
     "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "dag_display_name": "Pretty example dag",
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "dependencies": ["task_1"],
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "dependencies": ["task_1"],
         },
@@ -91,7 +94,7 @@ DAG_CONFIG = {
 }
 DAG_CONFIG_TASK_GROUP = {
     "default_args": {"owner": "custom_owner"},
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -104,32 +107,32 @@ DAG_CONFIG_TASK_GROUP = {
     },
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
         },
         "task_4": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
         },
         "task_5": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 5",
             "task_group_name": "task_group_2",
         },
         "task_6": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 6",
             "task_group_name": "task_group_2",
             "dependencies": ["task_5"],
@@ -139,15 +142,15 @@ DAG_CONFIG_TASK_GROUP = {
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
-    "schedule_interval": "0 4 * * *",
+    get_schedule_key(): "0 4 * * *",
     "tasks": {
         "request": {
-            "operator": "airflow.operators.python_operator.PythonOperator",
+            "operator": get_python_operator_path(),
             "python_callable_name": "example_task_mapping",
             "python_callable_file": os.path.realpath(__file__),
         },
         "process_1": {
-            "operator": "airflow.operators.python_operator.PythonOperator",
+            "operator": get_python_operator_path(),
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
@@ -165,15 +168,15 @@ DAG_CONFIG_ML = {
 }
 
 DAG_CONFIG_DEFAULT_ML = {
-    "schedule_interval": "0 0 * * *",
+    get_schedule_key(): "0 0 * * *",
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
         },
     },
 }
@@ -189,7 +192,7 @@ DAG_CONFIG_CALLBACKS = {
         "on_skipped_callback": f"{__name__}.print_context_callback",
     },
     "description": "this is an example dag",
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "tags": ["tag1", "tag2"],
     # This includes each of the four options (str function, str function with params, file and name, provider)
     "on_execute_callback": f"{__name__}.print_context_callback",
@@ -202,7 +205,7 @@ DAG_CONFIG_CALLBACKS = {
     "on_failure_callback_file": __file__,
     "tasks": {
         "task_1": {  # Make sure that default_args are applied to this Task
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
             "on_failure_callback_name": "print_context_callback",
@@ -220,7 +223,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             "param_2": "value_2",
         },
     },
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -235,12 +238,12 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
     },
     "tasks": {
         "task_1": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "task_group_name": "task_group_1",
         },
         "task_2": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
             "on_failure_callback": {
@@ -250,7 +253,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             },
         },
         "task_3": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
@@ -260,7 +263,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         # - String with parameters
         # - File name and path
         "task_4": {
-            "operator": "airflow.operators.bash_operator.BashOperator",
+            "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
             "on_execute_callback": f"{__name__}.print_context_callback",
@@ -302,7 +305,7 @@ def test_get_dag_params():
             "retry_delay": datetime.timedelta(seconds=300),
         },
         "description": "this is an example dag",
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
@@ -310,17 +313,17 @@ def test_get_dag_params():
         "tags": ["tag1", "tag2"],
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
             },
             "task_2": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
             },
             "task_3": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
             },
@@ -348,7 +351,7 @@ def test_adjust_general_task_params_external_sensor_arguments():
 
 def test_make_task_valid():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator_path()
     task_params = {
         "task_id": "test_task",
         "bash_command": "echo 1",
@@ -370,7 +373,7 @@ def test_make_task_bad_operator():
 
 def test_make_task_missing_required_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator_path()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -392,7 +395,7 @@ def example_task_mapping():
 
 def test_make_python_operator():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator_path()
     task_params = {
         "task_id": "test_task",
         "python_callable_name": "print_test",
@@ -406,7 +409,7 @@ def test_make_python_operator():
 
 def test_make_python_operator_with_callable_str():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator_path()
     task_params = {
         "task_id": "test_task",
         "python_callable": "builtins.print",
@@ -419,7 +422,7 @@ def test_make_python_operator_with_callable_str():
 
 def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator_path()
     task_params = {"task_id": "test_task", "python_callable_name": "print_test"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -427,7 +430,7 @@ def test_make_python_operator_missing_param():
 
 def test_make_python_operator_missing_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator_path()
     task_params = {"task_id": "test_task"}
     with pytest.raises(Exception):
         td.make_task(operator, task_params)
@@ -435,7 +438,7 @@ def test_make_python_operator_missing_params():
 
 def test_make_http_sensor():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -452,7 +455,7 @@ def test_make_http_sensor():
 
 def test_make_http_sensor_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -468,7 +471,7 @@ def test_make_http_sensor_lambda():
 
 def test_make_sql_sensor_success():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -476,7 +479,7 @@ def test_make_sql_sensor_success():
         "success_check_name": "print_test",
         "success_check_file": os.path.realpath(__file__),
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert callable(actual.success)
     assert isinstance(actual, SqlSensor)
@@ -484,14 +487,14 @@ def test_make_sql_sensor_success():
 
 def test_make_sql_sensor_success_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
         "success_check_lambda": "lambda res: res > 0",
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert callable(actual.success)
     assert isinstance(actual, SqlSensor)
@@ -499,7 +502,7 @@ def test_make_sql_sensor_success_lambda():
 
 def test_make_sql_sensor_failure():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
@@ -507,7 +510,7 @@ def test_make_sql_sensor_failure():
         "failure_check_name": "print_test",
         "failure_check_file": os.path.realpath(__file__),
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert not callable(actual.success)
     assert callable(actual.failure)
@@ -516,14 +519,14 @@ def test_make_sql_sensor_failure():
 
 def test_make_sql_sensor_failure_lambda():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.sql_sensor.SqlSensor"
+    sensor = get_sql_sensor_path()
     task_params = {
         "task_id": "test_task",
         "conn_id": "test-sql",
         "sql": "SELECT 1 AS status;",
         "failure_check_lambda": "lambda res: res > 0",
     }
-    actual = td.make_task(operator, task_params)
+    actual = td.make_task(sensor, task_params)
     assert actual.task_id == "test_task"
     assert not callable(actual.success)
     assert callable(actual.failure)
@@ -532,7 +535,7 @@ def test_make_sql_sensor_failure_lambda():
 
 def test_make_http_sensor_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    operator = "airflow.sensors.http_sensor.HttpSensor"
+    operator = get_http_sensor_path()
     task_params = {
         "task_id": "test_task",
         "http_conn_id": "test-http",
@@ -553,8 +556,7 @@ def test_build():
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
     if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
         assert actual["dag"].dag_display_name == "Pretty example dag"
-    if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.8"):
-        assert actual["dag"].tags == ["tag1", "tag2", "dagfactory"]
+    assert sorted(actual["dag"].tags) == sorted(["tag1", "tag2", "dagfactory"])
 
 
 def test_get_dag_params_dag_with_task_group():
@@ -567,7 +569,7 @@ def test_get_dag_params_dag_with_task_group():
             "retries": 1,
             "retry_delay": datetime.timedelta(seconds=300),
         },
-        "schedule_interval": "0 3 * * *",
+        get_schedule_key(): "0 3 * * *",
         "task_groups": {
             "task_group_1": {
                 "tooltip": "this is a task group",
@@ -578,32 +580,32 @@ def test_get_dag_params_dag_with_task_group():
         },
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
             "task_2": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "task_group_name": "task_group_1",
             },
             "task_3": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "task_group_name": "task_group_1",
                 "dependencies": ["task_2"],
             },
             "task_4": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 4",
                 "dependencies": ["task_group_1"],
             },
             "task_5": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 5",
                 "task_group_name": "task_group_2",
             },
             "task_6": {
-                "operator": "airflow.operators.bash_operator.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo 6",
                 "task_group_name": "task_group_2",
                 "dependencies": ["task_5"],
@@ -816,13 +818,23 @@ def test_make_dag_with_callbacks_default_args():
 
             # Assert that these callbacks have been applied at the Task-level
             assert callback_type in task_1.__dict__
-            assert callable(task_1.__dict__[callback_type])
-            assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+            # Airflow 3 callback type is sequence
+            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+                assert callable(task_1.__dict__[callback_type][0])
+                assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
+            else:
+                assert callable(task_1.__dict__[callback_type])
+                assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
         # Assert that these callbacks have been applied at the Task-level
         assert "on_failure_callback" in task_1.__dict__
-        assert callable(task_1.__dict__["on_failure_callback"])
-        assert task_1.__dict__["on_failure_callback"].__name__ == "print_context_callback"
+        # Airflow 3 callback type is sequence
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(task_1.__dict__["on_failure_callback"][0])
+            assert task_1.__dict__["on_failure_callback"][0].__name__ == "print_context_callback"
+        else:
+            assert callable(task_1.__dict__["on_failure_callback"])
+            assert task_1.__dict__["on_failure_callback"].__name__ == "print_context_callback"
 
 
 @pytest.mark.callbacks
@@ -852,7 +864,8 @@ def test_make_dag_with_task_group_callbacks():
         dag = td.build()["dag"]  # Also, pull the dag
 
         # Basic checks to ensure the DAG was built as expected
-        assert dag.task_count == 4
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+            assert dag.task_count == 4
         assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
         assert (
             "task_group_1.task_1" in dag.task_dict
@@ -888,16 +901,34 @@ def test_make_dag_with_task_group_callbacks_default_args():
         # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
         # grouped into task_group_1
         assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
-        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
-        assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
+        # Airflow 3 callback type is sequence
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
+            assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
+        else:
+            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
+            assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
 
         # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
         # validated but checking the type, "callab-ility", name, and parameters configured with it
-        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
-        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
-        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
+        # Airflow 3 callback type is sequence
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
+            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
+            assert (
+                dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
+                == "empty_callback_with_params"
+            )
+            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
+            assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
+        else:
+            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
+            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
+            assert (
+                dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
+            )
+            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
+            assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
 
 @pytest.mark.callbacks
@@ -911,19 +942,31 @@ def test_make_dag_with_task_group_callbacks_tasks():
     dag = td.build()["dag"]
 
     task_4 = dag.task_dict["task_4"]
-    assert callable(task_4.on_execute_callback)
-    assert task_4.on_execute_callback.__name__ == "print_context_callback"
+    # Airflow 3 callback type is sequence
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert callable(task_4.on_execute_callback[0])
+        assert task_4.on_execute_callback[0].__name__ == "print_context_callback"
 
-    assert isinstance(task_4.on_success_callback, functools.partial)
-    assert callable(task_4.on_success_callback)
-    assert task_4.on_success_callback.func.__name__ == "empty_callback_with_params"
-    assert "param_2" in task_4.on_success_callback.keywords
-    assert task_4.on_success_callback.keywords["param_2"] == "value_2"
+        assert isinstance(task_4.on_success_callback[0], functools.partial)
+        assert callable(task_4.on_success_callback[0])
+        assert task_4.on_success_callback[0].func.__name__ == "empty_callback_with_params"
+        assert "param_2" in task_4.on_success_callback[0].keywords
+        assert task_4.on_success_callback[0].keywords["param_2"] == "value_2"
 
-    assert callable(task_4.on_failure_callback)
-    assert task_4.on_failure_callback.__name__ == "print_context_callback"
+        assert callable(task_4.on_failure_callback[0])
+        assert task_4.on_failure_callback[0].__name__ == "print_context_callback"
+    else:
+        assert callable(task_4.on_execute_callback)
+        assert task_4.on_execute_callback.__name__ == "print_context_callback"
 
-    # Can do something similar here as was done with the make_dag test (for Slack)
+        assert isinstance(task_4.on_success_callback, functools.partial)
+        assert callable(task_4.on_success_callback)
+        assert task_4.on_success_callback.func.__name__ == "empty_callback_with_params"
+        assert "param_2" in task_4.on_success_callback.keywords
+        assert task_4.on_success_callback.keywords["param_2"] == "value_2"
+
+        assert callable(task_4.on_failure_callback)
+        assert task_4.on_failure_callback.__name__ == "print_context_callback"
 
 
 def test_get_dag_params_with_template_searchpath():
@@ -969,7 +1012,7 @@ def test_get_dag_params_with_render_template_as_native_obj():
 
 def test_make_task_with_duplicated_partial_kwargs():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    operator = "airflow.operators.bash_operator.BashOperator"
+    operator = get_bash_operator_path()
     task_params = {
         "task_id": "task_bash",
         "bash_command": "echo 2",
@@ -986,7 +1029,7 @@ def test_dynamic_task_mapping():
         with pytest.raises(Exception, match=error_message):
             td.build()
     else:
-        operator = "airflow.operators.python_operator.PythonOperator"
+        operator = get_python_operator_path()
         task_params = {
             "task_id": "process",
             "python_callable_name": "expand_task",
@@ -1020,6 +1063,7 @@ def test_replace_expand_string_with_xcom():
         assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
         assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
+
 @pytest.mark.skipif(
     version.parse(AIRFLOW_VERSION) <= version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
@@ -1049,7 +1093,6 @@ def test_replace_expand_string_with_xcom():
         ),
     ],
 )
-
 @patch("dagfactory.dagbuilder.utils.get_datasets_uri_yaml_file", new_callable=mock_open)
 def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inlets, expected_outlets):
     """Tests if the `make_task()` function correctly handles `inlets` and `outlets` parameters."""
@@ -1069,12 +1112,13 @@ def test_make_task_inlets_outlets(mock_read_file, inlets, outlets, expected_inle
     # Mock the response of `get_datasets_uri_yaml_file` to return expected values
     mock_read_file.return_value = expected_inlets + expected_outlets
 
-    operator = "airflow.operators.python_operator.PythonOperator"
+    operator = get_python_operator_path()
     actual = td.make_task(operator, task_params)
 
     # Assertions to check if the actual results match the expected values
     assert actual.inlets == [Dataset(uri) for uri in expected_inlets]
     assert actual.outlets == [Dataset(uri) for uri in expected_outlets]
+
 
 @patch("dagfactory.dagbuilder.TaskGroup", new=MockTaskGroup)
 def test_make_nested_task_groups():
@@ -1096,6 +1140,218 @@ def test_make_nested_task_groups():
     del sub_task_group["parent_group"]
     assert task_groups["task_group"].__dict__ == expected["task_group"].__dict__
     assert sub_task_group == expected["sub_task_group"].__dict__
+
+
+@pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
+class TestSchedule:
+
+    def test_asset_schedule_list_of_assets(self):
+        from airflow.sdk import Asset
+
+        schedule_data = read_yml(schedule_path / "list_asset.yml")
+        data = schedule_data["schedule"]["value"]
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        ]
+        assert parsed_schedule == expected
+
+    def test_asset_schedule_with_and_operator(self):
+        from airflow.sdk import Asset, AssetAll
+
+        schedule_data = read_yml(schedule_path / "and_asset.yml")
+        data = schedule_data["schedule"]["value"]
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = AssetAll(
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+        assert parsed_schedule.__eq__(expected)
+
+    def test_asset_schedule_with_or_operator(self):
+        from airflow.sdk import Asset, AssetAny
+
+        schedule_data = read_yml(schedule_path / "or_asset.yml")
+        data = schedule_data["schedule"]["value"]
+
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = AssetAny(
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+        assert parsed_schedule.__eq__(expected)
+
+    def test_asset_schedule_with_nested_operators(self):
+        from airflow.sdk import Asset, AssetAll, AssetAny
+
+        schedule_data = read_yml(schedule_path / "nested_asset.yml")
+        data = schedule_data["schedule"]["value"]
+
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = AssetAny(
+            AssetAll(
+                Asset(
+                    name="s3://dag1/output_1.txt",
+                    uri="s3://dag1/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+                Asset(
+                    name="s3://dag2/output_1.txt",
+                    uri="s3://dag2/output_1.txt",
+                    group="asset",
+                    extra={"hi": "bye"},
+                    watchers=[],
+                ),
+            ),
+            Asset(
+                name="s3://dag3/output_3.txt",
+                uri="s3://dag3/output_3.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+        assert parsed_schedule.__eq__(expected)
+
+    def test_asset_schedule_with_watcher(self):
+        from airflow.providers.standard.triggers.file import FileDeleteTrigger
+        from airflow.sdk import Asset, AssetWatcher
+
+        schedule_data = read_yml(schedule_path / "asset_with_watcher.yml")
+        data = schedule_data["schedule"]["value"]
+
+        parsed_schedule = DagBuilder._asset_schedule(data)
+
+        expected = [
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[
+                    AssetWatcher(
+                        name="test_asset_watcher",
+                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                    )
+                ],
+            )
+        ]
+        assert parsed_schedule.__eq__(expected)
+
+    def test_resolve_schedule_cron_string(self):
+        yaml_str = "schedule: '* * * * *'"
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == "* * * * *"
+
+    def test_resolve_schedule_cron_string_alias(self):
+        data = read_yml(schedule_path / "cron.yml")
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == "@daily"
+
+    def test_resolve_schedule_cron_type_value(self):
+        data = read_yml(schedule_path / "cron_dict.yml")
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == "0 0 * * *"
+
+    def test_resolve_schedule_timetable_type(self):
+        from airflow.timetables.trigger import CronTriggerTimetable
+
+        data = read_yml(schedule_path / "timetable.yml")
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
+
+    def test_resolve_schedule_timedelta_type(self):
+
+        data = read_yml(schedule_path / "timedelta.yml")
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == datetime.timedelta(seconds=30)
+
+    def test_resolve_schedule_relativedelta_type(self):
+        from dateutil.relativedelta import relativedelta
+
+        data = read_yml(schedule_path / "relativedelta.yml")
+        schedule = DagBuilder._resolve_schedule(data)
+        assert schedule == relativedelta(month=1)
+
+    def test_resolve_schedule_asset_any_type(self):
+        from airflow.sdk import Asset, AssetAny
+
+        yaml_str = """
+        schedule:
+            type: assets
+            value:
+                or:
+                    - uri: s3://dag1/output_1.txt
+                      extra:
+                          hi: bye
+                    - uri: s3://dag2/output_1.txt
+                      extra:
+                          hi: bye
+        """
+        data = yaml.safe_load(yaml_str)
+        schedule = DagBuilder._resolve_schedule(data)
+
+        expected = AssetAny(
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+        )
+        assert schedule.__eq__(expected)
 
 
 class TestTopologicalSortTasks:

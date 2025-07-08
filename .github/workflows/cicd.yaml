@@ -1,44 +1,63 @@
 name: CI jobs
 
 on:
-  push: # Run on pushes to the default branch
+  # run on pushes to the default branch
+  push:
     branches: [main]
-  pull_request_target: # Also run on pull requests originated from forks
+  # run on pull requests originated from forks based on the `main` branch.
+  # note that if you're trying to edit the CI in a pull request,
+  # your changes won't run here. you need to temporarily add your branch to
+  # the `branches` list above.
+  pull_request:
     branches: [main]
+  # run on releases
   release:
-    types: ['published']
+    types: ["published"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  Authorize:
+    environment: ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      'external' || 'internal' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
 
   Static-Check:
+    needs: Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           architecture: "x64"
 
-      - run: pip3 install hatch
+      - run: uv tool install hatch
       - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        airflow-version:
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -49,8 +68,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"
@@ -69,9 +86,15 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/uv
             ~/.cache/pip
             .local/share/hatch/
           key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -80,13 +103,14 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          python -m pip install uv
-          uv pip install --system hatch
+          uv tool install hatch
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
         run: |
           hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
+        env:
+          AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
@@ -96,15 +120,15 @@ jobs:
           include-hidden-files: true
 
   Run-Integration-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        airflow-version: [ "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10" ]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        airflow-version:
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -115,8 +139,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"
@@ -135,9 +157,15 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/uv
             ~/.cache/pip
             .local/share/hatch/
           key: integration-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -146,8 +174,7 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          python -m pip install uv
-          uv pip install --system hatch
+          uv tool install hatch
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
@@ -159,6 +186,7 @@ jobs:
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
+          AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@v4
@@ -172,18 +200,26 @@ jobs:
     needs:
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Install coverage
         run: |
-          pip3 install coverage
+          uv tool install coverage
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
@@ -208,10 +244,16 @@ jobs:
       - Static-Check
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
 
       - uses: actions/setup-python@v5
         with:
@@ -219,7 +261,7 @@ jobs:
           architecture: "x64"
 
       - name: Install packages and dependencies
-        run: pip install hatch
+        run: uv tool install hatch
 
       - name: Deploy Docs
         run: |
@@ -243,18 +285,22 @@ jobs:
       - Run-Integration-Tests
       - Deploy-Pages
       - Code-Coverage
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.12"
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          architecture: 'x64'
+          python-version: "3.10"
+          architecture: "x64"
+
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
-      - run: pip3 install hatch
-      - run: hatch build
-      - run: hatch publish
-    env:
-      HATCH_INDEX_USER: __token__
-      HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
+      - run: uv build --wheel --sdist
+      - run: uv publish

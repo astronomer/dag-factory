@@ -1,0 +1,4 @@
+schedule:
+  type: timedelta
+  value:
+      seconds: 30

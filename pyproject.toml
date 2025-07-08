@@ -9,8 +9,8 @@ description = "Dynamically build Apache Airflow DAGs from YAML files"
 authors = [{ name = "Astronomer", email = "humans@astronomer.io" }]
 readme = "README.md"
 license = "Apache-2.0"
-license-files = { paths = ["LICENSE"] }
-requires-python = ">=3.8"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
 keywords = ["airflow", "apache-airflow", "provider", "astronomer", "dag"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -22,16 +22,15 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "apache-airflow>=2.3",
+    "apache-airflow>=2.4",
     "apache-airflow-providers-http>=2.0.0",
-    "apache-airflow-providers-cncf-kubernetes<10.4.2", # https://github.com/astronomer/dag-factory/issues/397
+    "apache-airflow-providers-cncf-kubernetes",
     "pyyaml",
     "packaging",
 ]
@@ -44,6 +43,43 @@ tests = [
     "pytest-cov",
     "pre-commit",
 ]
+
+######################################
+# UV CONFIGURATION
+######################################
+
+[tool.uv]
+dev-dependencies = [
+    "dag-factory[tests]",
+    "pre-commit",
+    "pytest>=6.0",
+    "pytest-cov",
+    "apache-airflow-providers-slack",
+    "httpx>=0.25.0",
+    "pandas",
+    "hatch",
+]
+
+# Respect existing constraints for Airflow compatibility
+constraint-dependencies = [
+    "apache-airflow>=2.3",
+]
+
+[tool.uv.workspace]
+# Enable workspace mode for better dependency management
+members = ["."]
+
+[tool.uv.pip]
+# Use more efficient resolution strategy
+resolution = "highest"
+# Respect existing pip-compatible behavior for scripts
+system = false
+# Optimize for CI/CD performance
+compile-bytecode = true
+
+[tool.uv.sources]
+# Add custom package sources if needed in the future
+# Example: custom-package = { url = "https://custom-repo.com/simple" }
 
 ######################################
 # TESTING
@@ -59,8 +95,8 @@ dependencies = [
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-airflow = ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10"]
+python = ["3.9", "3.10", "3.11", "3.12"]
+airflow = ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
 
 
 [tool.hatch.envs.tests.scripts]

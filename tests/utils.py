@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from typing import Any
 
+import yaml
 from airflow.configuration import secrets_backend_list
 from airflow.exceptions import AirflowSkipException
 from airflow.models.dag import DAG
@@ -12,20 +13,12 @@ from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
 from airflow.utils import timezone
-from airflow.utils.session import provide_session
+from airflow.utils.session import NEW_SESSION, provide_session
 from airflow.utils.state import DagRunState, State
 from airflow.utils.types import DagRunType
+from airflow.version import version as AIRFLOW_VERSION
+from packaging import version
 from sqlalchemy.orm.session import Session
-
-try:
-    from airflow.utils.session import NEW_SESSION
-except ImportError:
-    # Airflow < 2.3 did not have NEW_SESSION in airflow.utils.session
-    from typing import cast
-
-    from airflow import settings
-
-    NEW_SESSION: settings.SASession = cast(settings.SASession, None)
 
 log = logging.getLogger(__name__)
 
@@ -97,7 +90,7 @@ def test_dag(
 
     print("conn_file_path", conn_file_path)
 
-    return dr, session
+    return dr
 
 
 def add_logger_if_needed(dag: DAG, ti: TaskInstance):
@@ -182,3 +175,44 @@ def _get_or_create_dagrun(
 
 def one_hour_ago(execution_date: datetime):
     return execution_date - datetime.timedelta(hours=1)
+
+
+def get_http_sensor_path():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version < version.parse("2.4.0"):
+        return "airflow.sensors.http_sensor.HttpSensor"
+    else:
+        return "airflow.providers.http.sensors.http.HttpSensor"
+
+
+def get_schedule_key():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version < version.parse("3.0.0"):
+        return "schedule_interval"
+    else:
+        return "schedule"
+
+
+def get_bash_operator_path():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version >= version.parse("3.0.0"):
+        return "airflow.providers.standard.operators.bash.BashOperator"
+    else:
+        return "airflow.operators.bash.BashOperator"
+
+
+def get_python_operator_path():
+    airflow_version = version.parse(AIRFLOW_VERSION)
+    if airflow_version >= version.parse("3.0.0"):
+        return "airflow.providers.standard.operators.python.PythonOperator"
+    else:
+        return "airflow.operators.python.PythonOperator"
+
+
+def get_sql_sensor_path():
+    return "airflow.providers.common.sql.sensors.sql.SqlSensor"
+
+
+def read_yml(path):
+    with open(path, "r") as file:
+        return yaml.safe_load(file)

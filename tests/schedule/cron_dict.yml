@@ -1,0 +1,3 @@
+schedule:
+  type: cron
+  value: "0 0 * * *"
