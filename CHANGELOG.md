@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Remediated ``default`` behavior, added documentation by @ghost in [#378](https://github.com/astronomer/dag-factory/pull/378)
+- Remediated ``default`` behavior, added documentation by @jroachgolf84 in [#378](https://github.com/astronomer/dag-factory/pull/378)
 - Upgrade KubernetesPodOperator by @pankajastro in [#407](https://github.com/astronomer/dag-factory/pull/407)
 - Log error message if config file is not valid by @pankajastro in [#408](https://github.com/astronomer/dag-factory/pull/408)
 
@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove Unreleased heading section from the CHANGELOG.md by @pankajkoti in [#365](https://github.com/astronomer/dag-factory/pull/365)
 - Add Documentation for Conditional Dataset Scheduling with dag-factory by @ErickSeo in [#367](https://github.com/astronomer/dag-factory/pull/367)
 - Add copy right by @pankajastro in [#371](https://github.com/astronomer/dag-factory/pull/371)
-- Updating docs for callbacks by @ghost in [#375](https://github.com/astronomer/dag-factory/pull/375)
+- Updating docs for callbacks by @jroachgolf84 in [#375](https://github.com/astronomer/dag-factory/pull/375)
 - Add stable/latest docs version by @pankajastro in [#391](https://github.com/astronomer/dag-factory/pull/391)
 - Migrate old content to new documentation structure by @pankajastro in [#393](https://github.com/astronomer/dag-factory/pull/393)
 - Update Airflow supported version 2.3+ in docs by @pankajastro in [#412](https://github.com/astronomer/dag-factory/pull/412)
