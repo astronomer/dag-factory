@@ -1,0 +1,15 @@
+etl:
+  tasks:
+    extract:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo extract"
+    transform:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo transform"
+      dependencies:
+      - extract
+    load:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo load"
+      dependencies:
+      - transform

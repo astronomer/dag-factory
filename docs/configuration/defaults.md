@@ -59,16 +59,23 @@ single DAG.
 
 ### Example using of default block for dynamic DAG generation
 
-Not only can the `default` block in a YAML file be used to define `default_args` for one or more DAGs; it can also be
-used to create the skeleton of "templated" DAGs. In the example below, the `default` block is used to define not only
-the `default_args` of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this file.
-Each DAG (`machine_learning`, `data_science`, `artificial_intelligence`) will be defined using the values from the
-`default` block, and like with `default_args`, can override these values. **This is a powerful way to use DAG Factory
-to dynamically create DAGs using a single configuration.**
+   Not only can the `default` block in a YAML file be used to define `default_args` for one or more DAGs; it can also be
+   used to create the skeleton of "templated" DAGs. In the example below, the `default` block is used to define not only
+   the `default_args` of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this
+   file. Each DAG (`machine_learning`, `data_science`, `artificial_intelligence`) will be defined using the values from
+   the `default` block, and like with `default_args`, can override these values. **This is a powerful way to use DAG
+   Factory to dynamically create DAGs using a single configuration.**
 
+   ```yaml title="Usage of default block in YAML"
+   --8<-- "dev/dags/example_dag_factory_default_config.yml"
+   ```
 
-```yaml title="Usage of default block in YAML"
---8<-- "dev/dags/example_dag_factory_default_config.yml"
-```
+### Specifying `default_args` in a `.py` file
 
-Currently, only `default_args` can be specified using the `defaults.yml` file.
+   In the `.py` used to instantiate a DAG defined using YAML, default arguments in the form of a Python dictionary can
+   be set using the `default_args_config_dict` parameter in the `DAGFactory` class. This mirrors the functionality of
+   manually specifying a `default_args_config_ypath` in the `DAGFactory` class.
+
+   ```python title="Usage of default_args_config_dict in .py file"
+   --8<-- "dev/dags/example_dag_factory_default_config_dict.py:13:19"
+   ```
