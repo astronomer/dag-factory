@@ -67,10 +67,11 @@ single DAG.
    Factory to dynamically create DAGs using a single configuration.**
 
    ```yaml title="Usage of default block in YAML"
-   --8<-- "dev/dags/example_dag_factory_default_config.yml"
+   --8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
    ```
 
 ### Specifying `default_args` in a `.py` file
+
 ```yaml title="Usage of default block in YAML"
 --8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
 ```
