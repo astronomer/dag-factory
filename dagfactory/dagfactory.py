@@ -31,8 +31,12 @@ class DagFactory:
     :param config_filepath: the filepath of the DAG factory YAML config file.
         Must be absolute path to file. Cannot be used with `config`.
     :type config_filepath: str
-    :param config: DAG factory config dictionary. Cannot be user with `config_filepath`.
+    :param config: DAG factory config dictionary. Cannot be used with `config_filepath`.
     :type config: dict
+    :param default_args_config_path: The path to a file that contains the default arguments for that DAG.
+    :type default_args_config_path: str
+    :param default_args_config_dict: A dictionary of default arguments for that DAG, as an alternative to default_args_config_path.
+    :type default_args_config_dict: dict
     """
 
     def __init__(
@@ -40,14 +44,32 @@ class DagFactory:
         config_filepath: Optional[str] = None,
         config: Optional[dict] = None,
         default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
+        default_args_config_dict: Optional[dict] = None,
     ) -> None:
+        # Handle the config(_filepath)
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
-        self.default_args_config_path = default_args_config_path
+
         if config_filepath:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config: Dict[str, Any] = config
+
+        # These default args are a bit different; these are not the "default" structure that is applied to certain DAGs.
+        # These are in-fact the "default" default_args
+        if default_args_config_dict:
+            # Log a warning if the default_args parameter is specified. If both the default_args and
+            # default_args_file_path are passed, we'll throw an exception.
+            logging.warning(
+                "Manually specifying `default_args_config_dict` will override the values in the `defaults.yml` file."
+            )
+
+            if default_args_config_path != airflow_conf.get("core", "dags_folder"):
+                raise DagFactoryException("Cannot pass both `default_args_config_dict` and `default_args_config_path`.")
+
+        # We'll still go ahead and set both values. They'll be referenced in _global_default_args.
+        self.default_args_config_path: str = default_args_config_path
+        self.default_args_config_dict: Optional[dict] = default_args_config_dict
 
     def _load_yaml_config(self, config_filepath: str) -> Dict[str, Any]:
         """For loading yaml config file, including DAG config and default args config."""
@@ -74,8 +96,14 @@ class DagFactory:
             config = cast_with_type(config)
         return config
 
-    def _global_default_args(self) -> Optional[Dict[str, Any]]:
-        """If a defaults.yml exists, use this as the global default arguments (to be applied to each DAG)."""
+    def _global_default_args(self):
+        """
+        If self.default_args exists, use this as the global default_args (to be applied to each DAG). Otherwise, fall
+        back to the defaults.yml file.
+        """
+        if self.default_args_config_dict:
+            return self.default_args_config_dict
+
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():
