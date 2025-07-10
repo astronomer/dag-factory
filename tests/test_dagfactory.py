@@ -6,9 +6,10 @@ import pytest
 from airflow.version import version as AIRFLOW_VERSION
 
 try:
-    from airflow.sdk.definitions.variable import Variable
+    from airflow.sdk.definitions.variable import Variable  # noqa: F401
 except ImportError:
-    from airflow.models.variable import Variable
+    from airflow.models.variable import Variable  # noqa: F401
+
 from packaging import version
 
 from tests.utils import get_bash_operator_path, get_schedule_key
@@ -350,10 +351,7 @@ def test_kubernetes_pod_operator_dag_lt_2_7():
 def test_variables_as_arguments_dag(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     override_command = "value_from_variable"
-    if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
-        os.environ["AIRFLOW_VAR_VAR1"] = override_command
-    else:
-        Variable.set("var1", override_command)
+    os.environ["AIRFLOW_VAR_VAR1"] = override_command
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     td.generate_dags(globals())
     tasks = globals()["example_dag"].tasks

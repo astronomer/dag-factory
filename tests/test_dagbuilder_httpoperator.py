@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pendulum
 import pytest
-from airflow import DAG
+
+try:
+    from airflow.sdk.definitions.dag import DAG  # noqa: F401
+except ImportError:
+    from airflow.models.dag import DAG  # noqa: F401
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryException
@@ -47,14 +51,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
-    "schedule_interval": "0 1 * * *",
+    get_schedule_key(): "0 1 * * *",
 }
 
 # Basic DAG config for tests
 DAG_CONFIG = {
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
-    "schedule_interval": "0 3 * * *",
+    get_schedule_key(): "0 3 * * *",
 }
 
 

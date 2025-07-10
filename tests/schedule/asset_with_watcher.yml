@@ -1,13 +1,11 @@
 schedule:
-  type: asset
-  value:
-    - uri: s3://dag1/output_1.txt
-      extra:
-        hi: bye
-      watchers:
-        - callable: airflow.sdk.AssetWatcher
-          name: test_asset_watcher
-          trigger:
-            callable: airflow.providers.standard.triggers.file.FileDeleteTrigger
-            params:
-              filepath: "/temp/file.txt"
+  __type__: airflow.sdk.Asset
+  uri: s3://dag1/output_1.txt
+  extra:
+    hi: bye
+  watchers:
+    - __type__: airflow.sdk.AssetWatcher
+      name: test_asset_watcher
+      trigger:
+        __type__: airflow.providers.standard.triggers.file.FileDeleteTrigger
+        filepath: "/temp/file.txt"

@@ -8,7 +8,7 @@ on:
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
-  pull_request_target:
+  pull_request:
     branches: [main]
   # run on releases
   release:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   Authorize:
-    environment: ${{ github.event_name == 'pull_request_target' &&
+    environment: ${{ github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name != github.repository &&
       'external' || 'internal' }}
     runs-on: ubuntu-latest
@@ -185,7 +185,7 @@ jobs:
           AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 90.0
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
           AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
