@@ -60,10 +60,7 @@ def get_dag_bag() -> DagBag:
         if AIRFLOW_VERSION >= Version("3.0.0"):
             # TODO: https://github.com/astronomer/dag-factory/issues/437
             file.writelines(["example_dag_datasets.py\n"])
-            # file.writelines(["example_pypi_stats_plain_airflow.py\n"])
-            # file.writelines(["example_hackernews_plain_airflow.py\n"])
             file.writelines(["example_load_airflow2_dags.py\n"])
-            # file.writelines(["example_map_index_template.py\n"])
 
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
