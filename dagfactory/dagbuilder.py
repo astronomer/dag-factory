@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import ast
-
-# pylint: disable=ungrouped-imports
 import inspect
 import os
 import re
@@ -14,8 +12,16 @@ from datetime import datetime, timedelta
 from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from airflow import DAG, configuration
-from airflow.models import BaseOperator, Variable
+from airflow import configuration
+
+try:
+    from airflow.sdk.bases.operator import BaseOperator
+    from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.variable import Variable
+except ImportError:
+    from airflow.models import BaseOperator, Variable
+    from airflow.models.dag import DAG
+
 from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
@@ -1069,8 +1075,12 @@ class DagBuilder:
         if utils.check_dict_key(task_params, "variables_as_arguments"):
             variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
             for variable in variables:
-                if Variable.get(variable["variable"], default_var=None) is not None:
-                    task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
+                default_argument_name = "default"
+                if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
+                    default_argument_name = "default_var"
+                variable_value = Variable.get(variable["variable"], **{default_argument_name: None})
+                if variable_value is not None:
+                    task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):

@@ -8,9 +8,10 @@ import pendulum
 import pytest
 
 try:
-    from airflow.sdk.definitions import DAG
+    from airflow.sdk.definitions.dag import DAG
 except ImportError:
     from airflow.models import DAG
+
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor

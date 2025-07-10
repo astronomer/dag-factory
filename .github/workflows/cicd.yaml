@@ -185,7 +185,7 @@ jobs:
           AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 90.0
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
           AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
