@@ -713,6 +713,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-a-py-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in a .py file
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1384,6 +1393,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#specifying-default_args-in-a-py-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Specifying default_args in a .py file
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1491,11 +1509,11 @@ single DAG.</p>
 </ol>
 <h3 id="example-using-of-default-block-for-dynamic-dag-generation">Example using of default block for dynamic DAG generation</h3>
 <p>Not only can the <code>default</code> block in a YAML file be used to define <code>default_args</code> for one or more DAGs; it can also be
-used to create the skeleton of "templated" DAGs. In the example below, the <code>default</code> block is used to define not only
-the <code>default_args</code> of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this file.
-Each DAG (<code>machine_learning</code>, <code>data_science</code>, <code>artificial_intelligence</code>) will be defined using the values from the
-<code>default</code> block, and like with <code>default_args</code>, can override these values. <strong>This is a powerful way to use DAG Factory
-to dynamically create DAGs using a single configuration.</strong></p>
+   used to create the skeleton of "templated" DAGs. In the example below, the <code>default</code> block is used to define not only
+   the <code>default_args</code> of a DAG, but also default Tasks. These Tasks provide a "template" for the DAGs defined in this
+   file. Each DAG (<code>machine_learning</code>, <code>data_science</code>, <code>artificial_intelligence</code>) will be defined using the values from
+   the <code>default</code> block, and like with <code>default_args</code>, can override these values. <strong>This is a powerful way to use DAG
+   Factory to dynamically create DAGs using a single configuration.</strong></p>
 <div class="language-yaml highlight"><span class="filename">Usage of default block in YAML</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">default</span><span class="p">:</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;2024-01-01&#39;</span>
@@ -1533,7 +1551,18 @@ to dynamically create DAGs using a single configuration.</strong></p>
 </span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
 </span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">artificial_intelligence&quot;</span>
 </span></code></pre></div>
-<p>Currently, only <code>default_args</code> can be specified using the <code>defaults.yml</code> file.</p>
+<h3 id="specifying-default_args-in-a-py-file">Specifying <code>default_args</code> in a <code>.py</code> file</h3>
+<p>In the <code>.py</code> used to instantiate a DAG defined using YAML, default arguments in the form of a Python dictionary can
+   be set using the <code>default_args_config_dict</code> parameter in the <code>DAGFactory</code> class. This mirrors the functionality of
+   manually specifying a <code>default_args_config_ypath</code> in the <code>DAGFactory</code> class.</p>
+<div class="language-python highlight"><span class="filename">Usage of default_args_config_dict in .py file</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">example_dag_factory</span> <span class="o">=</span> <span class="n">dagfactory</span><span class="o">.</span><span class="n">DagFactory</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">config_file</span><span class="p">,</span> <span class="n">default_args_config_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;default_args&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;global_owner&quot;</span><span class="p">}}</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Creating task dependencies</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">example_dag_factory</span><span class="o">.</span><span class="n">clean_dags</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">example_dag_factory</span><span class="o">.</span><span class="n">generate_dags</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
+</span></code></pre></div>
 
 
 
