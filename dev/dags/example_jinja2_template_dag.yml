@@ -1,0 +1,16 @@
+example_jinja2_template_dag:
+  default_args:
+    start_date: "2025-01-01"
+  schedule_interval: "@daily"
+  description: "A DAG that uses Airflow's built-in Jinja templates"
+  catchup: false
+  tasks:
+    print_run_id:
+      operator: "airflow.operators.bash.BashOperator"
+      bash_command: "echo 'run-id is {{ run_id }}'"
+
+    print_task:
+      operator: "airflow.operators.bash.BashOperator"
+      bash_command: "echo 'The task is {{ task }}'"
+      dependencies:
+      - print_run_id
