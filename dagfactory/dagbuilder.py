@@ -18,7 +18,6 @@ from airflow import DAG, configuration
 from airflow.models import BaseOperator, Variable
 from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
-from dateutil.relativedelta import relativedelta
 from packaging import version
 
 from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
@@ -718,15 +717,6 @@ class DagBuilder:
         return watchers
 
     @staticmethod
-    def _init_asset(asset_dict: dict):
-        from airflow.sdk import Asset
-
-        """Initialize an Asset from its configuration dictionary."""
-        if "watchers" in asset_dict:
-            asset_dict["watchers"] = DagBuilder._init_watchers(asset_dict["watchers"])
-        return Asset(**asset_dict)
-
-    @staticmethod
     def _combine_assets(assets, op: str):
         """Combine a list of Asset objects using logical operators."""
         if op == "or":
@@ -737,8 +727,27 @@ class DagBuilder:
             raise ValueError(f"Unknown operator: {op}")
 
     @staticmethod
+    def _is_asset(d):
+        from airflow.sdk import Asset
+
+        if not isinstance(d, dict):
+            return False
+        for key, value in d.items():
+            if isinstance(value, Asset):
+                return True
+            elif isinstance(value, list):
+                if any(isinstance(item, Asset) for item in value):
+                    return True
+            elif isinstance(value, dict):
+                if DagBuilder._is_asset(value):
+                    return True
+        return False
+
+    @staticmethod
     def _asset_schedule(value):
         """Recursively parse and construct assets or combinations of assets."""
+        from airflow.sdk import Asset
+
         if isinstance(value, dict):
             if "or" in value:
                 assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
@@ -746,49 +755,12 @@ class DagBuilder:
             elif "and" in value:
                 assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
                 return DagBuilder._combine_assets(assets, "and")
-            elif "uri" in value:
-                return DagBuilder._init_asset(value)
-            else:
-                raise ValueError(f"Invalid asset entry: {value}")
         elif isinstance(value, list):
-            return [DagBuilder._init_asset(asset) for asset in value]
+            return [asset for asset in value]
+        elif isinstance(value, Asset):
+            return value
         else:
             raise TypeError(f"Unexpected data type: {type(value)}")
-
-    @staticmethod
-    def _resolve_schedule(dag_params):
-        schedule = dag_params.get("schedule")
-        if schedule is None:
-            return None
-
-        if isinstance(schedule, str) and schedule.strip().lower() == "none":
-            return None
-
-        # Case 1: If schedule is a string, return it directly
-        if isinstance(schedule, str):
-            return schedule
-
-        # Case 2: If schedule is a dictionary
-        if isinstance(schedule, dict):
-            schedule_type = schedule.get("type")
-            value = schedule.get("value")
-
-            dispatch = {
-                "cron": lambda v: v,
-                "timetable": lambda v: DagBuilder.make_timetable(v.get("callable"), v.get("params", {})),
-                "timedelta": lambda v: timedelta(**v),
-                "relativedelta": lambda v: relativedelta(**v),
-                "assets": lambda v: DagBuilder._asset_schedule(v),
-            }
-
-            try:
-                handler = dispatch[schedule_type]
-            except KeyError:
-                raise DagFactoryException(f"Schedule type {schedule_type} is not supported.")
-
-            return handler(value)
-
-        raise DagFactoryException(f"Unexpected value for schedule: {schedule}")
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -835,7 +807,14 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            dag_kwargs["schedule"] = DagBuilder._resolve_schedule(dag_params)
+            schedule = dag_params.get("schedule")
+            if DagBuilder._is_asset(schedule):
+                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+            else:
+                if isinstance(dag_params["schedule"], str) and dag_params["schedule"].lower() == "none":
+                    dag_kwargs["schedule"] = None
+                else:
+                    dag_kwargs["schedule"] = schedule
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:

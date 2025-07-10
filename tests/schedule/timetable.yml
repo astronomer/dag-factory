@@ -1,7 +1,4 @@
 schedule:
-  type: timetable
-  value:
-    callable: airflow.timetables.trigger.CronTriggerTimetable
-    params:
-      cron: "* * * * *"
-      timezone: UTC
+  __type__: airflow.timetables.trigger.CronTriggerTimetable
+  cron: "* * * * *"
+  timezone: UTC
