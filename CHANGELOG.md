@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Authorize Job in CI by @pankajastro in [#460](https://github.com/astronomer/dag-factory/pull/460)
 - Remove PyPI token for releasing packages by @tatiana in [#461](https://github.com/astronomer/dag-factory/pull/461)
 - Change CI on trigger event to pull_request from pull_request_target by @pankajkoti in [#464](https://github.com/astronomer/dag-factory/pull/464)
+- Update cicd.yaml: Use pull_request for authorize as we don't have pull_request_target event configured by @pankajkoti in [#466](https://github.com/astronomer/dag-factory/pull/466)
 
 ## [0.22.0] - 2025-01-10
 
