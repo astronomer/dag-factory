@@ -11,7 +11,7 @@
 ## Example DAG
 
 ```yaml
---8<-- "dev/dags/example_params.yml"
+--8<-- "dev/dags/airflow2/example_params.yml"
 ```
 
 ## When to Use

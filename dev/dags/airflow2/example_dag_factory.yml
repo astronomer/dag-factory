@@ -1,6 +1,5 @@
 default:
   default_args:
-    catchup: false
     start_date: 2024-11-11
 
 # ----8<---   [ start: example_dag_yaml_configuration ]
@@ -10,6 +9,7 @@ basic_example_dag:
   description: "this is an example dag"
   schedule_interval: "0 3 * * *"
   render_template_as_native_obj: True
+  catchup: false
   tasks:
     task_1:
       operator: airflow.operators.bash.BashOperator

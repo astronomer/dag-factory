@@ -10,7 +10,7 @@ configurations that work seamlessly across various environments.
 ## Example YAML Configuration with Environment Variables
 
 ```title="Reference environment variable in YAML"
---8<-- "dev/dags/example_dag_factory_multiple_config.yml:environment_variable_example"
+--8<-- "dev/dags/airflow2/example_dag_factory_multiple_config.yml:environment_variable_example"
 ```
 
 In the above example, `$CONFIG_ROOT_DIR` is used to reference an environment variable that points to the root

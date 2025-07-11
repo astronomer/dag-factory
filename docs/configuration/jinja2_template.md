@@ -5,5 +5,5 @@ This example shows how to use [Apache Airflow®](https://airflow.apache.org/) bu
 ## Example DAG
 
 ```yaml
---8<-- "dev/dags/example_jinja2_template_dag.yml"
+--8<-- "dev/dags/airflow2/example_jinja2_template_dag.yml"
 ```

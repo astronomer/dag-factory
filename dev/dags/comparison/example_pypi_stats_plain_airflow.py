@@ -3,8 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from airflow.decorators import task
-from airflow.models.dag import DAG
+try:
+    from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.decorators import task
+except ImportError:
+    from airflow.decorators import task
+    from airflow.models.dag import DAG
 from pypi_stats import fetch_pypi_stats_data, get_pypi_projects_list, summarize
 
 with DAG(dag_id="example_pypi_stats_plain_airflow", schedule=None, start_date=datetime(2022, 3, 4)) as dag:

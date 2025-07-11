@@ -1,8 +1,14 @@
 from datetime import datetime
 
-from airflow.models.dag import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+try:
+    from airflow.providers.standard.operators.bash import BashOperator
+    from airflow.providers.standard.operators.python import PythonOperator
+    from airflow.sdk.definitions.dag import DAG
+except ImportError:
+    from airflow.models.dag import DAG
+    from airflow.operators.bash import BashOperator
+    from airflow.operators.python import PythonOperator
+
 from hacker_news import summarize
 
 with DAG(dag_id="example_hackernews_plain_airflow", schedule=None, start_date=datetime(2022, 3, 4)) as dag:

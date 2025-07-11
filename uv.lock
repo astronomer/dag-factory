@@ -10,7 +10,7 @@ resolution-markers = [
 ]
 
 [manifest]
-constraints = [{ name = "apache-airflow", specifier = ">=2.3" }]
+constraints = [{ name = "apache-airflow", specifier = ">=2.4" }]
 
 [[package]]
 name = "aiofiles"
@@ -960,8 +960,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "apache-airflow", specifier = ">=2.4" },
-    { name = "apache-airflow-providers-cncf-kubernetes" },
-    { name = "apache-airflow-providers-http", specifier = ">=2.0.0" },
+    { name = "apache-airflow-providers-cncf-kubernetes", specifier = ">=4.3.0" },
+    { name = "apache-airflow-providers-http", specifier = ">=4.0.0" },
     { name = "apache-airflow-providers-slack", marker = "extra == 'tests'" },
     { name = "packaging" },
     { name = "pre-commit", marker = "extra == 'tests'" },

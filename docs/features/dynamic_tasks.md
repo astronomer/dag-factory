@@ -10,7 +10,7 @@ during execution, usually based on the outcome of a preceding task, rather than 
 Below is an example configuration for implementing dynamic tasks using DAG Factory:
 
 ```title="example_dynamic_task_mapping.yml"
---8<-- "dev/dags/example_dynamic_task_mapping.yml"
+--8<-- "dev/dags/airflow2/example_dynamic_task_mapping.yml"
 ```
 
 ### Explanation of the Configuration
@@ -51,7 +51,7 @@ Below, you can see a list of mapped tasks generated dynamically as part of the `
 Below, we explain the different methods for defining dynamic task mapping, illustrated by the provided example configuration.
 
 ```title="Dynamic Task Mapping advanced usage"
---8<-- "dev/dags/example_taskflow.yml"
+--8<-- "dev/dags/airflow2/example_taskflow.yml"
 ```
 
 The example above illustrates advanced usage of Dynamic Task Mapping using Dag Factory (the callable functions
