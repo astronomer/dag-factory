@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.23.0a9] - 2025-07-11
+## [0.23.0a10] - 2025-07-11
 
 ### Breaking Change
 
@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove PyPI token for releasing packages by @tatiana in [#461](https://github.com/astronomer/dag-factory/pull/461)
 - Change CI on trigger event to pull_request from pull_request_target by @pankajkoti in [#464](https://github.com/astronomer/dag-factory/pull/464)
 - Update cicd.yaml: Use pull_request for authorize as we don't have pull_request_target event configured by @pankajkoti in [#466](https://github.com/astronomer/dag-factory/pull/466)
+- Add environment for pypi publish job by @pankajastro in [#478](https://github.com/astronomer/dag-factory/pull/478)
 
 ## [0.22.0] - 2025-01-10
 
