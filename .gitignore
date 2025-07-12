@@ -128,4 +128,5 @@ airflow.cfg
 webserver_config.py
 
 # Astro
+dev/dags/.airflowignore
 dev/include/dag_factory-*
