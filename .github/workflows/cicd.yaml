@@ -8,7 +8,7 @@ on:
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
-  pull_request_target:
+  pull_request:
     branches: [main]
   # run on releases
   release:
@@ -19,7 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  Authorize:
+    environment: ${{ github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      'external' || 'internal' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
+
   Static-Check:
+    needs: Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,16 +49,15 @@ jobs:
       - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         airflow-version:
-          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -60,8 +68,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"
@@ -114,16 +120,15 @@ jobs:
           include-hidden-files: true
 
   Run-Integration-Tests:
+    needs: Authorize
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         airflow-version:
-          ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.3"
           - python-version: "3.11"
             airflow-version: "2.4"
           - python-version: "3.11"
@@ -134,8 +139,6 @@ jobs:
           # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
           # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
           # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.3"
           - python-version: "3.12"
             airflow-version: "2.4"
           - python-version: "3.12"
@@ -182,7 +185,7 @@ jobs:
           AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 90.0
           AIRFLOW_HOME: ${{ github.workspace }}
           CONFIG_ROOT_DIR: ${{ github.workspace }}/dags
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/examples:$PYTHONPATH
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
           AUTO_CONVERT_TO_AF3: true
 
       - name: Upload coverage to Github
@@ -197,6 +200,7 @@ jobs:
     needs:
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -240,6 +244,7 @@ jobs:
       - Static-Check
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Authorize
     steps:
       - uses: actions/checkout@v4
         with:
@@ -280,7 +285,13 @@ jobs:
       - Run-Integration-Tests
       - Deploy-Pages
       - Code-Coverage
+      - Authorize
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/dag-factory
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - uses: actions/checkout@v4
 
@@ -297,4 +308,4 @@ jobs:
       - name: Verify Git Tag and package version
         run: python3 ./scripts/verify_tag_and_version.py
       - run: uv build --wheel --sdist
-      - run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+      - run: uv publish

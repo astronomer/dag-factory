@@ -1,10 +1,10 @@
 schedule:
-  type: assets
-  value:
-    or:
-      - uri: s3://dag1/output_1.txt
-        extra:
-          hi: bye
-      - uri: s3://dag2/output_1.txt
-        extra:
-          hi: bye
+  or:
+    - __type__: airflow.sdk.Asset
+      uri: s3://dag1/output_1.txt
+      extra:
+        hi: bye
+    - __type__: airflow.sdk.Asset
+      uri: s3://dag2/output_1.txt
+      extra:
+        hi: bye

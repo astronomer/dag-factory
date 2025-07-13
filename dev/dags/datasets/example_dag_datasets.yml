@@ -2,25 +2,19 @@ default:
   default_args:
     owner: "default_owner"
     start_date: '2023-07-14'
-    retries: 1
-    retry_delay_sec: 300
-  concurrency: 1
-  max_active_runs: 1
-  dagrun_timeout_sec: 600
-  default_view: "tree"
-  orientation: "LR"
 
 example_simple_dataset_producer_dag:
   description: "Example DAG producer simple datasets"
   schedule_interval: "0 5 * * *"
+  catchup: false
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       inlets: [ 's3://bucket_example/raw/dataset1_source.json' ]
       outlets: ['s3://bucket_example/raw/dataset1.json']
     task_2:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
       inlets: [ 's3://bucket_example/raw/dataset2_source.json' ]
@@ -29,17 +23,19 @@ example_simple_dataset_producer_dag:
 example_simple_dataset_consumer_dag:
   description: "Example DAG consumer simple datasets"
   schedule: ['s3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json']
+  catchup: false
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
 example_custom_config_dataset_producer_dag:
   description: "Example DAG producer custom config datasets"
   schedule_interval: "0 5 * * *"
+  catchup: false
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       outlets:
         file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
@@ -47,26 +43,29 @@ example_custom_config_dataset_producer_dag:
 
 example_custom_config_dataset_consumer_dag:
   description: "Example DAG consumer custom config datasets"
+  catchup: false
   schedule:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: ['dataset_custom_1', 'dataset_custom_2']
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
 example_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
+  catchup: false
   schedule:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: "((dataset_custom_1 & dataset_custom_2) | dataset_custom_3)"
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
 example_without_custom_config_condition_dataset_consumer_dag:
   description: "Example DAG consumer custom config condition datasets"
+  catchup: false
   schedule:
     datasets:
       !or
@@ -76,5 +75,5 @@ example_without_custom_config_condition_dataset_consumer_dag:
         - "s3://bucket-cjmm/raw/dataset_custom_3"
   tasks:
     task_1:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"

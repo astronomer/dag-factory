@@ -3,13 +3,13 @@ import logging
 import os
 
 import pytest
+from airflow.version import version as AIRFLOW_VERSION
 
 try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:  # pragma: no cover
-    from airflow import __version__ as AIRFLOW_VERSION
+    from airflow.sdk.definitions.variable import Variable  # noqa: F401
+except ImportError:
+    from airflow.models.variable import Variable  # noqa: F401
 
-from airflow.models.variable import Variable
 from packaging import version
 
 from tests.utils import get_bash_operator_path, get_schedule_key
@@ -113,7 +113,7 @@ def test_validate_config_filepath_invalid():
 @pytest.mark.skipif(
     version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
 )
-def test_load_config_valid(monkeypatch):
+def test_load_dag_config_valid(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
         "default": {
@@ -194,15 +194,17 @@ def test_load_config_valid(monkeypatch):
             },
         },
     }
-    actual = dagfactory.DagFactory._load_config(TEST_DAG_FACTORY)
+    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
+    actual = td._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
     assert actual == expected
 
 
-def test_load_config_invalid():
+def test_load_dag_config_invalid():
+    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     with pytest.raises(Exception):
-        dagfactory.DagFactory._load_config(INVALID_YAML)
+        td._load_dag_config(INVALID_YAML)
 
 
 @pytest.mark.skipif(
@@ -349,10 +351,7 @@ def test_kubernetes_pod_operator_dag_lt_2_7():
 def test_variables_as_arguments_dag(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     override_command = "value_from_variable"
-    if version.parse(AIRFLOW_VERSION) >= version.parse("1.10.10"):
-        os.environ["AIRFLOW_VAR_VAR1"] = override_command
-    else:
-        Variable.set("var1", override_command)
+    os.environ["AIRFLOW_VAR_VAR1"] = override_command
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     td.generate_dags(globals())
     tasks = globals()["example_dag"].tasks
@@ -532,6 +531,17 @@ def test_build_dag_with_global_dag_level_defaults():
     assert dag_configs["test_dag_override"]["schedule_interval"] == "0 1 * * *"
     assert dag_configs["test_dag_override"]["catchup"] == False
     assert dag_configs["test_dag_override"]["tags"] == ["global_tag"]
+
+    
+def test_build_dag_with_global_default_dict():
+    dags = dagfactory.DagFactory(
+        config=DAG_FACTORY_CONFIG,
+        default_args_config_dict={
+            "default_args": {"start_date": "2025-01-01", "owner": "global_owner", "depends_on_past": True}
+        },
+    ).build_dags()
+
+    assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
 def test_load_invalid_yaml_logs_error(caplog):

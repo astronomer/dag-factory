@@ -2,13 +2,6 @@ default:
   default_args:
     owner: "default_owner"
     start_date: 2020-01-01
-    retries: 1
-    retry_delay_sec: 300
-  concurrency: 1
-  max_active_runs: 1
-  dagrun_timeout_sec: 600
-  default_view: "tree"
-  orientation: "LR"
   schedule_interval: "0 1 * * *"
 
 example_breadfast:
@@ -17,9 +10,10 @@ example_breadfast:
     start_date: 2 days
   description: "this is an customized operator dag"
   schedule_interval: "0 3 * * *"
+  catchup: false
   tasks:
     begin:
-      operator: airflow.operators.dummy_operator.DummyOperator
+      operator: airflow.operators.empty.EmptyOperator
     make_bread_1:
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Sourdough'
@@ -38,7 +32,7 @@ example_breadfast:
         - make_bread_1
         - make_bread_2
     end:
-      operator: airflow.operators.dummy_operator.DummyOperator
+      operator: airflow.operators.empty.EmptyOperator
       dependencies:
         - begin
         - make_bread_1

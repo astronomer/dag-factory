@@ -9,5 +9,5 @@ This is achieved via a special `key: __type__`, which allows recursive construct
 Below is a real-world example of how to define a DAG with Kubernetes-specific executor configuration using `__type__`.
 
 ```yaml
---8<-- "dev/dags/example_custom_py_object_dag.yml"
+--8<-- "dev/dags/airflow2/example_custom_py_object_dag.yml"
 ```

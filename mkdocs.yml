@@ -52,6 +52,8 @@ nav:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
       - configuration/defaults.md
+      - configuration/params.md
+      - configuration/jinja2_template.md
       - configuration/schedule.md
   - Features:
       - features/dynamic_tasks.md
