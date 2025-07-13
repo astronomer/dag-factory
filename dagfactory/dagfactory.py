@@ -161,7 +161,18 @@ class DagFactory:
 
         dags: Dict[str, Any] = {}
 
+        if isinstance(global_default_args, dict):
+            dag_level_args = {k: v for k, v in global_default_args.items() if k != "default_args"}
+        else:
+            dag_level_args = {}
+
+
         for dag_name, dag_config in dag_configs.items():
+            # Apply DAG-level default arguments from global_default_args to each dag_config,
+            # this is helpful because some arguments are not supported in default_args.
+            if isinstance(global_default_args, dict):
+                dag_config = {**dag_level_args, **dag_config}
+
             dag_config["task_groups"] = dag_config.get("task_groups", {})
             dag_builder: DagBuilder = DagBuilder(
                 dag_name=dag_name,

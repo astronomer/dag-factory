@@ -491,6 +491,49 @@ def test_build_dag_with_global_default():
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
+def test_build_dag_with_global_dag_level_defaults():
+    """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
+    global_defaults = {
+        "default_args": {"owner": "global_owner"},
+        "schedule_interval": "0 0 * * *",
+        "catchup": False,
+        "tags": ["global_tag"]
+    }
+
+    config = {
+        "test_dag": {
+            "tasks": {
+                "task_1": {
+                    "operator": get_bash_operator_path(),
+                    "bash_command": "echo 1"
+                }
+            }
+        },
+        "test_dag_override": {
+            "schedule_interval": "0 1 * * *",
+            "tasks": {
+                "task_1": {
+                    "operator": get_bash_operator_path(),
+                    "bash_command": "echo 1"
+                }
+            }
+        }
+    }
+
+    td = dagfactory.DagFactory(config=config)
+    td._global_default_args = lambda: global_defaults
+
+    dag_configs = td.get_dag_configs()
+
+    assert dag_configs["test_dag"]["schedule_interval"] == "0 0 * * *"
+    assert dag_configs["test_dag"]["catchup"] == False
+    assert dag_configs["test_dag"]["tags"] == ["global_tag"]
+
+    assert dag_configs["test_dag_override"]["schedule_interval"] == "0 1 * * *"
+    assert dag_configs["test_dag_override"]["catchup"] == False
+    assert dag_configs["test_dag_override"]["tags"] == ["global_tag"]
+
+
 def test_load_invalid_yaml_logs_error(caplog):
     caplog.set_level(logging.ERROR)
     load_yaml_dags(
