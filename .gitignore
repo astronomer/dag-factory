@@ -125,6 +125,8 @@ logs/
 # Airflow
 examples/.airflowignore
 airflow.cfg
+dags
+dev/dags/.airflowignore
 webserver_config.py
 
 # Astro
