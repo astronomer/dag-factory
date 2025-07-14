@@ -1,8 +1,10 @@
-custom_python_object:
+custom_python_object_airflow3:
   description: "this is an example dag"
   schedule: "@daily"
   catchup: false
   render_template_as_native_obj: True
+  default_args:
+    start_date: 2025-01-01
   tasks:
     task_1:
       operator: airflow.providers.standard.operators.bash.BashOperator

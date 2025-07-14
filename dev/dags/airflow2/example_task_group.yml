@@ -5,7 +5,7 @@ default:
   schedule_interval: 0 1 * * *
   catchup: false
 
-example_task_group:
+task_group_airflow2:
   description: "this dag uses task groups"
   task_groups:
     task_group_1:

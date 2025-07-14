@@ -4,7 +4,7 @@ default:
     start_date: 2020-01-01
   schedule: "0 1 * * *"
 
-customized_operator:
+customized_operator_airflow3:
   default_args:
     owner: "custom_owner"
     start_date: 2 days

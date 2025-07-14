@@ -3,7 +3,7 @@ default:
     start_date: 2024-11-11
 
 # ----8<---   [ start: example_dag_yaml_configuration ]
-basic_example_dag:
+basic_airflow2:
   default_args:
     owner: "custom_owner"
   description: "this is an example dag"

@@ -20,17 +20,17 @@ default:
       - transform
 
 
-machine_learning:
+machine_learning_airflow2:
   tasks:
     load:
       bash_command: "echo machine_larning"
 
-data_science:
+data_science_airflow2:
   tasks:
     load:
       bash_command: "echo data_science"
 
-artificial_intelligence:
+artificial_intelligence_airflow2:
   tasks:
     load:
       bash_command: "echo artificial_intelligence"

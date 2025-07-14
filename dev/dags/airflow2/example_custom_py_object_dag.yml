@@ -1,4 +1,4 @@
-custom_example_dag:
+custom_python_object_airflow2:
   description: "this is an example dag"
   schedule_interval: "@daily"
   catchup: false
@@ -21,7 +21,7 @@ custom_example_dag:
                     __type__: kubernetes.client.models.V1ResourceRequirements
                     limits:
                       cpu: "1"
-                      memory: "1024Mi"
+                      memory: "512Mi"
                     requests:
                       cpu: "0.5"
                       memory: "512Mi"

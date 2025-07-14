@@ -3,7 +3,7 @@ default:
   default_args:
     start_date: 2025-01-01
 
-example_params:
+params_airflow3:
   params:
     model_version: 1.0.0
     input_uri: localhost

@@ -6,7 +6,7 @@ default:
   tags:
     - "data engineering"
 
-etl:
+etl_airflow3:
   tasks:
     extract:
       operator: airflow.providers.standard.operators.bash.BashOperator

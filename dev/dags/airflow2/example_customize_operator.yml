@@ -4,7 +4,7 @@ default:
     start_date: 2020-01-01
   schedule_interval: "0 1 * * *"
 
-example_breadfast:
+customized_operator_airflow2:
   default_args:
     owner: "custom_owner"
     start_date: 2 days

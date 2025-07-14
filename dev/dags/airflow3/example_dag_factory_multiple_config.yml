@@ -11,7 +11,7 @@ default:
 
 
 # ----8<---   [ start: environment_variable_example ]
-example_multiple1:
+multiple_config1_airflow3:
   default_args:
     owner: "custom_owner"
   description: "this is an example dag"
@@ -33,7 +33,7 @@ example_multiple1:
       dependencies: [task_1]
 # ----8<---   [ end: environment_variable_example ]
 
-example_multiple2:
+multiple_config2_airflow3:
   default_args:
     timezone: Europe/Amsterdam
   tasks:
@@ -49,7 +49,7 @@ example_multiple2:
       bash_command: "echo 3"
       dependencies: [task_1]
 
-example_multiple3:
+multiple_config3_airflow3:
   tasks:
     task_1:
       operator: airflow.providers.standard.operators.bash.BashOperator
@@ -63,7 +63,7 @@ example_multiple3:
       bash_command: "echo 3"
       dependencies: [task_1]
 
-example_multiple4:
+multiple_config4_airflow3:
   description: "this dag uses task groups"
   task_groups:
     task_group_1:

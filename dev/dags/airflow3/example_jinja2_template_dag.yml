@@ -1,4 +1,4 @@
-example_jinja2_template_dag:
+jinja2_template_airflow3:
   default_args:
     start_date: "2025-01-01"
   schedule: "@daily"

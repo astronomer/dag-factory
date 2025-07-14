@@ -1,4 +1,4 @@
-test_expand:
+dynamic_task_map_airflow2:
   default_args:
     owner: "custom_owner"
     start_date: 2 days

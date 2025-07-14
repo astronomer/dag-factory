@@ -3,8 +3,9 @@ from pathlib import Path
 
 from dagfactory import load_yaml_dags
 
-DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
+DEFAULT_CONFIG_ROOT_DIR = Path(__file__).parent  # "/usr/local/airflow/dags/"
 CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
+
 config_dir = str(CONFIG_ROOT_DIR / "airflow3")
 
 load_yaml_dags(

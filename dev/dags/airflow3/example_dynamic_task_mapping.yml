@@ -1,4 +1,4 @@
-dynamic_task_map:
+dynamic_task_map_airflow3:
   default_args:
     owner: "custom_owner"
     start_date: 2 days

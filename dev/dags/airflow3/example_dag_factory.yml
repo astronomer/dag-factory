@@ -3,7 +3,7 @@ default:
     catchup: false
     start_date: 2025-01-01
 
-basic:
+basic_airflow3:
   default_args:
     owner: "custom_owner"
   description: "this is an example dag"
