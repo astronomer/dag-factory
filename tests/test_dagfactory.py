@@ -493,8 +493,7 @@ def test_build_dag_with_global_default():
 def test_build_dag_with_global_dag_level_defaults():
     """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
     global_defaults = {
-        "default_args": {"owner": "global_owner"},
-        "schedule_interval": "0 0 * * *",
+        "default_args": {"owner": "global_owner", "start_date": "2020-01-01",},
         "catchup": False,
         "tags": ["global_tag"]
     }
@@ -509,7 +508,7 @@ def test_build_dag_with_global_dag_level_defaults():
             }
         },
         "test_dag_override": {
-            "schedule_interval": "0 1 * * *",
+            "catchup": True,
             "tasks": {
                 "task_1": {
                     "operator": get_bash_operator_path(),
@@ -522,17 +521,16 @@ def test_build_dag_with_global_dag_level_defaults():
     td = dagfactory.DagFactory(config=config)
     td._global_default_args = lambda: global_defaults
 
-    dag_configs = td.get_dag_configs()
+    dags = td.build_dags()
 
-    assert dag_configs["test_dag"]["schedule_interval"] == "0 0 * * *"
-    assert dag_configs["test_dag"]["catchup"] == False
-    assert dag_configs["test_dag"]["tags"] == ["global_tag"]
+    assert dags["test_dag"].catchup == False
+    assert "global_tag" in dags["test_dag"].tags
 
-    assert dag_configs["test_dag_override"]["schedule_interval"] == "0 1 * * *"
-    assert dag_configs["test_dag_override"]["catchup"] == False
-    assert dag_configs["test_dag_override"]["tags"] == ["global_tag"]
+    # Dag config value should override global default
+    assert dags["test_dag_override"].catchup == True
+    assert "global_tag" in dags["test_dag_override"].tags
 
-    
+
 def test_build_dag_with_global_default_dict():
     dags = dagfactory.DagFactory(
         config=DAG_FACTORY_CONFIG,
