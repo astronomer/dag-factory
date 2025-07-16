@@ -70,7 +70,7 @@ mkdir dags
 Create a Python script named `example_dag_factory.py` in the `$AIRFLOW_HOME/dags` folder. This script will generate the DAG from the YAML configuration
 
 ```title="example_dag_factory.py"
---8<-- "dev/dags/example_load_airflow2_dags.py"
+--8<-- "dev/dags/example_dag_factory.py"
 ```
 
 ## Step 7: Start Airflow
