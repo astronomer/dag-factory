@@ -3,7 +3,7 @@ name: CI jobs
 on:
   # run on pushes to the default branch
   push:
-    branches: [main]
+    branches: [main, restore_basic_dag]
   # run on pull requests originated from forks based on the `main` branch.
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
