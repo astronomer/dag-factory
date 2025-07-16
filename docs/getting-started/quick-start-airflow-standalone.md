@@ -62,7 +62,7 @@ mkdir dags
 **DAG Factory** uses YAML files to define DAG configurations. Create a file named `example_dag_factory.yml` in the `$AIRFLOW_HOME/dags` folder with the following content:
 
 ```title="example_dag_factory.yml"
---8<-- "dev/dags/airflow2/example_dag_factory.yml"
+--8<-- "dev/dags/example_dag_factory.yml"
 ```
 
 ## Step 6: Generate the DAG from YAML
