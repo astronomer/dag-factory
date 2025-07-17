@@ -494,6 +494,7 @@ def test_build_dag_with_global_dag_level_defaults():
     """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
     global_defaults = {
         "default_args": {"owner": "global_owner", "start_date": "2020-01-01",},
+        "schedule": "0 1 * * *",
         "catchup": False,
         "tags": ["global_tag"]
     }
@@ -519,9 +520,9 @@ def test_build_dag_with_global_dag_level_defaults():
     }
 
     td = dagfactory.DagFactory(config=config)
-    td._global_default_args = lambda: global_defaults
-
-    dags = td.build_dags()
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr(td, "_global_default_args", lambda: global_defaults)
+        dags = td.build_dags()
 
     assert dags["test_dag"].catchup == False
     assert "global_tag" in dags["test_dag"].tags
