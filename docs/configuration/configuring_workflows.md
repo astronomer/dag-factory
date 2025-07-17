@@ -13,7 +13,7 @@ You can define multiple workflows within a single YAML file based on your requir
 ### Example DAG Configuration
 
 ```title="example_dag_factory.yml"
---8<-- "dev/dags/airflow2/example_dag_factory.yml:example_dag_yaml_configuration"
+--8<-- "dev/dags/example_dag_factory.yml:example_dag_yaml_configuration"
 ```
 
 ### Check out more configuration params
