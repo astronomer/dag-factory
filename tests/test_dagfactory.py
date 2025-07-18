@@ -493,30 +493,21 @@ def test_build_dag_with_global_default():
 def test_build_dag_with_global_dag_level_defaults():
     """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
     global_defaults = {
-        "default_args": {"owner": "global_owner", "start_date": "2020-01-01",},
+        "default_args": {
+            "owner": "global_owner",
+            "start_date": "2020-01-01",
+        },
         get_schedule_key(): "0 1 * * *",
         "catchup": False,
-        "tags": ["global_tag"]
+        "tags": ["global_tag"],
     }
 
     config = {
-        "test_dag": {
-            "tasks": {
-                "task_1": {
-                    "operator": get_bash_operator_path(),
-                    "bash_command": "echo 1"
-                }
-            }
-        },
+        "test_dag": {"tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}}},
         "test_dag_override": {
             "catchup": True,
-            "tasks": {
-                "task_1": {
-                    "operator": get_bash_operator_path(),
-                    "bash_command": "echo 1"
-                }
-            }
-        }
+            "tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}},
+        },
     }
 
     td = dagfactory.DagFactory(config=config)

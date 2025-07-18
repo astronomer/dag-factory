@@ -121,6 +121,7 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
+
             def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
                 seq = loader.construct_sequence(node)
                 return "".join([str(i) for i in seq])
@@ -190,7 +191,6 @@ class DagFactory:
             dag_level_args = {k: v for k, v in global_default_args.items() if k != "default_args"}
         else:
             dag_level_args = {}
-
 
         for dag_name, dag_config in dag_configs.items():
             # Apply DAG-level default arguments from global_default_args to each dag_config,
