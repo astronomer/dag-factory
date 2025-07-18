@@ -85,6 +85,10 @@
          <lastmod>2025-07-18</lastmod>
     </url>
     <url>
+         <loc>https://astronomer.github.io/dag-factory/dev/features/object_storage/</loc>
+         <lastmod>2025-07-18</lastmod>
+    </url>
+    <url>
          <loc>https://astronomer.github.io/dag-factory/dev/getting-started/quick-start-airflow-standalone/</loc>
          <lastmod>2025-07-18</lastmod>
     </url>
