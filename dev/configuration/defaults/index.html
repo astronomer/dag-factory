@@ -714,6 +714,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#example-usage-of-dag-level-default-configurations-in-defaultsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example usage of DAG-level default configurations in defaults.yml
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#specifying-default_args-in-a-py-file" class="md-nav__link">
     <span class="md-ellipsis">
       Specifying default_args in a .py file
@@ -1394,6 +1403,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#example-usage-of-dag-level-default-configurations-in-defaultsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example usage of DAG-level default configurations in defaults.yml
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#specifying-default_args-in-a-py-file" class="md-nav__link">
     <span class="md-ellipsis">
       Specifying default_args in a .py file
@@ -1551,6 +1569,17 @@ single DAG.</p>
 </span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">    </span><span class="nt">load</span><span class="p">:</span>
 </span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">artificial_intelligence&quot;</span>
 </span></code></pre></div>
+<h3 id="example-usage-of-dag-level-default-configurations-in-defaultsyml">Example usage of DAG-level default configurations in <code>defaults.yml</code></h3>
+<p>In Airflow, not all DAG-level arguments are supported under <code>default_args</code>, because they are DAG-specific and not
+   used by any operator classes, such as <code>schedule</code> and <code>catchup</code>. To set default values for those arguments, they need
+   to be added at the root level of <code>defaults.yml</code> like following:</p>
+<p>```yaml
+   schedule: 0 1 * * *   # set DAG-specific arguments at the root level
+   catchup: False</p>
+<p>default_args:
+      start_date: '2024-12-31'
+  ...
+   ```</p>
 <h3 id="specifying-default_args-in-a-py-file">Specifying <code>default_args</code> in a <code>.py</code> file</h3>
 <div class="language-yaml highlight"><span class="filename">Usage of default block in YAML</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">default</span><span class="p">:</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
