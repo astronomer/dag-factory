@@ -494,7 +494,7 @@ def test_build_dag_with_global_dag_level_defaults():
     """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
     global_defaults = {
         "default_args": {"owner": "global_owner", "start_date": "2020-01-01",},
-        "schedule_interval": "0 1 * * *",
+        get_schedule_key(): "0 1 * * *",
         "catchup": False,
         "tags": ["global_tag"]
     }
