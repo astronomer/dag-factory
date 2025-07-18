@@ -70,6 +70,21 @@ single DAG.
    --8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
    ```
 
+### Example usage of DAG-level default configurations in `defaults.yml`
+
+   In Airflow, not all DAG-level arguments are supported under `default_args`, because they are DAG-specific and not
+   used by any operator classes, such as `schedule` and `catchup`. To set default values for those arguments, they need
+   to be added at the root level of `defaults.yml` like following:
+
+   ```yaml
+   schedule: 0 1 * * *   # set DAG-specific arguments at the root level
+   catchup: False
+
+   default_args:
+      start_date: '2024-12-31'
+  ...
+   ```
+
 ### Specifying `default_args` in a `.py` file
 
 ```yaml title="Usage of default block in YAML"

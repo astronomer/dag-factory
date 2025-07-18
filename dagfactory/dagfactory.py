@@ -71,31 +71,6 @@ class DagFactory:
         self.default_args_config_path: str = default_args_config_path
         self.default_args_config_dict: Optional[dict] = default_args_config_dict
 
-    def _load_yaml_config(self, config_filepath: str) -> Dict[str, Any]:
-        """For loading yaml config file, including DAG config and default args config."""
-
-        def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
-            seq = loader.construct_sequence(node)
-            return "".join([str(i) for i in seq])
-
-        def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
-            seq = loader.construct_sequence(node)
-            return " | ".join([f"({str(i)})" for i in seq])
-
-        def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
-            seq = loader.construct_sequence(node)
-            return " & ".join([f"({str(i)})" for i in seq])
-
-        yaml.add_constructor("!join", __join, yaml.FullLoader)
-        yaml.add_constructor("!or", __or, yaml.FullLoader)
-        yaml.add_constructor("!and", __and, yaml.FullLoader)
-
-        with open(config_filepath, "r", encoding="utf-8") as fp:
-            config_with_env = os.path.expandvars(fp.read())
-            config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-            config = cast_with_type(config)
-        return config
-
     def _global_default_args(self):
         """
         If self.default_args exists, use this as the global default_args (to be applied to each DAG). Otherwise, fall
@@ -107,7 +82,7 @@ class DagFactory:
         default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
 
         if default_args_yml.exists():
-            return self._load_yaml_config(default_args_yml)
+            return self._load_dag_config(config_filepath=default_args_yml)
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -146,7 +121,28 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
-            config = self._load_yaml_config(config_filepath)
+
+            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return "".join([str(i) for i in seq])
+
+            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return " | ".join([f"({str(i)})" for i in seq])
+
+            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
+                seq = loader.construct_sequence(node)
+                return " & ".join([f"({str(i)})" for i in seq])
+
+            yaml.add_constructor("!join", __join, yaml.FullLoader)
+            yaml.add_constructor("!or", __or, yaml.FullLoader)
+            yaml.add_constructor("!and", __and, yaml.FullLoader)
+
+            with open(config_filepath, "r", encoding="utf-8") as fp:
+                config_with_env = os.path.expandvars(fp.read())
+                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+                config = cast_with_type(config)
+
             # This will only invoke in the CI
             # Make yaml DAG compatible for Airflow 3
             if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
@@ -191,7 +187,17 @@ class DagFactory:
 
         dags: Dict[str, Any] = {}
 
+        if isinstance(global_default_args, dict):
+            dag_level_args = {k: v for k, v in global_default_args.items() if k != "default_args"}
+        else:
+            dag_level_args = {}
+
         for dag_name, dag_config in dag_configs.items():
+            # Apply DAG-level default arguments from global_default_args to each dag_config,
+            # this is helpful because some arguments are not supported in default_args.
+            if isinstance(global_default_args, dict):
+                dag_config = {**dag_level_args, **dag_config}
+
             dag_config["task_groups"] = dag_config.get("task_groups", {})
             dag_builder: DagBuilder = DagBuilder(
                 dag_name=dag_name,

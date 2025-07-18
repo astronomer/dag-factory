@@ -490,6 +490,39 @@ def test_build_dag_with_global_default():
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
 
+def test_build_dag_with_global_dag_level_defaults():
+    """Test that DAG-level defaults from global defaults.yml are applied to individual DAG configs"""
+    global_defaults = {
+        "default_args": {
+            "owner": "global_owner",
+            "start_date": "2020-01-01",
+        },
+        get_schedule_key(): "0 1 * * *",
+        "catchup": False,
+        "tags": ["global_tag"],
+    }
+
+    config = {
+        "test_dag": {"tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}}},
+        "test_dag_override": {
+            "catchup": True,
+            "tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}},
+        },
+    }
+
+    td = dagfactory.DagFactory(config=config)
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr(td, "_global_default_args", lambda: global_defaults)
+        dags = td.build_dags()
+
+    assert dags["test_dag"].catchup == False
+    assert "global_tag" in dags["test_dag"].tags
+
+    # Dag config value should override global default
+    assert dags["test_dag_override"].catchup == True
+    assert "global_tag" in dags["test_dag_override"].tags
+
+
 def test_build_dag_with_global_default_dict():
     dags = dagfactory.DagFactory(
         config=DAG_FACTORY_CONFIG,
