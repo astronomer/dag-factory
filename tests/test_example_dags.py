@@ -25,6 +25,7 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
         "example_hackernews_plain_airflow",
         "example_pypi_stats_plain_airflow",
     ],
+    "2.8": ["example_object_storage.py"],
     "2.9": ["example_map_index_template.py"],
 }
 
