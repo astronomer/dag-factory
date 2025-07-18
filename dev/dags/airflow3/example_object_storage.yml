@@ -1,0 +1,15 @@
+object_storage_ops:
+  default_args:
+    owner: "custom_owner"
+    start_date: 2 days
+  description: "Example of ObjectStorage powered DAG"
+  schedule: "0 3 * * *"
+  tasks:
+    object_storage_ops:
+      operator: airflow.providers.standard.operators.python.PythonOperator
+      python_callable: sample.object_storage_ops
+      op_kwargs:
+        my_obj_storage:
+          __type__: airflow.sdk.ObjectStoragePath
+          __args__:
+            - file:///$AIRFLOW_HOME/data/object_storage_ops.csv
