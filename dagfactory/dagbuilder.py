@@ -397,7 +397,6 @@ class DagBuilder:
 
         :returns: instance of operator object
         """
-        print("task_params: ", task_params)
         try:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
