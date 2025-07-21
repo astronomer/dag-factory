@@ -397,6 +397,7 @@ class DagBuilder:
 
         :returns: instance of operator object
         """
+        print("task_params: ", task_params)
         try:
             # class is a Callable https://stackoverflow.com/a/34578836/3679900
             operator_obj: Callable[..., BaseOperator] = import_string(operator)
@@ -1072,7 +1073,6 @@ class DagBuilder:
 
                 if task_conf.get("expand"):
                     task_conf = self.replace_expand_values(task_conf, tasks_dict)
-
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
 
@@ -1200,7 +1200,7 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
                     if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
