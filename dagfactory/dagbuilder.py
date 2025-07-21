@@ -41,19 +41,23 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Try to import HttpOperator and HttpSensor only if the package is installed
 try:
     from airflow.providers.http.operators.http import HttpOperator
     from airflow.providers.http.sensors.http import HttpSensor
 
     HTTP_OPERATOR_CLASS = HttpOperator
+    HTTP_SENSOR_CLASS = HttpSensor
 except ImportError:  # pragma: no cover
     try:
         # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
         from airflow.providers.http.operators.http import SimpleHttpOperator
 
         HTTP_OPERATOR_CLASS = SimpleHttpOperator
+        HTTP_SENSOR_CLASS = None
     except ImportError:  # pragma: no cover
         HTTP_OPERATOR_CLASS = None
+        HTTP_SENSOR_CLASS = None
         logger.info("Package apache-airflow-providers-http is not installed.")
 
 try:
@@ -344,6 +348,45 @@ class DagBuilder:
 
         return task_params
 
+    @staticmethod
+    def _handle_http_sensor(operator_obj, task_params):
+        # Only handle if HttpOperator/HttpSensor are available
+        if HTTP_OPERATOR_CLASS and isinstance(operator_obj, HTTP_OPERATOR_CLASS):
+            headers = task_params.get("headers", {})
+            content_type = headers.get("Content-Type", "").lower()
+
+            if "data" in task_params and "application/json" in content_type:
+                task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
+
+                if "Content-Type" not in headers:
+                    headers["Content-Type"] = "application/json"
+                task_params["headers"] = headers
+        elif HTTP_SENSOR_CLASS and issubclass(operator_obj, HTTP_SENSOR_CLASS):
+            if not (
+                task_params.get("response_check_name") and task_params.get("response_check_file")
+            ) and not task_params.get("response_check_lambda"):
+                raise DagFactoryException(
+                    "Failed to create task. HttpSensor requires \
+                    `response_check_name` and `response_check_file` parameters \
+                    or `response_check_lambda` parameter."
+                )
+            if task_params.get("response_check_file"):
+                task_params["response_check"]: Callable = utils.get_python_callable(
+                    task_params["response_check_name"], task_params["response_check_file"]
+                )
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
+                del task_params["response_check_name"]
+                del task_params["response_check_file"]
+            else:
+                task_params["response_check"]: Callable = utils.get_python_callable_lambda(
+                    task_params["response_check_lambda"]
+                )
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
+                del task_params["response_check_lambda"]
+            return task_params
+
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
@@ -417,45 +460,16 @@ class DagBuilder:
                     )
                     del task_params["failure_check_lambda"]
 
-            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HttpSensor):
-                if not (
-                    task_params.get("response_check_name") and task_params.get("response_check_file")
-                ) and not task_params.get("response_check_lambda"):
-                    raise DagFactoryException(
-                        "Failed to create task. HttpSensor requires \
-                        `response_check_name` and `response_check_file` parameters \
-                        or `response_check_lambda` parameter."
-                    )
-                if task_params.get("response_check_file"):
-                    task_params["response_check"]: Callable = utils.get_python_callable(
-                        task_params["response_check_name"], task_params["response_check_file"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_name"]
-                    del task_params["response_check_file"]
-                else:
-                    task_params["response_check"]: Callable = utils.get_python_callable_lambda(
-                        task_params["response_check_lambda"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_lambda"]
+            # Only handle HTTP operator/sensor if the package is installed
+            if (
+                HTTP_OPERATOR_CLASS
+                and HTTP_SENSOR_CLASS
+                and issubclass(operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS))
+            ):
+                task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
             if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KubernetesPodOperator):
                 task_params = DagBuilder._clean_kpo_task_params(task_params)
-
-            # HttpOperator
-            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
-                headers = task_params.get("headers", {})
-                content_type = headers.get("Content-Type", "").lower()
-
-                if "data" in task_params and "application/json" in content_type:
-                    task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
-
-                    if "Content-Type" not in headers:
-                        headers["Content-Type"] = "application/json"
-                    task_params["headers"] = headers
 
             DagBuilder.adjust_general_task_params(task_params)
 
