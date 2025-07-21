@@ -70,6 +70,7 @@ except ImportError:
     logger.info("Package apache-airflow-providers-common-sql is not installed.")
     SQL_SENSOR_CLASS = None
 
+# Try to import KubernetesPodOperator only if the package is installed
 try:
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
@@ -468,7 +469,8 @@ class DagBuilder:
             ):
                 task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
-            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KubernetesPodOperator):
+            # Only handle KubernetesPodOperator if the package is installed
+            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KUBERNETES_OPERATOR_CLASS):
                 task_params = DagBuilder._clean_kpo_task_params(task_params)
 
             DagBuilder.adjust_general_task_params(task_params)
