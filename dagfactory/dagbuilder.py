@@ -61,6 +61,7 @@ except ImportError:  # pragma: no cover
         HTTP_SENSOR_CLASS = None
         logger.info("Package apache-airflow-providers-http is not installed.")
 
+# Try to import SqlSensor only if the package is installed
 try:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
 
@@ -435,7 +436,7 @@ class DagBuilder:
             # declare both a callable file and a lambda function for success/failure parameter.
             # If both are found the object will not throw and error, instead callable file will
             # take precedence over the lambda function
-            if SQL_SENSOR_CLASS and issubclass(operator_obj, SqlSensor):
+            if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get("success_check_name"):
                     task_params["success"]: Callable = utils.get_python_callable(
