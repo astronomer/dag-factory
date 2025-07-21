@@ -58,3 +58,7 @@ def read_params(params: dict[str, Any]) -> None:
     print("params: ", params)
     print("model_version:", params["model_version"])
     print("my_param:", params["my_param"])
+
+
+def generate_data():
+    print("Produced data to file:///$AIRFLOW_HONE/data.csv")
