@@ -354,7 +354,7 @@ class DagBuilder:
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
         # Only handle if HttpOperator/HttpSensor are available
-        if HTTP_OPERATOR_CLASS and isinstance(operator_obj, HTTP_OPERATOR_CLASS):
+        if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
             headers = task_params.get("headers", {})
             content_type = headers.get("Content-Type", "").lower()
 
@@ -388,7 +388,7 @@ class DagBuilder:
                 # remove dag-factory specific parameters
                 # Airflow 2.0 doesn't allow these to be passed to operator
                 del task_params["response_check_lambda"]
-            return task_params
+        return task_params
 
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
