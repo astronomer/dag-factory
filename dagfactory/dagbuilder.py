@@ -1072,6 +1072,7 @@ class DagBuilder:
 
                 if task_conf.get("expand"):
                     task_conf = self.replace_expand_values(task_conf, tasks_dict)
+
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(operator=operator, task_params=params)
                 tasks_dict[task.task_id]: BaseOperator = task
 
