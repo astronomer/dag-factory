@@ -58,18 +58,25 @@ except ImportError:  # pragma: no cover
 
 try:
     from airflow.providers.common.sql.sensors.sql import SqlSensor
+
+    SQL_SENSOR_CLASS = SqlSensor
 except ImportError:
     logger.info("Package apache-airflow-providers-common-sql is not installed.")
     SQL_SENSOR_CLASS = None
 
 try:
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
 except ImportError:
     try:
         # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.0.0
         from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+
+        KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
     except ImportError:
         logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
+        KUBERNETES_OPERATOR_CLASS = None
 
 try:
     from airflow.providers.cncf.kubernetes import __version__
@@ -85,7 +92,6 @@ except ImportError:  # pragma: no cover
     except ImportError:
         logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
         K8S_PROVIDER_VERSION = "0"
-        KUBERNETES_OPERATOR_CLASS = None
 
 try:
     from airflow.providers.cncf.kubernetes.secret import Secret
