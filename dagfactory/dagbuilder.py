@@ -417,7 +417,7 @@ class DagBuilder:
                     )
                     del task_params["failure_check_lambda"]
 
-            if issubclass(operator_obj, HttpSensor):
+            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HttpSensor):
                 if not (
                     task_params.get("response_check_name") and task_params.get("response_check_file")
                 ) and not task_params.get("response_check_lambda"):
