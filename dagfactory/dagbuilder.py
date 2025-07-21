@@ -52,9 +52,10 @@ except ImportError:  # pragma: no cover
     try:
         # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
         from airflow.providers.http.operators.http import SimpleHttpOperator
+        from airflow.providers.http.sensors.http import HttpSensor
 
         HTTP_OPERATOR_CLASS = SimpleHttpOperator
-        HTTP_SENSOR_CLASS = None
+        HTTP_SENSOR_CLASS = HttpSensor
     except ImportError:  # pragma: no cover
         HTTP_OPERATOR_CLASS = None
         HTTP_SENSOR_CLASS = None
@@ -461,10 +462,8 @@ class DagBuilder:
                     del task_params["failure_check_lambda"]
 
             # Only handle HTTP operator/sensor if the package is installed
-            if (
-                HTTP_OPERATOR_CLASS
-                and HTTP_SENSOR_CLASS
-                and issubclass(operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS))
+            if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
+                operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
             ):
                 task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
