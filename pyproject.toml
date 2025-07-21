@@ -29,14 +29,28 @@ classifiers = [
 ]
 dependencies = [
     "apache-airflow>=2.4",
-    "apache-airflow-providers-http>=4.0.0",
-    "apache-airflow-providers-cncf-kubernetes>=4.3.0",
     "pyyaml",
     "packaging",
 ]
 
 
 [project.optional-dependencies]
+all = [
+    "apache-airflow>=2.4",
+    "apache-airflow-providers-http>=4.0.0",
+    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
+    "pyyaml",
+    "packaging",
+]
+kubernetes = [
+    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
+]
+http = [
+    "apache-airflow-providers-http>=4.0.0",
+]
+common-sql = [
+    "apache-airflow-providers-common-sql>=1.2.0"
+]
 tests = [
     "apache-airflow-providers-slack",
     "pytest>=6.0",
