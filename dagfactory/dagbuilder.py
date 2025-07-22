@@ -872,7 +872,7 @@ class DagBuilder:
 
         # ------------------------------------------------------------------
         # Support configuration where ``task_groups`` can also be provided as
-        # a *list* of mappings – each with a mandatory ``group_id``.
+        # a *list* of mappings – each with a mandatory ``group_name``.
         # Downstream logic expects a mapping keyed by the group id, so we
         # convert it here in one place.
         # ------------------------------------------------------------------

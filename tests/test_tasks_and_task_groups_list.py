@@ -192,7 +192,7 @@ def test_missing_task_id_raises_exception():
 
 def test_missing_task_group_name_raises_exception():
     dag_config = _make_task_groups_list_config()
-    # Remove group_id from first task_group entry
+    # Remove group_name from first task_group entry
     dag_config["task_groups"][0].pop("group_name")
 
     td = DagBuilder("dag_missing_task_group_name", dag_config, DEFAULT_CONFIG_MINIMAL)
