@@ -178,3 +178,23 @@ def test_build_with_duplicate_group_name_raises_exception():
     td = DagBuilder("dag_task_groups_list_dup", dag_config, DEFAULT_CONFIG_MINIMAL)
     with pytest.raises(DagFactoryConfigException, match="Duplicate group_name"):
         td.build()
+
+
+def test_missing_task_id_raises_exception():
+    dag_config = _make_tasks_list_config()
+    # Remove task_id from one of the task definitions
+    dag_config["tasks"][0].pop("task_id")
+
+    td = DagBuilder("dag_missing_task_id", dag_config, DEFAULT_CONFIG_MINIMAL)
+    with pytest.raises(DagFactoryConfigException, match="task_id"):
+        td.build()
+
+
+def test_missing_task_group_name_raises_exception():
+    dag_config = _make_task_groups_list_config()
+    # Remove group_id from first task_group entry
+    dag_config["task_groups"][0].pop("group_name")
+
+    td = DagBuilder("dag_missing_task_group_name", dag_config, DEFAULT_CONFIG_MINIMAL)
+    with pytest.raises(DagFactoryConfigException, match="group_name"):
+        td.build()
