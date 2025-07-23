@@ -417,3 +417,52 @@ def cast_with_type(data):
         return [cast_with_type(item) for item in data]
 
     return data
+
+
+def convert_to_datetime_datetime(value: str) -> datetime:
+    value_list = value.split("-")
+
+    if len(value_list) < 3 or len(value_list) > 8:
+        raise ValueError(
+            "Invalid 'datime' format: expected a complete date with at least year, month, and day (e.g., '2025-02-15')."
+        )
+
+    candidate_tz = value_list[-1]
+    timezone = "UTC"
+
+    try:
+        # Check if the last element is part of the date/time (i.e., numeric)
+        int(candidate_tz)
+        time_parts = value_list
+    except ValueError:
+        # It's likely a timezone string
+        timezone = pendulum.timezone(candidate_tz)
+        time_parts = value_list[:-1]
+
+    # Convert all time parts to integers (e.g., year, month, day, hour, ...)
+    try:
+        time_parts = [int(val) for val in time_parts]
+    except ValueError:
+        raise ValueError("Date/time components must be integers (e.g., '2025-07-23-15-30').")
+
+    return datetime(*time_parts, tzinfo=timezone)
+
+
+def convert_to_timedelta(value: str) -> timedelta:
+    """
+    Converts a hyphen-separated string to a timedelta.
+    Expected format: 'days-seconds-microseconds-milliseconds-minutes-hours-weeks'
+    You can provide as few as 1 and up to 7 integer values, in order.
+    """
+    try:
+        time_parts = value.split("-")
+        time_parts = [int(val) for val in time_parts]
+        return timedelta(*time_parts)
+    except ValueError:
+        raise ValueError("Invalid input: all parts must be integers.")
+    except TypeError:
+        raise TypeError(
+            "Invalid values provided to timedelta().\n"
+            "Expected format: 'days-seconds-microseconds-milliseconds-minutes-hours-weeks'\n"
+            "Maximum 7 values allowed (e.g., '1-0-0-0-0-0-1')."
+        )

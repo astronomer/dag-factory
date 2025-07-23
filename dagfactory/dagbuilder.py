@@ -8,11 +8,13 @@ import os
 import re
 import warnings
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
+
+from dagfactory.utils import convert_to_datetime_datetime, convert_to_timedelta
 
 try:
     from airflow.sdk.bases.operator import BaseOperator
@@ -145,27 +147,28 @@ class DagBuilder:
         if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
             dag_params["schedule_interval"] = None
 
-        # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
-        if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
-            dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout_sec"])
-            del dag_params["dagrun_timeout_sec"]
+        # Convert from 'dagrun_timeout: int' to 'dagrun_timeout: timedelta'
+        if utils.check_dict_key(dag_params, "dagrun_timeout"):
+            if isinstance(dag_params["dagrun_timeout"], int):
+                dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout"])
 
-        # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
-        if utils.check_dict_key(dag_params["default_args"], "end_date"):
-            dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
-                date_value=dag_params["default_args"]["end_date"],
-                timezone=dag_params["default_args"].get("timezone", "UTC"),
+        if dag_params["default_args"]["start_date"] and isinstance(dag_params["default_args"]["start_date"], str):
+            dag_params["default_args"]["start_date"] = convert_to_datetime_datetime(
+                dag_params["default_args"]["start_date"]
             )
 
-        if utils.check_dict_key(dag_params["default_args"], "retry_delay_sec"):
-            dag_params["default_args"]["retry_delay"]: timedelta = timedelta(
-                seconds=dag_params["default_args"]["retry_delay_sec"]
+        if dag_params["default_args"]["end_date"] and isinstance(dag_params["default_args"]["end_date"], str):
+            dag_params["default_args"]["end_date"] = convert_to_datetime_datetime(
+                dag_params["default_args"]["end_date"]
             )
-            del dag_params["default_args"]["retry_delay_sec"]
 
-        if utils.check_dict_key(dag_params["default_args"], "sla_secs"):
-            dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla_secs"])
-            del dag_params["default_args"]["sla_secs"]
+        if utils.check_dict_key(dag_params["default_args"], "retry_delay"):
+            if isinstance(dag_params["default_args"]["retry_delay"], int):
+                dag_params["default_args"]["retry_delay"] = timedelta(seconds=dag_params["default_args"]["retry"])
+
+        if utils.check_dict_key(dag_params["default_args"], "sla"):
+            if isinstance(dag_params["default_args"]["sla"], int):
+                dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla"])
 
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
         # check has gone into the set_callback method
@@ -232,16 +235,12 @@ class DagBuilder:
             else:
                 raise DagFactoryException("render_template_as_native_obj should be bool type!")
 
-        try:
-            # ensure that default_args dictionary contains key "start_date"
-            # with "datetime" value in specified timezone
-            dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
-                date_value=dag_params["default_args"]["start_date"],
-                timezone=dag_params["default_args"].get("timezone", "UTC"),
-            )
-        except KeyError as err:
-            # pylint: disable=line-too-long
-            raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
+        if dag_params.get("start_date") and isinstance(dag_params["start_date"], str):
+            dag_params["start_date"] = convert_to_datetime_datetime(dag_params["start_date"])
+
+        if dag_params.get("end_date") and isinstance(dag_params["end_date"], str):
+            dag_params["end_date"] = convert_to_datetime_datetime(dag_params["end_date"])
+
         return dag_params
 
     @staticmethod
@@ -854,10 +853,7 @@ class DagBuilder:
             )
 
         if dag_params.get("timetable"):
-            timetable_args = dag_params.get("timetable")
-            dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                timetable_args.get("callable"), timetable_args.get("params")
-            )
+            dag_kwargs["timetable"] = dag_params.get("timetable")
 
         dag_kwargs["catchup"] = dag_params.get(
             "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
@@ -1020,27 +1016,27 @@ class DagBuilder:
         return sorted_tasks
 
     @staticmethod
-    def adjust_general_task_params(task_params: dict(str, Any)):
+    def adjust_general_task_params(task_params: dict[str, Any]):
         """Adjusts in place the task params argument"""
-        if utils.check_dict_key(task_params, "execution_timeout_secs"):
-            task_params["execution_timeout"]: timedelta = timedelta(seconds=task_params["execution_timeout_secs"])
-            del task_params["execution_timeout_secs"]
+        if utils.check_dict_key(task_params, "execution_timeout"):
+            if isinstance(task_params["execution_timeout"], int):
+                task_params["execution_timeout"]: timedelta = timedelta(seconds=task_params["execution_timeout"])
 
-        if utils.check_dict_key(task_params, "sla_secs"):
-            task_params["sla"]: timedelta = timedelta(seconds=task_params["sla_secs"])
-            del task_params["sla_secs"]
+        if utils.check_dict_key(task_params, "sla"):
+            if isinstance(task_params["sla"], int):
+                task_params["sla"]: timedelta = timedelta(seconds=task_params["sla"])
 
-        if utils.check_dict_key(task_params, "execution_delta_secs"):
-            task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta_secs"])
-            del task_params["execution_delta_secs"]
+        if utils.check_dict_key(task_params, "execution_delta"):
+            if isinstance(task_params["execution_delta"], int):
+                task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta"])
 
         # Used by airflow.sensors.external_task_sensor.ExternalTaskSensor
         if utils.check_dict_key(task_params, "execution_date_fn"):
             python_callable: Callable = import_string(task_params["execution_date_fn"])
             task_params["execution_date_fn"] = python_callable
         elif utils.check_dict_key(task_params, "execution_delta"):
-            execution_delta = utils.get_time_delta(task_params["execution_delta"])
-            task_params["execution_delta"] = execution_delta
+            task_params["execution_delta"] = convert_to_timedelta(task_params["execution_delta"])
+
         elif utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
             task_params, "execution_date_fn_file"
         ):
@@ -1174,7 +1170,7 @@ class DagBuilder:
             return decorator(**decorator_kwargs)(**callable_kwargs)
 
     @staticmethod
-    def replace_kwargs_values_as_tasks(kwargs: dict(str, Any), tasks_dict: dict(str, Any)):
+    def replace_kwargs_values_as_tasks(kwargs: dict[str, Any], tasks_dict: dict[str, Any]):
         for key, value in kwargs.items():
             if isinstance(value, str) and value.startswith("+"):
                 upstream_task_name = value.split("+")[-1]
