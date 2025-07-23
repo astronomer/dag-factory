@@ -422,9 +422,11 @@ def test_schedule_interval():
     td.generate_dags(globals())
     if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
         schedule_interval = globals()["example_dag2"].schedule_interval
+        expected_schedule_interval = datetime.timedelta(days=1)
     else:
         schedule_interval = globals()["example_dag2"].schedule
-    assert schedule_interval is None
+        expected_schedule_interval = None
+    assert schedule_interval == expected_schedule_interval
 
 
 def test_dagfactory_dict():
