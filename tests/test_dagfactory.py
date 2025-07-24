@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import tempfile
 
 import pytest
 from airflow.version import version as AIRFLOW_VERSION
@@ -11,12 +12,13 @@ except ImportError:
     from airflow.models.variable import Variable  # noqa: F401
 
 from packaging import version
+from pendulum.datetime import DateTime, Timezone
 
 from tests.utils import get_bash_operator_path, get_schedule_key
 
 here = os.path.dirname(__file__)
 
-from dagfactory import dagfactory, load_yaml_dags
+from dagfactory import DagFactory, dagfactory, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -592,3 +594,29 @@ def test_yml_dag_rendering_in_docs():
     with open(dag_path, "r") as file:
         expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
     assert generated_doc_md == expected_doc_md
+
+
+def test_dag_level_start():
+    data = """
+    my_dag:
+      schedule: "0 3 * * *"
+      start_date: 2024-11-11
+      end_date: 2025-11-11
+      tasks:
+        task_1:
+          operator: airflow.operators.bash.BashOperator
+          bash_command: "echo 1"
+    """
+
+    # Write to temporary YAML file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmp:
+        tmp.write(data)
+        temp_file = tmp.name
+
+    # Use DagFactory to load and generate DAGs
+    df = DagFactory(config_filepath=temp_file)
+    df.generate_dags(globals=globals())
+    dag = globals()["my_dag"]
+
+    assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
+    assert dag.end_date == DateTime(2025, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))

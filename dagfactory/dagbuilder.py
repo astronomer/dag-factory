@@ -14,6 +14,8 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
 
+from dagfactory.utils import check_dict_key
+
 try:
     from airflow.sdk.bases.operator import BaseOperator
     from airflow.sdk.definitions.dag import DAG
@@ -150,6 +152,18 @@ class DagBuilder:
             dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout_sec"])
             del dag_params["dagrun_timeout_sec"]
 
+        if utils.check_dict_key(dag_params, "start_date"):
+            dag_params["start_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["start_date"],
+                timezone=dag_params.get("timezone", "UTC"),
+            )
+
+        if utils.check_dict_key(dag_params, "end_date"):
+            dag_params["end_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["end_date"],
+                timezone=dag_params.get("timezone", "UTC"),
+            )
+
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
         if utils.check_dict_key(dag_params["default_args"], "end_date"):
             dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
@@ -235,10 +249,11 @@ class DagBuilder:
         try:
             # ensure that default_args dictionary contains key "start_date"
             # with "datetime" value in specified timezone
-            dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
-                date_value=dag_params["default_args"]["start_date"],
-                timezone=dag_params["default_args"].get("timezone", "UTC"),
-            )
+            if check_dict_key(dag_params["default_args"], "start_date"):
+                dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
+                    date_value=dag_params["default_args"]["start_date"],
+                    timezone=dag_params["default_args"].get("timezone", "UTC"),
+                )
         except KeyError as err:
             # pylint: disable=line-too-long
             raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
@@ -984,6 +999,9 @@ class DagBuilder:
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
+
+        dag_kwargs["start_date"] = dag_params.get("start_date", None)
+        dag_kwargs["end_date"] = dag_params.get("end_date", None)
 
         dag: DAG = DAG(**dag_kwargs)
 
