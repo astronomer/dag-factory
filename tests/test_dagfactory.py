@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import shutil
 import tempfile
 
 import pytest
@@ -23,7 +24,7 @@ from dagfactory import DagFactory, dagfactory, load_yaml_dags
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
-INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
+INVALID_DAG_FACTORY = os.path.join(here, "fixtures_without_default/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7 = os.path.join(
@@ -400,8 +401,9 @@ example_dag2:
       operator: airflow.operators.bash.BashOperator
 
 ```"""
+    YAML_PATH = os.path.join(here, "fixtures_without_default/dag_factory.yml")
 
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td = dagfactory.DagFactory(YAML_PATH)
     td.generate_dags(globals())
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(DOC_MD_FIXTURE_FILE, "r") as file:
@@ -581,8 +583,10 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
     reason="Skipping this because yaml import old version of operator",
 )
 def test_yml_dag_rendering_in_docs():
-    dag_path = os.path.join(here, "fixtures/dag_md_docs.yml")
-    td = dagfactory.DagFactory(dag_path)
+    dag_path = os.path.join(here, "fixtures_without_default/dag_md_docs.yml")
+    td = dagfactory.DagFactory(
+        dag_path,
+    )
     td.generate_dags(globals())
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(dag_path, "r") as file:
@@ -630,3 +634,63 @@ def test_dag_level_start():
 
     assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
     assert dag.end_date == DateTime(2025, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
+
+
+def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
+    # Create structure: tmp_path/a/b/c/dag.yml
+    dag_path = tmp_path / "a" / "b" / "c"
+    dag_path.mkdir(parents=True)
+    dag_file = dag_path / "dag.yml"
+    shutil.copyfile(TEST_DAG_FACTORY, str(dag_file))
+
+    default_config_path = tmp_path / "a"
+
+    some_dag = dagfactory.DagFactory(
+        str(dag_file),
+        default_args_config_path=str(default_config_path)
+    )
+
+    result = some_dag._retrieve_possible_default_config_dirs()
+    expected = [
+        tmp_path / "a" / "b" / "c",
+        tmp_path / "a" / "b",
+        tmp_path / "a"
+    ]
+    assert result == expected
+
+
+def test_retrieve_possible_default_config_dirs_default_path_not_in_config_parents(tmp_path):
+    # Structure: tmp_path/config/a/b/c/dag.yml, and tmp_path/other as unrelated default path
+    config_path = tmp_path / "config" / "a" / "b" / "c"
+    config_path.mkdir(parents=True)
+    dag_file = config_path / "dag.yml"
+    shutil.copyfile(TEST_DAG_FACTORY, str(dag_file))
+
+    unrelated_default_path = tmp_path / "other"
+    unrelated_default_path.mkdir()
+
+    some_dag = dagfactory.DagFactory(
+        str(dag_file),
+        default_args_config_path=str(unrelated_default_path)
+    )
+
+    result = some_dag._retrieve_possible_default_config_dirs()
+    expected = [
+        tmp_path / "config" / "a" / "b" / "c",
+        unrelated_default_path
+    ]
+    assert result == expected
+
+
+def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
+    default_config_path = tmp_path / "default"
+    default_config_path.mkdir()
+
+    some_dag = dagfactory.DagFactory(
+        config_filepath=None,
+        config={"a": "b"},
+        default_args_config_path=str(default_config_path)
+    )
+
+    result = some_dag._retrieve_possible_default_config_dirs()
+    assert result == [default_config_path]
