@@ -246,7 +246,7 @@ class DagBuilder:
         if check_dict_key(dag_params, "start_date") and isinstance(dag_params["start_date"], str):
             dag_params["start_date"] = convert_to_datetime_datetime(dag_params["start_date"])
 
-        if check_dict_key(dag_params, "start_date") and isinstance(dag_params["end_date"], str):
+        if check_dict_key(dag_params, "end_date") and isinstance(dag_params["end_date"], str):
             dag_params["end_date"] = convert_to_datetime_datetime(dag_params["end_date"])
 
         return dag_params
