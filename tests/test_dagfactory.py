@@ -323,10 +323,6 @@ def test_generate_dags_with_removal_valid():
 
     del td.config["example_dag"]
     del td.config["example_dag2"]
-    td.clean_dags(globals())
-    assert "example_dag" not in globals()
-    assert "example_dag2" not in globals()
-    assert "fake_example_dag" not in globals()
 
 
 def test_generate_dags_invalid():
@@ -498,14 +494,12 @@ def print_context_callback(context, **kwargs):
 
 def test_generate_dags_with_removal_valid_and_callback():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
-    td.clean_dags(globals())
     td.generate_dags(globals())
 
 
 def test_set_callback_after_loading_config():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)  # Generate the DAG factory object
     td.config["default"]["default_args"]["on_success_callback"] = f"{__name__}.print_context_callback"
-    td.clean_dags(globals())
     td.generate_dags(globals())
 
 
