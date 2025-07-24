@@ -15,7 +15,7 @@ except ImportError:
     except ImportError:
         HTTP_OPERATOR_AVAILABLE = False
         SIMPLE_HTTP_OPERATOR_AVAILABLE = False
-        raise Exception("Package apache-airflow-providers-http is not installed.")
+        raise ImportError("Package apache-airflow-providers-http is not installed.")
 
 # The following import is here so Airflow parses this file
 # from airflow import DAG
@@ -29,7 +29,7 @@ if HTTP_OPERATOR_AVAILABLE:
 elif SIMPLE_HTTP_OPERATOR_AVAILABLE:
     config_file = str(CONFIG_ROOT_DIR / "example_simple_http_operator_task.yml")
 else:
-    raise Exception("Package apache-airflow-providers-http is not installed.")
+    raise ImportError("Package apache-airflow-providers-http is not installed.")
 
 example_dag_factory = dagfactory.DagFactory(config_file)
 

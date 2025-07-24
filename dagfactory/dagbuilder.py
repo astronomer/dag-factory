@@ -373,14 +373,15 @@ class DagBuilder:
                     `response_check_name` and `response_check_file` parameters \
                     or `response_check_lambda` parameter."
                 )
-            if task_params.get("response_check_file"):
+
+            # remove dag-factory specific parameters
+            # Airflow 2.0 doesn't allow these to
+            response_check_name = task_params.pop("response_check_name", None)
+            response_check_file = task_params.pop("response_check_file", None)
+            if response_check_name:
                 task_params["response_check"]: Callable = utils.get_python_callable(
-                    task_params["response_check_name"], task_params["response_check_file"]
+                    response_check_name, response_check_file
                 )
-                # remove dag-factory specific parameters
-                # Airflow 2.0 doesn't allow these to be passed to operator
-                del task_params["response_check_name"]
-                del task_params["response_check_file"]
             else:
                 task_params["response_check"]: Callable = utils.get_python_callable_lambda(
                     task_params["response_check_lambda"]
