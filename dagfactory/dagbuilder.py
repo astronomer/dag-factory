@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import logging
 import os
 import re
 import warnings
@@ -13,6 +14,7 @@ from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
+from packaging import version
 
 try:
     from airflow.sdk.bases.operator import BaseOperator
@@ -22,90 +24,115 @@ except ImportError:
     from airflow.models import BaseOperator, Variable
     from airflow.models.dag import DAG
 
+from airflow.datasets import Dataset
+from airflow.models import MappedOperator
+from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
+from airflow.utils.task_group import TaskGroup
 from airflow.version import version as AIRFLOW_VERSION
-from packaging import version
-
-from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
-
-try:
-    from airflow.providers.cncf.kubernetes import get_provider_info
-
-    try:
-        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
-    except KeyError:  # pragma: no cover
-        from airflow.providers.cncf.kubernetes import __version__
-
-        K8S_PROVIDER_VERSION = __version__
-except ImportError:  # pragma: no cover
-    K8S_PROVIDER_VERSION = "0"
-
-INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
-except ImportError:
-    from airflow.operators.python import BranchPythonOperator, PythonOperator
-
-from airflow.providers.common.sql.sensors.sql import SqlSensor
-from airflow.providers.http.sensors.http import HttpSensor
-
-# http operator was renamed in providers-http 4.11.0
-try:
-    from airflow.providers.http.operators.http import HttpOperator
-
-    HTTP_OPERATOR_CLASS = HttpOperator
-except ImportError:  # pragma: no cover
-    try:
-        from airflow.providers.http.operators.http import SimpleHttpOperator
-
-        HTTP_OPERATOR_CLASS = SimpleHttpOperator
-    except ImportError:  # pragma: no cover
-        # Fall back to dynamically importing the operator
-        HTTP_OPERATOR_CLASS = None
-
-
-try:
-    # Try Airflow 3
     from airflow.providers.standard.sensors.python import PythonSensor
 except ImportError:
+    from airflow.operators.python import BranchPythonOperator, PythonOperator
     from airflow.sensors.python import PythonSensor
 
 
-from airflow.models import MappedOperator
+logger = logging.getLogger(__name__)
 
+# Try to import HttpOperator and HttpSensor only if the package is installed
+try:
+    from airflow.providers.http.operators.http import HttpOperator
+    from airflow.providers.http.sensors.http import HttpSensor
+
+    HTTP_OPERATOR_CLASS = HttpOperator
+    HTTP_SENSOR_CLASS = HttpSensor
+except ImportError:  # pragma: no cover
+    try:
+        # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
+        from airflow.providers.http.operators.http import SimpleHttpOperator
+        from airflow.providers.http.sensors.http import HttpSensor
+
+        HTTP_OPERATOR_CLASS = SimpleHttpOperator
+        HTTP_SENSOR_CLASS = HttpSensor
+    except ImportError:  # pragma: no cover
+        HTTP_OPERATOR_CLASS = None
+        HTTP_SENSOR_CLASS = None
+        logger.info("Package apache-airflow-providers-http is not installed.")
+
+# Try to import SqlSensor only if the package is installed
+try:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
+
+    SQL_SENSOR_CLASS = SqlSensor
+except ImportError:
+    logger.info("Package apache-airflow-providers-common-sql is not installed.")
+    SQL_SENSOR_CLASS = None
+
+# Try to import KubernetesPodOperator only if the package is installed
 try:
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
 except ImportError:
-    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.0.0
+        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+
+        KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
+        KUBERNETES_OPERATOR_CLASS = None
+
+try:
+    from airflow.providers.cncf.kubernetes import __version__
+
+    K8S_PROVIDER_VERSION = __version__
+
+except ImportError:  # pragma: no cover
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.4.2
+        from airflow.providers.cncf.kubernetes import get_provider_info
+
+        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
+        K8S_PROVIDER_VERSION = "0"
 
 try:
     from airflow.providers.cncf.kubernetes.secret import Secret
 except ImportError:
-    from airflow.kubernetes.secret import Secret
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 5.0.0
+        from airflow.kubernetes.secret import Secret
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
 
-from airflow.datasets import Dataset
-from airflow.timetables.base import Timetable
-from airflow.utils.task_group import TaskGroup
-from kubernetes.client.models import (
-    V1Affinity,
-    V1Container,
-    V1ContainerPort as Port,
-    V1EnvFromSource,
-    V1EnvVar,
-    V1LocalObjectReference,
-    V1Pod,
-    V1PodSecurityContext,
-    V1Toleration,
-    V1Volume,
-    V1VolumeMount as VolumeMount,
-)
+try:
+    from kubernetes.client.models import (
+        V1Affinity,
+        V1Container,
+        V1ContainerPort as Port,
+        V1EnvFromSource,
+        V1EnvVar,
+        V1LocalObjectReference,
+        V1Pod,
+        V1PodSecurityContext,
+        V1Toleration,
+        V1Volume,
+        V1VolumeMount as VolumeMount,
+    )
+except ImportError:
+    logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
 
 from dagfactory import parsers, utils
+from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
+INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
 
 class DagBuilder:
@@ -324,6 +351,42 @@ class DagBuilder:
 
         return task_params
 
+    @staticmethod
+    def _handle_http_sensor(operator_obj, task_params):
+        # Only handle if HttpOperator/HttpSensor are available
+        if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
+            headers = task_params.get("headers", {})
+            content_type = headers.get("Content-Type", "").lower()
+
+            if "data" in task_params and "application/json" in content_type:
+                task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
+
+                if "Content-Type" not in headers:
+                    headers["Content-Type"] = "application/json"
+                task_params["headers"] = headers
+        elif HTTP_SENSOR_CLASS and issubclass(operator_obj, HTTP_SENSOR_CLASS):
+            if not (
+                task_params.get("response_check_name") and task_params.get("response_check_file")
+            ) and not task_params.get("response_check_lambda"):
+                raise DagFactoryException(
+                    "Failed to create task. HttpSensor requires \
+                    `response_check_name` and `response_check_file` parameters \
+                    or `response_check_lambda` parameter."
+                )
+
+            # remove dag-factory specific parameters
+            # Airflow 2.0 doesn't allow these to
+            response_check_name = task_params.pop("response_check_name", None)
+            response_check_file = task_params.pop("response_check_file", None)
+            if response_check_name:
+                task_params["response_check"]: Callable = utils.get_python_callable(
+                    response_check_name, response_check_file
+                )
+            else:
+                response_check_name = task_params.pop("response_check_lambda", None)
+                task_params["response_check"]: Callable = utils.get_python_callable_lambda(response_check_name)
+        return task_params
+
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
@@ -371,7 +434,7 @@ class DagBuilder:
             # declare both a callable file and a lambda function for success/failure parameter.
             # If both are found the object will not throw and error, instead callable file will
             # take precedence over the lambda function
-            if issubclass(operator_obj, SqlSensor):
+            if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get("success_check_name"):
                     task_params["success"]: Callable = utils.get_python_callable(
@@ -397,45 +460,15 @@ class DagBuilder:
                     )
                     del task_params["failure_check_lambda"]
 
-            if issubclass(operator_obj, HttpSensor):
-                if not (
-                    task_params.get("response_check_name") and task_params.get("response_check_file")
-                ) and not task_params.get("response_check_lambda"):
-                    raise DagFactoryException(
-                        "Failed to create task. HttpSensor requires \
-                        `response_check_name` and `response_check_file` parameters \
-                        or `response_check_lambda` parameter."
-                    )
-                if task_params.get("response_check_file"):
-                    task_params["response_check"]: Callable = utils.get_python_callable(
-                        task_params["response_check_name"], task_params["response_check_file"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_name"]
-                    del task_params["response_check_file"]
-                else:
-                    task_params["response_check"]: Callable = utils.get_python_callable_lambda(
-                        task_params["response_check_lambda"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_lambda"]
+            # Only handle HTTP operator/sensor if the package is installed
+            if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
+                operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+            ):
+                task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
-            if issubclass(operator_obj, KubernetesPodOperator):
+            # Only handle KubernetesPodOperator if the package is installed
+            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KUBERNETES_OPERATOR_CLASS):
                 task_params = DagBuilder._clean_kpo_task_params(task_params)
-
-            # HttpOperator
-            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
-                headers = task_params.get("headers", {})
-                content_type = headers.get("Content-Type", "").lower()
-
-                if "data" in task_params and "application/json" in content_type:
-                    task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
-
-                    if "Content-Type" not in headers:
-                        headers["Content-Type"] = "application/json"
-                    task_params["headers"] = headers
 
             DagBuilder.adjust_general_task_params(task_params)
 

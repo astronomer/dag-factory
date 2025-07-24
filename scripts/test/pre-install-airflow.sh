@@ -36,7 +36,6 @@ if [ "$AIRFLOW_VERSION" = "3.0" ]; then
   uv pip install "apache-airflow>=3.0.2" --constraint /tmp/constraint.txt
 else
   uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
-  uv pip install apache-airflow-providers-cncf-kubernetes --constraint /tmp/constraint.txt
 fi;
 
 rm /tmp/constraint.txt
