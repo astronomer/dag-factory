@@ -822,6 +822,85 @@ class DagBuilder:
                 else:
                     dag_kwargs["schedule"] = schedule
 
+    @staticmethod
+    def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
+        """Ensure tasks configuration is in the canonical dict form.
+
+        Dag authors may provide tasks either as a mapping of ``task_id`` -> config
+        or as a *list* of configs each containing a ``task_id`` key. This helper
+        converts the latter to the former so that the rest of the builder logic
+        can operate on a single, predictable structure.
+
+        :param tasks_cfg: the raw ``tasks`` value from the YAML / dict config
+        """
+        # Nothing provided – let the caller decide how to handle later.
+        if tasks_cfg is None:
+            return {}
+
+        # Already in the desired form
+        if isinstance(tasks_cfg, dict):
+            return tasks_cfg
+
+        if isinstance(tasks_cfg, list):
+            converted: Dict[str, Dict[str, Any]] = {}
+
+            for entry in tasks_cfg:
+                if not isinstance(entry, dict) or "task_id" not in entry:
+                    raise DagFactoryConfigException(
+                        "Each task definition in the list must be a mapping that contains a 'task_id' key"
+                    )
+
+                task_id = entry["task_id"]
+
+                if task_id in converted:
+                    raise DagFactoryConfigException(f"Duplicate task_id detected in tasks list: '{task_id}'")
+
+                # Exclude task_id from the configuration body – historically it
+                # is represented by the mapping key, not within the dict.
+                task_conf = {k: v for k, v in entry.items() if k != "task_id"}
+                converted[task_id] = task_conf
+
+            return converted
+
+        raise DagFactoryConfigException("'tasks' must be either a mapping or a list of task configs")
+
+    @staticmethod
+    def _normalise_task_groups_config(task_groups_cfg: Any) -> Dict[str, Dict[str, Any]]:
+        """Convert a list-based task_groups definition into dict form.
+
+        Accepts either the canonical mapping of ``group_name`` -> config or a list where each item is a mapping
+        containing a ``group_name`` key. Performs duplicate detection and basic validation.
+
+        :param task_groups_cfg: the raw ``task_groups`` value from the YAML / dict config
+        """
+
+        if task_groups_cfg is None:
+            return {}
+
+        if isinstance(task_groups_cfg, dict):
+            return task_groups_cfg
+
+        if isinstance(task_groups_cfg, list):
+            converted: Dict[str, Dict[str, Any]] = {}
+
+            for entry in task_groups_cfg:
+                if not isinstance(entry, dict) or "group_name" not in entry:
+                    raise DagFactoryConfigException(
+                        "Each task_group definition in the list must be a mapping that contains a 'group_name' key"
+                    )
+
+                group_id = entry["group_name"]
+
+                if group_id in converted:
+                    raise DagFactoryConfigException(f"Duplicate group_name detected in task_groups list: '{group_id}'")
+
+                group_conf = {k: v for k, v in entry.items() if k != "group_name"}
+                converted[group_id] = group_conf
+
+            return converted
+
+        raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
+
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -832,69 +911,9 @@ class DagBuilder:
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
 
-        # ------------------------------------------------------------------
-        # Support configuration where ``tasks`` is provided as a *list* of
-        # task dictionaries (each containing a mandatory ``task_id`` field)
-        # instead of the traditional mapping of ``task_id`` -> config. This
-        # is purely a convenience for YAML authors – internally we continue
-        # to rely on the dictionary structure.
-        # ------------------------------------------------------------------
-        tasks_cfg = dag_params.get("tasks")
-        if isinstance(tasks_cfg, list):
-            converted_tasks_cfg: Dict[str, Dict[str, Any]] = {}
+        dag_params["tasks"] = DagBuilder._normalise_tasks_config(dag_params.get("tasks"))
 
-            for task_entry in tasks_cfg:
-                # Basic validation – we require a task_id to perform the
-                # conversion. If it is missing, fail fast so the user knows
-                # what to fix.
-                if not isinstance(task_entry, dict) or "task_id" not in task_entry:
-                    raise DagFactoryConfigException(
-                        "Each task definition in the list must be a mapping that contains a 'task_id' key"
-                    )
-
-                task_id: str = task_entry["task_id"]
-
-                # Detect duplicates early – they would be silently overwritten
-                # otherwise which would be very confusing for the user.
-                if task_id in converted_tasks_cfg:
-                    raise DagFactoryConfigException(f"Duplicate task_id detected in tasks list: '{task_id}'")
-
-                # Copy the task configuration *excluding* the task_id, as
-                # historically the task_id has been the dictionary key, not
-                # an attribute of the configuration itself. Down-stream code
-                # sets the key back into the config when iterating.
-                task_conf = {k: v for k, v in task_entry.items() if k != "task_id"}
-                converted_tasks_cfg[task_id] = task_conf
-
-            # Replace the list with the converted dictionary so the rest of
-            # the build logic can stay exactly the same.
-            dag_params["tasks"] = converted_tasks_cfg
-
-        # ------------------------------------------------------------------
-        # Support configuration where ``task_groups`` can also be provided as
-        # a *list* of mappings – each with a mandatory ``group_name``.
-        # Downstream logic expects a mapping keyed by the group id, so we
-        # convert it here in one place.
-        # ------------------------------------------------------------------
-        task_groups_cfg = dag_params.get("task_groups")
-        if isinstance(task_groups_cfg, list):
-            converted_groups_cfg: Dict[str, Dict[str, Any]] = {}
-
-            for group_entry in task_groups_cfg:
-                if not isinstance(group_entry, dict) or "group_name" not in group_entry:
-                    raise DagFactoryConfigException(
-                        "Each task_group definition in the list must be a mapping that contains a 'group_name' key"
-                    )
-
-                group_id: str = group_entry["group_name"]
-
-                if group_id in converted_groups_cfg:
-                    raise DagFactoryConfigException(f"Duplicate group_name detected in task_groups list: '{group_id}'")
-
-                group_conf = {k: v for k, v in group_entry.items() if k != "group_name"}
-                converted_groups_cfg[group_id] = group_conf
-
-            dag_params["task_groups"] = converted_groups_cfg
+        dag_params["task_groups"] = DagBuilder._normalise_task_groups_config(dag_params.get("task_groups"))
 
         dag_kwargs: Dict[str, Any] = {}
 
