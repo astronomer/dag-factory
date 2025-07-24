@@ -5,7 +5,7 @@ dynamic_task_map:
   description: "test expand"
   schedule: "0 3 * * *"
   tasks:
-    process:
+    - task_id: "process"
       operator: airflow.providers.standard.operators.python.PythonOperator
       python_callable_name: consume_value
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
@@ -18,7 +18,7 @@ dynamic_task_map:
       dependencies: [request]
     # This task is intentionally placed after the "process" task to demonstrate that DAG Factory does not require tasks
     # to be topologically ordered in the YAML file according to their dependencies.
-    request:
+    - task_id: "request"
       operator: airflow.providers.standard.operators.python.PythonOperator
       python_callable_name: make_list
       python_callable_file: $CONFIG_ROOT_DIR/expand_tasks.py
