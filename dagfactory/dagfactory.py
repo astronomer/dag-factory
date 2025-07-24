@@ -168,22 +168,26 @@ class DagFactory:
         """
         return self.config.get("default", {})
 
+    @staticmethod
+    def _override_configuration(inherited_config: Dict[str, Any], priority_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Merges the default configuration with the priority configuration.
+        """
+        if isinstance(inherited_config, dict):
+            priority_config["default_args"] =  {
+                **inherited_config.get("default_args", {}),
+                **priority_config.get("default_args", {}),
+            }
+
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
-
-        # If global_default_args is None, then default_config will remain as is. Otherwise, we'll (try) go ahead and
-        # update the default args using global_default_args
-        if isinstance(global_default_args, dict):
-            # Previously, default_config was being overwritten completely to only container the default_args
-            # key-value pair. This was updated as part of issue-295 to not overwrite the entire default_config
-            # dictionary, and instead update the default_args key-value pair of the default_config dictionary
-            default_config["default_args"] = {
-                **global_default_args.get("default_args", {}),
-                **default_config.get("default_args", {}),
-            }
+        self._override_configuration(
+            inherited_config=global_default_args,
+            priority_config=default_config
+        )
 
         dags: Dict[str, Any] = {}
 
