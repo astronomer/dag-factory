@@ -829,17 +829,25 @@ class DagBuilder:
                 else:
                     dag_kwargs["schedule"] = schedule
 
+    @staticmethod
+    def is_attrs_nothing(val):
+        return type(val).__name__ == "_Nothing" and "attr._make" in type(val).__module__
+
     def _int_dag_kwargs(self) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         dag_params = self.get_dag_params()
         dag_sig = inspect.signature(DAG.__init__)
-        dag_kwargs = {
-            k: v.default
-            for k, v in dag_sig.parameters.items()
-            if v.default is not inspect.Parameter.empty or v.kind == inspect.Parameter.VAR_KEYWORD
-        }
+
+        dag_kwargs = {}
+        for k, v in dag_sig.parameters.items():
+            default = v.default
+            if default is inspect.Parameter.empty or DagBuilder.is_attrs_nothing(default):
+                continue
+            dag_kwargs[k] = default
+
         for key in dag_kwargs:
             if key in dag_params:
                 dag_kwargs[key] = copy.deepcopy(dag_params[key])
+
         dag_kwargs["dag_id"] = dag_params["dag_id"]
 
         dag_kwargs["catchup"] = dag_params.get(
@@ -877,19 +885,19 @@ class DagBuilder:
             )
             dag_kwargs["doc_md"] = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
 
-            # Render YML DAG in DAG Docs
-            if self._yml_dag:
-                subtitle = "## YML DAG"
+        # Render YML DAG in DAG Docs
+        if self._yml_dag:
+            subtitle = "## YML DAG"
 
-                if dag_kwargs.get("doc_md") is None:
-                    dag_kwargs["doc_md"] = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
-                else:
-                    dag_kwargs["doc_md"] += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
+            if dag_kwargs.get("doc_md") is None:
+                dag_kwargs["doc_md"] = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
+            else:
+                dag_kwargs["doc_md"] += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
 
-            tags = dag_kwargs.get("tags", [])
-            if "dagfactory" not in tags:
-                tags.append("dagfactory")
-            dag_kwargs["tags"] = tags
+        tags = dag_kwargs.get("tags", [])
+        if "dagfactory" not in tags:
+            tags.append("dagfactory")
+        dag_kwargs["tags"] = tags
 
         tasks = dag_params["tasks"]
 
@@ -897,7 +905,6 @@ class DagBuilder:
 
         return dag_kwargs, tasks, task_groups
 
-    # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
         Generates a DAG from the DAG parameters.
