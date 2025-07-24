@@ -175,8 +175,9 @@ def test_dag_with_http_operator():
     http_dag_config = {
         "default_args": {"owner": "test_owner", "start_date": datetime.date(2023, 1, 1)},
         get_schedule_key(): "0 0 * * *",
-        "tasks": {
-            "http_task_json": {
+        "tasks": [
+            {
+                "task_id": "http_task_json",
                 "operator": HTTP_OPERATOR_PATH,
                 "http_conn_id": "test_conn",
                 "method": "POST",
@@ -184,7 +185,8 @@ def test_dag_with_http_operator():
                 "headers": {"Content-Type": "application/json"},
                 "data": {"message": "test data", "value": 123},
             },
-            "http_task_plain": {
+            {
+                "task_id": "http_task_plain",
                 "operator": HTTP_OPERATOR_PATH,
                 "http_conn_id": "test_conn",
                 "method": "POST",
@@ -193,7 +195,7 @@ def test_dag_with_http_operator():
                 "data": "plain text data",
                 "dependencies": ["http_task_json"],
             },
-        },
+        ],
     }
 
     # Build the DAG
