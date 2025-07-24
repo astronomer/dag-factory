@@ -246,17 +246,11 @@ class DagBuilder:
             else:
                 raise DagFactoryException("render_template_as_native_obj should be bool type!")
 
-        try:
-            # ensure that default_args dictionary contains key "start_date"
-            # with "datetime" value in specified timezone
-            if check_dict_key(dag_params["default_args"], "start_date"):
-                dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
-                    date_value=dag_params["default_args"]["start_date"],
-                    timezone=dag_params["default_args"].get("timezone", "UTC"),
-                )
-        except KeyError as err:
-            # pylint: disable=line-too-long
-            raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
+        if check_dict_key(dag_params["default_args"], "start_date"):
+            dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["default_args"]["start_date"],
+                timezone=dag_params["default_args"].get("timezone", "UTC"),
+            )
         return dag_params
 
     @staticmethod
