@@ -384,7 +384,6 @@ class DagBuilder:
                 )
             else:
                 response_check_name = task_params.pop("response_check_lambda", None)
-
                 task_params["response_check"]: Callable = utils.get_python_callable_lambda(response_check_name)
         return task_params
 
