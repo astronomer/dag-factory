@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
 
-from dagfactory.utils import convert_to_datetime_datetime, convert_to_timedelta
+from dagfactory.utils import check_dict_key, convert_to_datetime_datetime, convert_to_timedelta
 
 try:
     from airflow.sdk.bases.operator import BaseOperator
@@ -152,15 +152,23 @@ class DagBuilder:
             if isinstance(dag_params["dagrun_timeout"], int):
                 dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout"])
 
-        if dag_params["default_args"]["start_date"] and isinstance(dag_params["default_args"]["start_date"], str):
-            dag_params["default_args"]["start_date"] = convert_to_datetime_datetime(
-                dag_params["default_args"]["start_date"]
-            )
+        if check_dict_key(dag_params["default_args"], "start_date"):
+            if isinstance(dag_params["default_args"]["start_date"], str):
+                dag_params["default_args"]["start_date"] = convert_to_datetime_datetime(
+                    dag_params["default_args"]["start_date"]
+                )
 
-        if dag_params["default_args"]["end_date"] and isinstance(dag_params["default_args"]["end_date"], str):
-            dag_params["default_args"]["end_date"] = convert_to_datetime_datetime(
-                dag_params["default_args"]["end_date"]
-            )
+        if utils.check_dict_key(dag_params["default_args"], "execution_timeout"):
+            if isinstance(dag_params["default_args"]["execution_timeout"], int):
+                dag_params["default_args"]["execution_timeout"]: timedelta = timedelta(
+                    seconds=dag_params["default_args"]["execution_timeout"]
+                )
+
+        if check_dict_key(dag_params["default_args"], "end_date"):
+            if isinstance(dag_params["default_args"]["end_date"], str):
+                dag_params["default_args"]["end_date"] = convert_to_datetime_datetime(
+                    dag_params["default_args"]["end_date"]
+                )
 
         if utils.check_dict_key(dag_params["default_args"], "retry_delay"):
             if isinstance(dag_params["default_args"]["retry_delay"], int):
@@ -235,10 +243,10 @@ class DagBuilder:
             else:
                 raise DagFactoryException("render_template_as_native_obj should be bool type!")
 
-        if dag_params.get("start_date") and isinstance(dag_params["start_date"], str):
+        if check_dict_key(dag_params, "start_date") and isinstance(dag_params["start_date"], str):
             dag_params["start_date"] = convert_to_datetime_datetime(dag_params["start_date"])
 
-        if dag_params.get("end_date") and isinstance(dag_params["end_date"], str):
+        if check_dict_key(dag_params, "start_date") and isinstance(dag_params["end_date"], str):
             dag_params["end_date"] = convert_to_datetime_datetime(dag_params["end_date"])
 
         return dag_params
