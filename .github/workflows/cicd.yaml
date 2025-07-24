@@ -24,12 +24,16 @@ jobs:
       github.event.pull_request.head.repo.full_name != github.repository &&
       'external' || 'internal' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - run: true
 
   Static-Check:
     needs: Authorize
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,6 +56,8 @@ jobs:
   Run-Unit-Tests:
     needs: Authorize
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -124,6 +130,8 @@ jobs:
   Run-Integration-Tests:
     needs: Authorize
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -205,6 +213,8 @@ jobs:
       - Run-Integration-Tests
       - Authorize
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
