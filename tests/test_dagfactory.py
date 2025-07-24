@@ -19,6 +19,7 @@ here = os.path.dirname(__file__)
 from dagfactory import dagfactory, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
+DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
@@ -425,6 +426,30 @@ def test_schedule_interval():
         expected_schedule_interval = datetime.timedelta(days=1)
     else:
         schedule_interval = globals()["example_dag2"].schedule
+        expected_schedule_interval = None
+    assert schedule_interval == expected_schedule_interval
+
+
+def test_no_schedule_supplied():
+    td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
+    td.generate_dags(globals())
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        schedule_interval = globals()["example_dag_no_schedule"].schedule_interval
+        expected_schedule_interval = datetime.timedelta(days=1)
+    else:
+        schedule_interval = globals()["example_dag_no_schedule"].schedule
+        expected_schedule_interval = None
+    assert schedule_interval == expected_schedule_interval
+
+
+def test_none_string_schedule_supplied():
+    td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
+    td.generate_dags(globals())
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        schedule_interval = globals()["example_dag_none_string_schedule"].schedule_interval
+        expected_schedule_interval = datetime.timedelta(days=1)
+    else:
+        schedule_interval = globals()["example_dag_none_string_schedule"].schedule
         expected_schedule_interval = None
     assert schedule_interval == expected_schedule_interval
 
