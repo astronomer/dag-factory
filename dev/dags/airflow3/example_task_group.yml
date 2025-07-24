@@ -7,10 +7,10 @@ default:
 task_group:
   description: "this dag uses task groups"
   task_groups:
-    task_group_1:
+    - group_name: "task_group_1"
       tooltip: "this is a task group"
       dependencies: [task_1]
-    task_group_2:
+    - group_name: "task_group_2"
       tooltip: "this is a task group"
       parent_group_name: task_group_1
   tasks:
