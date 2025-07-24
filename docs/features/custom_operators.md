@@ -5,9 +5,9 @@
 ```yaml
 ...
   tasks:
-    begin:
+    - task_id: begin
       operator: airflow.operators.empty.EmptyOperator
-    make_bread_1:
+    - task_id: make_bread_1
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Sourdough'
 ```
