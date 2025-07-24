@@ -1,0 +1,43 @@
+example_dag_no_schedule:
+  default_args:
+    owner: custom_owner
+    start_date: 2 days
+  description: this is an example dag
+  doc_md: '##here is a doc md string'
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator
+    task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
+    task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
+
+
+example_dag_none_string_schedule:
+  default_args:
+    owner: custom_owner
+    start_date: 2 days
+  schedule_interval: ' none    '
+  description: this is an example dag
+  doc_md: '##here is a doc md string'
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator
+    task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
+    task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
