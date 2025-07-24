@@ -40,6 +40,9 @@ def merge_configs(config: Dict[str, Any], default_config: Dict[str, Any]) -> Dic
     :returns: dict with merged configs
     :type: Dict[str, Any]
     """
+    if not default_config:
+        return config
+
     for key in default_config:
         if key in config:
             if isinstance(config[key], dict) and isinstance(default_config[key], dict):

@@ -824,7 +824,7 @@ class DagBuilder:
             if DagBuilder._is_asset(schedule):
                 dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
             else:
-                if isinstance(dag_params["schedule"], str) and dag_params["schedule"].lower() == "none":
+                if isinstance(dag_params.get("schedule"), str) and dag_params["schedule"].lower() == "none":
                     dag_kwargs["schedule"] = None
                 else:
                     dag_kwargs["schedule"] = schedule
@@ -846,7 +846,7 @@ class DagBuilder:
             dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
 
         if not dag_params.get("timetable") and not utils.check_dict_key(dag_params, "schedule"):
-            dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
+            dag_kwargs["schedule"] = dag_params.get("schedule", timedelta(days=1))
 
         dag_kwargs["description"] = dag_params.get("description", None)
 

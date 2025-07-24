@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 # The following import is here so Airflow parses this file
-# from airflow import DAG
 import dagfactory
 
 DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
