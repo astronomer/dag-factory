@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import ast
+import copy
 import inspect
 import os
 import re
-import warnings
 from copy import deepcopy
 from datetime import timedelta
 from functools import partial, reduce
@@ -829,39 +829,18 @@ class DagBuilder:
                 else:
                     dag_kwargs["schedule"] = schedule
 
-    # pylint: disable=too-many-locals
-    def build(self) -> Dict[str, Union[str, DAG]]:
-        """
-        Generates a DAG from the DAG parameters.
-
-        :returns: dict with dag_id and DAG object
-        :type: Dict[str, Union[str, DAG]]
-        """
-        dag_params: Dict[str, Any] = self.get_dag_params()
-
-        dag_kwargs: Dict[str, Any] = {}
-
+    def _int_dag_kwargs(self) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+        dag_params = self.get_dag_params()
+        dag_sig = inspect.signature(DAG.__init__)
+        dag_kwargs = {
+            k: v.default
+            for k, v in dag_sig.parameters.items()
+            if v.default is not inspect.Parameter.empty or v.kind == inspect.Parameter.VAR_KEYWORD
+        }
+        for key in dag_kwargs:
+            if key in dag_params:
+                dag_kwargs[key] = copy.deepcopy(dag_params[key])
         dag_kwargs["dag_id"] = dag_params["dag_id"]
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
-            dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
-
-        if not dag_params.get("timetable") and not utils.check_dict_key(dag_params, "schedule"):
-            dag_kwargs["schedule"] = dag_params.get("schedule", timedelta(days=1))
-
-        dag_kwargs["description"] = dag_params.get("description", None)
-
-        if "concurrency" in dag_params:
-            warnings.warn(
-                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
-            )
-            dag_kwargs["max_active_tasks"] = dag_params["concurrency"]
-        else:
-            dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
-            )
-
-        if dag_params.get("timetable"):
-            dag_kwargs["timetable"] = dag_params.get("timetable")
 
         dag_kwargs["catchup"] = dag_params.get(
             "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
@@ -871,10 +850,7 @@ class DagBuilder:
             "max_active_runs", configuration.conf.getint("core", "max_active_runs_per_dag")
         )
 
-        dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
-
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-
             dag_kwargs["default_view"] = dag_params.get(
                 "default_view", configuration.conf.get("webserver", "dag_default_view")
             )
@@ -883,64 +859,61 @@ class DagBuilder:
                 "orientation", configuration.conf.get("webserver", "dag_orientation")
             )
 
-        dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
-
-        dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
-
-        dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
-
-        dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
-
-        dag_kwargs["on_failure_callback"] = dag_params.get("on_failure_callback", None)
-
-        dag_kwargs["default_args"] = dag_params.get("default_args", None)
-
-        dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
-
-        dag_kwargs["access_control"] = dag_params.get("access_control", None)
-
-        dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
-
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
-        dag_kwargs["params"] = dag_params.get("params", None)
-
-        dag: DAG = DAG(**dag_kwargs)
-
+        # TODO: Reconsider this
+        # I feel since Airflow does not have param such as doc_md_file_path and doc_md_python_callable_file
+        # So I can't think way we introduced this
         if dag_params.get("doc_md_file_path"):
             if not os.path.isabs(dag_params.get("doc_md_file_path")):
                 raise DagFactoryException("`doc_md_file_path` must be absolute path")
 
             with open(dag_params.get("doc_md_file_path"), "r", encoding="utf-8") as file:
-                dag.doc_md = file.read()
+                dag_kwargs["doc_md"] = file.read()
 
         if dag_params.get("doc_md_python_callable_file") and dag_params.get("doc_md_python_callable_name"):
             doc_md_callable = utils.get_python_callable(
                 dag_params.get("doc_md_python_callable_name"), dag_params.get("doc_md_python_callable_file")
             )
-            dag.doc_md = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
+            dag_kwargs["doc_md"] = doc_md_callable(**dag_params.get("doc_md_python_arguments", {}))
 
-        # Render YML DAG in DAG Docs
-        if self._yml_dag:
-            subtitle = "## YML DAG"
+            # Render YML DAG in DAG Docs
+            if self._yml_dag:
+                subtitle = "## YML DAG"
 
-            if dag.doc_md is None:
-                dag.doc_md = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
-            else:
-                dag.doc_md += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
+                if dag_kwargs.get("doc_md") is None:
+                    dag_kwargs["doc_md"] = f"{subtitle}\n```yaml\n{self._yml_dag}\n```"
+                else:
+                    dag_kwargs["doc_md"] += f"\n{subtitle}\n```yaml\n{self._yml_dag}\n```"
 
-        tags = dag_params.get("tags", [])
-        if "dagfactory" not in tags:
-            tags.append("dagfactory")
-        dag.tags = tags
+            tags = dag_kwargs.get("tags", [])
+            if "dagfactory" not in tags:
+                tags.append("dagfactory")
+            dag_kwargs["tags"] = tags
 
-        tasks: Dict[str, Dict[str, Any]] = dag_params["tasks"]
+        tasks = dag_params["tasks"]
+
+        task_groups = dag_params.get("task_groups", {})
+
+        return dag_kwargs, tasks, task_groups
+
+    # pylint: disable=too-many-locals
+    def build(self) -> Dict[str, Union[str, DAG]]:
+        """
+        Generates a DAG from the DAG parameters.
+
+        :returns: dict with dag_id and DAG object
+        :type: Dict[str, Union[str, DAG]]
+        """
+        dag_kwargs, tasks, task_groups = self._int_dag_kwargs()
+
+        dag: DAG = DAG(**dag_kwargs)
 
         # add a property to mark this dag as an auto-generated on
         dag.is_dagfactory_auto_generated = True
 
         # create dictionary of task groups
-        task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(dag_params.get("task_groups", {}), dag)
+        task_groups_dict: Dict[str, "TaskGroup"] = self.make_task_groups(task_groups, dag)
 
         # create dictionary to track tasks and set dependencies
         tasks_dict: Dict[str, BaseOperator] = {}
@@ -972,12 +945,12 @@ class DagBuilder:
                 raise DagFactoryConfigException("Tasks must define either 'operator' or 'decorator")
 
         # set task dependencies after creating tasks
-        self.set_dependencies(tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict)
+        self.set_dependencies(tasks, tasks_dict, task_groups, task_groups_dict)
 
-        return {"dag_id": dag_params["dag_id"], "dag": dag}
+        return {"dag_id": dag_kwargs["dag_id"], "dag": dag}
 
     @staticmethod
-    def topological_sort_tasks(tasks_configs: dict[str, Any]) -> list[tuple(str, Any)]:
+    def topological_sort_tasks(tasks_configs: dict[str, Any]) -> list[tuple[str, Any]]:
         """
         Use the Kahn's algorithm to sort topologically the tasks:
         (https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm)
