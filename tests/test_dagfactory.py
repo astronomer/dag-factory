@@ -49,12 +49,13 @@ DAG_FACTORY_CONFIG = {
         get_schedule_key(): "@daily",
     },
     "example_dag": {
-        "tasks": {
-            "task_1": {
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
-        },
+        ],
     },
 }
 
@@ -75,8 +76,9 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
         "sla_miss_callback": f"{__name__}.print_context_callback",
-        "tasks": {
-            "task_1": {
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
@@ -85,7 +87,8 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-            "task_2": {
+            {
+                "task_id": "task_2",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
@@ -94,7 +97,8 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-            "task_3": {
+            {
+                "task_id": "task_3",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
@@ -103,7 +107,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-        },
+        ],
     }
 }
 
@@ -486,12 +490,13 @@ def test_dagfactory_dict():
     }
     expected_dag = {
         "example_dag": {
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-            },
+            ],
         },
     }
     actual_dag = td.get_dag_configs()
@@ -547,10 +552,10 @@ def test_build_dag_with_global_dag_level_defaults():
     }
 
     config = {
-        "test_dag": {"tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}}},
+        "test_dag": {"tasks": [{"task_id": "task_1", "operator": get_bash_operator_path(), "bash_command": "echo 1"}]},
         "test_dag_override": {
             "catchup": True,
-            "tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}},
+            "tasks": [{"task_id": "task_1", "operator": get_bash_operator_path(), "bash_command": "echo 1"}],
         },
     }
 
