@@ -599,7 +599,7 @@ def test_yml_dag_rendering_in_docs():
 def test_dag_level_start():
     data = """
     my_dag:
-      schedule: "0 3 * * *"
+      schedule_interval: "0 3 * * *"
       start_date: 2024-11-11
       end_date: 2025-11-11
       tasks:
