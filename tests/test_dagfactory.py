@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import tempfile
 
 import pytest
 from airflow.version import version as AIRFLOW_VERSION
@@ -11,12 +12,13 @@ except ImportError:
     from airflow.models.variable import Variable  # noqa: F401
 
 from packaging import version
+from pendulum.datetime import DateTime, Timezone
 
 from tests.utils import get_bash_operator_path, get_schedule_key
 
 here = os.path.dirname(__file__)
 
-from dagfactory import dagfactory, load_yaml_dags
+from dagfactory import DagFactory, dagfactory, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -323,10 +325,6 @@ def test_generate_dags_with_removal_valid():
 
     del td.config["example_dag"]
     del td.config["example_dag2"]
-    td.clean_dags(globals())
-    assert "example_dag" not in globals()
-    assert "example_dag2" not in globals()
-    assert "fake_example_dag" not in globals()
 
 
 def test_generate_dags_invalid():
@@ -498,14 +496,12 @@ def print_context_callback(context, **kwargs):
 
 def test_generate_dags_with_removal_valid_and_callback():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
-    td.clean_dags(globals())
     td.generate_dags(globals())
 
 
 def test_set_callback_after_loading_config():
     td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)  # Generate the DAG factory object
     td.config["default"]["default_args"]["on_success_callback"] = f"{__name__}.print_context_callback"
-    td.clean_dags(globals())
     td.generate_dags(globals())
 
 
@@ -608,3 +604,29 @@ def test_generate_dags_with_default_args_execution_timeout():
     td.generate_dags(globals())
     tasks = globals()["basic_example_dag"].tasks
     assert tasks[0].execution_timeout == datetime.timedelta(seconds=1)
+
+
+def test_dag_level_start():
+    data = """
+    my_dag:
+      schedule_interval: "0 3 * * *"
+      start_date: 2024-11-11
+      end_date: 2025-11-11
+      tasks:
+        task_1:
+          operator: airflow.operators.bash.BashOperator
+          bash_command: "echo 1"
+    """
+
+    # Write to temporary YAML file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmp:
+        tmp.write(data)
+        temp_file = tmp.name
+
+    # Use DagFactory to load and generate DAGs
+    df = DagFactory(config_filepath=temp_file)
+    df.generate_dags(globals=globals())
+    dag = globals()["my_dag"]
+
+    assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
+    assert dag.end_date == DateTime(2025, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
