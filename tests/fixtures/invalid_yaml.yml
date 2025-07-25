@@ -3,14 +3,14 @@ default:
     owner: 'default_owner'
     start_date: 2018-03-01
   max_active_runs: 1
-  schedule_interval: '0 1 * * *'
+  schedule: '0 1 * * *'
 
 example_dag:
   default_args:
     owner: 'custom_owner'
     start_date: 2 days
   description: 'this is an example dag'
-  schedule_interval: '0 3 * * *'
+  schedule: '0 3 * * *'
   tasks:
     task_1
       operator: airflow.operators.bash.BashOperator
