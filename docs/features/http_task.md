@@ -5,7 +5,7 @@
 The example below demonstrates the response_check logic in a Python file:
 
 ```yaml
-task_2:
+- task_id: task_2
   operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'
@@ -17,7 +17,7 @@ task_2:
 The `response_check` logic can also be provided as a lambda:
 
 ```yaml
-task_2:
+- task_id: task_2
   operator: airflow.providers.http.sensors.http.HttpSensor
   http_conn_id: 'test-http'
   method: 'GET'

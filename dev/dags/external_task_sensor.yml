@@ -3,14 +3,14 @@ example_external_task_sensor_dag_factory_consumer:
     start_date: 2025-01-01
     schedule_interval: "@daily"
   tasks:
-    wait_for_producer_task:
+    - task_id: "wait_for_producer_task"
       operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       mode: poke
       timeout: 300
       poke_interval: 30
-    consumer_task:
+    - task_id: "consumer_task"
       operator: airflow.operators.empty.EmptyOperator
 
 example_external_task_sensor_dag_factory_consumer2:
@@ -18,12 +18,12 @@ example_external_task_sensor_dag_factory_consumer2:
     start_date: 2025-01-02
     schedule_interval: "@daily"
   tasks:
-    wait_for_producer_task:
+    - task_id: "wait_for_producer_task"
       operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       execution_date_fn: sample.one_day_ago
-    consumer_task:
+    - task_id: "consumer_task"
       operator: airflow.operators.empty.EmptyOperator
 
 example_external_task_sensor_dag_factory_consumer3:
@@ -31,10 +31,10 @@ example_external_task_sensor_dag_factory_consumer3:
     start_date: 2025-01-03
     schedule_interval: "@daily"
   tasks:
-    wait_for_producer_task:
+    - task_id: "wait_for_producer_task:"
       operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       execution_delta: 1 days,
-    consumer_task:
+    - task_id: "consumer_task"
       operator: airflow.operators.empty.EmptyOperator

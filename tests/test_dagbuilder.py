@@ -76,89 +76,104 @@ DAG_CONFIG = {
     get_schedule_key(): "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
-    "tasks": {
-        "task_1": {
+    "tasks": [
+        {
+            "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
         },
-        "task_2": {
+        {
+            "task_id": "task_2",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "dependencies": ["task_1"],
         },
-        "task_3": {
+        {
+            "task_id": "task_3",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "dependencies": ["task_1"],
         },
-    },
+    ],
 }
 DAG_CONFIG_TASK_GROUP = {
     "default_args": {"owner": "custom_owner"},
     get_schedule_key(): "0 3 * * *",
-    "task_groups": {
-        "task_group_1": {
+    "task_groups": [
+        {
+            "group_name": "task_group_1",
             "tooltip": "this is a task group",
             "dependencies": ["task_1"],
         },
-        "task_group_2": {
+        {
+            "group_name": "task_group_2",
             "dependencies": ["task_group_1"],
         },
-        "task_group_3": {},
-    },
-    "tasks": {
-        "task_1": {
+        {
+            "group_name": "task_group_3",
+        },
+    ],
+    "tasks": [
+        {
+            "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
         },
-        "task_2": {
+        {
+            "task_id": "task_2",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
         },
-        "task_3": {
+        {
+            "task_id": "task_3",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
             "dependencies": ["task_2"],
         },
-        "task_4": {
+        {
+            "task_id": "task_4",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
         },
-        "task_5": {
+        {
+            "task_id": "task_5",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 5",
             "task_group_name": "task_group_2",
         },
-        "task_6": {
+        {
+            "task_id": "task_6",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 6",
             "task_group_name": "task_group_2",
             "dependencies": ["task_5"],
         },
-    },
+    ],
 }
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
     get_schedule_key(): "0 4 * * *",
-    "tasks": {
-        "request": {
+    "tasks": [
+        {
+            "task_id": "request",
             "operator": get_python_operator_path(),
             "python_callable_name": "example_task_mapping",
             "python_callable_file": os.path.realpath(__file__),
         },
-        "process_1": {
+        {
+            "task_id": "process_1",
             "operator": get_python_operator_path(),
             "python_callable_name": "expand_task",
             "python_callable_file": os.path.realpath(__file__),
             "partial": {"op_kwargs": {"test_id": "test"}},
             "expand": {"op_args": {"request_output": "request.output"}},
         },
-    },
+    ],
 }
 
 DAG_CONFIG_ML = {
@@ -205,15 +220,16 @@ DAG_CONFIG_CALLBACKS = {
     },
     "on_failure_callback_name": "print_context_callback",
     "on_failure_callback_file": __file__,
-    "tasks": {
-        "task_1": {  # Make sure that default_args are applied to this Task
+    "tasks": [
+        {  # Make sure that default_args are applied to this Task
+            "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "execution_timeout_secs": 5,
             "on_failure_callback_name": "print_context_callback",
             "on_failure_callback_file": __file__,
         }
-    },
+    ],
 }
 
 DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
@@ -226,8 +242,9 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         },
     },
     get_schedule_key(): "0 3 * * *",
-    "task_groups": {
-        "task_group_1": {
+    "task_groups": [
+        {
+            "group_name": "task_group_1",
             "tooltip": "this is a task group",
             "default_args": {
                 "on_execute_callback": f"{__name__}.print_context_callback",
@@ -237,14 +254,16 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
                 "on_skip_callback": f"{__name__}.print_context_callback",  # Throwing this in for good measure
             },
         },
-    },
-    "tasks": {
-        "task_1": {
+    ],
+    "tasks": [
+        {
+            "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
             "task_group_name": "task_group_1",
         },
-        "task_2": {
+        {
+            "task_id": "task_2",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 2",
             "task_group_name": "task_group_1",
@@ -254,7 +273,8 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
                 "param_2": "value_2",
             },
         },
-        "task_3": {
+        {
+            "task_id": "task_3",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 3",
             "task_group_name": "task_group_1",
@@ -264,7 +284,8 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
         # - String with no parameters
         # - String with parameters
         # - File name and path
-        "task_4": {
+        {
+            "task_id": "task_4",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 4",
             "dependencies": ["task_group_1"],
@@ -277,7 +298,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             "on_failure_callback_name": "print_context_callback",
             "on_failure_callback_file": __file__,
         },
-    },
+    ],
 }
 
 
@@ -313,23 +334,26 @@ def test_get_dag_params():
         "dagrun_timeout": datetime.timedelta(seconds=600),
         "render_template_as_native_obj": True,
         "tags": ["tag1", "tag2"],
-        "tasks": {
-            "task_1": {
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
             },
-            "task_2": {
+            {
+                "task_id": "task_2",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
             },
-            "task_3": {
+            {
+                "task_id": "task_3",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
             },
-        },
+        ],
     }
     actual = td.get_dag_params()
     assert actual == expected
@@ -566,47 +590,56 @@ def test_get_dag_params_dag_with_task_group():
             "retry_delay": datetime.timedelta(seconds=300),
         },
         get_schedule_key(): "0 3 * * *",
-        "task_groups": {
-            "task_group_1": {
+        "task_groups": [
+            {
+                "group_name": "task_group_1",
                 "tooltip": "this is a task group",
                 "dependencies": ["task_1"],
             },
-            "task_group_2": {"dependencies": ["task_group_1"]},
-            "task_group_3": {},
-        },
-        "tasks": {
-            "task_1": {
+            {"group_name": "task_group_2", "dependencies": ["task_group_1"]},
+            {
+                "group_name": "task_group_3",
+            },
+        ],
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
-            "task_2": {
+            {
+                "task_id": "task_2",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "task_group_name": "task_group_1",
             },
-            "task_3": {
+            {
+                "task_id": "task_3",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "task_group_name": "task_group_1",
                 "dependencies": ["task_2"],
             },
-            "task_4": {
+            {
+                "task_id": "task_4",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 4",
                 "dependencies": ["task_group_1"],
             },
-            "task_5": {
+            {
+                "task_id": "task_5",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 5",
                 "task_group_name": "task_group_2",
             },
-            "task_6": {
+            {
+                "task_id": "task_6",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 6",
                 "task_group_name": "task_group_2",
                 "dependencies": ["task_5"],
             },
-        },
+        ],
         "concurrency": 1,
         "max_active_runs": 1,
         "dag_id": "test_dag",

@@ -7,7 +7,7 @@ example_map_index_template:
   schedule_interval: "0 3 * * *"
   catchup: false
   tasks:
-    dynamic_task_with_named_mapping:
+    - task_id: "dynamic_task_with_named_mapping"
       decorator: airflow.decorators.task
       python_callable: sample.extract_last_name
       map_index_template: "{{ custom_mapping_key }}"

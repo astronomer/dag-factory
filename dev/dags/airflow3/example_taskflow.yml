@@ -5,25 +5,25 @@ taskflow:
   description: "Example of TaskFlow powered DAG that includes dynamic task mapping"
   schedule: "0 3 * * *"
   tasks:
-    some_number:
+    - task_id: "some_number"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.some_number
-    numbers_list:
+    - task_id: "numbers_list"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable_name: build_numbers_list
       python_callable_file: $CONFIG_ROOT_DIR/sample.py
-    another_numbers_list:
+    - task_id: "another_numbers_list"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.build_numbers_list
-    double_number_from_arg:
+    - task_id: "double_number_from_arg"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.double
       number: 2
-    double_number_from_task:
+    - task_id: "double_number_from_task"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.double
       number: +some_number  # the prefix + leads to resolving this value as the task `some_number`, previously defined
-    double_number_with_dynamic_task_mapping_static:
+    - task_id: "double_number_with_dynamic_task_mapping_static"
       decorator: airflow.decorators.task
       python_callable: sample.double
       expand:
@@ -31,18 +31,18 @@ taskflow:
             - 1
             - 3
             - 5
-    double_number_with_dynamic_task_mapping_taskflow:
+    - task_id: "double_number_with_dynamic_task_mapping_taskflow"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.double
       expand:
           number: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
-    multiply_with_multiple_parameters:
+    - task_id: "multiply_with_multiple_parameters"
       decorator: airflow.decorators.task
       python_callable: sample.multiply
       expand:
           a: +numbers_list  # the prefix + tells DagFactory to resolve this value as the task `numbers_list`, previously defined
           b: +another_numbers_list # the prefix + tells DagFactory to resolve this value as the task `another_numbers_list`, previously defined
-    double_number_with_dynamic_task_and_partial:
+    - task_id: "double_number_with_dynamic_task_and_partial"
       decorator: airflow.sdk.definitions.decorators.task
       python_callable: sample.double_with_label
       expand:

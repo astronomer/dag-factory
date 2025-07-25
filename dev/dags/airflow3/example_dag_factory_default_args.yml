@@ -8,15 +8,15 @@ default:
 
 etl:
   tasks:
-    extract:
+    - task_id: "extract"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo extract"
-    transform:
+    - task_id: "transform"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo transform"
       dependencies:
       - extract
-    load:
+    - task_id: "load"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo load"
       dependencies:

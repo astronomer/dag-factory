@@ -23,16 +23,16 @@ callbacks:
     param1: param1
     param2: param2
   task_groups:
-    task_group_1:
+    - group_name: "task_group_1"
       default_args:
         on_success_callback: print_hello.print_hello_from_callback
       dependencies: [task_1, task_2]
   tasks:
-    start:
+    - task_id: "start"
       operator: airflow.operators.empty.EmptyOperator
       on_success_callback_name: print_hello_from_callback
       on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       on_success_callback:
@@ -40,17 +40,17 @@ callbacks:
         param1: param1
         param2: param2
       dependencies: [start]
-    task_2:
+    - task_id: "task_2"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 2"
       on_success_callback_name: print_hello_from_callback
       on_success_callback_file: $CONFIG_ROOT_DIR/print_hello.py
       dependencies: [start]
-    task_3:
+    - task_id: "task_3"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo 3"
       task_group_name: task_group_1
-    end:
+    - task_id: "end"
       operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo -1"
       dependencies:
