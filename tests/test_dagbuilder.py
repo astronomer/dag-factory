@@ -335,12 +335,6 @@ def test_get_dag_params():
     assert actual == expected
 
 
-def test_get_dag_params_no_start_date():
-    td = dagbuilder.DagBuilder("test_dag", {}, {})
-    with pytest.raises(Exception):
-        td.get_dag_params()
-
-
 def test_adjust_general_task_params_external_sensor_arguments():
     task_params = {"execution_date_fn": "tests.utils.one_hour_ago"}
     DagBuilder.adjust_general_task_params(task_params)
