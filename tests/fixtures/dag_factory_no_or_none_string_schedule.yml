@@ -24,7 +24,7 @@ example_dag_none_string_schedule:
   default_args:
     owner: custom_owner
     start_date: 2 days
-  schedule_interval: ' none    '
+  schedule: ' none    '
   description: this is an example dag
   doc_md: '##here is a doc md string'
   tasks:

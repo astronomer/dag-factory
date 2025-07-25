@@ -7,7 +7,7 @@ simple_http_operator_example_dag:
   default_args:
     owner: "@owner"
   description: "this is a SimpleHttpOperator dag"
-  schedule_interval: "0 3 * * *"
+  schedule: "0 3 * * *"
   tags: ['http']
   render_template_as_native_obj: True
   tasks:

@@ -10,14 +10,14 @@ default:
   dagrun_timeout_sec: 600
   default_view: 'tree'
   orientation: 'LR'
-  schedule_interval: '0 1 * * *'
+  schedule: '0 1 * * *'
 
 example_dag:
   default_args:
     owner: 'custom_owner'
     start_date: 2 days
   description: 'this is an example dag'
-  schedule_interval: '0 3 * * *'
+  schedule: '0 3 * * *'
   tasks:
     task_1:
       operator: airflow.operators.bash.BashOperator
@@ -39,7 +39,7 @@ second_example_dag:
     owner: 'custom_owner'
     start_date: 3 days
   description: 'this is a second example dag'
-  schedule_interval: '0 6 * * *'
+  schedule: '0 6 * * *'
   tasks:
     task_0:
       operator: airflow.operators.bash.BashOperator
