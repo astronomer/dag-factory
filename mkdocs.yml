@@ -55,6 +55,7 @@ nav:
       - configuration/params.md
       - configuration/jinja2_template.md
       - configuration/schedule.md
+      - configuration/custom_py_object.md
   - Features:
       - features/dynamic_tasks.md
       - features/datasets.md
