@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import tempfile
-import yaml
 from pathlib import Path
 from unittest.mock import patch
 
@@ -714,7 +713,10 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
     assert dag.default_args["a_param"] == "a"  # accumulates properties define throughout the directories tree
     assert dag.default_args["b_param"] == "b"  # accumulates properties define throughout the directories tree
     assert dag.default_args["c_param"] == "c"  # accumulates properties define throughout the directories tree
-    assert dag.tags == ["a", "b", "c", "dagfactory"]  # contains closest directory default.yml values
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        assert dag.tags == ["a", "b", "c", "dagfactory"]  # contains closest directory default.yml values
+    else:
+        assert dag.tags == {"a", "b", "c", "dagfactory"}  # contains closest directory default.yml values
     assert dag.owner == "default_owner"  # defined in the YAML `default` section
 
     dag_build_params = serialize_config_md_mock.call_args[0]
