@@ -158,7 +158,7 @@ class DagFactory:
                     if key != "tags":
                         final_config[key] = value
                     else:
-                        final_config[key] = list(set(final_config.get("tags", []) + value))
+                        final_config[key] = sorted(list(set(final_config.get("tags", []) + value)))
 
         return final_config
 
