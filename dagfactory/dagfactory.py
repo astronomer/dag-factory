@@ -93,7 +93,6 @@ class DagFactory:
         Return a list of possible directories with the `defaults.yml` file.
         The returned directories are sorted by priority, with the top-priority directory being the first element.
         """
-        # TODO: Add unittestst
         if self.config_file_path:
             dag_yml_file_parent_dirs = Path(self.config_file_path).parents
         else:
@@ -104,7 +103,7 @@ class DagFactory:
         # Assuming default_config_root_dir_path is a parent directory of the dag_yml_file_dir_path
         if default_config_root_dir_path in dag_yml_file_parent_dirs:
             index_top_most_default_dir = dag_yml_file_parent_dirs.index(default_config_root_dir_path)
-            return [path for path in dag_yml_file_parent_dirs][:index_top_most_default_dir+1] # TODO: Add test
+            return [path for path in dag_yml_file_parent_dirs][:index_top_most_default_dir+1]
         elif dag_yml_file_parent_dirs:
             return [dag_yml_file_parent_dirs[0], default_config_root_dir_path]
         else:

@@ -3,6 +3,9 @@ import logging
 import os
 import shutil
 import tempfile
+import yaml
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from airflow.version import version as AIRFLOW_VERSION
@@ -694,3 +697,57 @@ def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
 
     result = some_dag._retrieve_possible_default_config_dirs()
     assert result == [default_config_path]
+
+
+def _write_sample_defaults(path: Path, identifier: str):
+    data = {
+        "default_args": {
+            "owner": identifier,
+            f"{identifier}_param": identifier
+        },
+        "tags": [identifier],
+        f"{identifier}_dag_param": identifier
+    }
+    with open(path / 'defaults.yml', 'w') as fp:
+        yaml.dump(data, fp)
+
+
+@patch("dagfactory.dagfactory.DagFactory._serialise_config_md")
+def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_path):
+    # Create structure: tmp_path/a/b/c/dag.yml
+    dag_path = tmp_path / "a/b/c"
+    dag_path.mkdir(parents=True)
+    dag_file = dag_path / "dag.yml"
+    shutil.copyfile(DAG_FACTORY_VARIABLES_AS_ARGUMENTS, str(dag_file))
+
+    _write_sample_defaults(tmp_path / "a", "a")
+    _write_sample_defaults(tmp_path / "a/b", "b")
+    _write_sample_defaults(tmp_path / "a/b/c", "c")
+
+    some_dag = dagfactory.DagFactory(
+        str(dag_file),
+        default_args_config_path=str(tmp_path /"a")
+    )
+    
+    result = some_dag.build_dags()
+    dag = result["second_example_dag"]
+    assert dag.default_args["a_param"] == "a" # accumulates properties define throughout the directories tree
+    assert dag.default_args["b_param"] == "b" # accumulates properties define throughout the directories tree
+    assert dag.default_args["c_param"] == "c" # accumulates properties define throughout the directories tree
+    assert dag.tags == ["c", "dagfactory"] # contains closest directory default.yml values
+    assert dag.owner == "default_owner" # defined in the YAML `default` section
+    
+    dag_build_params = serialize_config_md_mock.call_args[0]
+    
+    dag_name = dag_build_params[0]
+    assert dag_name == "second_example_dag"
+
+    dag_config = dag_build_params[1]
+    assert dag_config["a_dag_param"] == "a"
+    assert dag_config["b_dag_param"] == "b"
+    assert dag_config["c_dag_param"] == "c"
+
+    default_config = dag_build_params[2]["default_args"]
+    assert default_config["a_param"] == "a"
+    assert default_config["b_param"] == "b"
+    assert default_config["c_param"] == "c"
