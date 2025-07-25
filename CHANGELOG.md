@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-07-25
+
+### Breaking Change
+
+- Airflow providers are now optional dependencies byy @pankajastro in [#486](https://github.com/astronomer/dag-factory/pull/486) Previously, `dag-factory` enforced installation of `apache-airflow-providers-http` and `apache-airflow-providers-cncf-kubernetes`. These are now optional. If your DAGs depend on these providers, you must install them manually in your environment. Alternatively, you can install dag-factory with extras like `dag-factory[all]`, `dag-factory[kubernetes]`, etc.
+- Removed clean_dags function by @pankajastro in [#498](https://github.com/astronomer/dag-factory/pull/498) You no longer need to call `example_dag_factory.clean_dags(globals())` in your DAG files. DAG cleanup is now controlled via the Airflow config setting `AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL`.
+
 ## [0.23.0] - 2025-07-14
 
 ### Breaking Change
