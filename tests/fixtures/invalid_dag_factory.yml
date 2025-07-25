@@ -1,6 +1,7 @@
 default:
   default_args:
     owner: 'default_owner'
+    start_date: "205-01-01-01" # the wrong param
   max_active_runs: 1
   dagrun_timeout_sec: 600
   schedule: '0 1 * * *'

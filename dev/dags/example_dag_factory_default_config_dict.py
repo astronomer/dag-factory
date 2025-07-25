@@ -15,5 +15,4 @@ example_dag_factory = dagfactory.DagFactory(
 )
 
 # Creating task dependencies
-example_dag_factory.clean_dags(globals())
 example_dag_factory.generate_dags(globals())
