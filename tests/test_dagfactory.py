@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import yaml
 from airflow.version import version as AIRFLOW_VERSION
 
 try:
@@ -648,17 +649,10 @@ def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
 
     default_config_path = tmp_path / "a"
 
-    some_dag = dagfactory.DagFactory(
-        str(dag_file),
-        default_args_config_path=str(default_config_path)
-    )
+    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(default_config_path))
 
     result = some_dag._retrieve_possible_default_config_dirs()
-    expected = [
-        tmp_path / "a" / "b" / "c",
-        tmp_path / "a" / "b",
-        tmp_path / "a"
-    ]
+    expected = [tmp_path / "a" / "b" / "c", tmp_path / "a" / "b", tmp_path / "a"]
     assert result == expected
 
 
@@ -672,16 +666,10 @@ def test_retrieve_possible_default_config_dirs_default_path_not_in_config_parent
     unrelated_default_path = tmp_path / "other"
     unrelated_default_path.mkdir()
 
-    some_dag = dagfactory.DagFactory(
-        str(dag_file),
-        default_args_config_path=str(unrelated_default_path)
-    )
+    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(unrelated_default_path))
 
     result = some_dag._retrieve_possible_default_config_dirs()
-    expected = [
-        tmp_path / "config" / "a" / "b" / "c",
-        unrelated_default_path
-    ]
+    expected = [tmp_path / "config" / "a" / "b" / "c", unrelated_default_path]
     assert result == expected
 
 
@@ -690,9 +678,7 @@ def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
     default_config_path.mkdir()
 
     some_dag = dagfactory.DagFactory(
-        config_filepath=None,
-        config={"a": "b"},
-        default_args_config_path=str(default_config_path)
+        config_filepath=None, config={"a": "b"}, default_args_config_path=str(default_config_path)
     )
 
     result = some_dag._retrieve_possible_default_config_dirs()
@@ -701,14 +687,11 @@ def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
 
 def _write_sample_defaults(path: Path, identifier: str):
     data = {
-        "default_args": {
-            "owner": identifier,
-            f"{identifier}_param": identifier
-        },
+        "default_args": {"owner": identifier, f"{identifier}_param": identifier},
         "tags": [identifier],
-        f"{identifier}_dag_param": identifier
+        f"{identifier}_dag_param": identifier,
     }
-    with open(path / 'defaults.yml', 'w') as fp:
+    with open(path / "defaults.yml", "w") as fp:
         yaml.dump(data, fp)
 
 
@@ -724,21 +707,18 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
     _write_sample_defaults(tmp_path / "a/b", "b")
     _write_sample_defaults(tmp_path / "a/b/c", "c")
 
-    some_dag = dagfactory.DagFactory(
-        str(dag_file),
-        default_args_config_path=str(tmp_path /"a")
-    )
-    
+    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(tmp_path / "a"))
+
     result = some_dag.build_dags()
     dag = result["second_example_dag"]
-    assert dag.default_args["a_param"] == "a" # accumulates properties define throughout the directories tree
-    assert dag.default_args["b_param"] == "b" # accumulates properties define throughout the directories tree
-    assert dag.default_args["c_param"] == "c" # accumulates properties define throughout the directories tree
-    assert dag.tags == ["a", "b", "c", "dagfactory"] # contains closest directory default.yml values
-    assert dag.owner == "default_owner" # defined in the YAML `default` section
-    
+    assert dag.default_args["a_param"] == "a"  # accumulates properties define throughout the directories tree
+    assert dag.default_args["b_param"] == "b"  # accumulates properties define throughout the directories tree
+    assert dag.default_args["c_param"] == "c"  # accumulates properties define throughout the directories tree
+    assert dag.tags == ["a", "b", "c", "dagfactory"]  # contains closest directory default.yml values
+    assert dag.owner == "default_owner"  # defined in the YAML `default` section
+
     dag_build_params = serialize_config_md_mock.call_args[0]
-    
+
     dag_name = dag_build_params[0]
     assert dag_name == "second_example_dag"
 

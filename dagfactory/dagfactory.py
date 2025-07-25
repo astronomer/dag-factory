@@ -84,10 +84,9 @@ class DagFactory:
         configs_list = self._retrieve_default_config_list()
         merged_default_config = {
             "default_args": self._merge_default_args_from_list_configs(configs_list),
-            **self._merge_dag_args_from_list_configs(configs_list)
+            **self._merge_dag_args_from_list_configs(configs_list),
         }
         return merged_default_config
-    
 
     def _retrieve_possible_default_config_dirs(self):
         """
@@ -98,13 +97,13 @@ class DagFactory:
             dag_yml_file_parent_dirs = Path(self.config_file_path).parents
         else:
             dag_yml_file_parent_dirs = []
-        
+
         default_config_root_dir_path = Path(self.default_args_config_path)
-            
+
         # Assuming default_config_root_dir_path is a parent directory of the dag_yml_file_dir_path
         if default_config_root_dir_path in dag_yml_file_parent_dirs:
             index_top_most_default_dir = dag_yml_file_parent_dirs.index(default_config_root_dir_path)
-            return [path for path in dag_yml_file_parent_dirs][:index_top_most_default_dir+1]
+            return [path for path in dag_yml_file_parent_dirs][: index_top_most_default_dir + 1]
         elif dag_yml_file_parent_dirs:
             return [dag_yml_file_parent_dirs[0], default_config_root_dir_path]
         else:
@@ -133,7 +132,7 @@ class DagFactory:
         # We change the order so that the configuration that should override all others is the last element
         for yaml_path in reversed(list_of_yaml_paths):
             configs_list.append(self._load_dag_config(config_filepath=yaml_path))
-            
+
         return configs_list
 
     @staticmethod
@@ -247,19 +246,20 @@ class DagFactory:
         """
         return self.config.get("default", {})
 
-
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
         if isinstance(global_default_args, dict):
-            default_config["default_args"] = self._merge_default_args_from_list_configs([global_default_args, default_config])
+            default_config["default_args"] = self._merge_default_args_from_list_configs(
+                [global_default_args, default_config]
+            )
 
         dags: Dict[str, Any] = {}
 
         if isinstance(global_default_args, dict):
-            dag_level_args =self._merge_dag_args_from_list_configs([global_default_args])
+            dag_level_args = self._merge_dag_args_from_list_configs([global_default_args])
         else:
             dag_level_args = {}
 
