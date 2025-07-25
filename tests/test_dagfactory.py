@@ -590,6 +590,22 @@ def test_yml_dag_rendering_in_docs():
     assert generated_doc_md == expected_doc_md
 
 
+def test_generate_dags_with_default_args_execution_timeout():
+    config_dict = {
+        "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": 1}},
+        "basic_example_dag": {
+            "schedule_interval": "0 3 * * *",
+            "tasks": {
+                "task_1": {"operator": "airflow.operators.bash.BashOperator", "bash_command": "sleep 5"},
+            },
+        },
+    }
+    td = dagfactory.DagFactory(config=config_dict)
+    td.generate_dags(globals())
+    tasks = globals()["basic_example_dag"].tasks
+    assert tasks[0].execution_timeout == datetime.timedelta(seconds=1)
+
+
 def test_dag_level_start():
     data = """
     my_dag:
