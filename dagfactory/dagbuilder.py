@@ -169,8 +169,13 @@ class DagBuilder:
         # If there are no default_args, add an empty dictionary
         dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
 
-        if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
-            dag_params["schedule_interval"] = None
+        # Convert from 'schedule_interval: str' to 'schedule: str'
+        if utils.check_dict_key(dag_params, "schedule_interval"):
+            if dag_params["schedule_interval"] == "None":
+                dag_params["schedule"] = None
+            else:
+                dag_params["schedule"] = dag_params["schedule_interval"]
+            del dag_params["schedule_interval"]
 
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
         if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
@@ -819,9 +824,8 @@ class DagBuilder:
             is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
             has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
-            has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
 
-            if has_schedule_attr and not has_schedule_interval_attr and is_airflow_version_at_least_2_4:
+            if has_schedule_attr and is_airflow_version_at_least_2_4:
                 schedule: Dict[str, Any] = dag_params.get("schedule")
 
                 has_file_attr = utils.check_dict_key(schedule, "file")
