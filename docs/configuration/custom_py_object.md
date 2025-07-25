@@ -110,7 +110,7 @@ schedule:
 
 ```python
 from airflow.sdk import Asset
-my_asset = Asset(name="sales_report", uri="s3://")
+my_asset = Asset(name="sales_report", uri="s3://data/object_storage_ops.csv")
 ```
 
 **YAML:**
@@ -119,7 +119,7 @@ my_asset = Asset(name="sales_report", uri="s3://")
 my_asset:
   __type__: airflow.sdk.Asset
   name: "sales_report"
-  uri: "s3://"
+  uri: "s3://data/object_storage_ops.csv"
 ```
 
 ### 5. ObjectStoragePath with Positional Arguments
