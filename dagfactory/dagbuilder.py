@@ -194,6 +194,12 @@ class DagBuilder:
             dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla_secs"])
             del dag_params["default_args"]["sla_secs"]
 
+        if utils.check_dict_key(dag_params["default_args"], "execution_timeout"):
+            if isinstance(dag_params["default_args"]["execution_timeout"], int):
+                dag_params["default_args"]["execution_timeout"]: timedelta = timedelta(
+                    seconds=dag_params["default_args"]["execution_timeout"]
+                )
+
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
         # check has gone into the set_callback method
         for callback_type in [
