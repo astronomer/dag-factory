@@ -36,7 +36,6 @@ example_dag:
 
 second_example_dag:
   default_args:
-    owner: 'custom_owner'
     start_date: 3 days
   description: 'this is a second example dag'
   schedule_interval: '0 6 * * *'
