@@ -1515,7 +1515,8 @@
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>example_dag_factory = dagfactory.DagFactory(config_file)
 </span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># Creating task dependencies
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>example_dag_factory.generate_dags(globals())
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>example_dag_factory.clean_dags(globals())
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>example_dag_factory.generate_dags(globals())
 </span></code></pre></div>
 <h2 id="step-5-start-airflow-project">Step 5: Start Airflow Project</h2>
 <p>Once you've set up your YAML configuration and Python script, start the Airflow environment with the following command:</p>
