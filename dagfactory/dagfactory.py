@@ -16,6 +16,7 @@ except ImportError:
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
+from dagfactory.constants import DEFAULTS_FILE_NAME
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 from dagfactory.utils import cast_with_type, update_yaml_structure
@@ -117,7 +118,7 @@ class DagFactory:
         default_yaml_filepaths = []
         possible_default_yml_dirs = self._retrieve_possible_default_config_dirs()
         for default_yml_dir in possible_default_yml_dirs:
-            default_yml_filepath = default_yml_dir / "defaults.yml"
+            default_yml_filepath = default_yml_dir / DEFAULTS_FILE_NAME
             if default_yml_filepath.exists():
                 default_yaml_filepaths.append(default_yml_filepath)
         return default_yaml_filepaths
