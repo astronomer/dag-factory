@@ -381,11 +381,11 @@ default:
   default_view: tree
   max_active_runs: 1
   orientation: LR
-  schedule_interval: 0 1 * * *
+  schedule: 0 1 * * *
 
 example_dag2:
   doc_md_file_path: {DOC_MD_FIXTURE_FILE}
-  schedule_interval: None
+  schedule: None
   tasks:
     task_1:
       bash_command: echo 1
@@ -418,40 +418,31 @@ def test_doc_md_callable():
     assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
 
 
-def test_schedule_interval():
+def test_schedule():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag2"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag2"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    # Since we now convert schedule_interval to schedule, we should always use schedule
+    schedule = globals()["example_dag2"].schedule
+    expected_schedule = None  # example_dag2 has schedule: None
+    assert schedule == expected_schedule
 
 
 def test_no_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag_no_schedule"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag_no_schedule"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    # Since we now convert schedule_interval to schedule, we should always use schedule
+    schedule = globals()["example_dag_no_schedule"].schedule
+    expected_schedule = datetime.timedelta(days=1)  # default from default config
+    assert schedule == expected_schedule
 
 
 def test_none_string_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag_none_string_schedule"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag_none_string_schedule"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    # Since we now convert schedule_interval to schedule, we should always use schedule
+    schedule = globals()["example_dag_none_string_schedule"].schedule
+    expected_schedule = None  # " none    " gets converted to None
+    assert schedule == expected_schedule
 
 
 def test_dagfactory_dict():

@@ -190,11 +190,7 @@ def get_http_sensor_path():
 
 
 def get_schedule_key():
-    airflow_version = version.parse(AIRFLOW_VERSION)
-    if airflow_version < version.parse("3.0.0"):
-        return "schedule_interval"
-    else:
-        return "schedule"
+    return "schedule"
 
 
 def get_bash_operator_path():
