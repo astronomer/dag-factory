@@ -152,7 +152,16 @@ class DagFactory:
         Given a list of configuration dictionaries that is sorted by priority, with the dictionary that takes precedence by the end, merge them.
         If there are redundant keys, the correspondent value of the last configuration dictionary will be used.
         """
-        return {key: value for config in configs_list for key, value in config.items()  if key != "default_args"}
+        final_config = {}
+        for config in configs_list:
+            for key, value in config.items():
+                if key != "default_args":
+                    if key != "tags":
+                        final_config[key] = value
+                    else:
+                        final_config[key] = list(set(final_config.get("tags", []) + value))
+
+        return final_config
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
