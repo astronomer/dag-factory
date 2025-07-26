@@ -8,7 +8,7 @@ except ImportError:  # pragma: no cover
     from airflow.models import DAG
 
 from dagfactory.dagbuilder import DagBuilder, DagFactoryConfigException
-from tests.utils import get_bash_operator_path, get_schedule_key
+from tests.utils import get_bash_operator_path
 
 DEFAULT_CONFIG_MINIMAL = {
     "default_args": {
@@ -29,7 +29,7 @@ def _make_tasks_list_config():
             "owner": "custom_owner",
             "start_date": datetime.date(2024, 1, 1),
         },
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "tasks": [
             {
                 "task_id": "task_1",
@@ -93,7 +93,7 @@ def _make_task_groups_list_config():
             "owner": "custom_owner",
             "start_date": datetime.date(2024, 1, 1),
         },
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "task_groups": [
             {
                 "group_name": "group_1",
