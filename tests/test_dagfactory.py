@@ -389,19 +389,19 @@ example_dag2:
   doc_md_file_path: {DOC_MD_FIXTURE_FILE}
   schedule_interval: None
   tasks:
-    task_1:
-      bash_command: echo 1
-      operator: airflow.operators.bash.BashOperator
-    task_2:
-      bash_command: echo 2
-      dependencies:
-      - task_1
-      operator: airflow.operators.bash.BashOperator
-    task_3:
-      bash_command: echo 3
-      dependencies:
-      - task_1
-      operator: airflow.operators.bash.BashOperator
+  - task_id: task_1
+    bash_command: echo 1
+    operator: airflow.operators.bash.BashOperator
+  - task_id: task_2
+    bash_command: echo 2
+    dependencies:
+    - task_1
+    operator: airflow.operators.bash.BashOperator
+  - task_id: task_3
+    bash_command: echo 3
+    dependencies:
+    - task_1
+    operator: airflow.operators.bash.BashOperator
 
 ```"""
     YAML_PATH = os.path.join(here, "fixtures_without_default/dag_factory.yml")
