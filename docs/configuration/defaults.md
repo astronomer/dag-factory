@@ -134,7 +134,7 @@ Assuming you instantiate the DAG by using:
 ```python
 DagFactory(
    "a/b/c/some_dags.yml",
-   default_args_config_path="a/b/c"
+   default_args_config_path="a"
 )`
 
 The DAG will be using the default configuration defined in all the following files:
