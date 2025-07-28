@@ -20,7 +20,7 @@ def test_help_output_when_no_command():
     result = runner.invoke(app, [])
     assert result.exit_code == 0
     assert "DAG Factory" in result.output
-    assert "--help" in result.output
+    assert "dagfactory [OPTIONS] COMMAND [ARGS]" in result.output
 
 
 def test_help_option():
