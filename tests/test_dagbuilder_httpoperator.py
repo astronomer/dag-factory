@@ -7,6 +7,8 @@ from pathlib import Path
 import pendulum
 import pytest
 
+from dagfactory import load_yaml_dags
+
 try:
     from airflow.sdk.definitions.dag import DAG  # noqa: F401
 except ImportError:
@@ -237,7 +239,6 @@ def test_dag_with_http_operator():
 @pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
 def test_http_operator_from_yaml():
     """Test loading HTTP operator from a fixture YAML file"""
-    from dagfactory import DagFactory
 
     # Select the appropriate fixture based on which operator is available
     if HTTP_OPERATOR_PATH == "airflow.providers.http.operators.http.HttpOperator":
@@ -251,12 +252,12 @@ def test_http_operator_from_yaml():
     if not os.path.exists(fixture_path):
         pytest.skip(f"Test fixture not found: {fixture_path}")
 
-    # Create DagFactory with fixture and build DAGs
-    dag_factory = DagFactory(fixture_path)
-    dags = {}
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=fixture_path,
+    )
 
-    # Call generate_dags to build all DAGs from the YAML file
-    dag_factory.generate_dags(dags)
+    dags = globals()
 
     # Now check if our DAG is in the result
     dag = dags.get(dag_id)
