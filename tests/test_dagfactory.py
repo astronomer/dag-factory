@@ -27,7 +27,7 @@ from dagfactory import DagFactory, dagfactory, load_yaml_dags
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
-INVALID_DAG_FACTORY = os.path.join(here, "fixtures_without_default/invalid_dag_factory.yml")
+INVALID_DAG_FACTORY = os.path.join(here, "fixtures_without_default_yaml/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR = os.path.join(here, "fixtures/dag_factory_kubernetes_pod_operator.yml")
 DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7 = os.path.join(
@@ -404,7 +404,7 @@ example_dag2:
     operator: airflow.operators.bash.BashOperator
 
 ```"""
-    YAML_PATH = os.path.join(here, "fixtures_without_default/dag_factory.yml")
+    YAML_PATH = os.path.join(here, "fixtures_without_default_yaml/dag_factory.yml")
 
     td = dagfactory.DagFactory(YAML_PATH)
     td.generate_dags(globals())
@@ -586,7 +586,7 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
     reason="Skipping this because yaml import old version of operator",
 )
 def test_yml_dag_rendering_in_docs():
-    dag_path = os.path.join(here, "fixtures_without_default/dag_md_docs.yml")
+    dag_path = os.path.join(here, "fixtures_without_default_yaml/dag_md_docs.yml")
     td = dagfactory.DagFactory(
         dag_path,
     )
