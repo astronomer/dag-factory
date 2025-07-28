@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -81,7 +82,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
-                "execution_timeout_secs": 5,
+                "execution_timeout": timedelta(seconds=5),
                 "on_failure_callback": f"{__name__}.print_context_callback",
                 "on_success_callback": f"{__name__}.print_context_callback",
                 "on_execute_callback": f"{__name__}.print_context_callback",
@@ -620,7 +621,7 @@ def test_yml_dag_rendering_in_docs():
 
 def test_generate_dags_with_default_args_execution_timeout():
     config_dict = {
-        "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": 1}},
+        "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": timedelta(seconds=1)}},
         "basic_example_dag": {
             "schedule_interval": "0 3 * * *",
             "tasks": {
