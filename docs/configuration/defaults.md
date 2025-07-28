@@ -16,7 +16,7 @@ Below, we detail how to use each of these approaches and also how to combine the
 
 This configuration affects only the DAG where the `default_args` are defined.
 
-You can override or define specific `default_args` at the individual DAG level. This strategy allows you to customize arguments for each DAG without affecting others. Not only can existing `default_args` be overridden directly in a DAG configuration, but also adding new arguments new arguments.
+You can override or define specific `default_args` at the individual DAG level. This strategy allows you to customize arguments for each DAG without affecting others. Not only can existing `default_args` be overridden directly in a DAG configuration, but also adding new arguments.
 
 ```yaml
 etl:
