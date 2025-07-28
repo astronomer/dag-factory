@@ -1140,6 +1140,9 @@ class DagBuilder:
         if utils.check_dict_key(task_params, "execution_date_fn"):
             python_callable: Callable = import_string(task_params["execution_date_fn"])
             task_params["execution_date_fn"] = python_callable
+        elif utils.check_dict_key(task_params, "execution_delta"):
+            execution_delta = utils.get_time_delta(task_params["execution_delta"])
+            task_params["execution_delta"] = execution_delta
         elif utils.check_dict_key(task_params, "execution_date_fn_name") and utils.check_dict_key(
             task_params, "execution_date_fn_file"
         ):
