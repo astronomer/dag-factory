@@ -1345,11 +1345,11 @@
 
 <h1 id="callbacks">Callbacks</h1>
 <p>DAG Factory supports the use of callbacks. These callbacks can be set at the DAG, TaskGroup, or Task level. The way
-that callbacks that can be configured for DAGs, TaskGroups, and Tasks differ slightly, and details around this can be 
+that callbacks that can be configured for DAGs, TaskGroups, and Tasks differ slightly, and details around this can be
 found in the <a href="https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#">Apache Airflow documentation</a>.</p>
-<p>Within DAG Factory itself, there are three approaches to defining callbacks. The goal is to make this process 
+<p>Within DAG Factory itself, there are three approaches to defining callbacks. The goal is to make this process
 intuitive and provide parity with the traditional DAG authoring experience. These approaches to configure callbacks
-are outlined below, each with an example of implementation. While proceeding examples are all defined for individual 
+are outlined below, each with an example of implementation. While proceeding examples are all defined for individual
 Tasks, callbacks can also be defined using <code>default_args</code>, or at the DAG and TaskGroup level.</p>
 <ul>
 <li><a href="#passing-a-string-that-points-to-a-callable">Passing a string that points to a callable</a></li>
@@ -1357,26 +1357,26 @@ Tasks, callbacks can also be defined using <code>default_args</code>, or at the 
 <li><a href="#provider-callbacks">Configuring callbacks from providers</a></li>
 </ul>
 <h2 id="passing-a-string-that-points-to-a-callable">Passing a string that points to a callable</h2>
-<p>The most traditional way of configuring callbacks is by defining a custom function within the Airflow project and 
-assigning that callback to the desired Task. Using the syntax below, this can be implemented using DAG Factory. In this 
-case, the <code>output_standard_message</code> function is a user-defined function stored in the <code>include/custom_callbacks.py</code> 
+<p>The most traditional way of configuring callbacks is by defining a custom function within the Airflow project and
+assigning that callback to the desired Task. Using the syntax below, this can be implemented using DAG Factory. In this
+case, the <code>output_standard_message</code> function is a user-defined function stored in the <code>include/custom_callbacks.py</code>
 file. This function requires no parameters, and the YAML would take the form below.</p>
-<p>For this example to be implemented in DAG Factory, the <code>include/custom_callbacks.py</code> file must be on the Python 
+<p>For this example to be implemented in DAG Factory, the <code>include/custom_callbacks.py</code> file must be on the Python
 <code>sys.path</code>. If this is not the case, the full path to a <code>.py</code> function can be specified, as shown below.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">...</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">task_1</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">task_1</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_1&quot;</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">on_failure_callback</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">include.custom_callbacks.output_standard_message</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nn">...</span>
 </span></code></pre></div>
-<p>Sometimes, a function may have parameters that need to be defined within the Task itself. Here, the 
-<code>output_custom_message</code> callback takes two key-word arguments; <code>param1</code>, and <code>param2</code>. These values are defined in the 
+<p>Sometimes, a function may have parameters that need to be defined within the Task itself. Here, the
+<code>output_custom_message</code> callback takes two key-word arguments; <code>param1</code>, and <code>param2</code>. These values are defined in the
 YAML itself, offering DAG Factory authors an additional degree of flexibility and verbosity.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nn">...</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">task_2</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">task_2</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_2&quot;</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">on_success_callback</span><span class="p">:</span>
@@ -1386,12 +1386,12 @@ YAML itself, offering DAG Factory authors an additional degree of flexibility an
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nn">...</span>
 </span></code></pre></div>
 <h2 id="specifying-a-user-defined-py-file-and-function">Specifying a user-defined <code>.py</code> file and function</h2>
-<p>In addition to passing a string that points to a callback, the full path to the file and name of the callback can be 
-specified for a DAG, TaskGroup, or Task. This provides a viable option for defining a callback when the director the 
+<p>In addition to passing a string that points to a callback, the full path to the file and name of the callback can be
+specified for a DAG, TaskGroup, or Task. This provides a viable option for defining a callback when the director the
 <code>.py</code> file is stored in is not on the Python path.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nn">...</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">task_3</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">task_3</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_3&quot;</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">on_retry_callback_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output_standard_message</span>
@@ -1401,15 +1401,15 @@ specified for a DAG, TaskGroup, or Task. This provides a viable option for defin
 <p>Note that this method for defining callbacks in DAG Factory does not allow for parameters to be passed to the callable
 within the YAML itself.</p>
 <h2 id="provider-callbacks">Provider callbacks</h2>
-<p>In addition to custom-built callbacks, there are a number of provider-built callbacks that can be used when defining a 
-DAG. With DAG Factory, these callbacks can be configured similar to how they would be when authoring a traditional DAG. 
+<p>In addition to custom-built callbacks, there are a number of provider-built callbacks that can be used when defining a
+DAG. With DAG Factory, these callbacks can be configured similar to how they would be when authoring a traditional DAG.
 First, the type of callback is specified (<code>on_success_callback</code>, <code>on_failure_callback</code>, etc.). The <code>callback</code> key-value
 pair specifies the provider-built function to be executed. Then, the specific key-word arguments the callback takes can
 be specified, as shown below.</p>
 <p>Note that the provider package being used must be available on the Python <code>sys.path</code> path, meaning it may need to be
 <code>pip installed</code>.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nn">...</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">task_4</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">task_4</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash_operator.BashOperator</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">task_4&quot;</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">on_failure_callback</span><span class="p">:</span>

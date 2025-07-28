@@ -1637,18 +1637,18 @@ The last task will generate a <code>Markdown</code> snippet similar to:</p>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  default_args:
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    start_date: 2022-03-04
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  tasks:
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    fetch_top_ten_news:
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    - task_id: &quot;fetch_top_ten_news&quot;
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>      bash_command: &quot;curl -s https://hacker-news.firebaseio.com/v0/topstories.json  | jq -c -r &#39;.[0:10]&#39;&quot;
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    fetch_first_top_news:
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    - task_id: &quot;fetch_first_top_news&quot;
 </span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      bash_command: &quot;echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[0]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;&quot;
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      dependencies: [fetch_top_ten_news]
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    fetch_second_top_news:
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    - task_id: &quot;fetch_second_top_news&quot;
 </span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>      bash_command: &quot;echo {{ task_instance.xcom_pull(task_ids=&#39;fetch_top_ten_news&#39;) }} | jq -c -r &#39;.[1]&#39; |  xargs -I {} curl -s &#39;https://hacker-news.firebaseio.com/v0/item/{}.json&#39;&quot;
 </span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>      dependencies: [fetch_top_ten_news]
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    summarize:
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    - task_id: &quot;summarize&quot;
 </span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>      operator: airflow.operators.python.PythonOperator
 </span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>      python_callable: hacker_news.summarize
 </span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>      dependencies: [fetch_first_top_news, fetch_second_top_news]
