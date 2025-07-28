@@ -31,7 +31,11 @@ dependencies = [
     "apache-airflow>=2.4",
     "pyyaml",
     "packaging",
+    "typer"
 ]
+
+[project.scripts]
+dagfactory = "dagfactory.__main__:app"
 
 
 [project.optional-dependencies]
