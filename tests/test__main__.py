@@ -28,10 +28,6 @@ def test_version_option():
     assert result.exit_code == 0
     assert f"DAG Factory {__version__}" in result.output
 
-    result_short = runner.invoke(app, ["-v"])
-    assert result_short.exit_code == 0
-    assert f"DAG Factory {__version__}" in result_short.output
-
 
 def test_help_output_when_no_command():
     result = runner.invoke(app, [])

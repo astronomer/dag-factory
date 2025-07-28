@@ -49,7 +49,6 @@ def main(
     version: bool = typer.Option(
         None,
         "--version",
-        "-v",
         help="Show the version and exit.",
         is_eager=True,  # Display version immediately before parsing other options
     ),
