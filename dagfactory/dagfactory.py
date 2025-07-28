@@ -16,10 +16,11 @@ except ImportError:
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
+from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAME
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import cast_with_type, update_yaml_structure
+from dagfactory.utils import update_yaml_structure
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -199,27 +200,7 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
-
-            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return "".join([str(i) for i in seq])
-
-            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " | ".join([f"({str(i)})" for i in seq])
-
-            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " & ".join([f"({str(i)})" for i in seq])
-
-            yaml.add_constructor("!join", __join, yaml.FullLoader)
-            yaml.add_constructor("!or", __or, yaml.FullLoader)
-            yaml.add_constructor("!and", __and, yaml.FullLoader)
-
-            with open(config_filepath, "r", encoding="utf-8") as fp:
-                config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-                config = cast_with_type(config)
+            config = load_yaml_file(config_filepath)
 
             # This will only invoke in the CI
             # Make yaml DAG compatible for Airflow 3
