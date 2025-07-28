@@ -62,7 +62,7 @@ Using a `default` block in a YAML file allows for those key-value pairs to apply
 
 This configuration affects DAGs created using the `DagFactory` class with the `default_args_config_dict` argument.
 
-It allows you to define DAG-level arguments, included the `default_args`, using Python dictionaries.
+It allows you to define DAG-level arguments, including the `default_args`, using Python dictionaries.
 
 ### Example of using a Python-defined default configuration
 
