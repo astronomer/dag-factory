@@ -26,7 +26,7 @@ app = typer.Typer(
 )
 
 
-def check_yaml_syntax(file_path: Path):
+def _check_yaml_syntax(file_path: Path):
     """
     Check if the YAML file is valid.
     """
@@ -36,11 +36,24 @@ def check_yaml_syntax(file_path: Path):
         return str(e)
 
 
-def find_yaml_files(directory: Path):
+def _find_yaml_files(path: Path) -> list[Path]:
     """
     Find all YAML files in the directory.
     """
-    return list(directory.rglob("*.yaml")) + list(directory.rglob("*.yml"))
+    if not path.exists():
+        console.print(f"[red]Error:[/red] Path '{path}' does not exist.")
+        raise typer.Exit(1)
+
+    if path.is_dir():
+        files = list(path.rglob("*.yaml")) + list(path.rglob("*.yml"))
+    else:
+        files = [path]
+
+    if not files:
+        console.print(f"[yellow]No YAML files found in '{path}'.[/yellow]")
+        raise typer.Exit()
+
+    return files
 
 
 @app.callback()
@@ -68,18 +81,7 @@ def lint(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full error messages"),
 ):
     """Scan YAML files for syntax errors."""
-    if not path.exists():
-        console.print(f"[red]Error:[/red] Path '{path}' does not exist.")
-        raise typer.Exit(1)
-
-    if path.is_dir():
-        files = find_yaml_files(path)
-    else:
-        files = [path]
-
-    if not files:
-        console.print(f"[yellow]No YAML files found in '{path}'.[/yellow]")
-        raise typer.Exit()
+    files = _find_yaml_files(path)
 
     table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: YAML Lint Results", show_lines=True)
     table.add_column("File", style="cyan", no_wrap=True)
@@ -88,7 +90,7 @@ def lint(
 
     total_errors = 0
     for file_path in files:
-        error = check_yaml_syntax(file_path)
+        error = _check_yaml_syntax(file_path)
         if error:
             total_errors += 1
             message = error.strip() if verbose else error.strip().split("\n")[0][:120] + "..."
