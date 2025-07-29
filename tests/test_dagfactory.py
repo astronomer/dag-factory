@@ -14,7 +14,7 @@ except ImportError:
 from packaging import version
 from pendulum.datetime import DateTime, Timezone
 
-from tests.utils import get_bash_operator_path, get_schedule_key
+from tests.utils import get_bash_operator_path
 
 here = os.path.dirname(__file__)
 
@@ -42,7 +42,7 @@ DAG_FACTORY_CONFIG = {
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        get_schedule_key(): "@daily",
+        "schedule": "@daily",
     },
     "example_dag": {
         "tasks": {
@@ -66,7 +66,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
             "on_retry_callback": f"{__name__}.print_context_callback",
         },
         "description": "this is an example dag",
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
@@ -132,13 +132,13 @@ def test_load_dag_config_valid(monkeypatch):
             "dagrun_timeout_sec": 600,
             "default_view": "tree",
             "orientation": "LR",
-            get_schedule_key(): "0 1 * * *",
+            "schedule": "0 1 * * *",
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            get_schedule_key(): "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": {
                 "task_1": {
                     "operator": get_bash_operator_path(),
@@ -158,7 +158,7 @@ def test_load_dag_config_valid(monkeypatch):
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            get_schedule_key(): "None",
+            "schedule": "None",
             "tasks": {
                 "task_1": {
                     "operator": get_bash_operator_path(),
@@ -222,7 +222,7 @@ def test_get_dag_configs(monkeypatch):
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            get_schedule_key(): "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": {
                 "task_1": {
                     "operator": get_bash_operator_path(),
@@ -242,7 +242,7 @@ def test_get_dag_configs(monkeypatch):
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            get_schedule_key(): "None",
+            "schedule": "None",
             "tasks": {
                 "task_1": {
                     "operator": get_bash_operator_path(),
@@ -302,7 +302,7 @@ def test_get_default_config():
         "dagrun_timeout_sec": 600,
         "default_view": "tree",
         "orientation": "LR",
-        get_schedule_key(): "0 1 * * *",
+        "schedule": "0 1 * * *",
     }
     actual = td.get_default_config()
     assert actual == expected
@@ -452,7 +452,7 @@ def test_dagfactory_dict():
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        get_schedule_key(): "@daily",
+        "schedule": "@daily",
     }
     expected_dag = {
         "example_dag": {
@@ -511,7 +511,7 @@ def test_build_dag_with_global_dag_level_defaults():
             "owner": "global_owner",
             "start_date": "2020-01-01",
         },
-        get_schedule_key(): "0 1 * * *",
+        "schedule": "0 1 * * *",
         "catchup": False,
         "tags": ["global_tag"],
     }
@@ -585,7 +585,7 @@ def test_generate_dags_with_default_args_execution_timeout():
     config_dict = {
         "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": 1}},
         "basic_example_dag": {
-            "schedule_interval": "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": {
                 "task_1": {"operator": "airflow.operators.bash.BashOperator", "bash_command": "sleep 5"},
             },
@@ -600,7 +600,7 @@ def test_generate_dags_with_default_args_execution_timeout():
 def test_dag_level_start():
     data = """
     my_dag:
-      schedule_interval: "0 3 * * *"
+      schedule: "0 3 * * *"
       start_date: 2024-11-11
       end_date: 2025-11-11
       tasks:

@@ -867,16 +867,16 @@ class DagBuilder:
         else:
             schedule = dag_params.get("schedule")
             if DagBuilder._is_asset(schedule):
-                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+                dag_kwargs[schedule_key] = DagBuilder._asset_schedule(schedule)
             else:
                 if (
                     utils.check_dict_key(dag_params, "schedule")
                     and isinstance(dag_params["schedule"], str)
                     and dag_params["schedule"].strip().lower() == "none"
                 ):
-                    dag_kwargs["schedule"] = None
+                    dag_kwargs[schedule_key] = None
                 else:
-                    dag_kwargs["schedule"] = schedule
+                    dag_kwargs[schedule_key] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:

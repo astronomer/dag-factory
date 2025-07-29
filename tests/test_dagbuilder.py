@@ -24,7 +24,6 @@ from tests.utils import (
     get_bash_operator_path,
     get_http_sensor_path,
     get_python_operator_path,
-    get_schedule_key,
     get_sql_sensor_path,
     one_hour_ago,
     read_yml,
@@ -66,14 +65,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout_sec": 600,
-    get_schedule_key(): "0 1 * * *",
+    "schedule": "0 1 * * *",
 }
 DAG_CONFIG = {
     "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "dag_display_name": "Pretty example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
     "tasks": {
@@ -96,7 +95,7 @@ DAG_CONFIG = {
 }
 DAG_CONFIG_TASK_GROUP = {
     "default_args": {"owner": "custom_owner"},
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -144,7 +143,7 @@ DAG_CONFIG_TASK_GROUP = {
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
-    get_schedule_key(): "0 4 * * *",
+    "schedule": "0 4 * * *",
     "tasks": {
         "request": {
             "operator": get_python_operator_path(),
@@ -170,7 +169,7 @@ DAG_CONFIG_ML = {
 }
 
 DAG_CONFIG_DEFAULT_ML = {
-    get_schedule_key(): "0 0 * * *",
+    "schedule": "0 0 * * *",
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
@@ -194,7 +193,7 @@ DAG_CONFIG_CALLBACKS = {
         "on_skipped_callback": f"{__name__}.print_context_callback",
     },
     "description": "this is an example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     # This includes each of the four options (str function, str function with params, file and name, provider)
     "on_execute_callback": f"{__name__}.print_context_callback",
@@ -225,7 +224,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             "param_2": "value_2",
         },
     },
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "task_groups": {
         "task_group_1": {
             "tooltip": "this is a task group",
@@ -307,7 +306,7 @@ def test_get_dag_params():
             "retry_delay": datetime.timedelta(seconds=300),
         },
         "description": "this is an example dag",
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
@@ -565,7 +564,7 @@ def test_get_dag_params_dag_with_task_group():
             "retries": 1,
             "retry_delay": datetime.timedelta(seconds=300),
         },
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "task_groups": {
             "task_group_1": {
                 "tooltip": "this is a task group",
