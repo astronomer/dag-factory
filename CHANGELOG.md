@@ -6,16 +6,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-07-25
+## [1.0.0a1] - 2025-07-25
 
-### Breaking Change
+### Breaking Changes
 
-- Airflow providers are now optional dependencies by @pankajastro in [#486](https://github.com/astronomer/dag-factory/pull/486) Previously, `dag-factory` enforced installation of `apache-airflow-providers-http` and `apache-airflow-providers-cncf-kubernetes`. These are now optional. If your DAGs depend on these providers, you must install them manually in your environment. Alternatively, you can install dag-factory with extras like `dag-factory[all]`, `dag-factory[kubernetes]`, etc.
-- Removed clean_dags function by @pankajastro in [#498](https://github.com/astronomer/dag-factory/pull/498) You no longer need to call `example_dag_factory.clean_dags(globals())` in your DAG files. DAG cleanup is now controlled via the Airflow config setting `AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL`.
-- Remove custom typecasting for timedelta by @pankajastro in [#512](https://github.com/astronomer/dag-factory/pull/512).
+- Airflow providers are now optional dependencies by @pankajastro in [#486](https://github.com/astronomer/dag-factory/pull/486)
+  - Previously, `dag-factory` enforced the installation of `apache-airflow-providers-http` and `apache-airflow-providers-cncf-kubernetes`. These Airflow providers dependencies are now optional. If your DAGs depend on these providers, you must install them manually. Alternatively, you can install `dag-factory` with extras like `dag-factory[all]`, `dag-factory[kubernetes]`, etc.
+- Removed `clean_dags` function by @pankajastro in [#498](https://github.com/astronomer/dag-factory/pull/498)
+  - You no longer need to call `example_dag_factory.clean_dags(globals())` in your DAG files. DAG cleanup is now controlled via the Airflow config setting `AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL`.
+- Remove Inconsistent Parameters for Airflow Consistent by @pankajastro in [#512](https://github.com/astronomer/dag-factory/pull/512)
   - Removed `dagrun_timeout_sec` from dag param.
-  - Removed `retry_delay_sec`, `sla_secs` and `execution_timeout` from `default_args`.
-  - Removed `execution_timeout_secs` `sla_secs` and `execution_delta_secs` from task param.
+  - Removed `retry_delay_sec`, `sla_secs` from default_args.
+  - Removed accepting `execution_timeout` as integer.
+  - Removed `execution_timeout_secs`, `sla_secs` and `execution_delta_secs` from task param.
+- Remove custom parsing for Kubernetes object and refactor KPO to use `__type__` syntax by @pankajastro in [#523](https://github.com/astronomer/dag-factory/pull/523)
+  - The custom parsing for Kubernetes objects has been removed. You can no longer pass a custom YAML dictionary to DAG-Factory configuration unless accepted by the KubernetesPodOperator. We suggest you to use `__type__` syntax to supply Kubernetes object in your YAML DAG. For an example KPO configuration, visit: [KubernetesPodOperator Documentation](https://astronomer.github.io/dag-factory/dev/features/kpo/).
+
+### Added
+
+- Support dag-level arguments in global defaults by @gyli in [#480](https://github.com/astronomer/dag-factory/pull/480)
+- Support `*args` in custom Python object by @pankajastro in [#484](https://github.com/astronomer/dag-factory/pull/484)
+- Support tasks and task_groups as lists by @pankajkoti in [#487](https://github.com/astronomer/dag-factory/pull/487)
+- Support overriding `defaults.yml` based on the directory hierarchy by @tatiana in [#500](https://github.com/astronomer/dag-factory/pull/500)
+- Introduced DAG Factory CLI by @tatiana in [#510](https://github.com/astronomer/dag-factory/pull/510)
+- Added `lint` command to CLI by @tatiana in [#513](https://github.com/astronomer/dag-factory/pull/513)
+
+### Fixed
+
+- Fix the Airflow version condition check to parse inlets/outlets syntax according to the dataset by @pankajastro in [#485](https://github.com/astronomer/dag-factory/pull/485)
+- Ensure `dag_params` contain `schedule` before operating on it by @pankajkoti in [#488](https://github.com/astronomer/dag-factory/pull/488)
+- Fix `start_date`, `end_date` at the DAG level by @pankajastro in [#495](https://github.com/astronomer/dag-factory/pull/495)
+- Allow `execution_timeout` in `default_args` by @pankajastro in [#501](https://github.com/astronomer/dag-factory/pull/501)
+
+### Docs
+
+- Restore basic DAG example by @pankajastro in [#483](https://github.com/astronomer/dag-factory/pull/483)
+- Replace the usages in example dags, tests and docs for tasks and taskgroups to be list by @pankajkoti in [#492](https://github.com/astronomer/dag-factory/pull/492)
+- Update default documentation based on #500 by @tatiana in [#504](https://github.com/astronomer/dag-factory/pull/504)
+- Add more examples for Custom Python object by @pankajastro in [#506](https://github.com/astronomer/dag-factory/pull/506)
+- Add documentation for DAG Factory CLI by @tatiana in [#511](https://github.com/astronomer/dag-factory/pull/511)
+- Add documentation and example YAMLs for task and task_group configuration formats by @pankajkoti in [#530](https://github.com/astronomer/dag-factory/pull/530)
+
+### Other Changes
+
+- Improve unit tests to disregard `$AIRFLOW_HOME` by @tatiana in [#490](https://github.com/astronomer/dag-factory/pull/490)
+- Resolve unpinned action reference error alerts raised by Zizmor by @pankajkoti in [#493](https://github.com/astronomer/dag-factory/pull/493)
+- Resolve 'credential persistence through GitHub Actions artifacts' warnings from Zizmor by @pankajkoti in [#494](https://github.com/astronomer/dag-factory/pull/494)
+- Resolve 'overly broad permissions' warnings from Zizmor by @pankajkoti in [#496](https://github.com/astronomer/dag-factory/pull/496)
+- CI: Add GitHub CodeQL analysis workflow (`codeql.yml`) by @pankajkoti in [#497](https://github.com/astronomer/dag-factory/pull/497)
+- Fix deploy pages job missing credentials by @pankajkoti in [#499](https://github.com/astronomer/dag-factory/pull/499)
+- Add the breaking changes to changelog by @pankajastro in [#502](https://github.com/astronomer/dag-factory/pull/502)
+- Remove `clean_dags` usage from object storage DAG by @pankajastro in [#515](https://github.com/astronomer/dag-factory/pull/515)
+- Add pre-commit to update `uv.lock` by @pankajastro in [#514](https://github.com/astronomer/dag-factory/pull/514)
+- Add missing env in contributing doc by @pankajastro in [#522](https://github.com/astronomer/dag-factory/pull/522)
 
 ## [0.23.0] - 2025-07-14
 
