@@ -835,12 +835,22 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
+        # Determine which schedule key to use based on the Airflow version
+        # In Airflow 3, the schedule key is "schedule" in DAG config
+        # In Airflow 2, the schedule key is "schedule_interval" in DAG config, we need to check the version to use the correct key
+        schedule_key = "schedule" if INSTALLED_AIRFLOW_VERSION.major >= AIRFLOW3_MAJOR_VERSION else "schedule_interval"
+
+        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
+        if "schedule_interval" in dag_params:
+            raise ValueError(
+                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
+            )
+
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
             has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
 
-            if has_schedule_attr and is_airflow_version_at_least_2_4:
+            if has_schedule_attr:
                 schedule: Dict[str, Any] = dag_params.get("schedule")
 
                 has_file_attr = utils.check_dict_key(schedule, "file")
@@ -850,15 +860,28 @@ class DagBuilder:
                     file = schedule.get("file")
                     datasets: Union[List[str], str] = schedule.get("datasets")
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
+                    dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
 
                 elif has_datasets_attr and is_airflow_version_at_least_2_9:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+                    dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
 
                 else:
-                    dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
+                    if isinstance(schedule, str):
+                        # check if it's "none" (case-insensitive, with whitespace)
+                        if schedule.strip().lower() == "none":
+                            dag_kwargs[schedule_key] = None
+                        else:
+                            dag_kwargs[schedule_key] = schedule
+                    elif isinstance(schedule, list):
+                        # if schedule is a list, check if it's a list of URIs
+                        # Filter out any empty strings or None values
+                        valid_uris = [uri for uri in schedule if uri and uri.strip()]
+                        dag_kwargs[schedule_key] = DagBuilder._asset_schedule(valid_uris)
+                    else:
+                        # For other types, use the schedule as is
+                        dag_kwargs[schedule_key] = schedule
 
                 if has_file_attr:
                     schedule.pop("file")
