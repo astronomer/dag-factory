@@ -416,30 +416,35 @@ def test_doc_md_callable():
     assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
 
 
+def _get_schedule_value(dag_name: str):
+    """Helper function to get schedule value from a DAG based on Airflow version."""
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        return globals()[dag_name].schedule_interval
+    else:
+        return globals()[dag_name].schedule
+
+
 def test_schedule():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    # Since we now convert schedule_interval to schedule, we should always use schedule
-    schedule = globals()["example_dag2"].schedule
-    expected_schedule = None  # example_dag2 has schedule: None
+    schedule = _get_schedule_value("example_dag2")
+    expected_schedule = None
     assert schedule == expected_schedule
 
 
 def test_no_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    # Since we now convert schedule_interval to schedule, we should always use schedule
-    schedule = globals()["example_dag_no_schedule"].schedule
-    expected_schedule = datetime.timedelta(days=1)  # default from default config
+    schedule = _get_schedule_value("example_dag_no_schedule")
+    expected_schedule = datetime.timedelta(days=1) if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0") else None
     assert schedule == expected_schedule
 
 
 def test_none_string_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    # Since we now convert schedule_interval to schedule, we should always use schedule
-    schedule = globals()["example_dag_none_string_schedule"].schedule
-    expected_schedule = None  # " none    " gets converted to None
+    schedule = _get_schedule_value("example_dag_none_string_schedule")
+    expected_schedule = None
     assert schedule == expected_schedule
 
 
