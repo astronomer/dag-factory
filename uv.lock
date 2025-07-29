@@ -930,15 +930,35 @@ name = "dag-factory"
 source = { editable = "." }
 dependencies = [
     { name = "apache-airflow" },
+    { name = "packaging", version = "24.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pyyaml" },
+    { name = "typer" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "apache-airflow" },
     { name = "apache-airflow-providers-cncf-kubernetes" },
+    { name = "apache-airflow-providers-common-sql" },
     { name = "apache-airflow-providers-http" },
     { name = "packaging", version = "24.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "packaging", version = "25.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pyyaml" },
 ]
-
-[package.optional-dependencies]
+common-sql = [
+    { name = "apache-airflow-providers-common-sql" },
+]
+http = [
+    { name = "apache-airflow-providers-http" },
+]
+kubernetes = [
+    { name = "apache-airflow-providers-cncf-kubernetes" },
+]
 tests = [
+    { name = "apache-airflow-providers-cncf-kubernetes" },
+    { name = "apache-airflow-providers-common-sql" },
+    { name = "apache-airflow-providers-http" },
     { name = "apache-airflow-providers-slack" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -960,16 +980,27 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "apache-airflow", specifier = ">=2.4" },
-    { name = "apache-airflow-providers-cncf-kubernetes", specifier = ">=4.3.0" },
-    { name = "apache-airflow-providers-http", specifier = ">=4.0.0" },
+    { name = "apache-airflow", marker = "extra == 'all'", specifier = ">=2.4" },
+    { name = "apache-airflow-providers-cncf-kubernetes", marker = "extra == 'all'", specifier = ">=4.4.0" },
+    { name = "apache-airflow-providers-cncf-kubernetes", marker = "extra == 'kubernetes'", specifier = ">=4.4.0" },
+    { name = "apache-airflow-providers-cncf-kubernetes", marker = "extra == 'tests'", specifier = ">=4.4.0" },
+    { name = "apache-airflow-providers-common-sql", marker = "extra == 'all'", specifier = ">=1.2.0" },
+    { name = "apache-airflow-providers-common-sql", marker = "extra == 'common-sql'", specifier = ">=1.2.0" },
+    { name = "apache-airflow-providers-common-sql", marker = "extra == 'tests'", specifier = ">=1.2.0" },
+    { name = "apache-airflow-providers-http", marker = "extra == 'all'", specifier = ">=4.0.0" },
+    { name = "apache-airflow-providers-http", marker = "extra == 'http'", specifier = ">=4.0.0" },
+    { name = "apache-airflow-providers-http", marker = "extra == 'tests'", specifier = ">=4.0.0" },
     { name = "apache-airflow-providers-slack", marker = "extra == 'tests'" },
     { name = "packaging" },
+    { name = "packaging", marker = "extra == 'all'" },
     { name = "pre-commit", marker = "extra == 'tests'" },
     { name = "pytest", marker = "extra == 'tests'", specifier = ">=6.0" },
     { name = "pytest-cov", marker = "extra == 'tests'" },
     { name = "pyyaml" },
+    { name = "pyyaml", marker = "extra == 'all'" },
+    { name = "typer" },
 ]
-provides-extras = ["tests"]
+provides-extras = ["all", "common-sql", "http", "kubernetes", "tests"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -3607,6 +3638,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/38/04/1cd43f72c241fedcf0d9a18d0783953ee301eac9e5d9db1df0f0f089d9af/trove_classifiers-2025.5.9.12.tar.gz", hash = "sha256:7ca7c8a7a76e2cd314468c677c69d12cc2357711fcab4a60f87994c1589e5cb5", size = 16940, upload-time = "2025-05-09T12:04:48.829Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/92/ef/c6deb083748be3bcad6f471b6ae983950c161890bf5ae1b2af80cc56c530/trove_classifiers-2025.5.9.12-py3-none-any.whl", hash = "sha256:e381c05537adac78881c8fa345fd0e9970159f4e4a04fcc42cfd3129cca640ce", size = 14119, upload-time = "2025-05-09T12:04:46.38Z" },
+]
+
+[[package]]
+name = "typer"
+version = "0.16.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "rich" },
+    { name = "shellingham" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/8c/7d682431efca5fd290017663ea4588bf6f2c6aad085c7f108c5dbc316e70/typer-0.16.0.tar.gz", hash = "sha256:af377ffaee1dbe37ae9440cb4e8f11686ea5ce4e9bae01b84ae7c63b87f1dd3b", size = 102625, upload-time = "2025-05-26T14:30:31.824Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/42/3efaf858001d2c2913de7f354563e3a3a2f0decae3efe98427125a8f441e/typer-0.16.0-py3-none-any.whl", hash = "sha256:1f79bed11d4d02d4310e3c1b7ba594183bcedb0ac73b27a9e5f28f6fb5b98855", size = 46317, upload-time = "2025-05-26T14:30:30.523Z" },
 ]
 
 [[package]]
