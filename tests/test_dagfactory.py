@@ -134,11 +134,11 @@ def test_load_dag_config_valid(monkeypatch):
                 "start_date": datetime.date(2018, 3, 1),
                 "end_date": datetime.date(2018, 3, 5),
                 "retries": 1,
-                "retry_delay_sec": 300,
+                "retry_delay": 300,
             },
             "concurrency": 1,
             "max_active_runs": 1,
-            "dagrun_timeout_sec": 600,
+            "dagrun_timeout": 600,
             "default_view": "tree",
             "orientation": "LR",
             get_schedule_key(): "0 1 * * *",
@@ -320,11 +320,11 @@ def test_get_default_config():
             "start_date": datetime.date(2018, 3, 1),
             "end_date": datetime.date(2018, 3, 5),
             "retries": 1,
-            "retry_delay_sec": 300,
+            "retry_delay": 300,
         },
         "concurrency": 1,
         "max_active_runs": 1,
-        "dagrun_timeout_sec": 600,
+        "dagrun_timeout": 600,
         "default_view": "tree",
         "orientation": "LR",
         get_schedule_key(): "0 1 * * *",
@@ -394,12 +394,12 @@ def test_doc_md_file_path(monkeypatch):
 ```yaml
 default:
   concurrency: 1
-  dagrun_timeout_sec: 600
+  dagrun_timeout: 600
   default_args:
     end_date: 2018-03-05
     owner: default_owner
     retries: 1
-    retry_delay_sec: 300
+    retry_delay: 300
     start_date: 2018-03-01
   default_view: tree
   max_active_runs: 1

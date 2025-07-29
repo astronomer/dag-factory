@@ -46,11 +46,11 @@ DEFAULT_CONFIG = {
         "start_date": datetime.date(2018, 3, 1),
         "end_date": datetime.date(2018, 3, 5),
         "retries": 1,
-        "retry_delay_sec": 300,
+        "retry_delay": 300,
     },
     "concurrency": 1,
     "max_active_runs": 1,
-    "dagrun_timeout_sec": 600,
+    "dagrun_timeout": 600,
     get_schedule_key(): "0 1 * * *",
 }
 
