@@ -4,10 +4,14 @@ default:
     start_date: 2018-03-01
     end_date: 2018-03-05
     retries: 1
-    retry_delayc: 300
+    retry_delayc:
+      __type__: datetime.timedelta
+      seconds: 300
   concurrency: 1
   max_active_runs: 1
-  dagrun_timeout: 600
+  dagrun_timeout:
+    __type__: datetime.timedelta
+    seconds: 600
   default_view: 'tree'
   orientation: 'LR'
   schedule_interval: '0 1 * * *'
