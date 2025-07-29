@@ -9,6 +9,16 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 from airflow.configuration import conf as airflow_conf
 
+# Use AirflowException so failures appear under “Broken DAGs” in the UI. Import
+# defensively for environments where Airflow isn’t installed (e.g. docs build).
+try:
+    from airflow.exceptions import AirflowException  # type: ignore
+except Exception:  # pragma: no cover
+
+    class AirflowException(Exception):
+        """Fallback dummy when Airflow isn’t available."""
+
+
 try:
     from airflow.sdk.definitions.dag import DAG
 except ImportError:
@@ -330,6 +340,7 @@ def load_yaml_dags(
     if suffix is None:
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
+    broken_yaml_files = []
     for suf in suffix:
         candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
     for config_file_path in candidate_dag_files:
@@ -338,7 +349,26 @@ def load_yaml_dags(
         try:
             factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
             factory.generate_dags(globals_dict)
-        except Exception:  # pylint: disable=broad-except
-            logging.exception("Failed to load dag from %s", config_file_path)
+        except Exception as err:  # pylint: disable=broad-except
+            # Surface the problem to Airflow by re-raising as DagImportException.
+            # This makes the failing DAG appear under “Broken DAGs” in the UI
+            # instead of being silently swallowed in the logs.
+            try:
+                with open(config_file_abs_path, "r", encoding="utf-8") as fh:
+                    yaml_snippet = fh.read()
+            except Exception:  # pragma: no cover
+                yaml_snippet = "<unable to read YAML content>"
+
+            message = (
+                f"Failed to generate DAGs from YAML file: {config_file_abs_path}\n\n"
+                f"Error: {err}\n\n"
+                f"YAML content:\n{yaml_snippet}"
+            )
+            broken_yaml_files.append(message)
+            # Re-raise so the scheduler/webserver mark it as a broken DAG.
         else:
             logging.info("DAG loaded: %s", config_file_path)
+    # if broken_yaml_files:
+    #     readable_error = f"\n\nFailed to generate DAGs from {len(broken_yaml_files)} YAML files:\n\n{'-'*192}\n\n"
+    #     readable_error += f"\n\n{'-'*192}\n\n".join(broken_yaml_files)
+    #     raise AirflowException(f"\n\n{readable_error}")
