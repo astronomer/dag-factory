@@ -70,6 +70,7 @@ def read_params(params: dict[str, Any]) -> None:
     print("my_param:", params["my_param"])
 
 
+<<<<<<< HEAD
 def generate_data():
     print("Produced data to file:///$AIRFLOW_HONE/data.csv")
     data_dir = os.environ.get("AIRFLOW_HONE", "/usr/local/airflow")
