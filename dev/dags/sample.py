@@ -12,7 +12,10 @@ except ImportError:
 try:
     from airflow.sdk import ObjectStoragePath
 except ImportError:
-    from airflow.io.path import ObjectStoragePath
+    try:
+        from airflow.io.path import ObjectStoragePath
+    except ImportError:  # Airflow < 2.8
+        pass
 
 
 def build_numbers_list():
