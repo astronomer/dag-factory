@@ -26,7 +26,7 @@ custom_python_object:
                       cpu: "0.5"
                       memory: "512Mi"
     task_2:
-      operator: airflow.providers.standard.operators.bash.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator1
       bash_command: "echo 2"
       dependencies: [task_1]
     task_3:
