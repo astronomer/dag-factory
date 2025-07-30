@@ -208,7 +208,7 @@ class DagFactory:
                 config = update_yaml_structure(config)
 
         except Exception as err:
-            raise DagFactoryConfigException("Invalid DAG Factory config file") from err
+            raise DagFactoryConfigException(f"Invalid DAG Factory config file: {err}")
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
