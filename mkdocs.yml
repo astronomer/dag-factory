@@ -33,6 +33,8 @@ extra:
     alias: true
 
 markdown_extensions:
+  - admonition
+  - codehilite
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span

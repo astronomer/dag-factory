@@ -141,7 +141,9 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 
 ### Run unit tests
 
-> Note: these tests create local Python virtual environments in a hatch-managed directory.
+!!! note
+    - These tests create local Python virtual environments in a hatch-managed directory.
+    - The `AUTO_CONVERT_TO_AF3` environment variable is required to run tests in the Airflow 3 environment.
 
 First, set the following environment variables:
 
@@ -163,8 +165,10 @@ hatch run tests:test-cov
 
 ### Run integration tests
 
-> Note: these tests create local Python virtual environments in a hatch-managed directory.
-> They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
+!!! note
+    - These tests create local Python virtual environments within a `hatch`-managed directory.
+    - They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
+    - The `AUTO_CONVERT_TO_AF3` environment variable is required to run tests in the Airflow 3 environment.
 
 First, set the following environment variables:
 
