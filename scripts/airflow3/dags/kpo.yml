@@ -1,0 +1,23 @@
+kubernetes_pod_dag:
+  start_date: 2025-01-01
+  schedule_interval: "@daily"
+  description: "A DAG that runs a simple KubernetesPodOperator task"
+  catchup: false
+  tasks:
+    hello-world-pod:
+      operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
+      config_file: "path/to/kube/config"
+      image: "python:3.12-slim"
+      cmds: ["python", "-c"]
+      arguments: ["print('Hello from KubernetesPodOperator!')"]
+      name: "example-pod-task"
+      namespace: "default"
+      get_logs: true
+      container_resources:
+        __type__: kubernetes.client.models.V1ResourceRequirements
+        limits:
+          cpu: "1"
+          memory: "1024Mi"
+        requests:
+          cpu: "0.5"
+          memory: "512Mi"
