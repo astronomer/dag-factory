@@ -141,6 +141,14 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 
 ### Run unit tests
 
+> Note: these tests create local Python virtual environments in a hatch-managed directory.
+
+First, set the following environment variables:
+
+```bash
+export AUTO_CONVERT_TO_AF3=true
+```
+
 To run unit tests using Python 3.10 and Airflow 2.5, use the following:
 
 ```bash
@@ -161,9 +169,11 @@ hatch run tests:test-cov
 First, set the following environment variables:
 
 ```bash
+export AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=90
 export AIRFLOW_HOME=$(pwd)/dev/
-export CONFIG_ROOT_DIR=`pwd`"/dev/dags"
-export PYTHONPATH=dev/dags:$PYTHONPATH
+export CONFIG_ROOT_DIR=$(pwd)/dev/dags
+export PYTHONPATH=$(pwd)/dev/dags:$PYTHONPATH
+export AUTO_CONVERT_TO_AF3=true
 ```
 
 To run the integration tests using Python 3.9 and Airflow 2.9, use
