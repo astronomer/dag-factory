@@ -22,10 +22,11 @@ from tests.utils import get_bash_operator_path
 
 here = os.path.dirname(__file__)
 
-from dagfactory import DagFactory, dagfactory, load_yaml_dags
+from dagfactory import DagFactory, dagfactory, exceptions, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
+DAG_FACTORY_SCHEDULE_INTERVAL = os.path.join(here, "fixtures/dag_factory_schedule_interval.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures_without_default_yaml/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
@@ -451,6 +452,15 @@ def test_none_string_schedule_supplied():
     schedule = _get_schedule_value("example_dag_none_string_schedule")
     expected_schedule = None
     assert schedule == expected_schedule
+
+
+def test_schedule_interval_supplied():
+    td = dagfactory.DagFactory(DAG_FACTORY_SCHEDULE_INTERVAL)
+    with pytest.raises(
+        exceptions.DagFactoryException,
+        match="Failed to generate dag example_dag_schedule_interval: The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
+    ):
+        td.generate_dags(globals())
 
 
 def test_dagfactory_dict():

@@ -171,14 +171,6 @@ class DagBuilder:
         # If there are no default_args, add an empty dictionary
         dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
 
-        # Convert from 'schedule_interval: str' to 'schedule: str'
-        if utils.check_dict_key(dag_params, "schedule_interval"):
-            if dag_params["schedule_interval"] == "None":
-                dag_params["schedule"] = None
-            else:
-                dag_params["schedule"] = dag_params["schedule_interval"]
-            del dag_params["schedule_interval"]
-
         # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
         if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
             dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout_sec"])
@@ -289,6 +281,13 @@ class DagBuilder:
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
+
+        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
+        if utils.check_dict_key(dag_params, "schedule_interval"):
+            raise DagFactoryException(
+                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
+            )
+
         return dag_params
 
     @staticmethod
@@ -839,12 +838,6 @@ class DagBuilder:
         # In Airflow 3, the schedule key is "schedule" in DAG config
         # In Airflow 2, the schedule key is "schedule_interval" in DAG config, we need to check the version to use the correct key
         schedule_key = "schedule" if INSTALLED_AIRFLOW_VERSION.major >= AIRFLOW3_MAJOR_VERSION else "schedule_interval"
-
-        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
-        if "schedule_interval" in dag_params:
-            raise ValueError(
-                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
-            )
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
