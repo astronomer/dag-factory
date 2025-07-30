@@ -16,9 +16,11 @@ except ImportError:
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
+from dagfactory._yaml import load_yaml_file
+from dagfactory.constants import DEFAULTS_FILE_NAME
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import cast_with_type, update_yaml_structure
+from dagfactory.utils import update_yaml_structure
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -68,6 +70,7 @@ class DagFactory:
                 raise DagFactoryException("Cannot pass both `default_args_config_dict` and `default_args_config_path`.")
 
         # We'll still go ahead and set both values. They'll be referenced in _global_default_args.
+        self.config_file_path: str = config_filepath
         self.default_args_config_path: str = default_args_config_path
         self.default_args_config_dict: Optional[dict] = default_args_config_dict
 
@@ -79,10 +82,86 @@ class DagFactory:
         if self.default_args_config_dict:
             return self.default_args_config_dict
 
-        default_args_yml = Path(self.default_args_config_path) / "defaults.yml"
+        configs_list = self._retrieve_default_config_list()
+        merged_default_config = {
+            "default_args": self._merge_default_args_from_list_configs(configs_list),
+            **self._merge_dag_args_from_list_configs(configs_list),
+        }
+        return merged_default_config
 
-        if default_args_yml.exists():
-            return self._load_dag_config(config_filepath=default_args_yml)
+    def _retrieve_possible_default_config_dirs(self):
+        """
+        Return a list of possible directories with the `defaults.yml` file.
+        The returned directories are sorted by priority, with the top-priority directory being the first element.
+        """
+        if self.config_file_path:
+            dag_yml_file_parent_dirs = Path(self.config_file_path).parents
+        else:
+            dag_yml_file_parent_dirs = []
+
+        default_config_root_dir_path = Path(self.default_args_config_path)
+
+        # Assuming default_config_root_dir_path is a parent directory of the dag_yml_file_dir_path
+        if default_config_root_dir_path in dag_yml_file_parent_dirs:
+            index_top_most_default_dir = dag_yml_file_parent_dirs.index(default_config_root_dir_path)
+            return [path for path in dag_yml_file_parent_dirs][: index_top_most_default_dir + 1]
+        elif dag_yml_file_parent_dirs:
+            return [dag_yml_file_parent_dirs[0], default_config_root_dir_path]
+        else:
+            return [default_config_root_dir_path]
+
+    def _retrieve_default_yaml_filepaths(self):
+        """
+        Return the paths to existing `defaults.yml` files relevant to run the YAML DAG of interest.
+        The YAML filepahts are sorted by priority, with the top-priority directory being the first element.
+        """
+        default_yaml_filepaths = []
+        possible_default_yml_dirs = self._retrieve_possible_default_config_dirs()
+        for default_yml_dir in possible_default_yml_dirs:
+            default_yml_filepath = default_yml_dir / DEFAULTS_FILE_NAME
+            if default_yml_filepath.exists():
+                default_yaml_filepaths.append(default_yml_filepath)
+        return default_yaml_filepaths
+
+    def _retrieve_default_config_list(self):
+        """
+        Merges the default configuration with the priority configuration.
+        """
+        list_of_yaml_paths = self._retrieve_default_yaml_filepaths()
+        configs_list = []
+
+        # We change the order so that the configuration that should override all others is the last element
+        for yaml_path in reversed(list_of_yaml_paths):
+            configs_list.append(self._load_dag_config(config_filepath=yaml_path))
+
+        return configs_list
+
+    @staticmethod
+    def _merge_default_args_from_list_configs(configs_list: list[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Given a list of dictionaries that is sorted by priority, with the dictionary that takes precedence by the end, merge
+        their "default_args" key-value pairs.
+
+        Return a dictionary with the "default_args" key-value pairs merged.
+        """
+        return {key: value for config in configs_list for key, value in config.get("default_args", {}).items()}
+
+    @staticmethod
+    def _merge_dag_args_from_list_configs(configs_list: list[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Given a list of configuration dictionaries that is sorted by priority, with the dictionary that takes precedence by the end, merge them.
+        If there are redundant keys, the correspondent value of the last configuration dictionary will be used.
+        """
+        final_config = {}
+        for config in configs_list:
+            for key, value in config.items():
+                if key != "default_args":
+                    if key != "tags":
+                        final_config[key] = value
+                    else:
+                        final_config[key] = sorted(list(set(final_config.get("tags", []) + value)))
+
+        return final_config
 
     @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
@@ -121,27 +200,7 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         try:
-
-            def __join(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return "".join([str(i) for i in seq])
-
-            def __or(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " | ".join([f"({str(i)})" for i in seq])
-
-            def __and(loader: yaml.FullLoader, node: yaml.Node) -> str:
-                seq = loader.construct_sequence(node)
-                return " & ".join([f"({str(i)})" for i in seq])
-
-            yaml.add_constructor("!join", __join, yaml.FullLoader)
-            yaml.add_constructor("!or", __or, yaml.FullLoader)
-            yaml.add_constructor("!and", __and, yaml.FullLoader)
-
-            with open(config_filepath, "r", encoding="utf-8") as fp:
-                config_with_env = os.path.expandvars(fp.read())
-                config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-                config = cast_with_type(config)
+            config = load_yaml_file(config_filepath)
 
             # This will only invoke in the CI
             # Make yaml DAG compatible for Airflow 3
@@ -173,22 +232,15 @@ class DagFactory:
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
-
-        # If global_default_args is None, then default_config will remain as is. Otherwise, we'll (try) go ahead and
-        # update the default args using global_default_args
         if isinstance(global_default_args, dict):
-            # Previously, default_config was being overwritten completely to only container the default_args
-            # key-value pair. This was updated as part of issue-295 to not overwrite the entire default_config
-            # dictionary, and instead update the default_args key-value pair of the default_config dictionary
-            default_config["default_args"] = {
-                **global_default_args.get("default_args", {}),
-                **default_config.get("default_args", {}),
-            }
+            default_config["default_args"] = self._merge_default_args_from_list_configs(
+                [global_default_args, default_config]
+            )
 
         dags: Dict[str, Any] = {}
 
         if isinstance(global_default_args, dict):
-            dag_level_args = {k: v for k, v in global_default_args.items() if k != "default_args"}
+            dag_level_args = self._merge_dag_args_from_list_configs([global_default_args])
         else:
             dag_level_args = {}
 

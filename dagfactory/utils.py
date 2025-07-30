@@ -405,11 +405,20 @@ def cast_with_type(data):
             return [cast_with_type(item) for item in data["items"]]
 
         # Normal typed dict
-        processed = {k: cast_with_type(v) for k, v in data.items() if k != "__type__"}
+        processed = {k: cast_with_type(v) for k, v in data.items() if k not in ("__type__", "__args__")}
+
+        # Recursively handle 'args' if present
+        raw_args = data.get("__args__")
+        args = []
+        if raw_args is not None:
+            casted_args = cast_with_type(raw_args)  # Cast the whole args object
+            if not isinstance(casted_args, list):
+                raise ValueError(f"'args' must resolve to a list, got {type(casted_args)}")
+            args = casted_args
 
         if "__type__" in data:
             class_type = _import_from_string(data["__type__"])
-            return class_type(**processed)
+            return class_type(*args, **processed)
 
         return processed
 

@@ -1,0 +1,21 @@
+example_dag_schedule_interval:
+  default_args:
+    owner: custom_owner
+    start_date: 2 days
+  description: this is an example dag
+  doc_md: '##here is a doc md string'
+  schedule_interval: 0 1 * * *
+  tasks:
+    task_1:
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator
+    task_2:
+      bash_command: echo 2
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
+    task_3:
+      bash_command: echo 3
+      dependencies:
+      - task_1
+      operator: airflow.operators.bash.BashOperator
