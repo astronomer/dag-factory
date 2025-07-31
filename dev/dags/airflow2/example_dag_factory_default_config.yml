@@ -6,15 +6,15 @@ default:
   tags:
     - dynamic
   tasks:
-    extract:
+    - task_id: "extract"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo extract"
-    transform:
+    - task_id: "transform"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo transform"
       dependencies:
       - extract
-    load:
+    - task_id: "load"
       operator: airflow.operators.bash.BashOperator
       dependencies:
       - transform
@@ -22,15 +22,15 @@ default:
 
 machine_learning:
   tasks:
-    load:
+    - task_id: "load"
       bash_command: "echo machine_larning"
 
 data_science:
   tasks:
-    load:
+    - task_id: "load"
       bash_command: "echo data_science"
 
 artificial_intelligence:
   tasks:
-    load:
+    - task_id: "load"
       bash_command: "echo artificial_intelligence"

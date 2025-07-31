@@ -5,11 +5,11 @@ example_jinja2_template_dag:
   description: "A DAG that uses Airflow's built-in Jinja templates"
   catchup: false
   tasks:
-    print_run_id:
+    - task_id: "print_run_id"
       operator: "airflow.providers.standard.operators.bash.BashOperator"
       bash_command: "echo 'run-id is {{ run_id }}'"
 
-    print_task:
+    - task_id: "print_task"
       operator: "airflow.providers.standard.operators.bash.BashOperator"
       bash_command: "echo 'The task is {{ task }}'"
       dependencies:

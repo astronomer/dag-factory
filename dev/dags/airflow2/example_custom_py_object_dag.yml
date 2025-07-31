@@ -4,7 +4,7 @@ custom_example_dag:
   catchup: false
   render_template_as_native_obj: True
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       executor_config:
@@ -25,11 +25,11 @@ custom_example_dag:
                     requests:
                       cpu: "0.5"
                       memory: "512Mi"
-    task_2:
+    - task_id: "task_2"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
-    task_3:
+    - task_id: "task_3"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]

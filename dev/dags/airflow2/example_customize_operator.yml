@@ -12,26 +12,26 @@ example_breadfast:
   schedule_interval: "0 3 * * *"
   catchup: false
   tasks:
-    begin:
+    - task_id: "begin"
       operator: airflow.operators.empty.EmptyOperator
-    make_bread_1:
+    - task_id: "make_bread_1"
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Sourdough'
       dependencies:
         - begin
-    make_bread_2:
+    - task_id: "make_bread_2"
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Multigrain'
       dependencies:
         - begin
-    make_coffee_1:
+    - task_id: "make_coffee_1"
       operator:  customized.operators.breakfast_operators.MakeCoffeeOperator
       coffee_type: 'Black'
       dependencies:
         - begin
         - make_bread_1
         - make_bread_2
-    end:
+    - task_id: "end"
       operator: airflow.operators.empty.EmptyOperator
       dependencies:
         - begin
