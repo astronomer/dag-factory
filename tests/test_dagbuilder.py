@@ -8,6 +8,8 @@ from unittest.mock import mock_open, patch
 import pendulum
 import pytest
 
+from dagfactory._yaml import load_yaml_file
+
 try:
     from airflow.sdk.definitions.dag import DAG
 except ImportError:
@@ -1183,9 +1185,7 @@ class TestSchedule:
     def test_asset_schedule_list_of_assets(self):
         from airflow.sdk import Asset
 
-        schedule_data = read_yml(schedule_path / "list_asset.yml")
-        data = schedule_data["schedule"]
-        parsed_schedule = DagBuilder._asset_schedule(cast_with_type(data))
+        schedule_data = load_yaml_file(schedule_path.__str__() + "/list_asset.yml")
 
         expected = [
             Asset(
@@ -1203,15 +1203,12 @@ class TestSchedule:
                 watchers=[],
             ),
         ]
-        assert parsed_schedule == expected
+        assert schedule_data["schedule"] == expected
 
     def test_asset_schedule_with_and_operator(self):
         from airflow.sdk import Asset, AssetAll
 
-        schedule_data = read_yml(schedule_path / "and_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(schedule_path.__str__() + "/and_asset.yml")
 
         expected = AssetAll(
             Asset(
@@ -1229,16 +1226,12 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
-        schedule_data = read_yml(schedule_path / "or_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(schedule_path.__str__() + "/or_asset.yml")
 
         expected = AssetAny(
             Asset(
@@ -1256,16 +1249,12 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
-        schedule_data = read_yml(schedule_path / "nested_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(schedule_path.__str__() + "/nested_asset.yml")
 
         expected = AssetAny(
             AssetAll(
@@ -1292,17 +1281,13 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
     def test_asset_schedule_with_watcher(self):
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
         from airflow.sdk import Asset, AssetWatcher
 
-        schedule_data = read_yml(schedule_path / "asset_with_watcher.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(schedule_path.__str__() + "/asset_with_watcher.yml")
 
         expected = [
             Asset(
@@ -1318,7 +1303,7 @@ class TestSchedule:
                 ],
             )
         ]
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
@@ -1355,41 +1340,6 @@ class TestSchedule:
         schedule_data = {}
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
         assert schedule_data["schedule"] == relativedelta(hour=18)
-
-    def test_resolve_schedule_asset_any_type(self):
-        from airflow.sdk import Asset, AssetAny
-
-        yaml_str = """
-        schedule:
-            or:
-                - uri: s3://dag1/output_1.txt
-                  extra:
-                      hi: bye
-                - uri: s3://dag2/output_1.txt
-                  extra:
-                      hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
-        schedule_data = {}
-        DagBuilder.configure_schedule(data, schedule_data)
-
-        expected = AssetAny(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
 
 
 # ===============================
