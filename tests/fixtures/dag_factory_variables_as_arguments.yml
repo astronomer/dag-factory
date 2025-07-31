@@ -19,14 +19,14 @@ example_dag:
   description: 'this is an example dag'
   schedule_interval: '0 3 * * *'
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 1'
-    task_2:
+    - task_id: "task_2"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 2'
       dependencies: [task_1]
-    task_3:
+    - task_id: "task_3"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 3'
       dependencies: [task_1]
@@ -40,6 +40,6 @@ second_example_dag:
   description: 'this is a second example dag'
   schedule_interval: '0 6 * * *'
   tasks:
-    task_0:
+    - task_id: "task_0"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 1'

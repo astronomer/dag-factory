@@ -11,7 +11,7 @@ http_operator_example_dag:
   tags: ['http']
   render_template_as_native_obj: True
   tasks:
-    send_request_json:
+    - task_id: "send_request_json"
       operator: airflow.providers.http.operators.http.SimpleHttpOperator
       http_conn_id: "example_host"
       method: "POST"
@@ -22,7 +22,7 @@ http_operator_example_dag:
       headers:
         Content-Type: application/json
       log_response: True
-    send_request_plain_text:
+    - task_id: "send_request_plain_text"
       operator: airflow.providers.http.operators.http.SimpleHttpOperator
       http_conn_id: "example_host"
       method: "POST"

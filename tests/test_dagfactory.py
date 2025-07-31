@@ -49,12 +49,13 @@ DAG_FACTORY_CONFIG = {
         get_schedule_key(): "@daily",
     },
     "example_dag": {
-        "tasks": {
-            "task_1": {
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
             },
-        },
+        ],
     },
 }
 
@@ -75,8 +76,9 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
         "sla_miss_callback": f"{__name__}.print_context_callback",
-        "tasks": {
-            "task_1": {
+        "tasks": [
+            {
+                "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
                 "execution_timeout_secs": 5,
@@ -85,7 +87,8 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-            "task_2": {
+            {
+                "task_id": "task_2",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 2",
                 "dependencies": ["task_1"],
@@ -94,7 +97,8 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-            "task_3": {
+            {
+                "task_id": "task_3",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 3",
                 "dependencies": ["task_1"],
@@ -103,7 +107,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "on_execute_callback": f"{__name__}.print_context_callback",
                 "on_retry_callback": f"{__name__}.print_context_callback",
             },
-        },
+        ],
     }
 }
 
@@ -143,62 +147,70 @@ def test_load_dag_config_valid(monkeypatch):
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             get_schedule_key(): "0 3 * * *",
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-                "task_2": {
+                {
+                    "task_id": "task_2",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
-                "task_3": {
+                {
+                    "task_id": "task_3",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            },
+            ],
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
             get_schedule_key(): "None",
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-                "task_2": {
+                {
+                    "task_id": "task_2",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
-                "task_3": {
+                {
+                    "task_id": "task_3",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            },
+            ],
         },
         "example_dag3": {
             "doc_md_python_callable_name": "mydocmdbuilder",
             "doc_md_python_callable_file": DOC_MD_PYTHON_CALLABLE_FILE,
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-            },
+            ],
         },
         "example_dag4": {
             "vars": {"arg1": "hello", "arg2": "hello world"},
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
-            },
+            ],
         },
     }
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
@@ -227,62 +239,70 @@ def test_get_dag_configs(monkeypatch):
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             get_schedule_key(): "0 3 * * *",
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-                "task_2": {
+                {
+                    "task_id": "task_2",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
-                "task_3": {
+                {
+                    "task_id": "task_3",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            },
+            ],
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
             get_schedule_key(): "None",
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-                "task_2": {
+                {
+                    "task_id": "task_2",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 2",
                     "dependencies": ["task_1"],
                 },
-                "task_3": {
+                {
+                    "task_id": "task_3",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 3",
                     "dependencies": ["task_1"],
                 },
-            },
+            ],
         },
         "example_dag3": {
             "doc_md_python_callable_name": "mydocmdbuilder",
             "doc_md_python_callable_file": DOC_MD_PYTHON_CALLABLE_FILE,
             "doc_md_python_arguments": {"arg1": "arg1", "arg2": "arg2"},
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-            },
+            ],
         },
         "example_dag4": {
             "vars": {"arg1": "hello", "arg2": "hello world"},
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo hello world",
                 },
-            },
+            ],
         },
     }
     actual = td.get_dag_configs()
@@ -470,12 +490,13 @@ def test_dagfactory_dict():
     }
     expected_dag = {
         "example_dag": {
-            "tasks": {
-                "task_1": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
                     "operator": get_bash_operator_path(),
                     "bash_command": "echo 1",
                 },
-            },
+            ],
         },
     }
     actual_dag = td.get_dag_configs()
@@ -531,10 +552,10 @@ def test_build_dag_with_global_dag_level_defaults():
     }
 
     config = {
-        "test_dag": {"tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}}},
+        "test_dag": {"tasks": [{"task_id": "task_1", "operator": get_bash_operator_path(), "bash_command": "echo 1"}]},
         "test_dag_override": {
             "catchup": True,
-            "tasks": {"task_1": {"operator": get_bash_operator_path(), "bash_command": "echo 1"}},
+            "tasks": [{"task_id": "task_1", "operator": get_bash_operator_path(), "bash_command": "echo 1"}],
         },
     }
 
@@ -733,6 +754,83 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
     assert default_config["a_param"] == "a"
     assert default_config["b_param"] == "b"
     assert default_config["c_param"] == "c"
+
+
+# Test to ensure backward compatibility for dictionary-style tasks and task_groups definitions
+def test_tasks_and_task_groups_as_dict():
+    """Ensure DagFactory accepts tasks and task_groups provided as dictionaries (backwards compatibility)."""
+    dict_style_config = {
+        "example_dict_dag": {
+            "default_args": {
+                "owner": "global_owner",
+                "start_date": "2020-01-01",
+            },
+            get_schedule_key(): "0 4 * * *",
+            # Task groups supplied as a mapping of group_name -> config
+            "task_groups": {
+                "task_group_1": {
+                    "tooltip": "this is a task group",
+                    "dependencies": ["task_1"],
+                }
+            },
+            # Tasks supplied as a mapping of task_id -> config (no embedded task_id field)
+            "tasks": {
+                "task_1": {
+                    "operator": get_bash_operator_path(),
+                    "bash_command": "echo 1",
+                },
+                "task_2": {
+                    "operator": get_bash_operator_path(),
+                    "bash_command": "echo 2",
+                    "dependencies": ["task_1"],
+                    "task_group_name": "task_group_1",
+                },
+            },
+        }
+    }
+    td = dagfactory.DagFactory(config=dict_style_config)
+    td.generate_dags(globals())
+    assert "example_dict_dag" in globals()
+    dag = globals()["example_dict_dag"]
+    assert len(dag.tasks) == 2
+    # Ensure the second task has been placed inside the task group (task_id is prefixed by the group name)
+    assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
+
+
+def test_tasks_and_task_groups_as_dict_yaml(tmp_path):
+    """Ensure DagFactory correctly loads YAML where tasks and task_groups are dictionaries."""
+    yaml_content = """
+default:
+    default_args:
+        owner: global_owner
+        start_date: "2020-01-01"
+example_dict_dag_yaml:
+  schedule_interval: "0 4 * * *"
+  task_groups:
+    task_group_1:
+      tooltip: "this is a task group"
+      dependencies: [task_1]
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 1"
+    task_2:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 2"
+      dependencies: [task_1]
+      task_group_name: task_group_1
+"""
+    yaml_path = tmp_path / "dict_style_dag.yml"
+    yaml_path.write_text(yaml_content)
+
+    td = dagfactory.DagFactory(config_filepath=str(yaml_path))
+    td.generate_dags(globals())
+    assert "example_dict_dag_yaml" in globals()
+    dag = globals()["example_dict_dag_yaml"]
+    # Validate two tasks created
+    assert len(dag.tasks) == 2
+    # Validate grouping
+    assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
 
 
 def test_load_dag_config_with_extends():
