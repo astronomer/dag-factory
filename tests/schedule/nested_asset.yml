@@ -1,6 +1,6 @@
 schedule:
-  or:
-    - and:
+  __or__:
+    - __and__:
         - __type__: airflow.sdk.Asset
           uri: s3://dag1/output_1.txt
           extra:
