@@ -160,7 +160,7 @@ Given the various ways to specify top-level DAG arguments, including `default_ar
 
 ## Configuration Inheritance with `__extends__`
 
-Starting with DAG Factory 0.23.0, you can create modular, reusable configuration files using the `__extends__` feature. This allows you to build configuration hierarchies by extending other YAML configuration files, promoting better organization and reusability of common settings.
+Starting with DAG Factory 1.0, you can create modular, reusable configuration default config with the `__extends__` feature. This allows you to build configuration hierarchies by extending other YAML configuration files, promoting better organization and reusability of common settings.
 
 ### Benefits of using `__extends__`
 
@@ -229,8 +229,6 @@ default:
 
 When using `__extends__` along with other default configuration methods, the following precedence order applies:
 
-1. In the DAG configuration (highest priority)
-2. In the `default` block within the workflow's YAML file (including extended configuration files)
-3. In the `defaults.yml` (lowest priority)
-
-Note: Extended configuration files are merged into the `default` block during config loading, so they share the same priority level as the main configuration's `default` section.
+1. The DAG configuration (highest priority)
+2. The `default` block of the extended configuration files
+3. The global default configuration in `defaults.yml` (lowest priority)
