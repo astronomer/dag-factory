@@ -1063,7 +1063,7 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
                     if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
