@@ -317,6 +317,11 @@ def test_extract_dataset_names():
     result = utils.extract_dataset_names(expression)
     assert result == expected
 
+    expression = "raw.dataset1 | cleaned.dataset2 & curated.dataset3"
+    expected = ["raw.dataset1", "cleaned.dataset2", "curated.dataset3"]
+    result = utils.extract_dataset_names(expression)
+    assert result == expected
+
 
 def test_extract_storage_names():
     expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
