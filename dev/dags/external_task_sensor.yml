@@ -4,13 +4,12 @@ example_external_task_sensor_dag_factory_consumer:
     schedule_interval: "@daily"
   tasks:
     wait_for_producer_task:
-      operator: airflow.sensors.external_task_sensor.ExternalTaskSensor
+      operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       mode: poke
-      timeout: 600
+      timeout: 300
       poke_interval: 30
-      retries: 2
     consumer_task:
       operator: airflow.operators.empty.EmptyOperator
 
@@ -20,7 +19,7 @@ example_external_task_sensor_dag_factory_consumer2:
     schedule_interval: "@daily"
   tasks:
     wait_for_producer_task:
-      operator: airflow.sensors.external_task_sensor.ExternalTaskSensor
+      operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       execution_date_fn: sample.one_day_ago
@@ -33,7 +32,7 @@ example_external_task_sensor_dag_factory_consumer3:
     schedule_interval: "@daily"
   tasks:
     wait_for_producer_task:
-      operator: airflow.sensors.external_task_sensor.ExternalTaskSensor
+      operator: airflow.sensors.external_task.ExternalTaskSensor
       external_dag_id: example_external_task_sensor_dag_factory_producer
       external_task_id: producer_task
       execution_delta: 1 days,

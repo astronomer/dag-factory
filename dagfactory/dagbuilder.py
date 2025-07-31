@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import ast
-
-# pylint: disable=ungrouped-imports
 import inspect
+import logging
 import os
 import re
 import warnings
@@ -14,120 +13,128 @@ from datetime import datetime, timedelta
 from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from airflow import DAG, configuration
-from airflow.models import BaseOperator, Variable
-from airflow.utils.module_loading import import_string
-from dateutil.relativedelta import relativedelta
+from airflow import configuration
 from packaging import version
 
-from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
+from dagfactory.utils import check_dict_key
 
 try:
-    from airflow.version import version as AIRFLOW_VERSION
-except ImportError:  # pragma: no cover
-    from airflow import __version__ as AIRFLOW_VERSION
+    from airflow.sdk.bases.operator import BaseOperator
+    from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.variable import Variable
+except ImportError:
+    from airflow.models import BaseOperator, Variable
+    from airflow.models.dag import DAG
 
-
-try:
-    from airflow.providers.cncf.kubernetes import get_provider_info
-
-    try:
-        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
-    except KeyError:  # pragma: no cover
-        from airflow.providers.cncf.kubernetes import __version__
-
-        K8S_PROVIDER_VERSION = __version__
-except ImportError:  # pragma: no cover
-    K8S_PROVIDER_VERSION = "0"
-
-INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
+from airflow.datasets import Dataset
+from airflow.models import MappedOperator
+from airflow.timetables.base import Timetable
+from airflow.utils.module_loading import import_string
+from airflow.utils.task_group import TaskGroup
+from airflow.version import version as AIRFLOW_VERSION
 
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
-except ImportError:
-    try:  # Try Airflow 2.4+
-        from airflow.operators.python import BranchPythonOperator, PythonOperator
-    except ImportError:
-        # Fallback to older versions
-        from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
-
-try:
-    from airflow.providers.http.sensors.http import HttpSensor
-except ImportError:  # Airflow < 2.4
-    from airflow.sensors.http_sensor import HttpSensor
-
-# http operator was renamed in providers-http 4.11.0
-try:
-    from airflow.providers.http.operators.http import HttpOperator
-
-    HTTP_OPERATOR_CLASS = HttpOperator
-except ImportError:  # pragma: no cover
-    try:
-        from airflow.providers.http.operators.http import SimpleHttpOperator
-
-        HTTP_OPERATOR_CLASS = SimpleHttpOperator
-    except ImportError:  # pragma: no cover
-        # Fall back to dynamically importing the operator
-        HTTP_OPERATOR_CLASS = None
-
-
-# sql sensor was moved in 2.4
-try:
-    from airflow.sensors.sql_sensor import SqlSensor
-except ImportError:  # pragma: no cover
-    from airflow.providers.common.sql.sensors.sql import SqlSensor
-
-
-try:
-    # Try Airflow 3
     from airflow.providers.standard.sensors.python import PythonSensor
 except ImportError:
+    from airflow.operators.python import BranchPythonOperator, PythonOperator
+    from airflow.sensors.python import PythonSensor
+
+
+logger = logging.getLogger(__name__)
+
+# Try to import HttpOperator and HttpSensor only if the package is installed
+try:
+    from airflow.providers.http.operators.http import HttpOperator
+    from airflow.providers.http.sensors.http import HttpSensor
+
+    HTTP_OPERATOR_CLASS = HttpOperator
+    HTTP_SENSOR_CLASS = HttpSensor
+except ImportError:  # pragma: no cover
     try:
-        # Try Airflow 2.4
-        from airflow.sensors.python import PythonSensor
-    except ImportError:
-        # Fallback to older versions
-        from airflow.sensors.python import PythonSensor
+        # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
+        from airflow.providers.http.operators.http import SimpleHttpOperator
+        from airflow.providers.http.sensors.http import HttpSensor
 
-from airflow.models import MappedOperator
+        HTTP_OPERATOR_CLASS = SimpleHttpOperator
+        HTTP_SENSOR_CLASS = HttpSensor
+    except ImportError:  # pragma: no cover
+        HTTP_OPERATOR_CLASS = None
+        HTTP_SENSOR_CLASS = None
+        logger.info("Package apache-airflow-providers-http is not installed.")
 
+# Try to import SqlSensor only if the package is installed
+try:
+    from airflow.providers.common.sql.sensors.sql import SqlSensor
+
+    SQL_SENSOR_CLASS = SqlSensor
+except ImportError:
+    logger.info("Package apache-airflow-providers-common-sql is not installed.")
+    SQL_SENSOR_CLASS = None
+
+# Try to import KubernetesPodOperator only if the package is installed
 try:
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
 except ImportError:
-    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.0.0
+        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+
+        KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
+        KUBERNETES_OPERATOR_CLASS = None
+
+try:
+    from airflow.providers.cncf.kubernetes import __version__
+
+    K8S_PROVIDER_VERSION = __version__
+
+except ImportError:  # pragma: no cover
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.4.2
+        from airflow.providers.cncf.kubernetes import get_provider_info
+
+        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
+        K8S_PROVIDER_VERSION = "0"
 
 try:
     from airflow.providers.cncf.kubernetes.secret import Secret
 except ImportError:
-    from airflow.kubernetes.secret import Secret
+    try:
+        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 5.0.0
+        from airflow.kubernetes.secret import Secret
+    except ImportError:
+        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
 
-from airflow.timetables.base import Timetable
-from airflow.utils.task_group import TaskGroup
-from kubernetes.client.models import (
-    V1Affinity,
-    V1Container,
-    V1ContainerPort as Port,
-    V1EnvFromSource,
-    V1EnvVar,
-    V1LocalObjectReference,
-    V1Pod,
-    V1PodSecurityContext,
-    V1Toleration,
-    V1Volume,
-    V1VolumeMount as VolumeMount,
-)
+try:
+    from kubernetes.client.models import (
+        V1Affinity,
+        V1Container,
+        V1ContainerPort as Port,
+        V1EnvFromSource,
+        V1EnvVar,
+        V1LocalObjectReference,
+        V1Pod,
+        V1PodSecurityContext,
+        V1Toleration,
+        V1Volume,
+        V1VolumeMount as VolumeMount,
+    )
+except ImportError:
+    logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
 
 from dagfactory import parsers, utils
+from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-
-if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
-    from airflow.datasets import Dataset
-else:
-    Dataset = None
-
 
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
+INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
 
 
 class DagBuilder:
@@ -136,7 +143,7 @@ class DagBuilder:
 
     :param dag_name: the name of the DAG
     :param dag_config: a dictionary containing configuration for the DAG
-    :param default_config: a dictitionary containing defaults for all DAGs
+    :param default_config: a dictionary containing defaults for all DAGs
         in the YAML file
     """
 
@@ -172,6 +179,18 @@ class DagBuilder:
             dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout_sec"])
             del dag_params["dagrun_timeout_sec"]
 
+        if utils.check_dict_key(dag_params, "start_date"):
+            dag_params["start_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["start_date"],
+                timezone=dag_params.get("timezone", "UTC"),
+            )
+
+        if utils.check_dict_key(dag_params, "end_date"):
+            dag_params["end_date"]: datetime = utils.get_datetime(
+                date_value=dag_params["end_date"],
+                timezone=dag_params.get("timezone", "UTC"),
+            )
+
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
         if utils.check_dict_key(dag_params["default_args"], "end_date"):
             dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
@@ -188,6 +207,12 @@ class DagBuilder:
         if utils.check_dict_key(dag_params["default_args"], "sla_secs"):
             dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla_secs"])
             del dag_params["default_args"]["sla_secs"]
+
+        if utils.check_dict_key(dag_params["default_args"], "execution_timeout"):
+            if isinstance(dag_params["default_args"]["execution_timeout"], int):
+                dag_params["default_args"]["execution_timeout"]: timedelta = timedelta(
+                    seconds=dag_params["default_args"]["execution_timeout"]
+                )
 
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
         # check has gone into the set_callback method
@@ -254,16 +279,11 @@ class DagBuilder:
             else:
                 raise DagFactoryException("render_template_as_native_obj should be bool type!")
 
-        try:
-            # ensure that default_args dictionary contains key "start_date"
-            # with "datetime" value in specified timezone
+        if check_dict_key(dag_params["default_args"], "start_date"):
             dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
-        except KeyError as err:
-            # pylint: disable=line-too-long
-            raise DagFactoryConfigException(f"{self.dag_name} config is missing start_date") from err
         return dag_params
 
     @staticmethod
@@ -346,6 +366,42 @@ class DagBuilder:
 
         return task_params
 
+    @staticmethod
+    def _handle_http_sensor(operator_obj, task_params):
+        # Only handle if HttpOperator/HttpSensor are available
+        if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
+            headers = task_params.get("headers", {})
+            content_type = headers.get("Content-Type", "").lower()
+
+            if "data" in task_params and "application/json" in content_type:
+                task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
+
+                if "Content-Type" not in headers:
+                    headers["Content-Type"] = "application/json"
+                task_params["headers"] = headers
+        elif HTTP_SENSOR_CLASS and issubclass(operator_obj, HTTP_SENSOR_CLASS):
+            if not (
+                task_params.get("response_check_name") and task_params.get("response_check_file")
+            ) and not task_params.get("response_check_lambda"):
+                raise DagFactoryException(
+                    "Failed to create task. HttpSensor requires \
+                    `response_check_name` and `response_check_file` parameters \
+                    or `response_check_lambda` parameter."
+                )
+
+            # remove dag-factory specific parameters
+            # Airflow 2.0 doesn't allow these to
+            response_check_name = task_params.pop("response_check_name", None)
+            response_check_file = task_params.pop("response_check_file", None)
+            if response_check_name:
+                task_params["response_check"]: Callable = utils.get_python_callable(
+                    response_check_name, response_check_file
+                )
+            else:
+                response_check_name = task_params.pop("response_check_lambda", None)
+                task_params["response_check"]: Callable = utils.get_python_callable_lambda(response_check_name)
+        return task_params
+
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-locals
@@ -393,7 +449,7 @@ class DagBuilder:
             # declare both a callable file and a lambda function for success/failure parameter.
             # If both are found the object will not throw and error, instead callable file will
             # take precedence over the lambda function
-            if issubclass(operator_obj, SqlSensor):
+            if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
                 # Success checks
                 if task_params.get("success_check_file") and task_params.get("success_check_name"):
                     task_params["success"]: Callable = utils.get_python_callable(
@@ -419,45 +475,15 @@ class DagBuilder:
                     )
                     del task_params["failure_check_lambda"]
 
-            if issubclass(operator_obj, HttpSensor):
-                if not (
-                    task_params.get("response_check_name") and task_params.get("response_check_file")
-                ) and not task_params.get("response_check_lambda"):
-                    raise DagFactoryException(
-                        "Failed to create task. HttpSensor requires \
-                        `response_check_name` and `response_check_file` parameters \
-                        or `response_check_lambda` parameter."
-                    )
-                if task_params.get("response_check_file"):
-                    task_params["response_check"]: Callable = utils.get_python_callable(
-                        task_params["response_check_name"], task_params["response_check_file"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_name"]
-                    del task_params["response_check_file"]
-                else:
-                    task_params["response_check"]: Callable = utils.get_python_callable_lambda(
-                        task_params["response_check_lambda"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["response_check_lambda"]
+            # Only handle HTTP operator/sensor if the package is installed
+            if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
+                operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+            ):
+                task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
-            if issubclass(operator_obj, KubernetesPodOperator):
+            # Only handle KubernetesPodOperator if the package is installed
+            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KUBERNETES_OPERATOR_CLASS):
                 task_params = DagBuilder._clean_kpo_task_params(task_params)
-
-            # HttpOperator
-            if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
-                headers = task_params.get("headers", {})
-                content_type = headers.get("Content-Type", "").lower()
-
-                if "data" in task_params and "application/json" in content_type:
-                    task_params["data"]: Callable = utils.get_json_serialized_callable(task_params["data"])
-
-                    if "Content-Type" not in headers:
-                        headers["Content-Type"] = "application/json"
-                    task_params["headers"] = headers
 
             DagBuilder.adjust_general_task_params(task_params)
 
@@ -745,15 +771,6 @@ class DagBuilder:
         return watchers
 
     @staticmethod
-    def _init_asset(asset_dict: dict):
-        from airflow.sdk import Asset
-
-        """Initialize an Asset from its configuration dictionary."""
-        if "watchers" in asset_dict:
-            asset_dict["watchers"] = DagBuilder._init_watchers(asset_dict["watchers"])
-        return Asset(**asset_dict)
-
-    @staticmethod
     def _combine_assets(assets, op: str):
         """Combine a list of Asset objects using logical operators."""
         if op == "or":
@@ -764,8 +781,27 @@ class DagBuilder:
             raise ValueError(f"Unknown operator: {op}")
 
     @staticmethod
+    def _is_asset(d):
+        from airflow.sdk import Asset
+
+        if not isinstance(d, dict):
+            return False
+        for key, value in d.items():
+            if isinstance(value, Asset):
+                return True
+            elif isinstance(value, list):
+                if any(isinstance(item, Asset) for item in value):
+                    return True
+            elif isinstance(value, dict):
+                if DagBuilder._is_asset(value):
+                    return True
+        return False
+
+    @staticmethod
     def _asset_schedule(value):
         """Recursively parse and construct assets or combinations of assets."""
+        from airflow.sdk import Asset
+
         if isinstance(value, dict):
             if "or" in value:
                 assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
@@ -773,49 +809,12 @@ class DagBuilder:
             elif "and" in value:
                 assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
                 return DagBuilder._combine_assets(assets, "and")
-            elif "uri" in value:
-                return DagBuilder._init_asset(value)
-            else:
-                raise ValueError(f"Invalid asset entry: {value}")
         elif isinstance(value, list):
-            return [DagBuilder._init_asset(asset) for asset in value]
+            return [asset for asset in value]
+        elif isinstance(value, Asset):
+            return value
         else:
             raise TypeError(f"Unexpected data type: {type(value)}")
-
-    @staticmethod
-    def _resolve_schedule(dag_params):
-        schedule = dag_params.get("schedule")
-        if schedule is None:
-            return None
-
-        if isinstance(schedule, str) and schedule.strip().lower() == "none":
-            return None
-
-        # Case 1: If schedule is a string, return it directly
-        if isinstance(schedule, str):
-            return schedule
-
-        # Case 2: If schedule is a dictionary
-        if isinstance(schedule, dict):
-            schedule_type = schedule.get("type")
-            value = schedule.get("value")
-
-            dispatch = {
-                "cron": lambda v: v,
-                "timetable": lambda v: DagBuilder.make_timetable(v.get("callable"), v.get("params", {})),
-                "timedelta": lambda v: timedelta(**v),
-                "relativedelta": lambda v: relativedelta(**v),
-                "assets": lambda v: DagBuilder._asset_schedule(v),
-            }
-
-            try:
-                handler = dispatch[schedule_type]
-            except KeyError:
-                raise DagFactoryException(f"Schedule type {schedule_type} is not supported.")
-
-            return handler(value)
-
-        raise DagFactoryException(f"Unexpected value for schedule: {schedule}")
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -862,7 +861,97 @@ class DagBuilder:
                 if has_datasets_attr:
                     schedule.pop("datasets")
         else:
-            dag_kwargs["schedule"] = DagBuilder._resolve_schedule(dag_params)
+            schedule = dag_params.get("schedule")
+            if DagBuilder._is_asset(schedule):
+                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+            else:
+                if (
+                    utils.check_dict_key(dag_params, "schedule")
+                    and isinstance(dag_params["schedule"], str)
+                    and dag_params["schedule"].strip().lower() == "none"
+                ):
+                    dag_kwargs["schedule"] = None
+                else:
+                    dag_kwargs["schedule"] = schedule
+
+    @staticmethod
+    def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
+        """Ensure tasks configuration is in the canonical dict form.
+
+        Dag authors may provide tasks either as a mapping of ``task_id`` -> config
+        or as a *list* of configs each containing a ``task_id`` key. This helper
+        converts the latter to the former so that the rest of the builder logic
+        can operate on a single, predictable structure.
+
+        :param tasks_cfg: the raw ``tasks`` value from the YAML / dict config
+        """
+        # Nothing provided – let the caller decide how to handle later.
+        if tasks_cfg is None:
+            return {}
+
+        # Already in the desired form
+        if isinstance(tasks_cfg, dict):
+            return tasks_cfg
+
+        if isinstance(tasks_cfg, list):
+            converted: Dict[str, Dict[str, Any]] = {}
+
+            for entry in tasks_cfg:
+                if not isinstance(entry, dict) or "task_id" not in entry:
+                    raise DagFactoryConfigException(
+                        "Each task definition in the list must be a mapping that contains a 'task_id' key"
+                    )
+
+                task_id = entry["task_id"]
+
+                if task_id in converted:
+                    raise DagFactoryConfigException(f"Duplicate task_id detected in tasks list: '{task_id}'")
+
+                # Exclude task_id from the configuration body – historically it
+                # is represented by the mapping key, not within the dict.
+                task_conf = {k: v for k, v in entry.items() if k != "task_id"}
+                converted[task_id] = task_conf
+
+            return converted
+
+        raise DagFactoryConfigException("'tasks' must be either a mapping or a list of task configs")
+
+    @staticmethod
+    def _normalise_task_groups_config(task_groups_cfg: Any) -> Dict[str, Dict[str, Any]]:
+        """Convert a list-based task_groups definition into dict form.
+
+        Accepts either the canonical mapping of ``group_name`` -> config or a list where each item is a mapping
+        containing a ``group_name`` key. Performs duplicate detection and basic validation.
+
+        :param task_groups_cfg: the raw ``task_groups`` value from the YAML / dict config
+        """
+
+        if task_groups_cfg is None:
+            return {}
+
+        if isinstance(task_groups_cfg, dict):
+            return task_groups_cfg
+
+        if isinstance(task_groups_cfg, list):
+            converted: Dict[str, Dict[str, Any]] = {}
+
+            for entry in task_groups_cfg:
+                if not isinstance(entry, dict) or "group_name" not in entry:
+                    raise DagFactoryConfigException(
+                        "Each task_group definition in the list must be a mapping that contains a 'group_name' key"
+                    )
+
+                group_id = entry["group_name"]
+
+                if group_id in converted:
+                    raise DagFactoryConfigException(f"Duplicate group_name detected in task_groups list: '{group_id}'")
+
+                group_conf = {k: v for k, v in entry.items() if k != "group_name"}
+                converted[group_id] = group_conf
+
+            return converted
+
+        raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
@@ -874,14 +963,15 @@ class DagBuilder:
         """
         dag_params: Dict[str, Any] = self.get_dag_params()
 
+        dag_params["tasks"] = DagBuilder._normalise_tasks_config(dag_params.get("tasks"))
+
+        dag_params["task_groups"] = DagBuilder._normalise_task_groups_config(dag_params.get("task_groups"))
+
         dag_kwargs: Dict[str, Any] = {}
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
             dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
-
-        if not dag_params.get("timetable") and not utils.check_dict_key(dag_params, "schedule"):
-            dag_kwargs["schedule_interval"] = dag_params.get("schedule_interval", timedelta(days=1))
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
@@ -942,6 +1032,9 @@ class DagBuilder:
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
+
+        dag_kwargs["start_date"] = dag_params.get("start_date", None)
+        dag_kwargs["end_date"] = dag_params.get("end_date", None)
 
         dag: DAG = DAG(**dag_kwargs)
 
@@ -1117,8 +1210,12 @@ class DagBuilder:
         if utils.check_dict_key(task_params, "variables_as_arguments"):
             variables: List[Dict[str, str]] = task_params.get("variables_as_arguments")
             for variable in variables:
-                if Variable.get(variable["variable"], default_var=None) is not None:
-                    task_params[variable["attribute"]] = Variable.get(variable["variable"], default_var=None)
+                default_argument_name = "default"
+                if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
+                    default_argument_name = "default_var"
+                variable_value = Variable.get(variable["variable"], **{default_argument_name: None})
+                if variable_value is not None:
+                    task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
         if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):

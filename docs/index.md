@@ -13,6 +13,10 @@ Are you new to DAG Factory? This is the place to start!
     * [Traditional Airflow Operators](./comparison/traditional_operators.md)
     * [TaskFlow API](./comparison/taskflow_api.md)
 
+## Command line
+
+* [Using DAG Factory CLI features](features/cli.md)
+
 ## Configuration
 
 * [Configuring your workflows](configuration/configuring_workflows.md)

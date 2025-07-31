@@ -398,6 +398,23 @@ class DummyClass:
         return isinstance(other, DummyClass) and self.a == other.a and self.b == other.b
 
 
+class DummyClassWithArgs:
+    def __init__(self, a1, a2, a=None, b=None):
+        self.a1 = a1
+        self.a2 = a2
+        self.a = a
+        self.b = b
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, DummyClassWithArgs)
+            and self.a1 == other.a1
+            and self.a2 == other.a2
+            and self.a == other.a
+            and self.b == other.b
+        )
+
+
 class TestCustomType:
 
     @patch("dagfactory.utils._import_from_string")
@@ -436,6 +453,26 @@ class TestCustomType:
     def test_non_dict_non_list(self):
         assert cast_with_type("hello") == "hello"
         assert cast_with_type(123) == 123
+
+    def test_type_args(self):
+        data = {
+            "__type__": "tests.test_utils.DummyClassWithArgs",
+            "__args__": {
+                "__type__": "builtins.list",
+                "items": [1, {"__type__": "tests.test_utils.DummyClass", "a": 1, "b": 2}],
+            },
+            "a": 1,
+            "b": {"__type__": "tests.test_utils.DummyClass", "a": 3, "b": 4},
+        }
+
+        result = cast_with_type(data)
+        expected = DummyClassWithArgs(
+            1,
+            DummyClass(a=1, b=2),
+            a=1,
+            b=DummyClass(a=3, b=4),
+        )
+        assert result == expected
 
 
 class TestMergeDict:

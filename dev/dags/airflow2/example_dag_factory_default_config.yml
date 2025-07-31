@@ -7,15 +7,15 @@ default:
     - dynamic
   tasks:
     extract:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo extract"
     transform:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       bash_command: "echo transform"
       dependencies:
       - extract
     load:
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.operators.bash.BashOperator
       dependencies:
       - transform
 

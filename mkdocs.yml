@@ -52,7 +52,10 @@ nav:
       - configuration/configuring_workflows.md
       - configuration/environment_variables.md
       - configuration/defaults.md
+      - configuration/params.md
+      - configuration/jinja2_template.md
       - configuration/schedule.md
+      - configuration/custom_py_object.md
   - Features:
       - features/dynamic_tasks.md
       - features/datasets.md
@@ -61,6 +64,7 @@ nav:
       - features/http_task.md
       - features/multiple_configuration_files.md
       - features/custom_python_object.md
+      - features/object_storage.md
 
   - Comparison:
       - comparison/index.md

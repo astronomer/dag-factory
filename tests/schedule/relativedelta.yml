@@ -1,4 +1,3 @@
 schedule:
-  type: relativedelta
-  value:
-      month: 1
+  __type__: dateutil.relativedelta.relativedelta
+  hour: 18

@@ -28,16 +28,38 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "apache-airflow>=2.3",
-    "apache-airflow-providers-http>=2.0.0",
-    "apache-airflow-providers-cncf-kubernetes",
+    "apache-airflow>=2.4",
     "pyyaml",
     "packaging",
+    "typer"
 ]
+
+[project.scripts]
+dagfactory = "dagfactory.__main__:app"
 
 
 [project.optional-dependencies]
+all = [
+    "apache-airflow>=2.4",
+    "apache-airflow-providers-http>=4.0.0",
+    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
+    "apache-airflow-providers-common-sql>=1.2.0",
+    "pyyaml",
+    "packaging",
+]
+kubernetes = [
+    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
+]
+http = [
+    "apache-airflow-providers-http>=4.0.0",
+]
+common-sql = [
+    "apache-airflow-providers-common-sql>=1.2.0"
+]
 tests = [
+    "apache-airflow-providers-http>=4.0.0",
+    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
+    "apache-airflow-providers-common-sql>=1.2.0",
     "apache-airflow-providers-slack",
     "pytest>=6.0",
     "pytest-cov",
@@ -57,11 +79,12 @@ dev-dependencies = [
     "apache-airflow-providers-slack",
     "httpx>=0.25.0",
     "pandas",
+    "hatch",
 ]
 
 # Respect existing constraints for Airflow compatibility
 constraint-dependencies = [
-    "apache-airflow>=2.3",
+    "apache-airflow>=2.4",
 ]
 
 [tool.uv.workspace]
@@ -95,12 +118,12 @@ pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow}
 
 [[tool.hatch.envs.tests.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
-airflow = ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+airflow = ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
 
 
 [tool.hatch.envs.tests.scripts]
 freeze = "pip freeze"
-static-check = " pre-commit run --files dagfactory/*"
+static-check = " pre-commit run --files dagfactory/* uv.lock"
 test = 'sh scripts/test/unit.sh'
 test-cov = 'sh scripts/test/unit-cov.sh'
 test-integration = 'sh scripts/test/integration.sh'

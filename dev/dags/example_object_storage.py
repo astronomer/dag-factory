@@ -8,10 +8,8 @@ import dagfactory
 DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
 CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 
-config_file = str(CONFIG_ROOT_DIR / "example_customize_operator.yml")
-
+config_file = str(CONFIG_ROOT_DIR / "example_object_storage.yml")
 example_dag_factory = dagfactory.DagFactory(config_file)
 
 # Creating task dependencies
-example_dag_factory.clean_dags(globals())
 example_dag_factory.generate_dags(globals())
