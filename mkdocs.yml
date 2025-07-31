@@ -67,7 +67,7 @@ nav:
       - features/multiple_configuration_files.md
       - features/custom_python_object.md
       - features/object_storage.md
-      - features/kpo.md
+      - Kubernetes Pod Operator: features/kpo.md
 
   - Comparison:
       - comparison/index.md

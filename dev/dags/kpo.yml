@@ -4,7 +4,7 @@ kubernetes_pod_dag:
   description: "A DAG that runs a simple KubernetesPodOperator task"
   catchup: false
   tasks:
-    hello-world-pod:
+    - task_id: hello-world-pod
       operator: airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator
       config_file: "path/to/kube/config"
       image: "python:3.12-slim"
