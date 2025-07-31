@@ -257,7 +257,7 @@ def is_partial_duplicated(partial_kwargs: Dict[str, Any], task_params: Dict[str,
     return False
 
 
-def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str]:
+def get_datasets_uri_yaml_file(file_path: str, datasets_filter: List[str]) -> List[str]:
     """
     Retrieves the URIs of datasets from a YAML file based on a given filter.
 
