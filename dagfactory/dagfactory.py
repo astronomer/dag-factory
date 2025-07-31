@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from airflow.configuration import conf as airflow_conf
-from airflow.exceptions import AirflowException  # type: ignore
 
 try:
     from airflow.sdk.definitions.dag import DAG
@@ -331,7 +330,6 @@ def load_yaml_dags(
     if suffix is None:
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
-    broken_yaml_files = []
     for suf in suffix:
         candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
     for config_file_path in candidate_dag_files:
@@ -348,14 +346,19 @@ def load_yaml_dags(
                 yaml_snippet = "<unable to read YAML content>"
 
             message = (
-                f"Failed to generate DAGs from YAML file: {config_file_abs_path}\n\n"
-                f"Error: {err}\n\n"
+                f"\n\nFailed to generate DAGs from YAML file: {config_file_abs_path}\n\n"
+                f"Error: \n{err}\n\n"
                 f"YAML content:\n{yaml_snippet}"
             )
-            broken_yaml_files.append(message)
+            lines = [
+                f"# Auto-generated broken DAG file for {config_file_path}",
+                "from dagfactory.exceptions import DagFactoryConfigException",
+                "",
+                f"raise DagFactoryConfigException('''{message}''')",
+            ]
+            file_content = "\n".join(lines)
+
+            with open(f"dags/broken_{config_file_path.stem}.py", "w") as f:
+                f.write(file_content)
         else:
             logging.info("DAG loaded: %s", config_file_path)
-    if broken_yaml_files:
-        readable_error = f"\n\nFailed to generate DAGs from {len(broken_yaml_files)} YAML files:\n\n{'-'*192}\n\n"
-        readable_error += f"\n\n{'-'*192}\n\n".join(broken_yaml_files)
-        raise AirflowException(f"\n\n{readable_error}")
