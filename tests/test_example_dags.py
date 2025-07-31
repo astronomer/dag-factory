@@ -16,7 +16,8 @@ from . import utils as test_utils
 EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
-IGNORED_DAG_FILES = ["example_callbacks.py", "example_http_operator_task.py"]
+# TODO: Enable asset_triggered_dags.py once https://github.com/apache/airflow/issues/51644 is solved
+IGNORED_DAG_FILES = ["example_callbacks.py", "example_http_operator_task.py", "asset_triggered_dags.py"]
 
 MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "2.5": [
