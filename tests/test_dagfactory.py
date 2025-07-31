@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -81,7 +82,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
                 "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
-                "execution_timeout_secs": 5,
+                "execution_timeout": timedelta(seconds=5),
                 "on_failure_callback": f"{__name__}.print_context_callback",
                 "on_success_callback": f"{__name__}.print_context_callback",
                 "on_execute_callback": f"{__name__}.print_context_callback",
@@ -133,11 +134,11 @@ def test_load_dag_config_valid(monkeypatch):
                 "start_date": datetime.date(2018, 3, 1),
                 "end_date": datetime.date(2018, 3, 5),
                 "retries": 1,
-                "retry_delay_sec": 300,
+                "retry_delay": timedelta(seconds=300),
             },
             "concurrency": 1,
             "max_active_runs": 1,
-            "dagrun_timeout_sec": 600,
+            "dagrun_timeout": timedelta(seconds=600),
             "default_view": "tree",
             "orientation": "LR",
             get_schedule_key(): "0 1 * * *",
@@ -319,11 +320,11 @@ def test_get_default_config():
             "start_date": datetime.date(2018, 3, 1),
             "end_date": datetime.date(2018, 3, 5),
             "retries": 1,
-            "retry_delay_sec": 300,
+            "retry_delay": timedelta(seconds=300),
         },
         "concurrency": 1,
         "max_active_runs": 1,
-        "dagrun_timeout_sec": 600,
+        "dagrun_timeout": timedelta(seconds=600),
         "default_view": "tree",
         "orientation": "LR",
         get_schedule_key(): "0 1 * * *",
@@ -393,12 +394,10 @@ def test_doc_md_file_path(monkeypatch):
 ```yaml
 default:
   concurrency: 1
-  dagrun_timeout_sec: 600
   default_args:
     end_date: 2018-03-05
     owner: default_owner
     retries: 1
-    retry_delay_sec: 300
     start_date: 2018-03-01
   default_view: tree
   max_active_runs: 1
@@ -620,7 +619,7 @@ def test_yml_dag_rendering_in_docs():
 
 def test_generate_dags_with_default_args_execution_timeout():
     config_dict = {
-        "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": 1}},
+        "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": timedelta(seconds=1)}},
         "basic_example_dag": {
             "schedule_interval": "0 3 * * *",
             "tasks": {
@@ -640,6 +639,19 @@ def test_dag_level_start():
       schedule_interval: "0 3 * * *"
       start_date: 2024-11-11
       end_date: 2025-11-11
+      dagrun_timeout:
+        __type__: datetime.timedelta
+        hours: 3
+      default_args:
+        retry_delay:
+          __type__: datetime.timedelta
+          seconds: 25
+        execution_timeout:
+          __type__: datetime.timedelta
+          seconds: 15
+        sla:
+          __type__: datetime.timedelta
+          seconds: 10
       tasks:
         task_1:
           operator: airflow.operators.bash.BashOperator
@@ -658,6 +670,11 @@ def test_dag_level_start():
 
     assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
     assert dag.end_date == DateTime(2025, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
+    assert dag.dagrun_timeout == datetime.timedelta(hours=3)
+    assert dag.tasks[0].retry_delay == datetime.timedelta(seconds=25)
+    assert dag.tasks[0].execution_timeout == datetime.timedelta(seconds=15)
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        assert dag.tasks[0].sla == datetime.timedelta(seconds=10)
 
 
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
