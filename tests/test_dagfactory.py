@@ -735,10 +735,11 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
     assert default_config["c_param"] == "c"
 
 
-def test_load_config_with_extends():
-    """Test that _load_config correctly handles __extends__ key."""
+def test_load_dag_config_with_extends():
+    """Test that _load_dag_config correctly handles __extends__ key."""
     test_config_path = os.path.join(here, "fixtures/dag_factory_extends.yml")
-    actual = dagfactory.DagFactory._load_config(test_config_path)
+    td = dagfactory.DagFactory(test_config_path)
+    actual = td._load_dag_config(test_config_path)
 
     # Verify that the extends key is preserved in the final config
     assert "__extends__" in actual
@@ -766,10 +767,11 @@ def test_load_config_with_extends():
     assert actual["example_dag_with_extends"]["description"] == "DAG created with extends functionality"
 
 
-def test_load_config_with_chained_extends():
-    """Test that _load_config correctly handles chained __extends__ (extends of extends)."""
+def test_load_dag_config_with_chained_extends():
+    """Test that _load_dag_config correctly handles chained __extends__ (extends of extends)."""
     test_config_path = os.path.join(here, "fixtures/dag_factory_extends_chained.yml")
-    actual = dagfactory.DagFactory._load_config(test_config_path)
+    td = dagfactory.DagFactory(test_config_path)
+    actual = td._load_dag_config(test_config_path)
 
     # Verify that the extends key is preserved in the final config
     assert "__extends__" in actual
@@ -802,8 +804,8 @@ def test_load_config_with_chained_extends():
     assert "example_dag_chained_extends" in actual
 
 
-def test_load_config_extends_missing_file():
-    """Test that _load_config raises appropriate error when extended file is missing."""
+def test_load_dag_config_extends_missing_file():
+    """Test that _load_dag_config raises appropriate error when extended file is missing."""
     # Create a temporary config that references a non-existent file
     import tempfile
 
@@ -826,14 +828,15 @@ test_dag:
 
     try:
         with pytest.raises(Exception):  # Should raise an exception due to missing file
-            dagfactory.DagFactory._load_config(temp_config_path)
+            td = dagfactory.DagFactory(temp_config_path)
+            td._load_dag_config(temp_config_path)
     finally:
         # Clean up temporary file
         os.unlink(temp_config_path)
 
 
-def test_load_config_extends_empty_list():
-    """Test that _load_config handles empty __extends__ list correctly."""
+def test_load_dag_config_extends_empty_list():
+    """Test that _load_dag_config handles empty __extends__ list correctly."""
     import tempfile
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -854,7 +857,8 @@ test_dag:
         temp_config_path = f.name
 
     try:
-        actual = dagfactory.DagFactory._load_config(temp_config_path)
+        td = dagfactory.DagFactory(temp_config_path)
+        actual = td._load_dag_config(temp_config_path)
 
         # Verify that the extends key is preserved (even when empty)
         assert "__extends__" in actual
