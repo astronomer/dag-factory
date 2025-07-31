@@ -18,13 +18,13 @@ from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory._yaml import load_yaml_file
-from dagfactory.constants import DEFAULTS_FILE_NAME
+from dagfactory.constants import DEFAULTS_FILE_NAME, EXTENDS_KEY
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 from dagfactory.utils import merge_dict, update_yaml_structure
 
 # these are params that cannot be a dag name
-SYSTEM_PARAMS: List[str] = ["default", "task_groups", "__extends__"]
+SYSTEM_PARAMS: List[str] = ["default", "task_groups", EXTENDS_KEY]
 
 
 class DagFactory:
@@ -209,7 +209,6 @@ class DagFactory:
                 config = update_yaml_structure(config)
 
             # extend base config files
-            EXTENDS_KEY = "__extends__"
             extend_config_queue = copy.deepcopy(config.get(EXTENDS_KEY, []))
 
             while extend_config_queue:
