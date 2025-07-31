@@ -12,6 +12,6 @@ consumer_dag:
           - "s3://bucket-cjmm/raw/dataset_custom_2"
         - "s3://bucket-cjmm/raw/dataset_custom_3"
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
