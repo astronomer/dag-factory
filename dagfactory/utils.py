@@ -307,7 +307,7 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
 
 
 def extract_dataset_names(expression) -> List[str]:
-    dataset_pattern = r"[a-zA-Z_][a-zA-Z0-9_\-./\\]*"
+    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_\-./\\]*\b"
     datasets = re.findall(dataset_pattern, expression)
     return datasets
 
