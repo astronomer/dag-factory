@@ -169,15 +169,6 @@ Starting with DAG Factory 1.0, you can create modular, reusable configuration de
 - **Flexibility**: Support multiple inheritance levels and chaining
 - **Organization**: Create clear configuration hierarchies (base → environment → team → DAG)
 
-### How `__extends__` works
-
-When a YAML file contains an `__extends__` key, DAG Factory will:
-
-1. Load the specified configuration files in order
-2. Merge their `default` sections with the current configuration
-3. Apply the same precedence rules as other default configurations
-4. Support chaining: extended files can also have their own `__extends__` keys
-
 ### Example usage of `__extends__`
 
 #### Basic extension
