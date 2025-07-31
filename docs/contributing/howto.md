@@ -143,9 +143,8 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 
 !!! note
     - These tests create local Python virtual environments in a hatch-managed directory.
-    - The `AUTO_CONVERT_TO_AF3` environment variable is required to run tests in the Airflow 3 environment.
 
-First, set the following environment variables:
+If you have YAMLs written for Airflow 2 and would like them to be run for Airflow 3 tests, set the following environment variable for DAG Factory to convert and make them compatible with Airflow 3:
 
 ```bash
 export AUTO_CONVERT_TO_AF3=true
