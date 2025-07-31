@@ -639,6 +639,19 @@ def test_dag_level_start():
       schedule_interval: "0 3 * * *"
       start_date: 2024-11-11
       end_date: 2025-11-11
+      dagrun_timeout:
+        __type__: datetime.timedelta
+        hours: 3
+      default_args:
+        retry_delay:
+          __type__: datetime.timedelta
+          seconds: 25
+        execution_timeout:
+          __type__: datetime.timedelta
+          seconds: 15
+        sla:
+          __type__: datetime.timedelta
+          seconds: 10
       tasks:
         task_1:
           operator: airflow.operators.bash.BashOperator
@@ -657,6 +670,11 @@ def test_dag_level_start():
 
     assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
     assert dag.end_date == DateTime(2025, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
+    assert dag.dagrun_timeout == datetime.timedelta(hours=3)
+    assert dag.tasks[0].retry_delay == datetime.timedelta(seconds=25)
+    assert dag.tasks[0].execution_timeout == datetime.timedelta(seconds=15)
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        assert dag.tasks[0].sla == datetime.timedelta(seconds=10)
 
 
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
