@@ -877,3 +877,94 @@ test_dag:
     finally:
         # Clean up temporary file
         os.unlink(temp_config_path)
+
+
+def test_priority_defaults_extends_and_default_block():
+    """Test that defaults.yml, __extends__, and default block are applied with correct priority.
+
+    Priority behavior:
+    - For default_args: main config > __extends__ > defaults.yml
+    - For DAG-level properties: defaults.yml appears to override __extends__ configs
+    - Tags: defaults.yml tags are preserved, with dagfactory auto-added
+    """
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+
+        # 1. Create defaults.yml (lowest priority)
+        defaults_content = """
+default_args:
+  owner: global_owner
+  retries: 5
+  start_date: 2020-01-01
+max_active_runs: 5
+tags: ["global"]
+"""
+        defaults_file = temp_path / "defaults.yml"
+        with open(defaults_file, "w") as f:
+            f.write(defaults_content)
+
+        # 2. Create base config for __extends__ (medium priority)
+        base_config_content = """
+default:
+  default_args:
+    owner: extends_owner
+    retries: 3
+    start_date: 2021-01-01
+    email: test@extends.com
+  max_active_runs: 3
+  tags: ["extends"]
+"""
+        base_config_file = temp_path / "base_config.yml"
+        with open(base_config_file, "w") as f:
+            f.write(base_config_content)
+
+        # 3. Create main config with __extends__ and default block (highest priority)
+        main_config_content = f"""
+__extends__:
+  - base_config.yml
+
+default:
+  default_args:
+    owner: main_owner
+    retries: 1
+    depends_on_past: true
+  tags: ["main"]
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+"""
+        main_config_file = temp_path / "main_config.yml"
+        with open(main_config_file, "w") as f:
+            f.write(main_config_content)
+
+        # Create DagFactory with defaults.yml path and main config
+        td = dagfactory.DagFactory(
+            config_filepath=str(main_config_file),
+            default_args_config_path=str(temp_path)
+        )
+
+        # Build DAGs to test the full priority chain
+        dags = td.build_dags()
+        dag = dags["test_dag"]
+
+        # Test default_args priority: main > extends > defaults
+        assert dag.default_args["owner"] == "main_owner"  # From main config (highest priority)
+        assert dag.default_args["retries"] == 1  # From main config (highest priority)
+        assert dag.default_args["start_date"] == DateTime(2021, 1, 1, 0, 0, 0, tzinfo=Timezone("UTC"))  # From extends (medium priority, not overridden)
+        assert dag.default_args["email"] == "test@extends.com"  # From extends (medium priority, not overridden)
+        assert dag.default_args["depends_on_past"] == True  # From main config (only defined there)
+
+        # Test DAG-level properties priority:
+        # For max_active_runs, defaults.yml overrides extends config
+        assert dag.max_active_runs == 5  # From defaults.yml (global defaults take precedence for DAG-level props)
+        assert dag.owner == "main_owner"  # From main config default_args (highest priority)
+
+        # Test tags behavior (defaults.yml tags are used as base)
+        # Both "global" from defaults.yml and "dagfactory" (auto-added) should be present
+        assert "global" in dag.tags
+        assert "dagfactory" in dag.tags
