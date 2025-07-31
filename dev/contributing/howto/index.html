@@ -1752,44 +1752,59 @@
 <p>The tests are developed using PyTest and run using hatch.</p>
 <p>The <a href="https://github.com/astronomer/dag-factory/blob/main/pyproject.toml">pyproject. toml</a> file currently defines a matrix of supported versions of Python and Airflow against which a user can run the tests.</p>
 <h3 id="run-unit-tests">Run unit tests</h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>These tests create local Python virtual environments in a hatch-managed directory.</li>
+</ul>
+</div>
+<p>If you have YAMLs written for Airflow 2 and would like them to be run for Airflow 3 tests, set the following environment variable for DAG Factory to convert and make them compatible with Airflow 3:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AUTO_CONVERT_TO_AF3</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></div>
 <p>To run unit tests using Python 3.10 and Airflow 2.5, use the following:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
 </span></code></pre></div>
 <p>It is also possible to run the tests using all the matrix combinations, by using:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
 </span></code></pre></div>
 <h3 id="run-integration-tests">Run integration tests</h3>
-<blockquote>
-<p>Note: these tests create local Python virtual environments in a hatch-managed directory.
-They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-existing <code>airflow.cfg</code> and <code>airflow.db</code> files.</p>
-</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>These tests create local Python virtual environments within a <code>hatch</code>-managed directory.</li>
+<li>They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-existing <code>airflow.cfg</code> and <code>airflow.db</code> files.</li>
+<li>The <code>AUTO_CONVERT_TO_AF3</code> environment variable is required to run tests in the Airflow 3 environment.</li>
+</ul>
+</div>
 <p>First, set the following environment variables:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span><span class="s2">&quot;/dev/dags&quot;</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>dev/dags:<span class="nv">$PYTHONPATH</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT</span><span class="o">=</span><span class="m">90</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AIRFLOW_HOME</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/dags
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/dags:<span class="nv">$PYTHONPATH</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AUTO_CONVERT_TO_AF3</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>
 <p>To run the integration tests using Python 3.9 and Airflow 2.9, use</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
 </span></code></pre></div>
 <h2 id="pre-commit-and-linting">Pre-Commit and linting</h2>
 <p>We use pre-commit to run several checks on the code before committing. To install pre-commit hooks, run:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pre-commit<span class="w"> </span>install
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pre-commit<span class="w"> </span>install
 </span></code></pre></div>
 <p>To run the checks manually, run the following:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 </span></code></pre></div>
 <p>Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using <code>hatch</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
 </span></code></pre></div>
 <h2 id="write-docs">Write docs</h2>
 <p>We use Markdown to author DAG Factory documentation.</p>
 <p>Similar to running tests, we also use hatch to manage the documentation.</p>
 <p>To build and serve the documentation locally:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:dev
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:dev
 </span></code></pre></div>
 <p>To release the documentation with the current project version and set it to the latest:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:gh-release
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>docs:gh-release
 </span></code></pre></div>
 <h2 id="releasing">Releasing</h2>
 <p>We currently use <a href="https://github.com/pypa/hatch">hatch</a> for building and distributing <code>dag-factory</code>.</p>
@@ -1798,15 +1813,15 @@ They also use the user-defined <code>AIRFLOW_HOME</code>, overriding any pre-exi
 <blockquote>
 <p>Note: You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
 </blockquote>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
 </span></code></pre></div>
 <p>Or by manually updating the value of <code>__version__</code> in <code>dagfactory/__init__.py</code>.</p>
 <p>Make sure the <a href="https://github.com/astronomer/dag-factory/blob/main/CHANGELOG.md">CHANGELOG file</a> is up-to-date.</p>
 <p>Create a release using the <a href="https://github.com/astronomer/dag-factory/releases/new">GitHub UI</a>. GitHub will update the package directly to <a href="https://pypi.org/project/dag-factory/">PyPI</a>.</p>
 <p>If you're a <a href="https://pypi.org/project/dag-factory/">project maintainer in PyPI</a>, it is also possible to create a release manually,
 by authenticating to PyPI and running the commands:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>uv<span class="w"> </span>build<span class="w"> </span>--wheel<span class="w"> </span>--sdist
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>uv<span class="w"> </span>publish<span class="w"> </span>--token<span class="w"> </span>&lt;your-pypi-token&gt;
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>uv<span class="w"> </span>build<span class="w"> </span>--wheel<span class="w"> </span>--sdist
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>uv<span class="w"> </span>publish<span class="w"> </span>--token<span class="w"> </span>&lt;your-pypi-token&gt;
 </span></code></pre></div>
 
 
