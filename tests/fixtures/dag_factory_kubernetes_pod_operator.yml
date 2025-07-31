@@ -4,7 +4,7 @@ default:
     start_date: 2018-03-01
     end_date: 2018-03-05
     retries: 1
-    retry_delayc:
+    retry_delay:
       __type__: datetime.timedelta
       seconds: 300
   concurrency: 1
