@@ -37,10 +37,6 @@
          <lastmod>2025-07-31</lastmod>
     </url>
     <url>
-         <loc>https://astronomer.github.io/dag-factory/dev/configuration/load_yaml_dags/</loc>
-         <lastmod>2025-07-31</lastmod>
-    </url>
-    <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/params/</loc>
          <lastmod>2025-07-31</lastmod>
     </url>
@@ -90,6 +86,10 @@
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/http_task/</loc>
+         <lastmod>2025-07-31</lastmod>
+    </url>
+    <url>
+         <loc>https://astronomer.github.io/dag-factory/dev/features/kpo/</loc>
          <lastmod>2025-07-31</lastmod>
     </url>
     <url>
