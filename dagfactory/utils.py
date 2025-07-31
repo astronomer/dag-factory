@@ -442,5 +442,6 @@ def merge_dict(dict1: dict, dict2: dict) -> dict:
                 recursive_dict_merge(_dict1[key], value)
             else:
                 _dict1[key] = value
+
     recursive_dict_merge(result, dict2)
     return result

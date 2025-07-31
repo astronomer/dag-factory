@@ -790,7 +790,9 @@ def test_load_dag_config_with_chained_extends():
     # Verify values from the final config (dag_factory_extends_chained.yml)
     assert actual["default"]["dagrun_timeout_sec"] == 1800  # From final config
     assert actual["default"]["orientation"] == "TB"  # From final config
-    assert actual["default"]["default_args"]["end_date"] == datetime.date(2023, 12, 31)  # From final config (parsed as date)
+    assert actual["default"]["default_args"]["end_date"] == datetime.date(
+        2023, 12, 31
+    )  # From final config (parsed as date)
     assert actual["default"]["default_args"]["email_on_failure"] == True  # From final config
 
     # Verify overrides work at the top level
@@ -809,8 +811,9 @@ def test_load_dag_config_extends_missing_file():
     # Create a temporary config that references a non-existent file
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        f.write("""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        f.write(
+            """
 __extends__:
   - non_existent_file.yml
 
@@ -823,7 +826,8 @@ test_dag:
     task_1:
       operator: airflow.operators.bash.BashOperator
       bash_command: echo "test"
-""")
+"""
+        )
         temp_config_path = f.name
 
     try:
@@ -839,8 +843,9 @@ def test_load_dag_config_extends_empty_list():
     """Test that _load_dag_config handles empty __extends__ list correctly."""
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        f.write("""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        f.write(
+            """
 __extends__: []
 
 default:
@@ -853,7 +858,8 @@ test_dag:
     task_1:
       operator: airflow.operators.bash.BashOperator
       bash_command: echo "test"
-""")
+"""
+        )
         temp_config_path = f.name
 
     try:
