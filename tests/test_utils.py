@@ -436,3 +436,47 @@ class TestCustomType:
     def test_non_dict_non_list(self):
         assert cast_with_type("hello") == "hello"
         assert cast_with_type(123) == 123
+
+
+class TestMergeDict:
+
+    def test_different_keys(self):
+        dict1 = {"a": 1, "b": 2}
+        dict2 = {"c": 3, "d": 4}
+        expected = {"a": 1, "b": 2, "c": 3, "d": 4}
+
+        result = utils.merge_dict(dict1, dict2)
+        assert result == expected
+
+    def test_overlapping_keys(self):
+        dict1 = {"a": 1, "b": 2}
+        dict2 = {"b": 3, "c": 4}
+        expected = {"a": 1, "b": 3, "c": 4}
+
+        result = utils.merge_dict(dict1, dict2)
+        assert result == expected
+
+    def test_nested_dicts(self):
+        dict1 = {"a": {"x": 1, "y": 2}, "b": 3}
+        dict2 = {"a": {"y": 5, "z": 6}, "c": 7}
+        expected = {"a": {"x": 1, "y": 5, "z": 6}, "b": 3, "c": 7}
+        original_dict1 = dict1.copy()
+        original_dict2 = dict2.copy()
+
+        result = utils.merge_dict(dict1, dict2)
+        assert result == expected
+
+        # Original dictionaries should remain unchanged
+        assert dict1 == original_dict1
+        assert dict2 == original_dict2
+
+    def test_empty_dicts(self):
+        dict1 = {"a": 1}
+        dict2 = {}
+        expected = {"a": 1}
+
+        result = utils.merge_dict(dict1, dict2)
+        assert result == expected
+
+        result = utils.merge_dict({}, dict1)
+        assert result == {"a": 1}

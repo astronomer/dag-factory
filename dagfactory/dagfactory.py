@@ -1,5 +1,6 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 
+import copy
 import logging
 import os
 from itertools import chain
@@ -13,7 +14,7 @@ from packaging import version
 
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import cast_with_type, update_yaml_structure
+from dagfactory.utils import cast_with_type, merge_dict, update_yaml_structure
 
 try:
     from airflow.version import version as AIRFLOW_VERSION
@@ -21,7 +22,7 @@ except ImportError:  # pragma: no cover
     from airflow import __version__ as AIRFLOW_VERSION
 
 # these are params that cannot be a dag name
-SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
+SYSTEM_PARAMS: List[str] = ["default", "task_groups", "__extends__"]
 
 
 class DagFactory:
@@ -115,12 +116,26 @@ class DagFactory:
             with open(config_filepath, "r", encoding="utf-8") as fp:
                 config_with_env = os.path.expandvars(fp.read())
                 config: Dict[str, Any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-                config = cast_with_type(config)
 
-                # This will only invoke in the CI
-                # Make yaml DAG compatible for Airflow 3
-                if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
-                    config = update_yaml_structure(config)
+            config = cast_with_type(config)
+
+            # This will only invoke in the CI
+            # Make yaml DAG compatible for Airflow 3
+            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
+                config = update_yaml_structure(config)
+
+            # extend base config files
+            EXTENDS_KEY = "__extends__"
+            extend_config_queue = copy.deepcopy(config.get(EXTENDS_KEY, []))
+
+            while extend_config_queue:
+                extend_config_relative_path = extend_config_queue.pop(0)
+                extend_config_path = os.path.join(os.path.dirname(config_filepath), extend_config_relative_path)
+                extend_config_path = os.path.abspath(extend_config_path)  # Ensure absolute path
+                extend_config = DagFactory(config_filepath=extend_config_path).config
+                # Only 'default' is recognized in the extended config
+                config["default"] = merge_dict(extend_config.get("default", {}), config.get("default", {}))
+                extend_config_queue.extend(extend_config.get(EXTENDS_KEY, []))
 
         except Exception as err:
             raise DagFactoryConfigException("Invalid DAG Factory config file") from err

@@ -522,3 +522,137 @@ def test_yml_dag_rendering_in_docs():
     with open(dag_path, "r") as file:
         expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
     assert generated_doc_md == expected_doc_md
+
+
+def test_load_config_with_extends():
+    """Test that _load_config correctly handles __extends__ key."""
+    test_config_path = os.path.join(here, "fixtures/dag_factory_extends.yml")
+    actual = dagfactory.DagFactory._load_config(test_config_path)
+
+    # Verify that the extends key is preserved in the final config
+    assert "__extends__" in actual
+    assert actual["__extends__"] == ["extends_base.yml"]
+
+    # Verify that default values from base config are merged
+    assert actual["default"]["concurrency"] == 5  # From base config
+    assert actual["default"]["max_active_runs"] == 3  # From base config
+    assert actual["default"]["default_view"] == "graph"  # From base config
+
+    # Verify that overrides work correctly
+    assert actual["default"]["default_args"]["owner"] == "main_owner"  # Overridden
+    assert actual["default"]["schedule_interval"] == "@hourly"  # Overridden
+
+    # Verify that default_args in base values are preserved when not overridden
+    assert actual["default"]["default_args"]["retries"] == 2  # From base
+    assert actual["default"]["default_args"]["retry_delay_sec"] == 600  # From base
+    assert actual["default"]["default_args"]["start_date"] == datetime.date(2023, 1, 1)  # From base (parsed as date)
+
+    # Verify that new values are added
+    assert actual["default"]["default_args"]["email"] == "test@example.com"  # New from main
+
+    # Verify that DAG config is handled correctly when extends is used
+    assert "example_dag_with_extends" in actual
+    assert actual["example_dag_with_extends"]["description"] == "DAG created with extends functionality"
+
+
+def test_load_config_with_chained_extends():
+    """Test that _load_config correctly handles chained __extends__ (extends of extends)."""
+    test_config_path = os.path.join(here, "fixtures/dag_factory_extends_chained.yml")
+    actual = dagfactory.DagFactory._load_config(test_config_path)
+
+    # Verify that the extends key is preserved in the final config
+    assert "__extends__" in actual
+    assert actual["__extends__"] == ["dag_factory_extends.yml"]
+
+    # Verify values from the base config (extends_base.yml)
+    assert actual["default"]["concurrency"] == 5  # From base
+    assert actual["default"]["default_view"] == "graph"  # From base
+    assert actual["default"]["default_args"]["retries"] == 2  # From base
+    assert actual["default"]["default_args"]["retry_delay_sec"] == 600  # From base
+
+    # Verify values from the middle config (dag_factory_extends.yml)
+    assert actual["default"]["schedule_interval"] == "@hourly"  # From middle config
+    assert actual["default"]["default_args"]["email"] == "test@example.com"  # From middle config
+
+    # Verify values from the final config (dag_factory_extends_chained.yml)
+    assert actual["default"]["dagrun_timeout_sec"] == 1800  # From final config
+    assert actual["default"]["orientation"] == "TB"  # From final config
+    assert actual["default"]["default_args"]["end_date"] == datetime.date(2023, 12, 31)  # From final config (parsed as date)
+    assert actual["default"]["default_args"]["email_on_failure"] == True  # From final config
+
+    # Verify overrides work at the top level
+    assert actual["default"]["default_args"]["owner"] == "chained_owner"  # Final override
+    assert actual["default"]["max_active_runs"] == 1  # Final override
+
+    # Verify new values are added at the top level
+    assert actual["default"]["default_args"]["depends_on_past"] == False  # New from final config
+
+    # Verify that DAG config is preserved
+    assert "example_dag_chained_extends" in actual
+
+
+def test_load_config_extends_missing_file():
+    """Test that _load_config raises appropriate error when extended file is missing."""
+    # Create a temporary config that references a non-existent file
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        f.write("""
+__extends__:
+  - non_existent_file.yml
+
+default:
+  default_args:
+    owner: test_owner
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+""")
+        temp_config_path = f.name
+
+    try:
+        with pytest.raises(Exception):  # Should raise an exception due to missing file
+            dagfactory.DagFactory._load_config(temp_config_path)
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_config_path)
+
+
+def test_load_config_extends_empty_list():
+    """Test that _load_config handles empty __extends__ list correctly."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        f.write("""
+__extends__: []
+
+default:
+  default_args:
+    owner: test_owner
+    start_date: 2023-01-01
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+""")
+        temp_config_path = f.name
+
+    try:
+        actual = dagfactory.DagFactory._load_config(temp_config_path)
+
+        # Verify that the extends key is preserved (even when empty)
+        assert "__extends__" in actual
+        assert actual["__extends__"] == []
+
+        # Verify that the config is processed normally
+        assert actual["default"]["default_args"]["owner"] == "test_owner"
+        assert actual["default"]["default_args"]["start_date"] == datetime.date(2023, 1, 1)  # Parsed as date
+        assert "test_dag" in actual
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_config_path)

@@ -1,0 +1,17 @@
+default:
+  default_args:
+    owner: "base_owner"
+    start_date: "2024-01-01"
+    retries: 1
+    retry_delay_sec: 300
+    email_on_failure: false
+    email_on_retry: false
+  schedule_interval: "@daily"
+  catchup: false
+  max_active_runs: 1
+  dagrun_timeout_sec: 3600
+  default_view: "tree"
+  orientation: "LR"
+  tags:
+    - "dag-factory"
+    - "base"
