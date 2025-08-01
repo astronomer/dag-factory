@@ -513,8 +513,6 @@
       
         
       
-        
-      
     
     
     
@@ -567,29 +565,6 @@
   
   <span class="md-ellipsis">
     Configuring Your Workflows
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../load_yaml_dags/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    load_yaml_dags Function
     
   </span>
   
@@ -1811,13 +1786,12 @@ It is one of DAG Factory's most powerful features; using defaults allows for the
 </span></code></pre></div>
 <p>In this example, users create a YAML DAG by using the <code>DagFactory</code> class and declare default arguments in the form of a Python dictionary by setting the <code>default_args_config_dict</code> parameter in the <code>DAGFactory</code> class. This feature mirrors the functionality of
  manually specifying a <code>default_args_config_path</code> in the <code>DAGFactory</code> class, described in the next section.</p>
-<div class="language-python highlight"><span class="filename">Usage of default_args_config_dict in .py file</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>                <span class="s2">&quot;bash_command&quot;</span><span class="p">:</span> <span class="s2">&quot;echo transform&quot;</span><span class="p">,</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>                <span class="s2">&quot;dependencies&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;extract&quot;</span><span class="p">],</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>            <span class="p">},</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>            <span class="p">{</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>                <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="s2">&quot;load&quot;</span><span class="p">,</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>                <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;airflow.operators.bash.BashOperator&quot;</span><span class="p">,</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>                <span class="s2">&quot;bash_command&quot;</span><span class="p">:</span> <span class="s2">&quot;echo load&quot;</span><span class="p">,</span>
+<div class="language-python highlight"><span class="filename">Usage of default_args_config_dict in .py file</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">example_dag_factory</span> <span class="o">=</span> <span class="n">dagfactory</span><span class="o">.</span><span class="n">DagFactory</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">config_file</span><span class="p">,</span> <span class="n">default_args_config_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;default_args&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;global_owner&quot;</span><span class="p">}}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Creating task dependencies</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">example_dag_factory</span><span class="o">.</span><span class="n">generate_dags</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
 </span></code></pre></div>
 <h2 id="declaring-default-values-using-the-defaultsyml-file">Declaring default values using the <code>defaults.yml</code> file</h2>
 <p>This configuration affects DAGs created using the <code>DagFactory</code> class without the <code>default_args_config_dict</code> argument.</p>

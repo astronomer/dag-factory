@@ -511,8 +511,6 @@
       
         
       
-        
-      
     
     
     
@@ -562,29 +560,6 @@
   
   <span class="md-ellipsis">
     Configuring Your Workflows
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../configuration/load_yaml_dags/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    load_yaml_dags Function
     
   </span>
   
@@ -1666,8 +1641,8 @@ The consumer DAG will run when all the specified datasets become avai</p>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  catchup: false
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  schedule:
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    datasets:
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>      !or
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        - !and
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>      __or__:
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        - __and__:
 </span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>          - &quot;s3://bucket-cjmm/raw/dataset_custom_1&quot;
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>          - &quot;s3://bucket-cjmm/raw/dataset_custom_2&quot;
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>        - &quot;s3://bucket-cjmm/raw/dataset_custom_3&quot;
