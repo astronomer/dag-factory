@@ -23,16 +23,16 @@ def load_yaml_file(file_path: str) -> dict[str, any]:
                 try:
                     return reduce(lambda a, b: a & b, processed_items)
                 except TypeError:
-                    return f"({' & '.join(processed_items)})"
+                    return f"({' & '.join(str(item) for item in processed_items)})"
             if "__or__" in data:
                 processed_items = [_flatten_logical_expressions_helper(item) for item in data["__or__"]]
                 try:
                     return reduce(lambda a, b: a | b, processed_items)
                 except TypeError:
-                    return f"({' | '.join(processed_items)})"
+                    return f"({' | '.join(str(item) for item in processed_items)})"
             if "__join__" in data:
                 processed_items = [_flatten_logical_expressions_helper(item) for item in data["__join__"]]
-                return "".join(processed_items)
+                return "".join(str(item) for item in processed_items)
             new_dict = {}
             for key, value in data.items():
                 new_dict[key] = _flatten_logical_expressions_helper(value)
