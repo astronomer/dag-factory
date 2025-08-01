@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import pendulum
@@ -45,11 +46,11 @@ DEFAULT_CONFIG = {
         "start_date": datetime.date(2018, 3, 1),
         "end_date": datetime.date(2018, 3, 5),
         "retries": 1,
-        "retry_delay_sec": 300,
+        "retry_delay": timedelta(seconds=300),
     },
     "concurrency": 1,
     "max_active_runs": 1,
-    "dagrun_timeout_sec": 600,
+    "dagrun_timeout": timedelta(seconds=600),
     "schedule": "0 1 * * *",
 }
 
@@ -174,8 +175,9 @@ def test_dag_with_http_operator():
     http_dag_config = {
         "default_args": {"owner": "test_owner", "start_date": datetime.date(2023, 1, 1)},
         "schedule": "0 0 * * *",
-        "tasks": {
-            "http_task_json": {
+        "tasks": [
+            {
+                "task_id": "http_task_json",
                 "operator": HTTP_OPERATOR_PATH,
                 "http_conn_id": "test_conn",
                 "method": "POST",
@@ -183,7 +185,8 @@ def test_dag_with_http_operator():
                 "headers": {"Content-Type": "application/json"},
                 "data": {"message": "test data", "value": 123},
             },
-            "http_task_plain": {
+            {
+                "task_id": "http_task_plain",
                 "operator": HTTP_OPERATOR_PATH,
                 "http_conn_id": "test_conn",
                 "method": "POST",
@@ -192,7 +195,7 @@ def test_dag_with_http_operator():
                 "data": "plain text data",
                 "dependencies": ["http_task_json"],
             },
-        },
+        ],
     }
 
     # Build the DAG

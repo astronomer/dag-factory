@@ -1,4 +1,5 @@
 import csv
+import os
 from datetime import datetime, timedelta
 from random import randint
 from typing import Any
@@ -64,6 +65,17 @@ def read_params(params: dict[str, Any]) -> None:
     print("params: ", params)
     print("model_version:", params["model_version"])
     print("my_param:", params["my_param"])
+
+
+def generate_data():
+    print("Produced data to file:///$AIRFLOW_HONE/data.csv")
+    data_dir = os.environ.get("AIRFLOW_HONE", "/usr/local/airflow")
+    file_path = os.path.join(data_dir, "data.csv")
+
+    with open(file_path, "w") as f:
+        f.write("id,value\n1,42\n2,43\n")
+
+    print(f"Produced data to file://{file_path}")
 
 
 def object_storage_ops(my_obj_storage: ObjectStoragePath) -> None:

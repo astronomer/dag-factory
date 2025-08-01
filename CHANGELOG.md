@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Change
 
-- Airflow providers are now optional dependencies byy @pankajastro in [#486](https://github.com/astronomer/dag-factory/pull/486) Previously, `dag-factory` enforced installation of `apache-airflow-providers-http` and `apache-airflow-providers-cncf-kubernetes`. These are now optional. If your DAGs depend on these providers, you must install them manually in your environment. Alternatively, you can install dag-factory with extras like `dag-factory[all]`, `dag-factory[kubernetes]`, etc.
+- Airflow providers are now optional dependencies by @pankajastro in [#486](https://github.com/astronomer/dag-factory/pull/486) Previously, `dag-factory` enforced installation of `apache-airflow-providers-http` and `apache-airflow-providers-cncf-kubernetes`. These are now optional. If your DAGs depend on these providers, you must install them manually in your environment. Alternatively, you can install dag-factory with extras like `dag-factory[all]`, `dag-factory[kubernetes]`, etc.
 - Removed clean_dags function by @pankajastro in [#498](https://github.com/astronomer/dag-factory/pull/498) You no longer need to call `example_dag_factory.clean_dags(globals())` in your DAG files. DAG cleanup is now controlled via the Airflow config setting `AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL`.
+- Remove custom typecasting for timedelta by @pankajastro in [#512](https://github.com/astronomer/dag-factory/pull/512).
+  - Removed `dagrun_timeout_sec` from dag param.
+  - Removed `retry_delay_sec`, `sla_secs` and `execution_timeout` from `default_args`.
+  - Removed `execution_timeout_secs` `sla_secs` and `execution_delta_secs` from task param.
 
 ## [0.23.0] - 2025-07-14
 

@@ -8,12 +8,12 @@ example_simple_dataset_producer_dag:
   schedule_interval: "0 5 * * *"
   catchup: false
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       inlets: [ 's3://bucket_example/raw/dataset1_source.json' ]
       outlets: ['s3://bucket_example/raw/dataset1.json']
-    task_2:
+    - task_id: "task_2"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
@@ -25,7 +25,7 @@ example_simple_dataset_consumer_dag:
   schedule: ['s3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json']
   catchup: false
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
@@ -34,7 +34,7 @@ example_custom_config_dataset_producer_dag:
   schedule_interval: "0 5 * * *"
   catchup: false
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
       outlets:
@@ -48,7 +48,7 @@ example_custom_config_dataset_consumer_dag:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: ['dataset_custom_1', 'dataset_custom_2']
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
@@ -59,7 +59,7 @@ example_custom_config_condition_dataset_consumer_dag:
     file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
     datasets: "((dataset_custom_1 & dataset_custom_2) | dataset_custom_3)"
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
 
@@ -74,6 +74,6 @@ example_without_custom_config_condition_dataset_consumer_dag:
           - "s3://bucket-cjmm/raw/dataset_custom_2"
         - "s3://bucket-cjmm/raw/dataset_custom_3"
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"

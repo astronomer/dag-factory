@@ -1,11 +1,15 @@
 default:
   concurrency: 1
-  dagrun_timeout_sec: 600
+  dagrun_timeout:
+    __type__: datetime.timedelta
+    seconds: 600
   default_args:
     end_date: 2018-03-05
     owner: default_owner
     retries: 1
-    retry_delay_sec: 300
+    retry_delay:
+      __type__: datetime.timedelta
+      seconds: 300
     start_date: 2018-03-01
   default_view: tree
   max_active_runs: 1
@@ -19,15 +23,15 @@ example_dag:
   doc_md: '##here is a doc md string'
   schedule: 0 3 * * *
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
-    task_2:
+    - task_id: "task_2"
       bash_command: echo 2
       dependencies:
       - task_1
       operator: airflow.operators.bash.BashOperator
-    task_3:
+    - task_id: "task_3"
       bash_command: echo 3
       dependencies:
       - task_1
@@ -36,15 +40,15 @@ example_dag2:
   doc_md_file_path: $PWD/tests/fixtures/mydocfile.md
   schedule: None
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
-    task_2:
+    - task_id: "task_2"
       bash_command: echo 2
       dependencies:
       - task_1
       operator: airflow.operators.bash.BashOperator
-    task_3:
+    - task_id: "task_3"
       bash_command: echo 3
       dependencies:
       - task_1
@@ -56,7 +60,7 @@ example_dag3:
   doc_md_python_callable_file: $PWD/tests/fixtures/doc_md_builder.py
   doc_md_python_callable_name: mydocmdbuilder
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
 example_dag4:
@@ -64,6 +68,6 @@ example_dag4:
     arg1: &arg1 'hello'
     arg2: &arg2 !join [*arg1, ' world']
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: !join ['echo ', *arg2]
       operator: airflow.operators.bash.BashOperator

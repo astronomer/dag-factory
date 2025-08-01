@@ -5,15 +5,15 @@ example_dag_no_schedule:
   description: this is an example dag
   doc_md: '##here is a doc md string'
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
-    task_2:
+    - task_id: "task_2"
       bash_command: echo 2
       dependencies:
       - task_1
       operator: airflow.operators.bash.BashOperator
-    task_3:
+    - task_id: "task_3"
       bash_command: echo 3
       dependencies:
       - task_1
@@ -28,15 +28,15 @@ example_dag_none_string_schedule:
   description: this is an example dag
   doc_md: '##here is a doc md string'
   tasks:
-    task_1:
+    - task_id: "task_1"
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
-    task_2:
+    - task_id: "task_2"
       bash_command: echo 2
       dependencies:
       - task_1
       operator: airflow.operators.bash.BashOperator
-    task_3:
+    - task_id: "task_3"
       bash_command: echo 3
       dependencies:
       - task_1

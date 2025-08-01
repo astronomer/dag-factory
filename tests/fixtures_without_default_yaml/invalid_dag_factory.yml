@@ -3,7 +3,9 @@ default:
     owner: 'default_owner'
     start_date: "205-01-01-01" # the wrong param
   max_active_runs: 1
-  dagrun_timeout_sec: 600
+  dagrun_timeout:
+    __type__: datetime.timedelta
+    seconds: 300
   schedule: '0 1 * * *'
 
 example_dag:
@@ -12,14 +14,14 @@ example_dag:
   description: 'this is an example dag'
   schedule: '0 3 * * *'
   tasks:
-    task_1:
+    - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 1'
-    task_2:
+    - task_id: "task_2"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 2'
       dependencies: [task_1]
-    task_3:
+    - task_id: "task_3"
       operator: airflow.operators.bash.BashOperator
       bash_command: 'echo 3'
       dependencies: [task_1]
