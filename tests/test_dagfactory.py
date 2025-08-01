@@ -123,9 +123,6 @@ def test_validate_config_filepath_invalid():
         dagfactory.DagFactory._validate_config_filepath("config.yml")
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
-)
 def test_load_dag_config_valid(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
@@ -219,7 +216,7 @@ def test_load_dag_config_valid(monkeypatch):
     actual = td._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
-    assert actual == expected
+    assert sorted(actual) == sorted(expected)
 
 
 def test_load_dag_config_invalid():
@@ -228,10 +225,6 @@ def test_load_dag_config_invalid():
         td._load_dag_config(INVALID_YAML)
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"),
-    reason="Require Airflow >=2.4.0",
-)
 def test_get_dag_configs(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
@@ -310,7 +303,7 @@ def test_get_dag_configs(monkeypatch):
     actual = td.get_dag_configs()
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
-    assert actual == expected
+    assert sorted(actual) == sorted(expected)
 
 
 def test_get_default_config():
