@@ -72,62 +72,6 @@ except ImportError:
     logger.info("Package apache-airflow-providers-common-sql is not installed.")
     SQL_SENSOR_CLASS = None
 
-# Try to import KubernetesPodOperator only if the package is installed
-try:
-    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-
-    KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
-except ImportError:
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.0.0
-        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-
-        KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-        KUBERNETES_OPERATOR_CLASS = None
-
-try:
-    from airflow.providers.cncf.kubernetes import __version__
-
-    K8S_PROVIDER_VERSION = __version__
-
-except ImportError:  # pragma: no cover
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.4.2
-        from airflow.providers.cncf.kubernetes import get_provider_info
-
-        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-        K8S_PROVIDER_VERSION = "0"
-
-try:
-    from airflow.providers.cncf.kubernetes.secret import Secret
-except ImportError:
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 5.0.0
-        from airflow.kubernetes.secret import Secret
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-
-try:
-    from kubernetes.client.models import (
-        V1Affinity,
-        V1Container,
-        V1ContainerPort as Port,
-        V1EnvFromSource,
-        V1EnvVar,
-        V1LocalObjectReference,
-        V1Pod,
-        V1PodSecurityContext,
-        V1Toleration,
-        V1Volume,
-        V1VolumeMount as VolumeMount,
-    )
-except ImportError:
-    logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-
 from dagfactory import parsers, utils
 from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
@@ -284,68 +228,6 @@ class DagBuilder:
         return schedule
 
     @staticmethod
-    def _create_volume(vol):
-        volume = V1Volume(name=vol.get("name"))
-        for k, v in vol["configs"].items():
-            snake_key = utils.convert_to_snake_case(k)
-            if hasattr(volume, snake_key):
-                setattr(volume, snake_key, v)
-            else:
-                raise DagFactoryException(f"Volume for KubernetesPodOperator does not have attribute {k}")
-        return volume
-
-    @staticmethod
-    def _clean_kpo_task_params(task_params: dict) -> dict:
-        conversions = [
-            ("ports", Port, "list"),
-            ("volume_mounts", VolumeMount, "list"),
-            ("env_vars", V1EnvVar, "list"),
-            ("env_from", V1EnvFromSource, "list"),
-            ("secrets", Secret, "list"),
-            ("affinity", V1Affinity, "single"),
-            ("image_pull_secrets", V1LocalObjectReference, "list"),
-            ("tolerations", V1Toleration, "list"),
-            ("security_context", V1PodSecurityContext, "single"),
-            ("init_containers", V1Container, "list"),
-            ("pod_runtime_info_envs", V1EnvVar, "list"),
-            ("full_pod_spec", V1Pod, "single"),
-        ]
-
-        # Conditional field based on version
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
-            from kubernetes.client.models import V1HostAlias
-
-            conversions.append(("host_aliases", V1HostAlias, "list"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.0.0"):
-            from kubernetes.client.models import V1PodDNSConfig
-
-            conversions.append(("dns_config", V1PodDNSConfig, "single"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("5.0.0"):
-            from kubernetes.client.models import V1ResourceRequirements
-
-            conversions.append(("container_resources", V1ResourceRequirements, "single"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("4.4.0"):
-            from kubernetes.client.models import V1SecurityContext
-
-            conversions.append(("container_security_context", V1SecurityContext, "single"))
-
-        for key, cls, conv_type in conversions:
-            if key in task_params and task_params[key] is not None:
-                if conv_type == "list":
-                    task_params[key] = [cls(**v) for v in task_params[key]]
-                elif conv_type == "single":
-                    task_params[key] = cls(task_params[key])
-
-        # Special case for volumes that uses a different constructor
-        if task_params.get("volumes") is not None:
-            task_params["volumes"] = [DagBuilder._create_volume(vol) for vol in task_params["volumes"]]
-
-        return task_params
-
-    @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
         # Only handle if HttpOperator/HttpSensor are available
         if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
@@ -459,10 +341,6 @@ class DagBuilder:
                 operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
             ):
                 task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
-
-            # Only handle KubernetesPodOperator if the package is installed
-            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KUBERNETES_OPERATOR_CLASS):
-                task_params = DagBuilder._clean_kpo_task_params(task_params)
 
             DagBuilder.adjust_general_task_params(task_params)
 
