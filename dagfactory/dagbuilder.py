@@ -106,10 +106,7 @@ class DagBuilder:
 
         :returns: dict of dag parameters
         """
-        try:
-            dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
-        except Exception as err:
-            raise DagFactoryConfigException("Failed to merge config with default config") from err
+        dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
         dag_params["dag_id"]: str = self.dag_name
 
         # If there are no default_args, add an empty dictionary
@@ -216,15 +213,9 @@ class DagBuilder:
 
         :returns instance of timetable object
         """
-        try:
-            # class is a Callable https://stackoverflow.com/a/34578836/3679900
-            timetable_obj: Callable[..., Timetable] = import_string(timetable)
-        except Exception as err:
-            raise DagFactoryException(f"Failed to import timetable {timetable} due to: {err}") from err
-        try:
-            schedule: Timetable = timetable_obj(**timetable_params)
-        except Exception as err:  # pragma: no cover
-            raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
+        # class is a Callable https://stackoverflow.com/a/34578836/3679900
+        timetable_obj: Callable[..., Timetable] = import_string(timetable)
+        schedule: Timetable = timetable_obj(**timetable_params)
         return schedule
 
     @staticmethod
@@ -273,93 +264,83 @@ class DagBuilder:
 
         :returns: instance of operator object
         """
-        try:
-            # class is a Callable https://stackoverflow.com/a/34578836/3679900
-            operator_obj: Callable[..., BaseOperator] = import_string(operator)
-        except Exception as err:
-            raise DagFactoryException(f"Failed to import operator: {operator}") from err
+        # class is a Callable https://stackoverflow.com/a/34578836/3679900
+        operator_obj: Callable[..., BaseOperator] = import_string(operator)
         # pylint: disable=too-many-nested-blocks
-        try:
-            if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
-                if (
-                    not task_params.get("python_callable")
-                    and not task_params.get("python_callable_name")
-                    and not task_params.get("python_callable_file")
-                ):
-                    # pylint: disable=line-too-long
-                    raise DagFactoryException(
-                        "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
-                        `python_callable_name` and `python_callable_file` "
-                        "parameters.\nOptionally you can load python_callable "
-                        "from a file. with the special pyyaml notation:\n"
-                        "  python_callable_file: !!python/name:my_module.my_func"
-                    )
-                if not task_params.get("python_callable"):
-                    task_params["python_callable"]: Callable = utils.get_python_callable(
-                        task_params["python_callable_name"], task_params["python_callable_file"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["python_callable_name"]
-                    del task_params["python_callable_file"]
-                elif isinstance(task_params["python_callable"], str):
-                    task_params["python_callable"]: Callable = import_string(task_params["python_callable"])
-
-            # Check for the custom success and failure callables in SqlSensor. These are considered
-            # optional, so no failures in case they aren't found. Note: there's no reason to
-            # declare both a callable file and a lambda function for success/failure parameter.
-            # If both are found the object will not throw and error, instead callable file will
-            # take precedence over the lambda function
-            if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
-                # Success checks
-                if task_params.get("success_check_file") and task_params.get("success_check_name"):
-                    task_params["success"]: Callable = utils.get_python_callable(
-                        task_params["success_check_name"], task_params["success_check_file"]
-                    )
-                    del task_params["success_check_name"]
-                    del task_params["success_check_file"]
-                elif task_params.get("success_check_lambda"):
-                    task_params["success"]: Callable = utils.get_python_callable_lambda(
-                        task_params["success_check_lambda"]
-                    )
-                    del task_params["success_check_lambda"]
-                # Failure checks
-                if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
-                    task_params["failure"]: Callable = utils.get_python_callable(
-                        task_params["failure_check_name"], task_params["failure_check_file"]
-                    )
-                    del task_params["failure_check_name"]
-                    del task_params["failure_check_file"]
-                elif task_params.get("failure_check_lambda"):
-                    task_params["failure"]: Callable = utils.get_python_callable_lambda(
-                        task_params["failure_check_lambda"]
-                    )
-                    del task_params["failure_check_lambda"]
-
-            # Only handle HTTP operator/sensor if the package is installed
-            if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
-                operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+        if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
+            if (
+                not task_params.get("python_callable")
+                and not task_params.get("python_callable_name")
+                and not task_params.get("python_callable_file")
             ):
-                task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
+                # pylint: disable=line-too-long
+                raise DagFactoryException(
+                    "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
+                    `python_callable_name` and `python_callable_file` "
+                    "parameters.\nOptionally you can load python_callable "
+                    "from a file. with the special pyyaml notation:\n"
+                    "  python_callable_file: !!python/name:my_module.my_func"
+                )
+            if not task_params.get("python_callable"):
+                task_params["python_callable"]: Callable = utils.get_python_callable(
+                    task_params["python_callable_name"], task_params["python_callable_file"]
+                )
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
+                del task_params["python_callable_name"]
+                del task_params["python_callable_file"]
+            elif isinstance(task_params["python_callable"], str):
+                task_params["python_callable"]: Callable = import_string(task_params["python_callable"])
 
-            DagBuilder.adjust_general_task_params(task_params)
+        # Check for the custom success and failure callables in SqlSensor. These are considered
+        # optional, so no failures in case they aren't found. Note: there's no reason to
+        # declare both a callable file and a lambda function for success/failure parameter.
+        # If both are found the object will not throw and error, instead callable file will
+        # take precedence over the lambda function
+        if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
+            # Success checks
+            if task_params.get("success_check_file") and task_params.get("success_check_name"):
+                task_params["success"]: Callable = utils.get_python_callable(
+                    task_params["success_check_name"], task_params["success_check_file"]
+                )
+                del task_params["success_check_name"]
+                del task_params["success_check_file"]
+            elif task_params.get("success_check_lambda"):
+                task_params["success"]: Callable = utils.get_python_callable_lambda(task_params["success_check_lambda"])
+                del task_params["success_check_lambda"]
+            # Failure checks
+            if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
+                task_params["failure"]: Callable = utils.get_python_callable(
+                    task_params["failure_check_name"], task_params["failure_check_file"]
+                )
+                del task_params["failure_check_name"]
+                del task_params["failure_check_file"]
+            elif task_params.get("failure_check_lambda"):
+                task_params["failure"]: Callable = utils.get_python_callable_lambda(task_params["failure_check_lambda"])
+                del task_params["failure_check_lambda"]
 
-            expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
-                # Getting expand and partial kwargs from task_params
-                (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+        # Only handle HTTP operator/sensor if the package is installed
+        if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
+            operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+        ):
+            task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
-                # If there are partial_kwargs we should merge them with existing task_params
-                if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
-                    task_params.update(partial_kwargs)
+        DagBuilder.adjust_general_task_params(task_params)
 
-            task: Union[BaseOperator, MappedOperator] = (
-                operator_obj(**task_params)
-                if not expand_kwargs
-                else operator_obj.partial(**task_params).expand(**expand_kwargs)
-            )
-        except Exception as err:
-            raise DagFactoryException(f"Failed to create {operator_obj} task: {err}") from err
+        expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+        if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
+            # Getting expand and partial kwargs from task_params
+            (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+
+            # If there are partial_kwargs we should merge them with existing task_params
+            if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
+                task_params.update(partial_kwargs)
+
+        task: Union[BaseOperator, MappedOperator] = (
+            operator_obj(**task_params)
+            if not expand_kwargs
+            else operator_obj.partial(**task_params).expand(**expand_kwargs)
+        )
         return task
 
     @staticmethod
