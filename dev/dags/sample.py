@@ -9,11 +9,6 @@ try:
 except ImportError:
     from airflow.operators.python import get_current_context
 
-try:
-    from airflow.sdk import ObjectStoragePath
-except ImportError:
-    from airflow.io.path import ObjectStoragePath
-
 
 def build_numbers_list():
     return [2, 4, 6]
@@ -77,8 +72,13 @@ def generate_data():
 
     print(f"Produced data to file://{file_path}")
 
+    
+def object_storage_ops(my_obj_storage) -> None:
+    try:
+        from airflow.sdk import ObjectStoragePath
+    except ImportError:
+        from airflow.io.path import ObjectStoragePath
 
-def object_storage_ops(my_obj_storage: ObjectStoragePath) -> None:
     assert isinstance(my_obj_storage, ObjectStoragePath)
     with my_obj_storage.open("rb") as f:
         text = f.read().decode("utf-8")

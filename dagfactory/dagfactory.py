@@ -199,16 +199,13 @@ class DagFactory:
         :returns: dict from YAML config file
         """
         # pylint: disable=consider-using-with
-        try:
-            config = load_yaml_file(config_filepath)
+        config = load_yaml_file(config_filepath)
 
-            # This will only invoke in the CI
-            # Make yaml DAG compatible for Airflow 3
-            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
-                config = update_yaml_structure(config)
+        # This will only invoke in the CI
+        # Make yaml DAG compatible for Airflow 3
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
+            config = update_yaml_structure(config)
 
-        except Exception as err:
-            raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
@@ -257,11 +254,8 @@ class DagFactory:
                 default_config=default_config,
                 yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
             )
-            try:
-                dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-                dags[dag["dag_id"]]: DAG = dag["dag"]
-            except Exception as err:
-                raise DagFactoryException(f"Failed to generate dag {dag_name}: {err}") from err
+            dag: Dict[str, Union[str, DAG]] = dag_builder.build()
+            dags[dag["dag_id"]]: DAG = dag["dag"]
 
         return dags
 

@@ -164,7 +164,7 @@ def test_http_operator_with_invalid_json_string(invalid_json):
         "data": invalid_json,
     }
 
-    with pytest.raises(DagFactoryException):
+    with pytest.raises(ValueError):
         td.make_task(HTTP_OPERATOR_PATH, task_params)
 
 

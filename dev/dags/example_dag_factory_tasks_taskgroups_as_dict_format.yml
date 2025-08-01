@@ -2,29 +2,29 @@ default:
   default_args:
     start_date: 2024-11-11
 
-# ----8<---   [ start: example_dag_yaml_configuration ]
-basic_example_dag:
+# ----8<---   [ start: example_dag_dict_configuration ]
+basic_example_dag_dict_format:
   default_args:
     owner: "custom_owner"
-  description: "this is an example dag"
-  schedule: "0 3 * * *"
+  description: "this is an example dag using dictionary format for tasks and task_groups"
+  schedule_interval: "0 3 * * *"
   render_template_as_native_obj: True
   catchup: false
   task_groups:
-    - group_name: "example_task_group"
+    example_task_group:
       tooltip: "this is an example task group"
       dependencies: [task_1]
   tasks:
-    - task_id: "task_1"
+    task_1:
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 1"
-    - task_id: "task_2"
+    task_2:
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 2"
       dependencies: [task_1]
-    - task_id: "task_3"
+    task_3:
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 3"
       dependencies: [task_1]
-      task_group_name: "example_task_group"
-# ----8<---   [ end: example_dag_yaml_configuration ]
+      task_group_name: example_task_group
+# ----8<---   [ end: example_dag_dict_configuration ]

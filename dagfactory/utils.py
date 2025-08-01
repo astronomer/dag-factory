@@ -40,10 +40,7 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     :returns: datetime for date_value
     :type: datetime.datetime
     """
-    try:
-        local_tz: pendulum.timezone = pendulum.timezone(timezone)
-    except Exception as err:
-        raise DagFactoryException("Failed to create timezone") from err
+    local_tz: pendulum.timezone = pendulum.timezone(timezone)
     if isinstance(date_value, datetime):
         return date_value.replace(tzinfo=local_tz)
     if isinstance(date_value, date):
