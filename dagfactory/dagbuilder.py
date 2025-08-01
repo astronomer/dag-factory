@@ -10,7 +10,7 @@ import re
 import warnings
 from copy import deepcopy
 from datetime import datetime
-from functools import partial, reduce
+from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
@@ -595,66 +595,6 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
-    def _init_watchers(watchers_data):
-        """Initialize watcher objects from configuration."""
-        from dagfactory.utils import _import_from_string
-
-        watchers = []
-        for watcher in watchers_data:
-            watcher_class = _import_from_string(watcher["callable"])
-            trigger_data = watcher.get("trigger", {})
-            trigger_class = _import_from_string(trigger_data.get("callable"))
-            trigger_params = trigger_data.get("params", {})
-            watchers.append(watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_params)))
-        return watchers
-
-    @staticmethod
-    def _combine_assets(assets, op: str):
-        """Combine a list of Asset objects using logical operators."""
-        if op == "or":
-            return reduce(lambda a, b: a | b, assets)
-        elif op == "and":
-            return reduce(lambda a, b: a & b, assets)
-        else:
-            raise ValueError(f"Unknown operator: {op}")
-
-    @staticmethod
-    def _is_asset(d):
-        from airflow.sdk import Asset
-
-        if not isinstance(d, dict):
-            return False
-        for key, value in d.items():
-            if isinstance(value, Asset):
-                return True
-            elif isinstance(value, list):
-                if any(isinstance(item, Asset) for item in value):
-                    return True
-            elif isinstance(value, dict):
-                if DagBuilder._is_asset(value):
-                    return True
-        return False
-
-    @staticmethod
-    def _asset_schedule(value):
-        """Recursively parse and construct assets or combinations of assets."""
-        from airflow.sdk import Asset
-
-        if isinstance(value, dict):
-            if "or" in value:
-                assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
-                return DagBuilder._combine_assets(assets, "or")
-            elif "and" in value:
-                assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
-                return DagBuilder._combine_assets(assets, "and")
-        elif isinstance(value, list):
-            return [asset for asset in value]
-        elif isinstance(value, Asset):
-            return value
-        else:
-            raise TypeError(f"Unexpected data type: {type(value)}")
-
-    @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
         Configures the schedule for the DAG based on parameters and the Airflow version.
@@ -700,17 +640,14 @@ class DagBuilder:
                     schedule.pop("datasets")
         else:
             schedule = dag_params.get("schedule")
-            if DagBuilder._is_asset(schedule):
-                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+            if (
+                utils.check_dict_key(dag_params, "schedule")
+                and isinstance(dag_params["schedule"], str)
+                and dag_params["schedule"].strip().lower() == "none"
+            ):
+                dag_kwargs["schedule"] = None
             else:
-                if (
-                    utils.check_dict_key(dag_params, "schedule")
-                    and isinstance(dag_params["schedule"], str)
-                    and dag_params["schedule"].strip().lower() == "none"
-                ):
-                    dag_kwargs["schedule"] = None
-                else:
-                    dag_kwargs["schedule"] = schedule
+                dag_kwargs["schedule"] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
