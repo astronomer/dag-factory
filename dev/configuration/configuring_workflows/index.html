@@ -615,15 +615,48 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Key Elements of Workflow Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-dag-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Example DAG Configuration
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Example DAG Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-and-task-group-configuration-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task and Task Group Configuration Formats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task and Task Group Configuration Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#list-format-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      List Format (Recommended)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dictionary-format-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dictionary Format (Legacy)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1372,15 +1405,48 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Key Elements of Workflow Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-dag-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Example DAG Configuration
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Example DAG Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-and-task-group-configuration-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task and Task Group Configuration Formats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task and Task Group Configuration Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#list-format-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      List Format (Recommended)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dictionary-format-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dictionary Format (Legacy)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1439,8 +1505,17 @@ You can define multiple workflows within a single YAML file based on your requir
 <li><strong>default_args</strong>: Common arguments for all tasks.</li>
 <li><strong>schedule</strong>/<strong>schedule_interval</strong>: Specifies the execution schedule.</li>
 <li><strong>tasks</strong>: Defines the <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html">Airflow tasks</a> in your workflow.</li>
+<li><strong>task_groups</strong>: Defines <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#taskgroups">Airflow task groups</a> to organize and group related tasks.</li>
 </ul>
-<h3 id="example-dag-configuration">Example DAG Configuration</h3>
+<h2 id="example-dag-configuration">Example DAG Configuration</h2>
+<h3 id="task-and-task-group-configuration-formats">Task and Task Group Configuration Formats</h3>
+<p>DAG Factory supports two formats for defining <code>tasks</code> and <code>task_groups</code>:</p>
+<h4 id="list-format-recommended">List Format (Recommended)</h4>
+<p>The <strong>list format</strong> is the recommended and more readable approach. In this format, tasks are defined as a list where each task includes a <code>task_id</code> field, and task groups are also defined as a list where each group includes a <code>group_name</code> field:</p>
+<div class="admonition info">
+<p class="admonition-title">Version Support</p>
+<p>List format support was introduced in version 1.0.0.</p>
+</div>
 <div class="language-text highlight"><span class="filename">example_dag_factory.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>basic_example_dag:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
@@ -1448,19 +1523,55 @@ You can define multiple workflows within a single YAML file based on your requir
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  render_template_as_native_obj: True
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  catchup: false
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  tasks:
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    - task_id: &quot;task_1&quot;
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    - task_id: &quot;task_2&quot;
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      dependencies: [task_1]
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    - task_id: &quot;task_3&quot;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  task_groups:
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    - group_name: &quot;example_task_group&quot;
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      tooltip: &quot;this is an example task group&quot;
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      dependencies: [task_1]
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  tasks:
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    - task_id: &quot;task_1&quot;
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      operator: airflow.operators.bash.BashOperator
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      bash_command: &quot;echo 1&quot;
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    - task_id: &quot;task_2&quot;
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      operator: airflow.operators.bash.BashOperator
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      bash_command: &quot;echo 2&quot;
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      dependencies: [task_1]
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    - task_id: &quot;task_3&quot;
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>      operator: airflow.operators.bash.BashOperator
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      bash_command: &quot;echo 3&quot;
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>      dependencies: [task_1]
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      task_group_name: &quot;example_task_group&quot;
 </span></code></pre></div>
+<h4 id="dictionary-format-legacy">Dictionary Format (Legacy)</h4>
+<p>The <strong>dictionary format</strong> is also supported for backward compatibility. In this format, tasks are defined as a dictionary where the key is the task ID, and task groups are also defined as a dictionary where the key is the group name:</p>
+<div class="language-text highlight"><span class="filename">example_dag_factory_tasks_taskgroups_as_dict_format.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>basic_example_dag_dict_format:
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    owner: &quot;custom_owner&quot;
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  description: &quot;this is an example dag using dictionary format for tasks and task_groups&quot;
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  render_template_as_native_obj: True
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  catchup: false
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  task_groups:
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    example_task_group:
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>      tooltip: &quot;this is an example task group&quot;
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>      dependencies: [task_1]
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  tasks:
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    task_1:
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>      operator: airflow.operators.bash.BashOperator
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>      bash_command: &quot;echo 1&quot;
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    task_2:
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>      operator: airflow.operators.bash.BashOperator
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>      bash_command: &quot;echo 2&quot;
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>      dependencies: [task_1]
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    task_3:
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>      operator: airflow.operators.bash.BashOperator
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      bash_command: &quot;echo 3&quot;
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>      dependencies: [task_1]
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>      task_group_name: example_task_group
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Format Recommendation</p>
+<p>While both formats are supported, <strong>we recommend using the list format</strong> as it is more readable and easier to maintain.</p>
+</div>
 <h3 id="check-out-more-configuration-params">Check out more configuration params</h3>
 <ul>
 <li><a href="../environment_variables/">Environment variables</a></li>
