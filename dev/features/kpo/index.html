@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/getting-started/quick-start-astro-cli/">
+        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/features/kpo/">
       
       
-        <link rel="prev" href="../quick-start-airflow-standalone/">
+        <link rel="prev" href="../object_storage/">
       
       
-        <link rel="next" href="../../configuration/configuring_workflows/">
+        <link rel="next" href="../../comparison/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Astro CLI - DAG Factory</title>
+        <title>Kubernetes Pod Operator - DAG Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dag-factory-quick-start-guide-with-astro-cli" class="md-skip">
+        <a href="#kubernetespodoperator" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Astro CLI
+              Kubernetes Pod Operator
             
           </span>
         </div>
@@ -211,13 +211,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../quick-start-airflow-standalone/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quick-start-airflow-standalone/" class="md-tabs__link">
           
   
   
@@ -257,11 +255,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../features/dynamic_tasks/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dynamic_tasks/" class="md-tabs__link">
           
   
   
@@ -390,10 +390,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -405,22 +403,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -433,7 +428,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Getting Started
@@ -447,7 +442,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick-start-airflow-standalone/" class="md-nav__link">
+      <a href="../../getting-started/quick-start-airflow-standalone/" class="md-nav__link">
         
   
   
@@ -467,32 +462,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Astro CLI
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start-astro-cli/" class="md-nav__link">
         
   
   
@@ -503,107 +476,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-initialize-airflow-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 1: Initialize Airflow Project
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-install-dag-factory" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 2: Install DAG Factory
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-define-a-dag-in-yaml" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 3: Define a DAG in YAML
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-generate-the-dag-from-yaml" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 4: Generate the DAG from YAML
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-start-airflow-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 5: Start Airflow Project
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#view-your-generated-dag" class="md-nav__link">
-    <span class="md-ellipsis">
-      View Your Generated DAG
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-dag" class="md-nav__link">
-    <span class="md-ellipsis">
-      Generated DAG
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#graph-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      Graph View
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -847,8 +719,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -874,19 +748,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -899,7 +776,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Features
@@ -913,7 +790,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/dynamic_tasks/" class="md-nav__link">
+      <a href="../dynamic_tasks/" class="md-nav__link">
         
   
   
@@ -936,7 +813,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/datasets/" class="md-nav__link">
+      <a href="../datasets/" class="md-nav__link">
         
   
   
@@ -959,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/callbacks/" class="md-nav__link">
+      <a href="../callbacks/" class="md-nav__link">
         
   
   
@@ -982,7 +859,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/custom_operators/" class="md-nav__link">
+      <a href="../custom_operators/" class="md-nav__link">
         
   
   
@@ -1005,7 +882,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/http_task/" class="md-nav__link">
+      <a href="../http_task/" class="md-nav__link">
         
   
   
@@ -1028,7 +905,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/multiple_configuration_files/" class="md-nav__link">
+      <a href="../multiple_configuration_files/" class="md-nav__link">
         
   
   
@@ -1051,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/custom_python_object/" class="md-nav__link">
+      <a href="../custom_python_object/" class="md-nav__link">
         
   
   
@@ -1074,7 +951,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/object_storage/" class="md-nav__link">
+      <a href="../object_storage/" class="md-nav__link">
         
   
   
@@ -1094,10 +971,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../features/kpo/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Kubernetes Pod Operator
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1108,6 +1007,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-dag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example DAG
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1414,81 +1342,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#example-dag" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-initialize-airflow-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 1: Initialize Airflow Project
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-install-dag-factory" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 2: Install DAG Factory
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-define-a-dag-in-yaml" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 3: Define a DAG in YAML
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-generate-the-dag-from-yaml" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 4: Generate the DAG from YAML
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-start-airflow-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 5: Start Airflow Project
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#view-your-generated-dag" class="md-nav__link">
-    <span class="md-ellipsis">
-      View Your Generated DAG
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generated-dag" class="md-nav__link">
-    <span class="md-ellipsis">
-      Generated DAG
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#graph-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      Graph View
+      Example DAG
     </span>
   </a>
   
@@ -1510,7 +1366,7 @@
 
 
   
-    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/getting-started/quick-start-astro-cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/features/kpo.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1519,91 +1375,58 @@
     
       
     
-    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/getting-started/quick-start-astro-cli.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/features/kpo.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="dag-factory-quick-start-guide-with-astro-cli">DAG Factory: Quick Start Guide With Astro CLI</h1>
-<p><strong>DAG Factory</strong> is a Python library <a href="https://airflow.apache.org">Apache Airflow®</a> that simplifies DAG creation using declarative YAML configuration files instead of Python.</p>
-<h2 id="prerequisites">Prerequisites</h2>
-<p>The minimum requirements for <strong>dag-factory</strong> are:</p>
-<ul>
-<li>Python 3.9.0+</li>
-<li><a href="https://www.astronomer.io/docs/astro/cli/overview/">Astro CLI</a></li>
-</ul>
-<h2 id="step-1-initialize-airflow-project">Step 1: Initialize Airflow Project</h2>
-<p>Create a new directory and initialize your Astro CLI project:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir dag-factory-quick-start &amp;&amp; cd dag-factory-quick-start
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>astro dev init
+<h1 id="kubernetespodoperator">KubernetesPodOperator</h1>
+<p>In DAG Factory, you can use <a href="https://airflow.apache.org/docs/apache-airflow-providers-cncf-kubernetes/stable/operators.html">Airflow Kubernetes Provider</a> to create and run Pods on a Kubernetes cluster.</p>
+<h2 id="example-dag">Example DAG</h2>
+<p>First, define your DAG configuration in a YAML file</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">kubernetes_pod_dag</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-01-01</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">schedule_interval</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@daily&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A</span><span class="nv"> </span><span class="s">DAG</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">runs</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">simple</span><span class="nv"> </span><span class="s">KubernetesPodOperator</span><span class="nv"> </span><span class="s">task&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello-world-pod</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">config_file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path/to/kube/config&quot;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;python:3.12-slim&quot;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">cmds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;python&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-c&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">arguments</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;print(&#39;Hello</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">KubernetesPodOperator!&#39;)&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example-pod-task&quot;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;default&quot;</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">get_logs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">container_resources</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes.client.models.V1ResourceRequirements</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="nt">limits</span><span class="p">:</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1024Mi&quot;</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="nt">requests</span><span class="p">:</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.5&quot;</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;512Mi&quot;</span>
 </span></code></pre></div>
-<p>This will set up the necessary Airflow files and directories.</p>
-<h2 id="step-2-install-dag-factory">Step 2: Install DAG Factory</h2>
-<p>Install DAG Factory in your Airflow environment:</p>
-<ol>
-<li>Add dag-factory as a dependency to the <code>requirements.txt</code> file created during the project initialization.</li>
-</ol>
-<h2 id="step-3-define-a-dag-in-yaml">Step 3: Define a DAG in YAML</h2>
-<p><strong>DAG Factory</strong> uses YAML files to define DAG configurations. Create a file named <code>example_dag_factory.yml</code> in the <code>$AIRFLOW_HOME/dags</code> folder with the following content:</p>
-<div class="language-text highlight"><span class="filename">example_dag_factory.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>default:
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  default_args:
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    start_date: 2024-11-11
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>basic_example_dag:
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  default_args:
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    owner: &quot;custom_owner&quot;
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  description: &quot;this is an example dag&quot;
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  schedule_interval: &quot;0 3 * * *&quot;
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  render_template_as_native_obj: True
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  catchup: false
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  tasks:
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    - task_id: &quot;task_1&quot;
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>      bash_command: &quot;echo 1&quot;
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    - task_id: &quot;task_2&quot;
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>      dependencies: [task_1]
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    - task_id: &quot;task_3&quot;
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>      operator: airflow.operators.bash.BashOperator
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      bash_command: &quot;echo 2&quot;
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>      dependencies: [task_1]
+<p>Then, you can load this YAML configuration dynamically.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># The following import is here so Airflow parses this file</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># from airflow import DAG</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagfactory</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">DEFAULT_CONFIG_ROOT_DIR</span> <span class="o">=</span> <span class="s2">&quot;/usr/local/airflow/dags/&quot;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">CONFIG_ROOT_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CONFIG_ROOT_DIR&quot;</span><span class="p">,</span> <span class="n">DEFAULT_CONFIG_ROOT_DIR</span><span class="p">))</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">config_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">CONFIG_ROOT_DIR</span> <span class="o">/</span> <span class="s2">&quot;kpo.yml&quot;</span><span class="p">)</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">example_dag_factory</span> <span class="o">=</span> <span class="n">dagfactory</span><span class="o">.</span><span class="n">DagFactory</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># Creating task dependencies</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">example_dag_factory</span><span class="o">.</span><span class="n">generate_dags</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
 </span></code></pre></div>
-<h2 id="step-4-generate-the-dag-from-yaml">Step 4: Generate the DAG from YAML</h2>
-<p>Create a Python script named <code>example_dag_factory.py</code> in the <code>$AIRFLOW_HOME/dags</code> folder. This script will generate the DAG from the YAML configuration</p>
-<div class="language-text highlight"><span class="filename">example_dag_factory.py</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import os
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>from pathlib import Path
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># The following import is here so Airflow parses this file
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a># from airflow import DAG
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>import dagfactory
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>DEFAULT_CONFIG_ROOT_DIR = &quot;/usr/local/airflow/dags/&quot;
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>CONFIG_ROOT_DIR = Path(os.getenv(&quot;CONFIG_ROOT_DIR&quot;, DEFAULT_CONFIG_ROOT_DIR))
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>config_file = str(CONFIG_ROOT_DIR / &quot;example_dag_factory.yml&quot;)
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>example_dag_factory = dagfactory.DagFactory(config_file)
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># Creating task dependencies
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>example_dag_factory.generate_dags(globals())
-</span></code></pre></div>
-<h2 id="step-5-start-airflow-project">Step 5: Start Airflow Project</h2>
-<p>Once you've set up your YAML configuration and Python script, start the Airflow environment with the following command:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astro dev start
-</span></code></pre></div>
-<p>This will take a few minutes to set up. Once completed, you can access the Airflow UI and the generated DAG at <code>http://localhost:8080</code> 🚀.</p>
-<h2 id="view-your-generated-dag">View Your Generated DAG</h2>
-<p>Once Airflow is up and running, you can login with the username <code>admin</code> and the password <code>admin</code>. You should be able to see your generated DAG in the Airflow UI.</p>
-<h2 id="generated-dag">Generated DAG</h2>
-<p><img alt="Airflow DAG" src="../../static/images/airflow-home.png" /></p>
-<h2 id="graph-view">Graph View</h2>
-<p><img alt="Airflow Home" src="../../static/images/airflow-dag.png" /></p>
-<p>Checkout <a href="https://github.com/astronomer/dag-factory/tree/main/dev/dags">examples</a> for generating more advanced DAGs.</p>
 
 
 
@@ -1639,7 +1462,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../quick-start-airflow-standalone/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Airflow Standalone">
+          <a href="../object_storage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Object Storage">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1649,20 +1472,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Airflow Standalone
+                Object Storage
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../configuration/configuring_workflows/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuring Your Workflows">
+          <a href="../../comparison/" class="md-footer__link md-footer__link--next" aria-label="Next: Using YAML instead of Python">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Configuring Your Workflows
+                Using YAML instead of Python
               </div>
             </div>
             <div class="md-footer__button md-icon">
