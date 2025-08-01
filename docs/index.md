@@ -32,6 +32,10 @@ Are you new to DAG Factory? This is the place to start!
 * [Multiple configuration files](features/multiple_configuration_files.md)
 * [HttpSensor](features/http_task.md)
 
+## Migrate to DAG-Factory V1.0.0
+
+* [Migration Guide](./migration_guide.md)
+
 ## Getting help
 
 Having trouble? We'd like to help!
