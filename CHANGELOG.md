@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the breaking changes to changelog by @pankajastro in [#502](https://github.com/astronomer/dag-factory/pull/502)
 - Remove `clean_dags` usage from object storage DAG by @pankajastro in [#515](https://github.com/astronomer/dag-factory/pull/515)
 - Add pre-commit to update `uv.lock` by @pankajastro in [#514](https://github.com/astronomer/dag-factory/pull/514)
+- Remove broad exceptions and catch more specific exceptions by @pankajastro in [#519](https://github.com/astronomer/dag-factory/pull/519)
 - Add missing env in contributing doc by @pankajastro in [#522](https://github.com/astronomer/dag-factory/pull/522)
 
 ## [0.23.0] - 2025-07-14
