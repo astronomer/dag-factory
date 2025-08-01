@@ -1185,7 +1185,7 @@ class TestSchedule:
     def test_asset_schedule_list_of_assets(self):
         from airflow.sdk import Asset
 
-        schedule_data = load_yaml_file(schedule_path.__str__() + "/list_asset.yml")
+        schedule_data = load_yaml_file(str(schedule_path / "list_asset.yml"))
 
         expected = [
             Asset(
@@ -1208,7 +1208,7 @@ class TestSchedule:
     def test_asset_schedule_with_and_operator(self):
         from airflow.sdk import Asset, AssetAll
 
-        schedule_data = load_yaml_file(schedule_path.__str__() + "/and_asset.yml")
+        schedule_data = load_yaml_file(str(schedule_path / "and_asset.yml"))
 
         expected = AssetAll(
             Asset(
@@ -1231,7 +1231,7 @@ class TestSchedule:
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
-        schedule_data = load_yaml_file(schedule_path.__str__() + "/or_asset.yml")
+        schedule_data = load_yaml_file(str(schedule_path / "or_asset.yml"))
 
         expected = AssetAny(
             Asset(
@@ -1254,7 +1254,7 @@ class TestSchedule:
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
-        schedule_data = load_yaml_file(schedule_path.__str__() + "/nested_asset.yml")
+        schedule_data = load_yaml_file(str(schedule_path / "nested_asset.yml"))
 
         expected = AssetAny(
             AssetAll(
@@ -1287,7 +1287,7 @@ class TestSchedule:
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
         from airflow.sdk import Asset, AssetWatcher
 
-        schedule_data = load_yaml_file(schedule_path.__str__() + "/asset_with_watcher.yml")
+        schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
         expected = [
             Asset(
