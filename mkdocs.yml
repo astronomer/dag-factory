@@ -52,6 +52,7 @@ nav:
       - Astro CLI: getting-started/quick-start-astro-cli.md
   - Configuration:
       - configuration/configuring_workflows.md
+      - configuration/load_yaml_dags.md
       - configuration/environment_variables.md
       - configuration/defaults.md
       - configuration/params.md

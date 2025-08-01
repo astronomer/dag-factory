@@ -19,7 +19,7 @@ except ImportError:
 
 # The following import is here so Airflow parses this file
 # from airflow import DAG
-import dagfactory
+from dagfactory import load_yaml_dags
 
 DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
 
@@ -31,7 +31,8 @@ elif SIMPLE_HTTP_OPERATOR_AVAILABLE:
 else:
     raise ImportError("Package apache-airflow-providers-http is not installed.")
 
-example_dag_factory = dagfactory.DagFactory(config_file)
 
-# Creating task dependencies
-example_dag_factory.generate_dags(globals())
+load_yaml_dags(
+    globals_dict=globals(),
+    config_filepath=config_file,
+)
