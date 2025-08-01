@@ -254,7 +254,7 @@ def is_partial_duplicated(partial_kwargs: Dict[str, Any], task_params: Dict[str,
     return False
 
 
-def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str]:
+def get_datasets_uri_yaml_file(file_path: str, datasets_filter: List[str]) -> List[str]:
     """
     Retrieves the URIs of datasets from a YAML file based on a given filter.
 
@@ -306,13 +306,16 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
         raise
 
 
-def extract_dataset_names(expression) -> List[str]:
-    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
-    datasets = re.findall(dataset_pattern, expression)
+def extract_dataset_names(expression: str) -> List[str]:
+    expr = expression
+    for storage in extract_storage_names(expression):
+        expr = expr.replace(storage, "")
+    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_\-./\\]*\b"
+    datasets = re.findall(dataset_pattern, expr)
     return datasets
 
 
-def extract_storage_names(expression) -> List[str]:
+def extract_storage_names(expression: str) -> List[str]:
     storage_pattern = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
     storages = re.findall(storage_pattern, expression)
     return storages
