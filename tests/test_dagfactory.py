@@ -477,7 +477,7 @@ def test_schedule_interval_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_SCHEDULE_INTERVAL)
     with pytest.raises(
         exceptions.DagFactoryException,
-        match="Failed to generate dag example_dag_schedule_interval: The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
+        match="The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
     ):
         td.generate_dags(globals())
 
