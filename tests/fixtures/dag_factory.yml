@@ -71,8 +71,9 @@ example_dag4:
         - *arg1
         - ' world'
     tasks:
-      - task_id: task_1
+      - task_id: "task_1"
         bash_command:
           __join__:
             - 'echo '
             - *arg2
+        operator: airflow.operators.bash.BashOperator
