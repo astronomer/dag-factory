@@ -32,8 +32,8 @@ The **list format** is the recommended and more readable approach. In this forma
 
 The **dictionary format** is also supported for backward compatibility. In this format, tasks are defined as a dictionary where the key is the task ID, and task groups are also defined as a dictionary where the key is the group name:
 
-```title="example_dag_factory_dict_format.yml"
---8<-- "dev/dags/example_dag_factory_dict_format.yml:example_dag_dict_configuration"
+```title="example_dag_factory_tasks_taskgroups_as_dict_format.yml"
+--8<-- "dev/dags/example_dag_factory_tasks_taskgroups_as_dict_format.yml:example_dag_dict_configuration"
 ```
 
 !!! note "Format Recommendation"
