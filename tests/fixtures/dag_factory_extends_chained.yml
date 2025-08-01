@@ -1,0 +1,19 @@
+__extends__:
+  - dag_factory_extends.yml
+
+default:
+  default_args:
+    owner: chained_owner  # This should override both base and main config
+    depends_on_past: false  # This should be added
+    end_date: 2023-12-31  # From the intermediate layer
+    email_on_failure: true  # From the intermediate layer
+  max_active_runs: 1  # This should override the base value
+  dagrun_timeout_sec: 1800  # From the intermediate layer
+  orientation: TB  # From the intermediate layer
+
+example_dag_chained_extends:
+  description: "DAG created with chained extends functionality"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "Hello from chained extended config"

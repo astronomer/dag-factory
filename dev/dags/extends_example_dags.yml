@@ -1,0 +1,48 @@
+__extends__:
+  - "extends_environment_specific.yml"
+
+# Override some defaults for this specific set of DAGs
+default:
+  default_args:
+    owner: "data_engineering_team"
+  tags:
+    - "production"
+    - "daily_etl"
+
+# Define actual DAGs
+data_ingestion_dag:
+  description: "Daily data ingestion from external sources"
+  default_args:
+    retries: 5  # Override for this specific DAG
+  tasks:
+    extract_source_a:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Extracting from source A'"
+    extract_source_b:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Extracting from source B'"
+    transform_data:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Transforming data'"
+      dependencies: [extract_source_a, extract_source_b]
+    load_data:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Loading data to warehouse'"
+      dependencies: [transform_data]
+
+data_quality_dag:
+  description: "Data quality checks on ingested data"
+  schedule_interval: "0 10 * * *"  # 10 AM daily, after ingestion
+  default_args:
+    owner: "data_quality_team"
+  tasks:
+    check_row_counts:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Checking row counts'"
+    check_data_freshness:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Checking data freshness'"
+    generate_quality_report:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Generating quality report'"
+      dependencies: [check_row_counts, check_data_freshness]

@@ -1,5 +1,6 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 
+import copy
 import logging
 import os
 from itertools import chain
@@ -17,13 +18,13 @@ from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
 from dagfactory._yaml import load_yaml_file
-from dagfactory.constants import DEFAULTS_FILE_NAME
+from dagfactory.constants import DEFAULTS_FILE_NAME, EXTENDS_KEY
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import update_yaml_structure
+from dagfactory.utils import merge_dict, update_yaml_structure
 
 # these are params that cannot be a dag name
-SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
+SYSTEM_PARAMS: List[str] = ["default", "task_groups", EXTENDS_KEY]
 
 
 class DagFactory:
@@ -206,6 +207,18 @@ class DagFactory:
             # Make yaml DAG compatible for Airflow 3
             if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
                 config = update_yaml_structure(config)
+
+            # extend base config files
+            extend_config_queue = copy.deepcopy(config.get(EXTENDS_KEY, []))
+
+            while extend_config_queue:
+                extend_config_relative_path = extend_config_queue.pop(0)
+                extend_config_path = os.path.join(os.path.dirname(config_filepath), extend_config_relative_path)
+                extend_config_path = os.path.abspath(extend_config_path)  # Ensure absolute path
+                extend_config = DagFactory(config_filepath=extend_config_path).config
+                # Only 'default' is recognized in the extended config
+                config["default"] = merge_dict(extend_config.get("default", {}), config.get("default", {}))
+                extend_config_queue.extend(extend_config.get(EXTENDS_KEY, []))
 
         except Exception as err:
             raise DagFactoryConfigException(f"Invalid DAG Factory config file: {err}")

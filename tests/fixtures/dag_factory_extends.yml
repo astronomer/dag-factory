@@ -1,0 +1,15 @@
+__extends__:
+  - extends_base.yml
+
+default:
+  default_args:
+    owner: main_owner  # This should override the base owner
+    email: test@example.com  # This should be added to the base config
+  schedule_interval: "@hourly"  # This should override the base schedule
+
+example_dag_with_extends:
+  description: "DAG created with extends functionality"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "Hello from extended config"

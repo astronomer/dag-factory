@@ -1,0 +1,16 @@
+__extends__:
+  - "extends_base.yml"
+
+default:
+  default_args:
+    owner: "dev_team"
+    retries: 3
+    retry_delay_sec: 180
+    email_on_failure: true
+    email: ["dev-team@company.com"]
+  schedule_interval: "0 8 * * *"  # 8 AM daily
+  max_active_runs: 2
+  dagrun_timeout_sec: 7200  # 2 hours
+  tags:
+    - "development"
+    - "etl"
