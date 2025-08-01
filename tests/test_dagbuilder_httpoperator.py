@@ -253,7 +253,6 @@ def test_http_operator_from_yaml():
     if not os.path.exists(fixture_path):
         pytest.skip(f"Test fixture not found: {fixture_path}")
 
-    # Call generate_dags to build all DAGs from the YAML file
     load_yaml_dags(
         globals_dict=globals(),
         config_filepath=fixture_path,
