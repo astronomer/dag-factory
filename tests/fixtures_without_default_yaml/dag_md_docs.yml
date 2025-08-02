@@ -8,10 +8,10 @@ default:
   default_view: tree
   max_active_runs: 1
   orientation: LR
-  schedule_interval: 0 1 * * *
+  schedule: 0 1 * * *
 
 example_dag2:
-  schedule_interval: None
+  schedule: None
   tasks:
   - task_id: task_1
     bash_command: echo 1

@@ -3,7 +3,7 @@ test_expand:
     owner: "custom_owner"
     start_date: 2 days
   description: "test expand"
-  schedule_interval: "0 3 * * *"
+  schedule: "0 3 * * *"
   catchup: false
   tasks:
     - task_id: "process"

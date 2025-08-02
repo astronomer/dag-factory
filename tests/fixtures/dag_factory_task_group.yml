@@ -10,7 +10,7 @@ default:
   default_view: tree
   max_active_runs: 1
   orientation: LR
-  schedule_interval: 0 1 * * *
+  schedule: 0 1 * * *
 example_dag:
   description: "this dag uses task groups"
   task_groups:

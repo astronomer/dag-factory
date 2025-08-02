@@ -14,7 +14,7 @@ default:
     seconds: 600
   default_view: 'tree'
   orientation: 'LR'
-  schedule_interval: '0 1 * * *'
+  schedule: '0 1 * * *'
 example_dag:
   tasks:
     - task_id: "task_1"

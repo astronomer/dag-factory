@@ -1,7 +1,7 @@
 default:
   default_args:
     start_date: '2024-01-01'
-  schedule_interval: 0 0 * * *
+  schedule: 0 0 * * *
   catchup: false
   tags:
     - dynamic

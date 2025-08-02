@@ -5,7 +5,7 @@ default:
 
 example_simple_dataset_producer_dag:
   description: "Example DAG producer simple datasets"
-  schedule_interval: "0 5 * * *"
+  schedule: "0 5 * * *"
   catchup: false
   tasks:
     - task_id: "task_1"
@@ -31,7 +31,7 @@ example_simple_dataset_consumer_dag:
 
 example_custom_config_dataset_producer_dag:
   description: "Example DAG producer custom config datasets"
-  schedule_interval: "0 5 * * *"
+  schedule: "0 5 * * *"
   catchup: false
   tasks:
     - task_id: "task_1"

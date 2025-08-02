@@ -1,7 +1,7 @@
 example_jinja2_template_dag:
   default_args:
     start_date: "2025-01-01"
-  schedule_interval: "@daily"
+  schedule: "@daily"
   description: "A DAG that uses Airflow's built-in Jinja templates"
   catchup: false
   tasks:

@@ -1,6 +1,6 @@
 custom_example_dag:
   description: "this is an example dag"
-  schedule_interval: "@daily"
+  schedule: "@daily"
   catchup: false
   render_template_as_native_obj: True
   tasks:

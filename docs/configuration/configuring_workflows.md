@@ -7,7 +7,7 @@ You can define multiple workflows within a single YAML file based on your requir
 
 - **dag_id**: Unique identifier for your DAG.
 - **default_args**: Common arguments for all tasks.
-- **schedule**/**schedule_interval**: Specifies the execution schedule.
+- **schedule**: Specifies the execution schedule.
 - **tasks**: Defines the [Airflow tasks](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html) in your workflow.
 - **task_groups**: Defines [Airflow task groups](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#taskgroups) to organize and group related tasks.
 

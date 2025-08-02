@@ -13,7 +13,6 @@ except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
 from dagfactory.dagbuilder import DagBuilder
-from tests.utils import get_schedule_key
 
 # Get current directory and project root
 here = Path(__file__).parent
@@ -51,14 +50,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout": timedelta(seconds=600),
-    get_schedule_key(): "0 1 * * *",
+    "schedule": "0 1 * * *",
 }
 
 # Basic DAG config for tests
 DAG_CONFIG = {
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
 }
 
 
@@ -174,7 +173,7 @@ def test_dag_with_http_operator():
     # Create a config with HTTP operator tasks
     http_dag_config = {
         "default_args": {"owner": "test_owner", "start_date": datetime.date(2023, 1, 1)},
-        get_schedule_key(): "0 0 * * *",
+        "schedule": "0 0 * * *",
         "tasks": [
             {
                 "task_id": "http_task_json",

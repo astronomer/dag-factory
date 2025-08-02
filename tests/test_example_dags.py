@@ -56,6 +56,7 @@ def get_dag_bag() -> DagBag:
             file.writelines([f"{dagfile}\n"])
 
         if AIRFLOW_VERSION < Version("3.0.0"):
+            file.writelines(["example_dag_datasets.py\n"])
             file.writelines(["example_load_airflow3_dags.py\n"])
 
         if AIRFLOW_VERSION >= Version("3.0.0"):

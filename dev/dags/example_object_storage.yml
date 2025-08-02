@@ -3,7 +3,7 @@ object_storage_ops:
     owner: "custom_owner"
     start_date: 2 days
   description: "Example of ObjectStorage powered DAG"
-  schedule_interval: "0 3 * * *"
+  schedule: "0 3 * * *"
   tasks:
     object_storage_ops:
       operator: airflow.operators.python.PythonOperator
