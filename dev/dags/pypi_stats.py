@@ -4,6 +4,7 @@ PyPI stats utility functions.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import httpx
@@ -15,6 +16,7 @@ DEFAULT_PYPI_PROJECTS = [
     "astronomer-cosmos",
 ]
 
+logger = logging.getLogger(__name__)
 
 # ----8<---   [ start: pypi_stats ]
 
@@ -36,22 +38,43 @@ def fetch_pypi_stats_data(package_name: str) -> dict[str, Any]:
     Given a PyPI project name, return the PyPI stats data associated to it.
     """
     url = f"https://pypistats.org/api/packages/{package_name}/recent"
-    package_json = httpx.get(url).json()
-    package_data = package_json["data"]
-    package_data["package_name"] = package_name
-    return package_data
+    response = httpx.get(url)
+
+    try:
+        response.raise_for_status()
+        package_json = response.json()
+        package_data = package_json["data"]
+        package_data["package_name"] = package_name
+        return package_data
+
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP Error while fetching {package_name}: {e.response.status_code}")
+        logger.error(f"Response content: {e.response.text}")
+    except ValueError as e:
+        logger.error(f"JSON Decode Error for {package_name}: {e}")
+        logger.error(f"Response content: {response.text}")
+    except KeyError as e:
+        logger.error(f"Unexpected response format for {package_name}: {e}")
+        logger.error(f"Response content: {response.text}")
+
+    return {
+        "package_name": package_name,
+        "last_day": 0,
+        "last_week": 0,
+        "last_month": 0,
+    }
 
 
-def summarize(values: list[dict[str, Any]]):
+def summarize(data: list[dict[str, Any]]) -> str:
     """
     Given a list with PyPI stats data, create a table summarizing it, sorting by the last day total downloads.
     """
-    df = pd.DataFrame(values)
+    df = pd.DataFrame(data)
     first_column = "package_name"
     sorted_columns = [first_column] + [col for col in df.columns if col != first_column]
     df = df[sorted_columns].sort_values(by="last_day", ascending=False)
     markdown_output = df.to_markdown(index=False)
-    print(markdown_output)
+    logger.info(markdown_output)
     return markdown_output
 
 
