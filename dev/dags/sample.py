@@ -72,7 +72,7 @@ def generate_data():
 
     print(f"Produced data to file://{file_path}")
 
-    
+
 def object_storage_ops(my_obj_storage) -> None:
     try:
         from airflow.sdk import ObjectStoragePath

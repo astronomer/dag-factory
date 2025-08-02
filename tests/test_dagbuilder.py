@@ -19,7 +19,13 @@ from airflow.providers.http.sensors.http import HttpSensor
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
-from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.dagbuilder import (
+    INSTALLED_AIRFLOW_VERSION,
+    DagBuilder,
+    DagFactoryConfigException,
+    DagFactoryException,
+    Dataset,
+)
 from dagfactory.utils import cast_with_type
 from tests.utils import (
     get_bash_operator_path,
@@ -1384,6 +1390,166 @@ class TestSchedule:
             ),
         )
         assert schedule_data["schedule"].__eq__(expected)
+
+
+# ===============================
+# Test ConfigureSchedule
+# ===============================
+
+
+@pytest.fixture
+def patch_airflow_version(monkeypatch):
+    def _patch(major_version):
+        class MockVersion:
+            major = major_version
+
+        monkeypatch.setattr("dagfactory.dagbuilder.INSTALLED_AIRFLOW_VERSION", MockVersion())
+
+    return _patch
+
+
+@pytest.fixture
+def patch_is_asset_false(monkeypatch):
+    monkeypatch.setattr("dagfactory.dagbuilder.DagBuilder._is_asset", lambda x: False)
+
+
+class TestConfigureSchedule:
+    @pytest.mark.parametrize(
+        "airflow_major_version, dag_params",
+        [
+            (2, {"schedule_interval": "0 1 * * *"}),
+            (3, {"schedule_interval": "0 1 * * *"}),
+            (2, {"schedule_interval": 42}),
+        ],
+    )
+    def test_configure_schedule_interval_key_raises(self, patch_airflow_version, airflow_major_version, dag_params):
+        patch_airflow_version(airflow_major_version)
+
+        dag_kwargs = {}
+
+        with pytest.raises(DagFactoryException, match="The `schedule_interval` key is no longer supported"):
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+    @pytest.mark.parametrize(
+        "airflow_major_version, schedule_input, expected_key, expected_value",
+        [
+            (2, "0 1 * * *", "schedule_interval", "0 1 * * *"),
+            (3, "0 1 * * *", "schedule", "0 1 * * *"),
+            (2, 42, "schedule_interval", 42),
+            (2, 3.14, "schedule_interval", 3.14),
+            (2, True, "schedule_interval", True),
+            (3, None, "schedule", None),
+        ],
+    )
+    def test_configure_schedule_basic_types(
+        self,
+        patch_airflow_version,
+        airflow_major_version,
+        schedule_input,
+        expected_key,
+        expected_value,
+        patch_is_asset_false,
+    ):
+        patch_airflow_version(airflow_major_version)
+
+        dag_params = {"schedule": schedule_input}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs[expected_key] == expected_value
+
+    @pytest.mark.parametrize("none_value", ["none", "NONE", " none "])
+    def test_configure_schedule_none_string_handling(self, patch_airflow_version, none_value):
+        patch_airflow_version(2)
+
+        dag_params = {"schedule": none_value}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule_interval"] is None
+
+    @pytest.mark.parametrize(
+        "schedule_input, expected_call_arg",
+        [
+            (["dataset://uri1", "dataset://uri2"], ["dataset://uri1", "dataset://uri2"]),
+            ({"or": ["dataset://uri1", "dataset://uri2"]}, {"or": ["dataset://uri1", "dataset://uri2"]}),
+            ({"and": ["dataset://uri1", "dataset://uri2"]}, {"and": ["dataset://uri1", "dataset://uri2"]}),
+        ],
+    )
+    def test_configure_schedule_airflow3_asset_schedules(
+        self, patch_airflow_version, schedule_input, expected_call_arg
+    ):
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": schedule_input}
+        dag_kwargs = {}
+
+        with (
+            patch.object(DagBuilder, "_is_asset", return_value=True),
+            patch.object(DagBuilder, "_asset_schedule", return_value="asset_schedule_result") as mock_asset_schedule,
+        ):
+
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+            mock_asset_schedule.assert_called_once_with(expected_call_arg)
+            assert dag_kwargs["schedule"] == "asset_schedule_result"
+
+    @pytest.mark.parametrize(
+        "dag_params, patch_target, expected_return, airflow_version",
+        [
+            (
+                {"schedule": {"file": "datasets.yml", "datasets": ["dataset1", "dataset2"]}},
+                "process_file_with_datasets",
+                "processed_result",
+                "2.4.0",
+            ),
+            (
+                {"schedule": {"datasets": ["dataset1", "dataset2"]}},
+                "evaluate_condition_with_datasets",
+                "evaluated_result",
+                "2.9.0",
+            ),
+        ],
+    )
+    def test_configure_schedule_airflow2_datasets_and_file(
+        self, patch_airflow_version, dag_params, patch_target, expected_return, airflow_version
+    ):
+        patch_airflow_version(2)
+
+        dag_kwargs = {}
+
+        patch_path = f"dagfactory.dagbuilder.DagBuilder.{patch_target}"
+        with patch(patch_path) as mock_func, patch("dagfactory.dagbuilder.AIRFLOW_VERSION", airflow_version):
+            mock_func.return_value = expected_return
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+            mock_func.assert_called_once()
+
+        assert dag_kwargs["schedule_interval"] == expected_return
+
+    @pytest.mark.parametrize(
+        "schedule_input, expected_uris",
+        [
+            (
+                ["dataset://uri1", "", "dataset://uri2", None, "dataset://uri3"],
+                ["dataset://uri1", "dataset://uri2", "dataset://uri3"],
+            ),
+            (["", None, "   "], []),
+        ],
+    )
+    def test_configure_schedule_airflow2_list_schedule_variants(
+        self, patch_airflow_version, schedule_input, expected_uris
+    ):
+        patch_airflow_version(2)
+
+        dag_params = {"schedule": schedule_input}
+        dag_kwargs = {}
+
+        with patch.object(DagBuilder, "_asset_schedule", return_value="asset_schedule_result") as mock_asset_schedule:
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+            mock_asset_schedule.assert_called_once_with(expected_uris)
+            assert dag_kwargs["schedule_interval"] == "asset_schedule_result"
 
 
 class TestTopologicalSortTasks:

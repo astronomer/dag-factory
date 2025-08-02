@@ -202,12 +202,6 @@ class DagBuilder:
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
 
-        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
-        if utils.check_dict_key(dag_params, "schedule_interval"):
-            raise DagFactoryException(
-                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
-            )
-
         return dag_params
 
     @staticmethod
@@ -672,6 +666,12 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
+        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
+        if utils.check_dict_key(dag_params, "schedule_interval"):
+            raise DagFactoryException(
+                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
+            )
+
         # Determine which schedule key to use based on the Airflow version
         # In Airflow 3, the schedule key is "schedule" in DAG config
         # In Airflow 2, the schedule key is "schedule_interval" in DAG config, we need to check the version to use the correct key
@@ -684,8 +684,9 @@ class DagBuilder:
             if has_schedule_attr:
                 schedule: Dict[str, Any] = dag_params.get("schedule")
 
-                has_file_attr = utils.check_dict_key(schedule, "file")
-                has_datasets_attr = utils.check_dict_key(schedule, "datasets")
+                # Only check for file and datasets attributes if schedule is a dict
+                has_file_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "file")
+                has_datasets_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "datasets")
 
                 if has_file_attr and has_datasets_attr:
                     file = schedule.get("file")
@@ -714,23 +715,26 @@ class DagBuilder:
                         # For other types, use the schedule as is
                         dag_kwargs[schedule_key] = schedule
 
-                if has_file_attr:
-                    schedule.pop("file")
-                if has_datasets_attr:
-                    schedule.pop("datasets")
+                # Only pop keys if schedule is a dict
+                if isinstance(schedule, dict):
+                    if has_file_attr:
+                        schedule.pop("file")
+                    if has_datasets_attr:
+                        schedule.pop("datasets")
         else:
-            schedule = dag_params.get("schedule")
-            if DagBuilder._is_asset(schedule):
-                dag_kwargs[schedule_key] = DagBuilder._asset_schedule(schedule)
-            else:
-                if (
-                    utils.check_dict_key(dag_params, "schedule")
-                    and isinstance(dag_params["schedule"], str)
-                    and dag_params["schedule"].strip().lower() == "none"
-                ):
-                    dag_kwargs[schedule_key] = None
+            if "schedule" in dag_params:
+                schedule = dag_params.get("schedule")
+                if DagBuilder._is_asset(schedule):
+                    dag_kwargs[schedule_key] = DagBuilder._asset_schedule(schedule)
                 else:
-                    dag_kwargs[schedule_key] = schedule
+                    if (
+                        utils.check_dict_key(dag_params, "schedule")
+                        and isinstance(dag_params["schedule"], str)
+                        and dag_params["schedule"].strip().lower() == "none"
+                    ):
+                        dag_kwargs[schedule_key] = None
+                    else:
+                        dag_kwargs[schedule_key] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:

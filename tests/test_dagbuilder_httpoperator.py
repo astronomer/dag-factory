@@ -13,7 +13,6 @@ except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
 from dagfactory.dagbuilder import DagBuilder
-from dagfactory.exceptions import DagFactoryException
 
 # Get current directory and project root
 here = Path(__file__).parent
