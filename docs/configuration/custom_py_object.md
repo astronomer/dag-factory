@@ -35,7 +35,8 @@ object_name:
 
 The generalized object feature is **extremely flexible**—it supports Python type or class that is importable in your Airflow environment. The table below shows just a few common examples, but you can use any class by specifying its full import path in `__type__`.
 
-> **Note:** If you use a custom or third-party class, make sure it is installed and importable in your Airflow environment.
+!!! note
+    If you use a custom or third-party class, make sure it is installed and importable in your Airflow environment.
 
 | Python Object/Class                        | YAML `__type__` Value                        | Example Use Case                |
 |--------------------------------------------|----------------------------------------------|---------------------------------|

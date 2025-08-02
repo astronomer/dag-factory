@@ -107,7 +107,8 @@ export CONFIG_ROOT_DIR=$AIRFLOW_HOME/dags
 
 Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):
 
-> Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
+!!! note
+    By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
 
 ```bash
 airflow standalone
@@ -115,7 +116,8 @@ airflow standalone
 
 After Airflow is running, you can access the Airflow UI at `http://localhost:8080`.
 
-> Note: whenever you want to start the development server, you need to activate the `virtualenv` and set the `environment variables`
+!!! note
+    whenever you want to start the development server, you need to activate the `virtualenv` and set the `environment variables`
 
 ### Use Docker for local development
 
@@ -232,7 +234,8 @@ We use GitHub actions to create and deploy new releases. To create a new release
 
 It is possible to update the version either by using hatch:
 
-> Note: You can update the version in several different ways. To learn more, check out the [hatch docs](https://hatch.pypa.io/latest/version/#updating).
+!!! note
+    You can update the version in several different ways. To learn more, check out the [hatch docs](https://hatch.pypa.io/latest/version/#updating).
 
 ```bash
 hatch version minor
