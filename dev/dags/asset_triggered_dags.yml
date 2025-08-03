@@ -1,0 +1,25 @@
+default:
+  default_args:
+    start_date: 2025-01-01
+  catchup: false
+
+producer_dag:
+  schedule: "@daily"
+  tasks:
+    produce_data:
+      operator: "airflow.providers.standard.operators.python.PythonOperator"
+      python_callable: sample.generate_data
+      outlets:
+        - __type__: airflow.sdk.Asset
+          uri: "file:///$AIRFLOW_HONE/data.csv"
+          name: "data_asset"
+
+consumer_dag:
+  schedule:
+    - __type__: airflow.sdk.Asset
+      uri: "file:///$AIRFLOW_HONE/data.csv"
+      name: "data_asset"
+  tasks:
+    consume_data:
+      operator: "airflow.providers.standard.operators.bash.BashOperator"
+      bash_command: "echo 'Asset was updated, running DAG!'"

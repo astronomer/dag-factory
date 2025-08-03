@@ -1,6 +1,7 @@
 import datetime
 import functools
 import os
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
@@ -61,11 +62,11 @@ DEFAULT_CONFIG = {
         "start_date": datetime.date(2018, 3, 1),
         "end_date": datetime.date(2018, 3, 5),
         "retries": 1,
-        "retry_delay_sec": 300,
+        "retry_delay": timedelta(seconds=300),
     },
     "concurrency": 1,
     "max_active_runs": 1,
-    "dagrun_timeout_sec": 600,
+    "dagrun_timeout": timedelta(seconds=600),
     get_schedule_key(): "0 1 * * *",
 }
 DAG_CONFIG = {
@@ -81,7 +82,7 @@ DAG_CONFIG = {
             "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
-            "execution_timeout_secs": 5,
+            "execution_timeout": timedelta(seconds=5),
         },
         {
             "task_id": "task_2",
@@ -225,7 +226,7 @@ DAG_CONFIG_CALLBACKS = {
             "task_id": "task_1",
             "operator": get_bash_operator_path(),
             "bash_command": "echo 1",
-            "execution_timeout_secs": 5,
+            "execution_timeout": timedelta(seconds=5),
             "on_failure_callback_name": "print_context_callback",
             "on_failure_callback_file": __file__,
         }
@@ -339,7 +340,7 @@ def test_get_dag_params():
                 "task_id": "task_1",
                 "operator": get_bash_operator_path(),
                 "bash_command": "echo 1",
-                "execution_timeout_secs": 5,
+                "execution_timeout": timedelta(seconds=5),
             },
             {
                 "task_id": "task_2",
@@ -375,7 +376,7 @@ def test_make_task_valid():
     task_params = {
         "task_id": "test_task",
         "bash_command": "echo 1",
-        "execution_timeout_secs": 5,
+        "execution_timeout": timedelta(seconds=5),
     }
     actual = td.make_task(operator, task_params)
     assert actual.task_id == "test_task"
@@ -1094,7 +1095,7 @@ def test_replace_expand_string_with_xcom():
 
 
 @pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) <= version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
+    version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"), reason="Requires Airflow version less than 3.0.0"
 )
 @pytest.mark.parametrize(
     "inlets, outlets, expected_inlets, expected_outlets",

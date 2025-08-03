@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import pendulum
@@ -12,7 +13,6 @@ except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
 from dagfactory.dagbuilder import DagBuilder
-from dagfactory.exceptions import DagFactoryException
 from tests.utils import get_schedule_key
 
 # Get current directory and project root
@@ -46,11 +46,11 @@ DEFAULT_CONFIG = {
         "start_date": datetime.date(2018, 3, 1),
         "end_date": datetime.date(2018, 3, 5),
         "retries": 1,
-        "retry_delay_sec": 300,
+        "retry_delay": timedelta(seconds=300),
     },
     "concurrency": 1,
     "max_active_runs": 1,
-    "dagrun_timeout_sec": 600,
+    "dagrun_timeout": timedelta(seconds=600),
     get_schedule_key(): "0 1 * * *",
 }
 
@@ -164,7 +164,7 @@ def test_http_operator_with_invalid_json_string(invalid_json):
         "data": invalid_json,
     }
 
-    with pytest.raises(DagFactoryException):
+    with pytest.raises(ValueError):
         td.make_task(HTTP_OPERATOR_PATH, task_params)
 
 

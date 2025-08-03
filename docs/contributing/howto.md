@@ -141,6 +141,15 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 
 ### Run unit tests
 
+!!! note
+    - These tests create local Python virtual environments in a hatch-managed directory.
+
+If you have YAMLs written for Airflow 2 and would like them to be run for Airflow 3 tests, set the following environment variable for DAG Factory to convert and make them compatible with Airflow 3:
+
+```bash
+export AUTO_CONVERT_TO_AF3=true
+```
+
 To run unit tests using Python 3.10 and Airflow 2.5, use the following:
 
 ```bash
@@ -155,15 +164,19 @@ hatch run tests:test-cov
 
 ### Run integration tests
 
-> Note: these tests create local Python virtual environments in a hatch-managed directory.
-> They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
+!!! note
+    - These tests create local Python virtual environments within a `hatch`-managed directory.
+    - They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
+    - The `AUTO_CONVERT_TO_AF3` environment variable is required to run tests in the Airflow 3 environment.
 
 First, set the following environment variables:
 
 ```bash
+export AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=90
 export AIRFLOW_HOME=$(pwd)/dev/
-export CONFIG_ROOT_DIR=`pwd`"/dev/dags"
-export PYTHONPATH=dev/dags:$PYTHONPATH
+export CONFIG_ROOT_DIR=$(pwd)/dev/dags
+export PYTHONPATH=$(pwd)/dev/dags:$PYTHONPATH
+export AUTO_CONVERT_TO_AF3=true
 ```
 
 To run the integration tests using Python 3.9 and Airflow 2.9, use

@@ -1,11 +1,15 @@
 default:
   concurrency: 1
-  dagrun_timeout_sec: 600
+  dagrun_timeout:
+    __type__: datetime.timedelta
+    seconds: 600
   default_args:
     end_date: 2018-03-05
     owner: default_owner
     retries: 1
-    retry_delay_sec: 300
+    retry_delay:
+      __type__: datetime.timedelta
+      seconds: 300
     start_date: 2018-03-01
   default_view: tree
   max_active_runs: 1

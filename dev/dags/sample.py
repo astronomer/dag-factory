@@ -1,4 +1,5 @@
 import csv
+import os
 from datetime import datetime, timedelta
 from random import randint
 from typing import Any
@@ -7,11 +8,6 @@ try:
     from airflow.providers.standard.operators.python import get_current_context
 except ImportError:
     from airflow.operators.python import get_current_context
-
-try:
-    from airflow.sdk import ObjectStoragePath
-except ImportError:
-    from airflow.io.path import ObjectStoragePath
 
 
 def build_numbers_list():
@@ -66,7 +62,23 @@ def read_params(params: dict[str, Any]) -> None:
     print("my_param:", params["my_param"])
 
 
-def object_storage_ops(my_obj_storage: ObjectStoragePath) -> None:
+def generate_data():
+    print("Produced data to file:///$AIRFLOW_HONE/data.csv")
+    data_dir = os.environ.get("AIRFLOW_HONE", "/usr/local/airflow")
+    file_path = os.path.join(data_dir, "data.csv")
+
+    with open(file_path, "w") as f:
+        f.write("id,value\n1,42\n2,43\n")
+
+    print(f"Produced data to file://{file_path}")
+
+
+def object_storage_ops(my_obj_storage) -> None:
+    try:
+        from airflow.sdk import ObjectStoragePath
+    except ImportError:
+        from airflow.io.path import ObjectStoragePath
+
     assert isinstance(my_obj_storage, ObjectStoragePath)
     with my_obj_storage.open("rb") as f:
         text = f.read().decode("utf-8")

@@ -9,7 +9,7 @@ import os
 import re
 import warnings
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import partial, reduce
 from typing import Any, Callable, Dict, List, Tuple, Union
 
@@ -72,62 +72,6 @@ except ImportError:
     logger.info("Package apache-airflow-providers-common-sql is not installed.")
     SQL_SENSOR_CLASS = None
 
-# Try to import KubernetesPodOperator only if the package is installed
-try:
-    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-
-    KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
-except ImportError:
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.0.0
-        from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-
-        KUBERNETES_OPERATOR_CLASS = KubernetesPodOperator
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-        KUBERNETES_OPERATOR_CLASS = None
-
-try:
-    from airflow.providers.cncf.kubernetes import __version__
-
-    K8S_PROVIDER_VERSION = __version__
-
-except ImportError:  # pragma: no cover
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 10.4.2
-        from airflow.providers.cncf.kubernetes import get_provider_info
-
-        K8S_PROVIDER_VERSION = get_provider_info.get_provider_info()["versions"][0]
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-        K8S_PROVIDER_VERSION = "0"
-
-try:
-    from airflow.providers.cncf.kubernetes.secret import Secret
-except ImportError:
-    try:
-        # TODO: Remove this when apache-airflow-providers-cncf-kubernetes >= 5.0.0
-        from airflow.kubernetes.secret import Secret
-    except ImportError:
-        logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-
-try:
-    from kubernetes.client.models import (
-        V1Affinity,
-        V1Container,
-        V1ContainerPort as Port,
-        V1EnvFromSource,
-        V1EnvVar,
-        V1LocalObjectReference,
-        V1Pod,
-        V1PodSecurityContext,
-        V1Toleration,
-        V1Volume,
-        V1VolumeMount as VolumeMount,
-    )
-except ImportError:
-    logger.info("Package apache-airflow-providers-cncf-kubernetes is not installed.")
-
 from dagfactory import parsers, utils
 from dagfactory.constants import AIRFLOW3_MAJOR_VERSION
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
@@ -162,10 +106,7 @@ class DagBuilder:
 
         :returns: dict of dag parameters
         """
-        try:
-            dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
-        except Exception as err:
-            raise DagFactoryConfigException("Failed to merge config with default config") from err
+        dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
         dag_params["dag_id"]: str = self.dag_name
 
         # If there are no default_args, add an empty dictionary
@@ -173,11 +114,6 @@ class DagBuilder:
 
         if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
             dag_params["schedule_interval"] = None
-
-        # Convert from 'dagrun_timeout_sec: int' to 'dagrun_timeout: timedelta'
-        if utils.check_dict_key(dag_params, "dagrun_timeout_sec"):
-            dag_params["dagrun_timeout"]: timedelta = timedelta(seconds=dag_params["dagrun_timeout_sec"])
-            del dag_params["dagrun_timeout_sec"]
 
         if utils.check_dict_key(dag_params, "start_date"):
             dag_params["start_date"]: datetime = utils.get_datetime(
@@ -197,22 +133,6 @@ class DagBuilder:
                 date_value=dag_params["default_args"]["end_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
-
-        if utils.check_dict_key(dag_params["default_args"], "retry_delay_sec"):
-            dag_params["default_args"]["retry_delay"]: timedelta = timedelta(
-                seconds=dag_params["default_args"]["retry_delay_sec"]
-            )
-            del dag_params["default_args"]["retry_delay_sec"]
-
-        if utils.check_dict_key(dag_params["default_args"], "sla_secs"):
-            dag_params["default_args"]["sla"]: timedelta = timedelta(seconds=dag_params["default_args"]["sla_secs"])
-            del dag_params["default_args"]["sla_secs"]
-
-        if utils.check_dict_key(dag_params["default_args"], "execution_timeout"):
-            if isinstance(dag_params["default_args"]["execution_timeout"], int):
-                dag_params["default_args"]["execution_timeout"]: timedelta = timedelta(
-                    seconds=dag_params["default_args"]["execution_timeout"]
-                )
 
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
         # check has gone into the set_callback method
@@ -293,78 +213,10 @@ class DagBuilder:
 
         :returns instance of timetable object
         """
-        try:
-            # class is a Callable https://stackoverflow.com/a/34578836/3679900
-            timetable_obj: Callable[..., Timetable] = import_string(timetable)
-        except Exception as err:
-            raise DagFactoryException(f"Failed to import timetable {timetable} due to: {err}") from err
-        try:
-            schedule: Timetable = timetable_obj(**timetable_params)
-        except Exception as err:  # pragma: no cover
-            raise DagFactoryException(f"Failed to create {timetable_obj} due to: {err}") from err
+        # class is a Callable https://stackoverflow.com/a/34578836/3679900
+        timetable_obj: Callable[..., Timetable] = import_string(timetable)
+        schedule: Timetable = timetable_obj(**timetable_params)
         return schedule
-
-    @staticmethod
-    def _create_volume(vol):
-        volume = V1Volume(name=vol.get("name"))
-        for k, v in vol["configs"].items():
-            snake_key = utils.convert_to_snake_case(k)
-            if hasattr(volume, snake_key):
-                setattr(volume, snake_key, v)
-            else:
-                raise DagFactoryException(f"Volume for KubernetesPodOperator does not have attribute {k}")
-        return volume
-
-    @staticmethod
-    def _clean_kpo_task_params(task_params: dict) -> dict:
-        conversions = [
-            ("ports", Port, "list"),
-            ("volume_mounts", VolumeMount, "list"),
-            ("env_vars", V1EnvVar, "list"),
-            ("env_from", V1EnvFromSource, "list"),
-            ("secrets", Secret, "list"),
-            ("affinity", V1Affinity, "single"),
-            ("image_pull_secrets", V1LocalObjectReference, "list"),
-            ("tolerations", V1Toleration, "list"),
-            ("security_context", V1PodSecurityContext, "single"),
-            ("init_containers", V1Container, "list"),
-            ("pod_runtime_info_envs", V1EnvVar, "list"),
-            ("full_pod_spec", V1Pod, "single"),
-        ]
-
-        # Conditional field based on version
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.8.0"):
-            from kubernetes.client.models import V1HostAlias
-
-            conversions.append(("host_aliases", V1HostAlias, "list"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("7.0.0"):
-            from kubernetes.client.models import V1PodDNSConfig
-
-            conversions.append(("dns_config", V1PodDNSConfig, "single"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("5.0.0"):
-            from kubernetes.client.models import V1ResourceRequirements
-
-            conversions.append(("container_resources", V1ResourceRequirements, "single"))
-
-        if version.parse(K8S_PROVIDER_VERSION) >= version.parse("4.4.0"):
-            from kubernetes.client.models import V1SecurityContext
-
-            conversions.append(("container_security_context", V1SecurityContext, "single"))
-
-        for key, cls, conv_type in conversions:
-            if key in task_params and task_params[key] is not None:
-                if conv_type == "list":
-                    task_params[key] = [cls(**v) for v in task_params[key]]
-                elif conv_type == "single":
-                    task_params[key] = cls(task_params[key])
-
-        # Special case for volumes that uses a different constructor
-        if task_params.get("volumes") is not None:
-            task_params["volumes"] = [DagBuilder._create_volume(vol) for vol in task_params["volumes"]]
-
-        return task_params
 
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
@@ -412,97 +264,83 @@ class DagBuilder:
 
         :returns: instance of operator object
         """
-        try:
-            # class is a Callable https://stackoverflow.com/a/34578836/3679900
-            operator_obj: Callable[..., BaseOperator] = import_string(operator)
-        except Exception as err:
-            raise DagFactoryException(f"Failed to import operator: {operator}") from err
+        # class is a Callable https://stackoverflow.com/a/34578836/3679900
+        operator_obj: Callable[..., BaseOperator] = import_string(operator)
         # pylint: disable=too-many-nested-blocks
-        try:
-            if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
-                if (
-                    not task_params.get("python_callable")
-                    and not task_params.get("python_callable_name")
-                    and not task_params.get("python_callable_file")
-                ):
-                    # pylint: disable=line-too-long
-                    raise DagFactoryException(
-                        "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
-                        `python_callable_name` and `python_callable_file` "
-                        "parameters.\nOptionally you can load python_callable "
-                        "from a file. with the special pyyaml notation:\n"
-                        "  python_callable_file: !!python/name:my_module.my_func"
-                    )
-                if not task_params.get("python_callable"):
-                    task_params["python_callable"]: Callable = utils.get_python_callable(
-                        task_params["python_callable_name"], task_params["python_callable_file"]
-                    )
-                    # remove dag-factory specific parameters
-                    # Airflow 2.0 doesn't allow these to be passed to operator
-                    del task_params["python_callable_name"]
-                    del task_params["python_callable_file"]
-                elif isinstance(task_params["python_callable"], str):
-                    task_params["python_callable"]: Callable = import_string(task_params["python_callable"])
-
-            # Check for the custom success and failure callables in SqlSensor. These are considered
-            # optional, so no failures in case they aren't found. Note: there's no reason to
-            # declare both a callable file and a lambda function for success/failure parameter.
-            # If both are found the object will not throw and error, instead callable file will
-            # take precedence over the lambda function
-            if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
-                # Success checks
-                if task_params.get("success_check_file") and task_params.get("success_check_name"):
-                    task_params["success"]: Callable = utils.get_python_callable(
-                        task_params["success_check_name"], task_params["success_check_file"]
-                    )
-                    del task_params["success_check_name"]
-                    del task_params["success_check_file"]
-                elif task_params.get("success_check_lambda"):
-                    task_params["success"]: Callable = utils.get_python_callable_lambda(
-                        task_params["success_check_lambda"]
-                    )
-                    del task_params["success_check_lambda"]
-                # Failure checks
-                if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
-                    task_params["failure"]: Callable = utils.get_python_callable(
-                        task_params["failure_check_name"], task_params["failure_check_file"]
-                    )
-                    del task_params["failure_check_name"]
-                    del task_params["failure_check_file"]
-                elif task_params.get("failure_check_lambda"):
-                    task_params["failure"]: Callable = utils.get_python_callable_lambda(
-                        task_params["failure_check_lambda"]
-                    )
-                    del task_params["failure_check_lambda"]
-
-            # Only handle HTTP operator/sensor if the package is installed
-            if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
-                operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+        if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
+            if (
+                not task_params.get("python_callable")
+                and not task_params.get("python_callable_name")
+                and not task_params.get("python_callable_file")
             ):
-                task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
+                # pylint: disable=line-too-long
+                raise DagFactoryException(
+                    "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
+                    `python_callable_name` and `python_callable_file` "
+                    "parameters.\nOptionally you can load python_callable "
+                    "from a file. with the special pyyaml notation:\n"
+                    "  python_callable_file: !!python/name:my_module.my_func"
+                )
+            if not task_params.get("python_callable"):
+                task_params["python_callable"]: Callable = utils.get_python_callable(
+                    task_params["python_callable_name"], task_params["python_callable_file"]
+                )
+                # remove dag-factory specific parameters
+                # Airflow 2.0 doesn't allow these to be passed to operator
+                del task_params["python_callable_name"]
+                del task_params["python_callable_file"]
+            elif isinstance(task_params["python_callable"], str):
+                task_params["python_callable"]: Callable = import_string(task_params["python_callable"])
 
-            # Only handle KubernetesPodOperator if the package is installed
-            if KUBERNETES_OPERATOR_CLASS and issubclass(operator_obj, KUBERNETES_OPERATOR_CLASS):
-                task_params = DagBuilder._clean_kpo_task_params(task_params)
+        # Check for the custom success and failure callables in SqlSensor. These are considered
+        # optional, so no failures in case they aren't found. Note: there's no reason to
+        # declare both a callable file and a lambda function for success/failure parameter.
+        # If both are found the object will not throw and error, instead callable file will
+        # take precedence over the lambda function
+        if SQL_SENSOR_CLASS and issubclass(operator_obj, SQL_SENSOR_CLASS):
+            # Success checks
+            if task_params.get("success_check_file") and task_params.get("success_check_name"):
+                task_params["success"]: Callable = utils.get_python_callable(
+                    task_params["success_check_name"], task_params["success_check_file"]
+                )
+                del task_params["success_check_name"]
+                del task_params["success_check_file"]
+            elif task_params.get("success_check_lambda"):
+                task_params["success"]: Callable = utils.get_python_callable_lambda(task_params["success_check_lambda"])
+                del task_params["success_check_lambda"]
+            # Failure checks
+            if task_params.get("failure_check_file") and task_params.get("failure_check_name"):
+                task_params["failure"]: Callable = utils.get_python_callable(
+                    task_params["failure_check_name"], task_params["failure_check_file"]
+                )
+                del task_params["failure_check_name"]
+                del task_params["failure_check_file"]
+            elif task_params.get("failure_check_lambda"):
+                task_params["failure"]: Callable = utils.get_python_callable_lambda(task_params["failure_check_lambda"])
+                del task_params["failure_check_lambda"]
 
-            DagBuilder.adjust_general_task_params(task_params)
+        # Only handle HTTP operator/sensor if the package is installed
+        if (HTTP_OPERATOR_CLASS or HTTP_SENSOR_CLASS) and issubclass(
+            operator_obj, (HTTP_OPERATOR_CLASS, HTTP_SENSOR_CLASS)
+        ):
+            task_params = DagBuilder._handle_http_sensor(operator_obj, task_params)
 
-            expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
-            if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
-                # Getting expand and partial kwargs from task_params
-                (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+        DagBuilder.adjust_general_task_params(task_params)
 
-                # If there are partial_kwargs we should merge them with existing task_params
-                if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
-                    task_params.update(partial_kwargs)
+        expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
+        if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
+            # Getting expand and partial kwargs from task_params
+            (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
 
-            task: Union[BaseOperator, MappedOperator] = (
-                operator_obj(**task_params)
-                if not expand_kwargs
-                else operator_obj.partial(**task_params).expand(**expand_kwargs)
-            )
-        except Exception as err:
-            raise DagFactoryException(f"Failed to create {operator_obj} task: {err}") from err
+            # If there are partial_kwargs we should merge them with existing task_params
+            if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
+                task_params.update(partial_kwargs)
+
+        task: Union[BaseOperator, MappedOperator] = (
+            operator_obj(**task_params)
+            if not expand_kwargs
+            else operator_obj.partial(**task_params).expand(**expand_kwargs)
+        )
         return task
 
     @staticmethod
@@ -1155,20 +993,8 @@ class DagBuilder:
         return sorted_tasks
 
     @staticmethod
-    def adjust_general_task_params(task_params: dict(str, Any)):
+    def adjust_general_task_params(task_params: dict[str, Any]):
         """Adjusts in place the task params argument"""
-        if utils.check_dict_key(task_params, "execution_timeout_secs"):
-            task_params["execution_timeout"]: timedelta = timedelta(seconds=task_params["execution_timeout_secs"])
-            del task_params["execution_timeout_secs"]
-
-        if utils.check_dict_key(task_params, "sla_secs"):
-            task_params["sla"]: timedelta = timedelta(seconds=task_params["sla_secs"])
-            del task_params["sla_secs"]
-
-        if utils.check_dict_key(task_params, "execution_delta_secs"):
-            task_params["execution_delta"]: timedelta = timedelta(seconds=task_params["execution_delta_secs"])
-            del task_params["execution_delta_secs"]
-
         # Used by airflow.sensors.external_task_sensor.ExternalTaskSensor
         if utils.check_dict_key(task_params, "execution_date_fn"):
             python_callable: Callable = import_string(task_params["execution_date_fn"])
@@ -1218,7 +1044,7 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0"):
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
             for key in ["inlets", "outlets"]:
                 if utils.check_dict_key(task_params, key):
                     if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(

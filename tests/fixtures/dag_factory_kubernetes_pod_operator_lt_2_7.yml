@@ -4,10 +4,14 @@ default:
     start_date: 2018-03-01
     end_date: 2018-03-05
     retries: 1
-    retry_delay_sec: 300
+    retry_delay:
+      __type__: datetime.timedelta
+      seconds: 300
   concurrency: 1
   max_active_runs: 1
-  dagrun_timeout_sec: 600
+  dagrun_timeout:
+    __type__: datetime.timedelta
+    seconds: 600
   default_view: 'tree'
   orientation: 'LR'
   schedule_interval: '0 1 * * *'
@@ -24,20 +28,38 @@ example_dag:
          'arg2',
          'arg3',
       ]
-      secrets : [{"secret":"secret","deploy_type":"env","deploy_target":"ENV_VAR"}]
-      ports : [{"name" : "name","container_port":"container_port"},{"name" : "name","container_port":"container_port"}]
-      volume_mounts : [
-        {"name":"name","mount_path":"mount_path","sub_path":"sub_path","read_only":"read_only"},
-        {"name":"name","mount_path":"mount_path","sub_path":"sub_path","read_only":"read_only"},
-      ]
-      volumes : [
-        {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
-        {"name":"name","configs":{'persistentVolumeClaim': {'claimName': 'test-volume'}}},
-      ]
-      pod_runtime_info_envs : [
-        { "name": "name","value": "field_path" },
-        { "name": "name","value": "field_path" },
-      ]
+      secrets:
+        - __type__: airflow.providers.cncf.kubernetes.secret.Secret
+          secret: secret
+          deploy_type: "env"
+          deploy_target: "ENV_VAR"
+      ports:
+        - __type__: kubernetes.client.models.V1ContainerPort
+          name: "name"
+          container_port: "container_port"
+        - __type__: kubernetes.client.models.V1ContainerPort
+          name: "name"
+          container_port: "container_port"
+      volume_mounts:
+        - __type__: kubernetes.client.models.V1VolumeMount
+          name: "name"
+          mount_path: "mount_path"
+          sub_path: "sub_path"
+          read_only: "read_only"
+        - __type__: kubernetes.client.models.V1VolumeMount
+          name: "name"
+          mount_path: "mount_path"
+          sub_path: "sub_path"
+          read_only: "read_only"
+      volumes:
+        - __type__: kubernetes.client.models.V1Volume
+          name: "name"
+        - __type__: kubernetes.client.models.V1Volume
+          name: "name"
+      pod_runtime_info_envs:
+        - __type__: kubernetes.client.models.V1EnvVar
+          name: "name"
+          value: "field_path"
       full_pod_spec : {
           "api_version": "api_version",
           "kind": "kind",
@@ -45,9 +67,11 @@ example_dag:
           "spec": "spec",
           "status": "status",
       }
-      init_containers : [
-        {"name": "name","args":"args","command":"command"},
-      ]
+      init_containers:
+        - __type__: kubernetes.client.models.V1Container
+          name: "name"
+          "args": "args"
+          "command": "command"
       labels: {'foo': 'bar'}
       name: 'passing-test'
       get_logs: True
@@ -56,10 +80,10 @@ example_dag:
     - task_id: "task_2"
       operator: airflow.providers.cncf.kubernetes.operators.kubernetes_pod.KubernetesPodOperator
       namespace: 'default'
-      config_file : 'path_to_config_file'
-      image : 'image'
-      image_pull_policy : 'Always'
-      arguments : [
+      config_file: 'path_to_config_file'
+      image: 'image'
+      image_pull_policy: 'Always'
+      arguments: [
          'arg1',
          'arg2',
          'arg3',
