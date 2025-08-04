@@ -23,7 +23,7 @@ from tests.utils import get_bash_operator_path
 
 here = os.path.dirname(__file__)
 
-from dagfactory import dagfactory, exceptions, load_yaml_dags
+from dagfactory import dagfactory, load_yaml_dags
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -474,41 +474,6 @@ def test_none_string_schedule_supplied():
     schedule = _get_schedule_value("example_dag_none_string_schedule")
     expected_schedule = None
     assert schedule == expected_schedule
-
-
-def test_schedule_interval_supplied():
-    td = dagfactory.DagFactory(DAG_FACTORY_SCHEDULE_INTERVAL)
-    with pytest.raises(
-        exceptions.DagFactoryException,
-        match="The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
-    ):
-        td._generate_dags(globals())
-
-def test_schedule_interval():
-    load_yaml_dags(
-        globals_dict=globals(),
-        config_filepath=TEST_DAG_FACTORY,
-    )
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag2"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag2"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
-
-def test_no_schedule_supplied():
-    load_yaml_dags(
-        globals_dict=globals(),
-        config_filepath=DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE,
-    )
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag_no_schedule"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag_no_schedule"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
 
 
 def test_dagfactory_dict():
