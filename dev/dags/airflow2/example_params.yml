@@ -8,7 +8,7 @@ example_params:
     model_version: 1.0.0
     input_uri: localhost
   description: "This is an DAG-Factory example dag with param"
-  schedule: "@daily"
+  schedule_interval: "@daily"
   tasks:
     - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
