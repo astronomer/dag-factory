@@ -1181,7 +1181,10 @@ def test_make_nested_task_groups():
 
 class TestSchedule:
 
-    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major >= 3, reason="Requires Airflow < 3.0.0")
+    @pytest.mark.skipif(
+        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
     def test_asset_schedule_list_of_dataset(self):
         schedule_data = load_yaml_file(str(schedule_path / "dataset_as_list.yml"))
         assert schedule_data["schedule"] == [
@@ -1189,7 +1192,10 @@ class TestSchedule:
             "s3://bucket_example/raw/dataset2.json",
         ]
 
-    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major >= 3, reason="Requires Airflow <3.0.0")
+    @pytest.mark.skipif(
+        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
     def test_asset_schedule_list_of_dataset_object(self):
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
@@ -1202,7 +1208,10 @@ class TestSchedule:
         )
         assert schedule_data["schedule"].__eq__(expected)
 
-    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major >= 3, reason="Requires Airflow < 3.0.0")
+    @pytest.mark.skipif(
+        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
     def test_asset_schedule_list_of_dataset_nested(self):
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
