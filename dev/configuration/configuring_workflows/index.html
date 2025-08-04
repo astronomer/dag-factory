@@ -1503,7 +1503,7 @@ You can define multiple workflows within a single YAML file based on your requir
 <ul>
 <li><strong>dag_id</strong>: Unique identifier for your DAG.</li>
 <li><strong>default_args</strong>: Common arguments for all tasks.</li>
-<li><strong>schedule</strong>/<strong>schedule_interval</strong>: Specifies the execution schedule.</li>
+<li><strong>schedule</strong>: Specifies the execution schedule.</li>
 <li><strong>tasks</strong>: Defines the <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/tasks.html">Airflow tasks</a> in your workflow.</li>
 <li><strong>task_groups</strong>: Defines <a href="https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#taskgroups">Airflow task groups</a> to organize and group related tasks.</li>
 </ul>
@@ -1520,7 +1520,7 @@ You can define multiple workflows within a single YAML file based on your requir
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  default_args:
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    owner: &quot;custom_owner&quot;
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  description: &quot;this is an example dag&quot;
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule_interval: &quot;0 3 * * *&quot;
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schedule: &quot;0 3 * * *&quot;
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  render_template_as_native_obj: True
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  catchup: false
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  task_groups:
