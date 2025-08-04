@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -969,6 +971,29 @@
   
   <span class="md-ellipsis">
     Kubernetes Pod Operator
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../asset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Asset
     
   </span>
   
@@ -1286,30 +1311,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Commands summary">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      Flags
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1323,27 +1324,81 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#flags_1" class="md-nav__link">
+  <a href="#flags" class="md-nav__link">
     <span class="md-ellipsis">
       Flags
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Flags">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#version" class="md-nav__link">
+  <a href="#identify-the-cli-version" class="md-nav__link">
     <span class="md-ellipsis">
-      Version
+      Identify the CLI version
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#help" class="md-nav__link">
+  <a href="#check-all-the-commands-available-in-the-cli" class="md-nav__link">
     <span class="md-ellipsis">
-      Help
+      Check all the commands available in the CLI
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lint-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      lint command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lint command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#convert-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      convert command
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="convert command">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
     </span>
   </a>
   
@@ -1405,40 +1460,19 @@
 <td><code>--verbose</code></td>
 <td>Check if the given directory or file is a valid YAML</td>
 </tr>
+<tr>
+<td><code>convert</code></td>
+<td><code>path</code></td>
+<td><code>--override</code></td>
+<td>Convert YAML file(s) from Airflow 2 to 3 in the terminal or in-place</td>
+</tr>
 </tbody>
 </table>
 <p>For more details about the available commands, run <code>dagfactory --help</code>.</p>
-<h3 id="example">Example</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="w"> </span>dagfactory<span class="w"> </span>lint<span class="w"> </span>some/dir<span class="w"> </span>--verbose
-</span></code></pre></div>
-<p>Output:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="w">                           </span>DAG<span class="w"> </span>Factory:<span class="w"> </span>YAML<span class="w"> </span>Lint<span class="w"> </span>Results
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>┏━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>┃<span class="w"> </span>File<span class="w">                 </span>┃<span class="w"> </span>Status<span class="w">       </span>┃<span class="w"> </span>Error<span class="w"> </span>Message<span class="w">                               </span>┃
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>┡━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│<span class="w"> </span>some/dir/v.yml<span class="w">       </span>│<span class="w"> </span>OK<span class="w">           </span>│<span class="w">                                             </span>│
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├──────────────────────┼────────------┼---------------------------------────────────┤
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│<span class="w"> </span>some/dir/b.yaml<span class="w">      </span>│<span class="w"> </span>Syntax<span class="w"> </span>Error<span class="w"> </span>│<span class="w"> </span>mapping<span class="w"> </span>values<span class="w"> </span>are<span class="w"> </span>not<span class="w"> </span>allowed<span class="w"> </span>here<span class="w">         </span>│
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">7</span>:<span class="w">  </span>│
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">       </span>host:<span class="w"> </span>localhost<span class="w">                       </span>│
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">           </span>^<span class="w">                                 </span>│
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├──────────────────────┼──────────────┼─────────────────────────────────────────────┤
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│<span class="w"> </span>some/dir/a.yml<span class="w">       </span>│<span class="w"> </span>Syntax<span class="w"> </span>Error<span class="w"> </span>│<span class="w"> </span><span class="k">while</span><span class="w"> </span>parsing<span class="w"> </span>a<span class="w"> </span>flow<span class="w"> </span>sequence<span class="w">               </span>│
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">5</span>:<span class="w">  </span>│
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">       </span>-<span class="w"> </span><span class="o">[</span>orange,<span class="w"> </span>mango<span class="w">                      </span>│
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">         </span>^<span class="w">                                   </span>│
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w"> </span>expected<span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span>or<span class="w"> </span><span class="s1">&#39;]&#39;</span>,<span class="w"> </span>but<span class="w"> </span>got<span class="w"> </span><span class="s1">&#39;&lt;stream end&gt;&#39;</span><span class="w"> </span>│
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">3</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">1</span>:<span class="w">  </span>│
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">                                             </span>│
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">     </span>^<span class="w">                                       </span>│
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>└──────────────────────┴──────────────┴─────────────────────────────────────────────┘
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>Analysed<span class="w"> </span><span class="m">3</span><span class="w"> </span>files,<span class="w"> </span>found<span class="w"> </span><span class="m">2</span><span class="w"> </span>invalid<span class="w"> </span>YAML<span class="w"> </span>files.
+<h2 id="base-command-usage">Base command usage</h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dagfactory<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="flags">Flags</h3>
-<h2 id="base-command-usage">Base command usage</h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>dagfactory<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
-</span></code></pre></div>
-<h3 id="flags_1">Flags</h3>
 <table>
 <thead>
 <tr>
@@ -1460,25 +1494,91 @@
 </tr>
 </tbody>
 </table>
-<h3 id="version">Version</h3>
+<h4 id="identify-the-cli-version">Identify the CLI version</h4>
 <p>Display the DAG Factory version:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>dagfactory<span class="w"> </span>--version
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>dagfactory<span class="w"> </span>--version
 </span></code></pre></div>
 <p>Output:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>DAG<span class="w"> </span>Factory<span class="w"> </span><span class="m">1</span>.0.0a1
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>DAG<span class="w"> </span>Factory<span class="w"> </span><span class="m">1</span>.0.0a1
 </span></code></pre></div>
-<h3 id="help">Help</h3>
+<h4 id="check-all-the-commands-available-in-the-cli">Check all the commands available in the CLI</h4>
 <p>Find out more about the DAG Factory command line:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>dagfactory<span class="w"> </span>--help
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>dagfactory<span class="w"> </span>--help
 </span></code></pre></div>
 <p>Output:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Usage:<span class="w"> </span>dagfactory<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>DAG<span class="w"> </span>Factory:<span class="w"> </span>Dynamically<span class="w"> </span>build<span class="w"> </span>Apache<span class="w"> </span>Airflow<span class="w"> </span>DAGs<span class="w"> </span>from<span class="w"> </span>YAML<span class="w"> </span>files
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Options:
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>-v,<span class="w"> </span>--version<span class="w">  </span>Show<span class="w"> </span>the<span class="w"> </span>version<span class="w"> </span>and<span class="w"> </span>exit.
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">     </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Usage:<span class="w"> </span>dagfactory<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>DAG<span class="w"> </span>Factory:<span class="w"> </span>Dynamically<span class="w"> </span>build<span class="w"> </span>Apache<span class="w"> </span>Airflow<span class="w"> </span>DAGs<span class="w"> </span>from<span class="w"> </span>YAML<span class="w"> </span>files
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Options:
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>-v,<span class="w"> </span>--version<span class="w">  </span>Show<span class="w"> </span>the<span class="w"> </span>version<span class="w"> </span>and<span class="w"> </span>exit.
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">     </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.
+</span></code></pre></div>
+<h2 id="lint-command"><code>lint</code> command</h2>
+<p>Check if the given directory contains a valid YAML files (recursively) or if the given file is a valid YAML.</p>
+<h3 id="example">Example</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w"> </span>dagfactory<span class="w"> </span>lint<span class="w"> </span>some/dir<span class="w"> </span>--verbose
+</span></code></pre></div>
+<p>Output:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="w">                           </span>DAG<span class="w"> </span>Factory:<span class="w"> </span>YAML<span class="w"> </span>Lint<span class="w"> </span>Results
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>┏━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>┃<span class="w"> </span>File<span class="w">                 </span>┃<span class="w"> </span>Status<span class="w">       </span>┃<span class="w"> </span>Error<span class="w"> </span>Message<span class="w">                               </span>┃
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>┡━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>│<span class="w"> </span>some/dir/v.yml<span class="w">       </span>│<span class="w"> </span>OK<span class="w">           </span>│<span class="w">                                             </span>│
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>├──────────────────────┼────────------┼---------------------------------────────────┤
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>│<span class="w"> </span>some/dir/b.yaml<span class="w">      </span>│<span class="w"> </span>Syntax<span class="w"> </span>Error<span class="w"> </span>│<span class="w"> </span>mapping<span class="w"> </span>values<span class="w"> </span>are<span class="w"> </span>not<span class="w"> </span>allowed<span class="w"> </span>here<span class="w">         </span>│
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">7</span>:<span class="w">  </span>│
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">       </span>host:<span class="w"> </span>localhost<span class="w">                       </span>│
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">           </span>^<span class="w">                                 </span>│
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>├──────────────────────┼──────────────┼─────────────────────────────────────────────┤
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>│<span class="w"> </span>some/dir/a.yml<span class="w">       </span>│<span class="w"> </span>Syntax<span class="w"> </span>Error<span class="w"> </span>│<span class="w"> </span><span class="k">while</span><span class="w"> </span>parsing<span class="w"> </span>a<span class="w"> </span>flow<span class="w"> </span>sequence<span class="w">               </span>│
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">5</span>:<span class="w">  </span>│
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">       </span>-<span class="w"> </span><span class="o">[</span>orange,<span class="w"> </span>mango<span class="w">                      </span>│
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">         </span>^<span class="w">                                   </span>│
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w"> </span>expected<span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span>or<span class="w"> </span><span class="s1">&#39;]&#39;</span>,<span class="w"> </span>but<span class="w"> </span>got<span class="w"> </span><span class="s1">&#39;&lt;stream end&gt;&#39;</span><span class="w"> </span>│
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">   </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;&lt;unicode string&gt;&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">3</span>,<span class="w"> </span>column<span class="w"> </span><span class="m">1</span>:<span class="w">  </span>│
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">                                             </span>│
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>│<span class="w">                      </span>│<span class="w">              </span>│<span class="w">     </span>^<span class="w">                                       </span>│
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>└──────────────────────┴──────────────┴─────────────────────────────────────────────┘
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>Analysed<span class="w"> </span><span class="m">3</span><span class="w"> </span>files,<span class="w"> </span>found<span class="w"> </span><span class="m">2</span><span class="w"> </span>invalid<span class="w"> </span>YAML<span class="w"> </span>files.
+</span></code></pre></div>
+<h2 id="convert-command"><code>convert</code>  command</h2>
+<p>Given a path to either a directory containing YAML files or to a path to a single YAML file, tries to convert them from Airflow 2 to 3. By default, displays the necessary changes in the terminal (default). If using the flag <code>--override</code>, changes the original files with the necessary changes.</p>
+<h3 id="example_1">Example</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="w"> </span>dagfactory<span class="w"> </span>convert<span class="w"> </span>dev/dags/airflow3
+</span></code></pre></div>
+<p>Output:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_params.yml
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_dag_factory_multiple_config.yml
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_task_group.yml
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_dag_factory_default_args.yml
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>───────────────────────────────────────────────────<span class="w"> </span>Diff<span class="w"> </span><span class="k">for</span><span class="w"> </span>dev/dags/airflow3/example_customize_operator.yml<span class="w"> </span>───────────────────────────────────────────────────
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>---<span class="w"> </span>dev/dags/airflow3/example_customize_operator.yml
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>+++<span class="w"> </span>dev/dags/airflow3/example_customize_operator.yml<span class="w"> </span><span class="o">(</span>converted<span class="o">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>@@<span class="w"> </span>-11,7<span class="w"> </span>+11,7<span class="w"> </span>@@
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">   </span>schedule:<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">   </span>tasks:
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">   </span>-<span class="w"> </span>task_id:<span class="w"> </span>begin
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>-<span class="w">    </span>operator:<span class="w"> </span>airflow.operators.empty.EmptyOperator
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>+<span class="w">    </span>operator:<span class="w"> </span>airflow.providers.standard.operators.empty.EmptyOperator
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">   </span>-<span class="w"> </span>task_id:<span class="w"> </span>make_bread_1
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">     </span>operator:<span class="w"> </span>customized.operators.breakfast_operators.MakeBreadOperator
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">     </span>bread_type:<span class="w"> </span>Sourdough
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>@@<span class="w"> </span>-30,7<span class="w"> </span>+30,7<span class="w"> </span>@@
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">     </span>-<span class="w"> </span>make_bread_1
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">     </span>-<span class="w"> </span>make_bread_2
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">   </span>-<span class="w"> </span>task_id:<span class="w"> </span>end
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>-<span class="w">    </span>operator:<span class="w"> </span>airflow.operators.empty.EmptyOperator
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>+<span class="w">    </span>operator:<span class="w"> </span>airflow.providers.standard.operators.empty.EmptyOperator
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">     </span>dependencies:
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">     </span>-<span class="w"> </span>begin
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">     </span>-<span class="w"> </span>make_bread_1
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_custom_py_object_dag.yml
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_taskflow.yml
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_jinja2_template_dag.yml
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_dag_factory_default_config.yml
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>No<span class="w"> </span>changes<span class="w"> </span>needed:<span class="w"> </span>dev/dags/airflow3/example_dynamic_task_mapping.yml
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>Tried<span class="w"> </span>to<span class="w"> </span>convert<span class="w"> </span><span class="m">10</span><span class="w"> </span>files,<span class="w"> </span>converted<span class="w"> </span><span class="m">1</span><span class="w"> </span>file,<span class="w"> </span>no<span class="w"> </span>errors<span class="w"> </span>found.
 </span></code></pre></div>
 
 
