@@ -1365,7 +1365,7 @@ class TestSchedule:
         DagBuilder.configure_schedule(data, schedule_data)
         assert schedule_data["schedule"] == "@daily"
 
-    @pytest.mark.skipif(version.parse("2.8.0") <= INSTALLED_AIRFLOW_VERSION)
+    @pytest.mark.skipif(version.parse("2.8.0") <= INSTALLED_AIRFLOW_VERSION, reason="Timetable require Airflow >= 2.9")
     def test_resolve_schedule_timetable_type(self):
         from airflow.timetables.trigger import CronTriggerTimetable
 
