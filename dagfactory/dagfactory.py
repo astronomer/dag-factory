@@ -13,14 +13,11 @@ try:
     from airflow.sdk.definitions.dag import DAG
 except ImportError:
     from airflow.models import DAG
-from airflow.version import version as AIRFLOW_VERSION
-from packaging import version
 
 from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAME
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import update_yaml_structure
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
@@ -56,10 +53,6 @@ class DagFactory:
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config = config
-            # This will only invoke in the CI
-            # Make yaml DAG compatible for Airflow 3
-            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
-                self.config = update_yaml_structure(config)
 
         # These default args are a bit different; these are not the "default" structure that is applied to certain DAGs.
         # These are in-fact the "default" default_args
@@ -204,12 +197,6 @@ class DagFactory:
         """
         # pylint: disable=consider-using-with
         config = load_yaml_file(config_filepath)
-
-        # This will only invoke in the CI
-        # Make yaml DAG compatible for Airflow 3
-        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
-            config = update_yaml_structure(config)
-
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
