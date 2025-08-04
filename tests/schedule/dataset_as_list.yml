@@ -1,0 +1,3 @@
+schedule:
+  - s3://bucket_example/raw/dataset1.json
+  - s3://bucket_example/raw/dataset2.json

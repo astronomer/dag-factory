@@ -1,5 +1,5 @@
 schedule:
-  or:
+  __or__:
     - __type__: airflow.sdk.Asset
       uri: s3://dag1/output_1.txt
       extra:

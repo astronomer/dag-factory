@@ -66,8 +66,14 @@ example_dag3:
 example_dag4:
   vars:
     arg1: &arg1 'hello'
-    arg2: &arg2 !join [*arg1, ' world']
-  tasks:
-    - task_id: "task_1"
-      bash_command: !join ['echo ', *arg2]
-      operator: airflow.operators.bash.BashOperator
+    arg2: &arg2
+      __join__:
+        - *arg1
+        - ' world'
+    tasks:
+      - task_id: "task_1"
+        bash_command:
+          __join__:
+            - 'echo '
+            - *arg2
+        operator: airflow.operators.bash.BashOperator
