@@ -612,10 +612,8 @@ class DagBuilder:
                 "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
             )
 
-        # Determine which schedule key to use based on the Airflow version
-        # In Airflow 3, the schedule key is "schedule" in DAG config
-        # In Airflow 2, the schedule key is "schedule_interval" in DAG config, we need to check the version to use the correct key
-        schedule_key = "schedule" if INSTALLED_AIRFLOW_VERSION.major >= AIRFLOW3_MAJOR_VERSION else "schedule_interval"
+        # The `schedule_interval` parameter was deprecated in Airflow 2 and removed in Airflow 3.
+        schedule_key = "schedule"
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
@@ -650,7 +648,7 @@ class DagBuilder:
                         # if schedule is a list, check if it's a list of URIs
                         # Filter out any empty strings or None values
                         valid_uris = [uri for uri in schedule if uri and uri.strip()]
-                        dag_kwargs[schedule_key] = DagBuilder._asset_schedule(valid_uris)
+                        dag_kwargs[schedule_key] = valid_uris
                     else:
                         # For other types, use the schedule as is
                         dag_kwargs[schedule_key] = schedule
@@ -663,7 +661,11 @@ class DagBuilder:
                         schedule.pop("datasets")
         else:
             schedule = dag_params.get("schedule")
-            if utils.check_dict_key(dag_params, "schedule") and isinstance(schedule, str) and schedule.strip().lower() == "none":
+            if (
+                utils.check_dict_key(dag_params, "schedule")
+                and isinstance(schedule, str)
+                and schedule.strip().lower() == "none"
+            ):
                 dag_kwargs[schedule_key] = None
             else:
                 dag_kwargs[schedule_key] = dag_params.get("schedule")
