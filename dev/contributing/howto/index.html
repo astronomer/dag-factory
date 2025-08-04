@@ -1756,15 +1756,17 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="nv">$AIRFLOW_HOME</span>/dags
 </span></code></pre></div>
 <p>Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):</p>
-<blockquote>
-<p>Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code> to the SQL connection string.</p>
-</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, Airflow will use sqlite as a database; you can override this by setting the variable <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code> to the SQL connection string.</p>
+</div>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>airflow<span class="w"> </span>standalone
 </span></code></pre></div>
 <p>After Airflow is running, you can access the Airflow UI at <code>http://localhost:8080</code>.</p>
-<blockquote>
-<p>Note: whenever you want to start the development server, you need to activate the <code>virtualenv</code> and set the <code>environment variables</code></p>
-</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>whenever you want to start the development server, you need to activate the <code>virtualenv</code> and set the <code>environment variables</code></p>
+</div>
 <h3 id="use-docker-for-local-development">Use Docker for local development</h3>
 <p>It is also possible to build the development environment using <a href="https://www.docker.com/products/docker-desktop/">Docker</a>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>make<span class="w"> </span>docker-run
@@ -1835,9 +1837,10 @@
 <p>We currently use <a href="https://github.com/pypa/hatch">hatch</a> for building and distributing <code>dag-factory</code>.</p>
 <p>We use GitHub actions to create and deploy new releases. To create a new release, update the latest release version.</p>
 <p>It is possible to update the version either by using hatch:</p>
-<blockquote>
-<p>Note: You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
-</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can update the version in several different ways. To learn more, check out the <a href="https://hatch.pypa.io/latest/version/#updating">hatch docs</a>.</p>
+</div>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>hatch<span class="w"> </span>version<span class="w"> </span>minor
 </span></code></pre></div>
 <p>Or by manually updating the value of <code>__version__</code> in <code>dagfactory/__init__.py</code>.</p>
