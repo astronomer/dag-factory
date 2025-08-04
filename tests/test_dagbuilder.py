@@ -1365,14 +1365,16 @@ class TestSchedule:
         DagBuilder.configure_schedule(data, schedule_data)
         assert schedule_data["schedule"] == "@daily"
 
-    @pytest.mark.skipif(version.parse("2.8.0") <= INSTALLED_AIRFLOW_VERSION, reason="Timetable require Airflow >= 2.9")
     def test_resolve_schedule_timetable_type(self):
         from airflow.timetables.trigger import CronTriggerTimetable
 
         data = read_yml(schedule_path / "timetable.yml")
         schedule_data = {}
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
-        assert schedule_data["schedule"] == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, CronTriggerTimetable)
+        assert actual.serialize()["expression"] == "* * * * *"
+        assert actual.serialize()["timezone"] == "UTC"
 
     def test_resolve_schedule_timedelta_type(self):
 
