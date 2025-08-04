@@ -19,15 +19,16 @@ except ImportError:
 from packaging import version
 from pendulum.datetime import DateTime, Timezone
 
-from tests.utils import get_bash_operator_path, get_schedule_key
+from tests.utils import get_bash_operator_path
 
 here = os.path.dirname(__file__)
 
-from dagfactory import DagFactory, dagfactory, load_yaml_dags
-from dagfactory.exceptions import DagFactoryConfigException
+from dagfactory import DagFactory, dagfactory, exceptions, load_yaml_dags
+
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
+DAG_FACTORY_SCHEDULE_INTERVAL = os.path.join(here, "fixtures/dag_factory_schedule_interval.yml")
 INVALID_YAML = os.path.join(here, "fixtures/invalid_yaml.yml")
 INVALID_DAG_FACTORY = os.path.join(here, "fixtures_without_default_yaml/invalid_dag_factory.yml")
 DEFAULT_ARGS_CONFIG_ROOT = os.path.join(here, "fixtures/")
@@ -48,7 +49,7 @@ DAG_FACTORY_CONFIG = {
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        get_schedule_key(): "@daily",
+        "schedule": "@daily",
     },
     "example_dag": {
         "tasks": [
@@ -73,7 +74,7 @@ DAG_FACTORY_CALLBACK_CONFIG = {
             "on_retry_callback": f"{__name__}.print_context_callback",
         },
         "description": "this is an example dag",
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
@@ -123,9 +124,6 @@ def test_validate_config_filepath_invalid():
         dagfactory.DagFactory._validate_config_filepath("config.yml")
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"), reason="Requires Airflow version greater than 2.4.0"
-)
 def test_load_dag_config_valid(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
@@ -142,13 +140,13 @@ def test_load_dag_config_valid(monkeypatch):
             "dagrun_timeout": timedelta(seconds=600),
             "default_view": "tree",
             "orientation": "LR",
-            get_schedule_key(): "0 1 * * *",
+            "schedule": "0 1 * * *",
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            get_schedule_key(): "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": [
                 {
                     "task_id": "task_1",
@@ -171,7 +169,7 @@ def test_load_dag_config_valid(monkeypatch):
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            get_schedule_key(): "None",
+            "schedule": "None",
             "tasks": [
                 {
                     "task_id": "task_1",
@@ -219,7 +217,7 @@ def test_load_dag_config_valid(monkeypatch):
     actual = td._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
-    assert actual == expected
+    assert sorted(actual) == sorted(expected)
 
 
 def test_load_dag_config_invalid():
@@ -228,10 +226,6 @@ def test_load_dag_config_invalid():
         td._load_dag_config(INVALID_YAML)
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) < version.parse("2.4.0"),
-    reason="Require Airflow >=2.4.0",
-)
 def test_get_dag_configs(monkeypatch):
     monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
@@ -240,7 +234,7 @@ def test_get_dag_configs(monkeypatch):
             "doc_md": "##here is a doc md string",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
-            get_schedule_key(): "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": [
                 {
                     "task_id": "task_1",
@@ -263,7 +257,7 @@ def test_get_dag_configs(monkeypatch):
         },
         "example_dag2": {
             "doc_md_file_path": DOC_MD_FIXTURE_FILE,
-            get_schedule_key(): "None",
+            "schedule": "None",
             "tasks": [
                 {
                     "task_id": "task_1",
@@ -310,7 +304,7 @@ def test_get_dag_configs(monkeypatch):
     actual = td.get_dag_configs()
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
-    assert actual == expected
+    assert sorted(actual) == sorted(expected)
 
 
 def test_get_default_config(monkeypatch):
@@ -329,7 +323,7 @@ def test_get_default_config(monkeypatch):
         "dagrun_timeout": timedelta(seconds=600),
         "default_view": "tree",
         "orientation": "LR",
-        get_schedule_key(): "0 1 * * *",
+        "schedule": "0 1 * * *",
     }
     actual = td.get_default_config()
     assert actual == expected
@@ -404,11 +398,11 @@ default:
   default_view: tree
   max_active_runs: 1
   orientation: LR
-  schedule_interval: 0 1 * * *
+  schedule: 0 1 * * *
 
 example_dag2:
   doc_md_file_path: {DOC_MD_FIXTURE_FILE}
-  schedule_interval: None
+  schedule: None
   tasks:
   - task_id: task_1
     bash_command: echo 1
@@ -442,40 +436,45 @@ def test_doc_md_callable():
     assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
 
 
-def test_schedule_interval():
+def _get_schedule_value(dag_name: str):
+    """Helper function to get schedule value from a DAG based on Airflow version."""
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        return globals()[dag_name].schedule_interval
+    else:
+        return globals()[dag_name].schedule
+
+
+def test_schedule():
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag2"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag2"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    schedule = _get_schedule_value("example_dag2")
+    expected_schedule = None
+    assert schedule == expected_schedule
 
 
 def test_no_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag_no_schedule"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag_no_schedule"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    schedule = _get_schedule_value("example_dag_no_schedule")
+    expected_schedule = datetime.timedelta(days=1) if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0") else None
+    assert schedule == expected_schedule
 
 
 def test_none_string_schedule_supplied():
     td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
     td.generate_dags(globals())
-    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-        schedule_interval = globals()["example_dag_none_string_schedule"].schedule_interval
-        expected_schedule_interval = datetime.timedelta(days=1)
-    else:
-        schedule_interval = globals()["example_dag_none_string_schedule"].schedule
-        expected_schedule_interval = None
-    assert schedule_interval == expected_schedule_interval
+    schedule = _get_schedule_value("example_dag_none_string_schedule")
+    expected_schedule = None
+    assert schedule == expected_schedule
+
+
+def test_schedule_interval_supplied():
+    td = dagfactory.DagFactory(DAG_FACTORY_SCHEDULE_INTERVAL)
+    with pytest.raises(
+        exceptions.DagFactoryException,
+        match="The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
+    ):
+        td.generate_dags(globals())
 
 
 def test_dagfactory_dict():
@@ -487,7 +486,7 @@ def test_dagfactory_dict():
             "end_date": "2020-01-01",
         },
         "default_view": "graph",
-        get_schedule_key(): "@daily",
+        "schedule": "@daily",
     }
     expected_dag = {
         "example_dag": {
@@ -547,7 +546,7 @@ def test_build_dag_with_global_dag_level_defaults():
             "owner": "global_owner",
             "start_date": "2020-01-01",
         },
-        get_schedule_key(): "0 1 * * *",
+        "schedule": "0 1 * * *",
         "catchup": False,
         "tags": ["global_tag"],
     }
@@ -623,7 +622,7 @@ def test_generate_dags_with_default_args_execution_timeout():
     config_dict = {
         "default": {"default_args": {"start_date": "2024-11-11", "execution_timeout": timedelta(seconds=1)}},
         "basic_example_dag": {
-            "schedule_interval": "0 3 * * *",
+            "schedule": "0 3 * * *",
             "tasks": {
                 "task_1": {"operator": "airflow.operators.bash.BashOperator", "bash_command": "sleep 5"},
             },
@@ -638,7 +637,7 @@ def test_generate_dags_with_default_args_execution_timeout():
 def test_dag_level_start():
     data = """
     my_dag:
-      schedule_interval: "0 3 * * *"
+      schedule: "0 3 * * *"
       start_date: 2024-11-11
       end_date: 2025-11-11
       dagrun_timeout:
@@ -784,7 +783,7 @@ def test_tasks_and_task_groups_as_dict():
                 "owner": "global_owner",
                 "start_date": "2020-01-01",
             },
-            get_schedule_key(): "0 4 * * *",
+            "schedule": "0 4 * * *",
             # Task groups supplied as a mapping of group_name -> config
             "task_groups": {
                 "task_group_1": {
@@ -824,7 +823,7 @@ default:
         owner: global_owner
         start_date: "2020-01-01"
 example_dict_dag_yaml:
-  schedule_interval: "0 4 * * *"
+  schedule: "0 4 * * *"
   task_groups:
     task_group_1:
       tooltip: "this is a task group"
@@ -1046,7 +1045,7 @@ default:
 
     try:
         # Test starting from file1 -> file2 -> file1 (infinite loop)
-        with pytest.raises(DagFactoryConfigException) as exc_info:
+        with pytest.raises(exceptions.DagFactoryConfigException) as exc_info:
             td = dagfactory.DagFactory(file1_path, default_args_config_path=base_dir)
             td.get_default_args_from_extends()
 

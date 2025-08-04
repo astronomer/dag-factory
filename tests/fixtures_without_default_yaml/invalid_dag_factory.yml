@@ -6,13 +6,13 @@ default:
   dagrun_timeout:
     __type__: datetime.timedelta
     seconds: 300
-  schedule_interval: '0 1 * * *'
+  schedule: '0 1 * * *'
 
 example_dag:
   default_args:
     owner: 'custom_owner'
   description: 'this is an example dag'
-  schedule_interval: '0 3 * * *'
+  schedule: '0 3 * * *'
   tasks:
     - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator

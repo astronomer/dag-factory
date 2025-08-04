@@ -8,14 +8,14 @@ default:
   default_view: tree
   max_active_runs: 1
   orientation: LR
-  schedule_interval: 0 1 * * *
+  schedule: 0 1 * * *
 example_dag:
   default_args:
     owner: custom_owner
     start_date: 2 days
   description: this is an example dag
   doc_md: '##here is a doc md string'
-  schedule_interval: 0 3 * * *
+  schedule: 0 3 * * *
   tasks:
     - task_id: "task_1"
       bash_command: echo 1
@@ -32,7 +32,7 @@ example_dag:
       operator: airflow.operators.bash.BashOperator
 example_dag2:
   doc_md_file_path: $PWD/tests/fixtures/mydocfile.md
-  schedule_interval: None
+  schedule: None
   tasks:
     - task_id: "task_1"
       bash_command: echo 1
@@ -60,8 +60,14 @@ example_dag3:
 example_dag4:
   vars:
     arg1: &arg1 'hello'
-    arg2: &arg2 !join [*arg1, ' world']
+    arg2: &arg2
+      __join__:
+        - *arg1
+        - ' world'
   tasks:
     - task_id: "task_1"
-      bash_command: !join ['echo ', *arg2]
+      bash_command:
+        __join__:
+          - 'echo '
+          - *arg2
       operator: airflow.operators.bash.BashOperator

@@ -379,8 +379,6 @@ def update_yaml_structure(data):
                 update_yaml_structure(value)
 
             # Mark keys to rename after loop (avoid modifying dict while iterating)
-            if key == "schedule_interval":
-                keys_to_update.append(("schedule_interval", "schedule"))
             if key == "operator":
                 data[key] = operator_map[value] if operator_map.get(value) is not None else value
 

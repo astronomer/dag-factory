@@ -56,7 +56,11 @@ class DagFactory:
             DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
-            self.config: Dict[str, Any] = config
+            self.config = config
+            # This will only invoke in the CI
+            # Make yaml DAG compatible for Airflow 3
+            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
+                self.config = update_yaml_structure(config)
 
         # These default args are a bit different; these are not the "default" structure that is applied to certain DAGs.
         # These are in-fact the "default" default_args

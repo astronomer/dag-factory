@@ -10,7 +10,7 @@ import re
 import warnings
 from copy import deepcopy
 from datetime import datetime
-from functools import partial, reduce
+from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 from airflow import configuration
@@ -112,9 +112,6 @@ class DagBuilder:
         # If there are no default_args, add an empty dictionary
         dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
 
-        if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
-            dag_params["schedule_interval"] = None
-
         if utils.check_dict_key(dag_params, "start_date"):
             dag_params["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["start_date"],
@@ -204,6 +201,7 @@ class DagBuilder:
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
+
         return dag_params
 
     @staticmethod
@@ -595,66 +593,6 @@ class DagBuilder:
             return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
-    def _init_watchers(watchers_data):
-        """Initialize watcher objects from configuration."""
-        from dagfactory.utils import _import_from_string
-
-        watchers = []
-        for watcher in watchers_data:
-            watcher_class = _import_from_string(watcher["callable"])
-            trigger_data = watcher.get("trigger", {})
-            trigger_class = _import_from_string(trigger_data.get("callable"))
-            trigger_params = trigger_data.get("params", {})
-            watchers.append(watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_params)))
-        return watchers
-
-    @staticmethod
-    def _combine_assets(assets, op: str):
-        """Combine a list of Asset objects using logical operators."""
-        if op == "or":
-            return reduce(lambda a, b: a | b, assets)
-        elif op == "and":
-            return reduce(lambda a, b: a & b, assets)
-        else:
-            raise ValueError(f"Unknown operator: {op}")
-
-    @staticmethod
-    def _is_asset(d):
-        from airflow.sdk import Asset
-
-        if not isinstance(d, dict):
-            return False
-        for key, value in d.items():
-            if isinstance(value, Asset):
-                return True
-            elif isinstance(value, list):
-                if any(isinstance(item, Asset) for item in value):
-                    return True
-            elif isinstance(value, dict):
-                if DagBuilder._is_asset(value):
-                    return True
-        return False
-
-    @staticmethod
-    def _asset_schedule(value):
-        """Recursively parse and construct assets or combinations of assets."""
-        from airflow.sdk import Asset
-
-        if isinstance(value, dict):
-            if "or" in value:
-                assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
-                return DagBuilder._combine_assets(assets, "or")
-            elif "and" in value:
-                assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
-                return DagBuilder._combine_assets(assets, "and")
-        elif isinstance(value, list):
-            return [asset for asset in value]
-        elif isinstance(value, Asset):
-            return value
-        else:
-            raise TypeError(f"Unexpected data type: {type(value)}")
-
-    @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
         Configures the schedule for the DAG based on parameters and the Airflow version.
@@ -668,49 +606,69 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
+        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
+        if utils.check_dict_key(dag_params, "schedule_interval"):
+            raise DagFactoryException(
+                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
+            )
+
+        # The `schedule_interval` parameter was deprecated in Airflow 2 and removed in Airflow 3.
+        schedule_key = "schedule"
+
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
             has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
-            has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
 
-            if has_schedule_attr and not has_schedule_interval_attr and is_airflow_version_at_least_2_4:
+            if has_schedule_attr:
                 schedule: Dict[str, Any] = dag_params.get("schedule")
 
-                has_file_attr = utils.check_dict_key(schedule, "file")
-                has_datasets_attr = utils.check_dict_key(schedule, "datasets")
+                # Only check for file and datasets attributes if schedule is a dict
+                has_file_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "file")
+                has_datasets_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "datasets")
 
                 if has_file_attr and has_datasets_attr:
                     file = schedule.get("file")
                     datasets: Union[List[str], str] = schedule.get("datasets")
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
+                    dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
 
                 elif has_datasets_attr and is_airflow_version_at_least_2_9:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+                    dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
 
                 else:
-                    dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
+                    if isinstance(schedule, str):
+                        # check if it's "none" (case-insensitive, with whitespace)
+                        if schedule.strip().lower() == "none":
+                            dag_kwargs[schedule_key] = None
+                        else:
+                            dag_kwargs[schedule_key] = schedule
+                    elif isinstance(schedule, list):
+                        # if schedule is a list, check if it's a list of URIs
+                        # Filter out any empty strings or None values
+                        valid_uris = [uri for uri in schedule if uri and uri.strip()]
+                        dag_kwargs[schedule_key] = valid_uris
+                    else:
+                        # For other types, use the schedule as is
+                        dag_kwargs[schedule_key] = schedule
 
-                if has_file_attr:
-                    schedule.pop("file")
-                if has_datasets_attr:
-                    schedule.pop("datasets")
+                # Only pop keys if schedule is a dict
+                if isinstance(schedule, dict):
+                    if has_file_attr:
+                        schedule.pop("file")
+                    if has_datasets_attr:
+                        schedule.pop("datasets")
         else:
             schedule = dag_params.get("schedule")
-            if DagBuilder._is_asset(schedule):
-                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+            if (
+                utils.check_dict_key(dag_params, "schedule")
+                and isinstance(schedule, str)
+                and schedule.strip().lower() == "none"
+            ):
+                dag_kwargs[schedule_key] = None
             else:
-                if (
-                    utils.check_dict_key(dag_params, "schedule")
-                    and isinstance(dag_params["schedule"], str)
-                    and dag_params["schedule"].strip().lower() == "none"
-                ):
-                    dag_kwargs["schedule"] = None
-                else:
-                    dag_kwargs["schedule"] = schedule
+                dag_kwargs[schedule_key] = dag_params.get("schedule")
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
