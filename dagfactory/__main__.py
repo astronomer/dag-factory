@@ -111,15 +111,26 @@ def lint(
         console.print(f"Analysed {len(files)} files, [green]no errors found.[/green]")
 
 
+def _file_or_files(count: int) -> str:
+    """
+    Return 'file' if the count is 1, otherwise return 'files'.
+    """
+    if count == 1:
+        return "file"
+    else:
+        return "files"
+
+
 @app.command()
 def convert(
     path: Path = typer.Argument(..., help="Path to a YAML file or a directory of YAML files to convert"),
     # type: str = typer.Option("airflow2to3", "--type", "-t", help="Conversion type (default: airflow2to3)"),
     override: bool = typer.Option(False, "--override", "-o", help="Write the converted YAML back to file"),
 ):
-    """Convert YAML files using a specific conversion type."""
+    """Convert YAML files from Airflow 2 to 3 in the terminal or in-place."""
     files = _find_yaml_files(path)
-    failures = 0
+    total_errors = 0
+    total_converted = 0
 
     for file in files:
         try:
@@ -130,38 +141,47 @@ def convert(
             original_yaml = yaml.dump(original_data, sort_keys=False)
             converted_yaml = yaml.dump(converted_data, sort_keys=False)
 
-            if (original_data != converted_data) and override:
-                file.write_text(converted_yaml)
-                console.print(f"[green]✓ Converted:[/green] {file}")
-            else:
-                diff_lines = list(
-                    difflib.unified_diff(
-                        original_yaml.splitlines(),
-                        converted_yaml.splitlines(),
-                        fromfile=str(file),
-                        tofile=str(file) + " (converted)",
-                        lineterm="",
-                    )
-                )
-
-                if diff_lines:
-                    console.rule(f"[bold blue]Diff for {file}")
-                    for line in diff_lines:
-                        if line.startswith("+") and not line.startswith("+++"):
-                            console.print(Text(line, style="green"))
-                        elif line.startswith("-") and not line.startswith("---"):
-                            console.print(Text(line, style="red"))
-                        else:
-                            console.print(line)
+            if original_data != converted_data:
+                total_converted += 1
+                if override:
+                    file.write_text(converted_yaml)
+                    console.print(f"[green]✓ Converted:[/green] {file}")
                 else:
-                    console.print(f"[blue]No changes needed:[/blue] {file}")
+                    diff_lines = list(
+                        difflib.unified_diff(
+                            original_yaml.splitlines(),
+                            converted_yaml.splitlines(),
+                            fromfile=str(file),
+                            tofile=str(file) + " (converted)",
+                            lineterm="",
+                        )
+                    )
+
+                    if diff_lines:
+                        console.rule(f"[bold blue]Diff for {file}")
+                        for line in diff_lines:
+                            if line.startswith("+") and not line.startswith("+++"):
+                                console.print(Text(line, style="green"))
+                            elif line.startswith("-") and not line.startswith("---"):
+                                console.print(Text(line, style="red"))
+                            else:
+                                console.print(line)
+            else:
+                console.print(f"[blue]No changes needed:[/blue] {file}")
 
         except Exception as e:
-            failures += 1
+            total_errors += 1
             console.print(f"[red]Failed to convert {file}:[/red] {str(e)}")
 
-        if failures:
-            exit(1)
+    if total_errors:
+        console.print(
+            f"Tried to convert {len(files)} {_file_or_files(len(files))}, converted [green]{total_converted}[/green] {_file_or_files(total_converted)}, found [red]{total_errors}[/red] invalid YAML {_file_or_files(total_errors)}."
+        )
+        raise typer.Exit(1)
+    else:
+        console.print(
+            f"Tried to convert {len(files)} {_file_or_files(len(files))}, converted [green]{total_converted}[/green] {_file_or_files(total_converted)}, [green]no errors found.[/green]"
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover

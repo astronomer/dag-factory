@@ -108,6 +108,8 @@ def test_convert_diff_only(tmpdir):
 
     assert result.exit_code == 0
 
+    assert "Tried to convert 1 file, converted 1 file, no errors found." in result.stdout
+
     assert "Diff for" in result.stdout
     assert "-  schedule_interval: '@daily'" in result.stdout
     assert "+  schedule: '@daily'" in result.stdout
@@ -120,14 +122,14 @@ def test_convert_diff_only(tmpdir):
 
 def test_convert_override_writes_file(tmpdir):
     original_file = EXAMPLE_YAML_AF2_DAGS / "example_params.yml"
-    converted_file = tmpdir / "test_dag.yaml"
+    converted_file = tmpdir / "example_params.yaml"
     shutil.copy(original_file, converted_file)
 
     result = runner.invoke(app, ["convert", str(converted_file), "--override"])
 
     assert result.exit_code == 0
 
-    assert "Converted" in result.stdout
+    assert "Tried to convert 1 file, converted 1 file, no errors found." in result.stdout
 
     # check that the converted file changed
     assert not cmp(original_file, converted_file, shallow=False)
@@ -149,6 +151,8 @@ def test_convert_no_changes(tmpdir):
 
     result = runner.invoke(app, ["convert", str(converted_file), "--override"])
 
+    assert "Tried to convert 1 file, converted 0 files, no errors found." in result.stdout
+
     assert result.exit_code == 0
     assert cmp(original_file, converted_file, shallow=False)
     assert "No changes needed" in result.stdout
@@ -161,6 +165,7 @@ def test_convert_invalid_yaml(tmpdir):
 
     result = runner.invoke(app, ["convert", str(converted_file), "--override"])
 
+    assert "Tried to convert 1 file, converted 0 files, found 1 invalid YAML file." in result.stdout
     assert result.exit_code == 1
     assert cmp(original_file, converted_file, shallow=False)
     assert "Failed to convert" in result.stdout
