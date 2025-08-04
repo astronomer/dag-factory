@@ -37,10 +37,6 @@
          <lastmod>2025-08-04</lastmod>
     </url>
     <url>
-         <loc>https://astronomer.github.io/dag-factory/dev/configuration/load_yaml_dags/</loc>
-         <lastmod>2025-08-04</lastmod>
-    </url>
-    <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/params/</loc>
          <lastmod>2025-08-04</lastmod>
     </url>
@@ -62,6 +58,10 @@
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/contributing/roles/</loc>
+         <lastmod>2025-08-04</lastmod>
+    </url>
+    <url>
+         <loc>https://astronomer.github.io/dag-factory/dev/features/asset/</loc>
          <lastmod>2025-08-04</lastmod>
     </url>
     <url>

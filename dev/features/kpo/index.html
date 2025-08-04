@@ -14,7 +14,7 @@
         <link rel="prev" href="../object_storage/">
       
       
-        <link rel="next" href="../../comparison/">
+        <link rel="next" href="../asset/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -511,8 +511,6 @@
       
         
       
-        
-      
     
     
     
@@ -562,29 +560,6 @@
   
   <span class="md-ellipsis">
     Configuring Your Workflows
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../configuration/load_yaml_dags/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    load_yaml_dags Function
     
   </span>
   
@@ -750,6 +725,8 @@
   
     
     
+      
+        
       
         
       
@@ -1061,6 +1038,29 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../asset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Asset
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1441,16 +1441,16 @@
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># The following import is here so Airflow parses this file</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># from airflow import DAG</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagfactory</span>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">DEFAULT_CONFIG_ROOT_DIR</span> <span class="o">=</span> <span class="s2">&quot;/usr/local/airflow/dags/&quot;</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">CONFIG_ROOT_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CONFIG_ROOT_DIR&quot;</span><span class="p">,</span> <span class="n">DEFAULT_CONFIG_ROOT_DIR</span><span class="p">))</span>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">config_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">CONFIG_ROOT_DIR</span> <span class="o">/</span> <span class="s2">&quot;kpo.yml&quot;</span><span class="p">)</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">load_yaml_dags</span><span class="p">(</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">config_filepath</span><span class="o">=</span><span class="n">config_file</span><span class="p">,</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">example_dag_factory</span> <span class="o">=</span> <span class="n">dagfactory</span><span class="o">.</span><span class="n">DagFactory</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># Creating task dependencies</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">example_dag_factory</span><span class="o">.</span><span class="n">generate_dags</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
 </span></code></pre></div>
 
 
@@ -1504,13 +1504,13 @@
         
         
           
-          <a href="../../comparison/" class="md-footer__link md-footer__link--next" aria-label="Next: Using YAML instead of Python">
+          <a href="../asset/" class="md-footer__link md-footer__link--next" aria-label="Next: Asset">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Using YAML instead of Python
+                Asset
               </div>
             </div>
             <div class="md-footer__button md-icon">
