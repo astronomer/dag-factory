@@ -21,7 +21,7 @@ from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAME, EXTENDS_KEY
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
-from dagfactory.utils import merge_dict, update_yaml_structure
+from dagfactory.utils import update_yaml_structure
 
 # these are params that cannot be a dag name
 SYSTEM_PARAMS: List[str] = ["default", "task_groups", EXTENDS_KEY]
@@ -165,6 +165,26 @@ class DagFactory:
         return final_config
 
     @staticmethod
+    def _merge_dag_args_from_extends(extend_args: Dict[str, Any], base_args: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Merges base_args into extend_args and returns a new dict.
+        If there are redundant keys, the correspondent value of base_args will be used.
+        Key "default_args" will be merged as well, using _merge_default_args_from_list_configs logic.
+        For other dag-level args, uses _merge_dag_args_from_list_configs logic.
+        """
+        # Reuse existing merge methods by passing both dicts as a list
+        configs_list = [extend_args, base_args]
+
+        merged_default_args = DagFactory._merge_default_args_from_list_configs(configs_list)
+        merged_dag_args = DagFactory._merge_dag_args_from_list_configs(configs_list)
+
+        # Combine the results
+        if merged_default_args:
+            merged_dag_args["default_args"] = merged_default_args
+
+        return merged_dag_args
+
+    @staticmethod
     def _serialise_config_md(dag_name, dag_config, default_config):
         # Remove empty task_groups if it exists
         # We inject it if not supply by user
@@ -207,20 +227,6 @@ class DagFactory:
         if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0") and os.getenv("AUTO_CONVERT_TO_AF3"):
             config = update_yaml_structure(config)
 
-            # extend base config files
-            extend_config_queue = copy.deepcopy(config.get(EXTENDS_KEY, []))
-
-            while extend_config_queue:
-                extend_config_relative_path = extend_config_queue.pop(0)
-                extend_config_path = os.path.join(os.path.dirname(config_filepath), extend_config_relative_path)
-                extend_config_path = os.path.abspath(extend_config_path)  # Ensure absolute path
-                extend_config = DagFactory(config_filepath=extend_config_path).config
-                # Only 'default' is recognized in the extended config
-                config["default"] = merge_dict(extend_config.get("default", {}), config.get("default", {}))
-                extend_config_queue.extend(extend_config.get(EXTENDS_KEY, []))
-
-        except Exception as err:
-            raise DagFactoryConfigException("Invalid DAG Factory config file") from err
         return config
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
@@ -239,11 +245,57 @@ class DagFactory:
         """
         return self.config.get("default", {})
 
+    def get_default_args_from_extends(self) -> Dict[str, Any]:
+        """
+        Extract and merge default configuration from all extended files.
+        This method processes the __extends__ key from the main config and returns
+        the merged default configuration from all extended files.
+
+        :returns: dict with default configuration from extends
+        """
+        if EXTENDS_KEY not in self.config:
+            return {}
+
+        base_dir = self.default_args_config_path
+        merged_extends_defaults = {}
+        visited_files = set()  # Track visited relative paths to detect cycles
+
+        extend_config_queue = copy.deepcopy(self.config.get(EXTENDS_KEY, []))
+        while extend_config_queue:
+            extend_config_relative_path = extend_config_queue.pop(0)
+
+            # Check for infinite loop by tracking visited relative paths
+            if extend_config_relative_path in visited_files:
+                raise DagFactoryConfigException(
+                    f"Infinite extending loop detected: '{extend_config_relative_path}' "
+                    f"has already been processed. Visited files: {sorted(visited_files)}"
+                )
+
+            visited_files.add(extend_config_relative_path)
+            extend_config_path = os.path.join(base_dir, extend_config_relative_path)
+            extend_config_path = os.path.abspath(extend_config_path)  # Ensure absolute path
+
+            extend_config = DagFactory(config_filepath=extend_config_path).config
+            # Only 'default' is recognized in the extended config
+            extend_defaults = extend_config.get("default", {})
+
+            merged_extends_defaults = self._merge_dag_args_from_extends(extend_defaults, merged_extends_defaults)
+            extend_config_queue.extend(extend_config.get(EXTENDS_KEY, []))
+
+        return merged_extends_defaults
+
+
     def build_dags(self) -> Dict[str, DAG]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
+        default_args_from_extends = self.get_default_args_from_extends()
         default_config: Dict[str, Any] = self.get_default_config()
+
+        # Merge extends defaults into default_config (extends as base, main config overrides)
+        if default_args_from_extends:
+            default_config = self._merge_dag_args_from_extends(default_args_from_extends, default_config)
+
         if isinstance(global_default_args, dict):
             default_config["default_args"] = self._merge_default_args_from_list_configs(
                 [global_default_args, default_config]
@@ -312,7 +364,7 @@ def load_yaml_dags(
 
     :param globals_dict: The globals() from the file used to generate DAGs
     :param dags_folder: Path to the folder you want to get recursively scanned
-    :param default_args_config_path: The Folder path where defaults.yml exist.
+    :param default_args_config_path: The folder path where defaults.yml exist, or the root directory of the extended config files.
     :param suffix: file suffix to filter `in` what files to scan for dags
     """
     # chain all file suffixes in a single iterator

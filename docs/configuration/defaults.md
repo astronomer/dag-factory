@@ -162,6 +162,8 @@ Given the various ways to specify top-level DAG arguments, including `default_ar
 
 You can create modular, reusable configuration default config using the `__extends__` feature. This allows you to build configuration hierarchies by extending other YAML configuration files, promoting better organization and reusability of common settings.
 
+The `__extends__` key accepts an array of config file paths, relative to the Airflow's `dags_folder` by default. The root directory of extended files is configurable through `default_args_config_path` argument fo `load_yaml_dags`.
+
 ### Benefits of using `__extends__`
 
 - **Modularity**: Split configurations into logical, reusable components

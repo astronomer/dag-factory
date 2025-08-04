@@ -424,21 +424,3 @@ def cast_with_type(data):
         return [cast_with_type(item) for item in data]
 
     return data
-
-
-def merge_dict(dict1: dict, dict2: dict) -> dict:
-    """
-    Recursively merges dict2 into dict1.
-    It does not update dict1 in place, but returns a new dict.
-    """
-    result = copy.deepcopy(dict1)
-
-    def recursive_dict_merge(_dict1: dict, _dict2: dict) -> None:
-        for key, value in _dict2.items():
-            if key in result and isinstance(_dict1[key], dict) and isinstance(value, dict):
-                recursive_dict_merge(_dict1[key], value)
-            else:
-                _dict1[key] = value
-
-    recursive_dict_merge(result, dict2)
-    return result
