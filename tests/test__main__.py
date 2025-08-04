@@ -1,10 +1,18 @@
+import shutil
+from filecmp import cmp
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from dagfactory import __version__
 from dagfactory.__main__ import app
+
+EXAMPLE_YAML_AF2_DAGS = Path(__file__).parent.parent / "dev/dags/airflow2"
+EXAMPLE_YAML_AF3_DAGS = Path(__file__).parent.parent / "dev/dags/airflow3"
+EXAMPLE_YAML_INVALID_DAG = Path(__file__).parent.parent / "dev/dags/invalid.yaml"
 
 runner = CliRunner()
 
@@ -21,6 +29,11 @@ def tmp_invalid_yaml_file(tmp_path):
     file_path = tmp_path / "invalid.yaml"
     file_path.write_text("key: [unclosed\n")
     return file_path
+
+
+def write_yaml(path: Path, data: dict):
+    with open(path, "w") as f:
+        yaml.dump(data, f, sort_keys=False)
 
 
 def test_version_option():
@@ -84,3 +97,70 @@ def test_lint_invalid_yaml_verbose(mock_add_row, tmp_invalid_yaml_file):
     assert "while parsing a flow sequence" in row[2].plain
     assert "Analysed 1 files, found 1 invalid YAML files" in result.stdout
     assert len(row[2].plain) == 200  # Full error message
+
+
+def test_convert_diff_only(tmpdir):
+    original_file = EXAMPLE_YAML_AF2_DAGS / "example_params.yml"
+    converted_file = tmpdir / "test_dag.yaml"
+    shutil.copy(original_file, converted_file)
+
+    result = runner.invoke(app, ["convert", str(converted_file)])
+
+    assert result.exit_code == 0
+
+    assert "Diff for" in result.stdout
+    assert "-  schedule_interval: '@daily'" in result.stdout
+    assert "+  schedule: '@daily'" in result.stdout
+    assert "-    operator: airflow.operators.bash.BashOperator" in result.stdout
+    assert "+    operator: airflow.providers.standard.operators.bash.BashOperator" in result.stdout
+
+    # check that the converted file remains unchanged
+    assert cmp(original_file, converted_file, shallow=False)
+
+
+def test_convert_override_writes_file(tmpdir):
+    original_file = EXAMPLE_YAML_AF2_DAGS / "example_params.yml"
+    converted_file = tmpdir / "test_dag.yaml"
+    shutil.copy(original_file, converted_file)
+
+    result = runner.invoke(app, ["convert", str(converted_file), "--override"])
+
+    assert result.exit_code == 0
+
+    assert "Converted" in result.stdout
+
+    # check that the converted file changed
+    assert not cmp(original_file, converted_file, shallow=False)
+
+    converted_data = yaml.load(converted_file.read_text("utf-8"), Loader=yaml.FullLoader)
+
+    assert "schedule_interval" not in converted_data["example_params"]
+    assert converted_data["example_params"]["schedule"] == "@daily"
+    assert (
+        converted_data["example_params"]["tasks"][0]["operator"]
+        == "airflow.providers.standard.operators.bash.BashOperator"
+    )
+
+
+def test_convert_no_changes(tmpdir):
+    original_file = EXAMPLE_YAML_AF3_DAGS / "example_taskflow.yml"
+    converted_file = tmpdir / "example_taskflow.yml"
+    shutil.copy(original_file, converted_file)
+
+    result = runner.invoke(app, ["convert", str(converted_file), "--override"])
+
+    assert result.exit_code == 0
+    assert cmp(original_file, converted_file, shallow=False)
+    assert "No changes needed" in result.stdout
+
+
+def test_convert_invalid_yaml(tmpdir):
+    original_file = EXAMPLE_YAML_INVALID_DAG
+    converted_file = tmpdir / "invalid.yml"
+    shutil.copy(original_file, converted_file)
+
+    result = runner.invoke(app, ["convert", str(converted_file), "--override"])
+
+    assert result.exit_code == 1
+    assert cmp(original_file, converted_file, shallow=False)
+    assert "Failed to convert" in result.stdout
