@@ -1182,7 +1182,7 @@ def test_make_nested_task_groups():
 class TestSchedule:
 
     @pytest.mark.skipif(
-        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
         reason="Requires Airflow < 3.0.0 and > 2.8.0",
     )
     def test_asset_schedule_list_of_dataset(self):
@@ -1193,7 +1193,7 @@ class TestSchedule:
         ]
 
     @pytest.mark.skipif(
-        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
         reason="Requires Airflow < 3.0.0 and > 2.8.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
@@ -1209,7 +1209,7 @@ class TestSchedule:
         assert schedule_data["schedule"].__eq__(expected)
 
     @pytest.mark.skipif(
-        version.parse("3.0.0") < INSTALLED_AIRFLOW_VERSION <= version.parse("2.8.0"),
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
         reason="Requires Airflow < 3.0.0 and > 2.8.0",
     )
     def test_asset_schedule_list_of_dataset_nested(self):
