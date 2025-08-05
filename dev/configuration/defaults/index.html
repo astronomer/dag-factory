@@ -1882,9 +1882,9 @@ It is one of DAG Factory's most powerful features; using defaults allows for the
 </span></code></pre></div>
 <p>Assuming you instantiate the DAG by using:</p>
 <p><code>``python
-DagFactory(
+load_yaml_dags(
    "a/b/c/some_dags.yml",
-   default_args_config_path="a"
+   default_args_config_path=default_args_config_path="a"
 )</code></p>
 <p>The DAG will be using the default configuration defined in all the following files:</p>
 <ul>
