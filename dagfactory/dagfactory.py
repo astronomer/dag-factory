@@ -23,7 +23,7 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
 
-class DagFactory:
+class _DagFactory:
     """
     Takes a YAML config or a python dictionary and generates DAGs.
 
@@ -49,7 +49,7 @@ class DagFactory:
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
 
         if config_filepath:
-            DagFactory._validate_config_filepath(config_filepath=config_filepath)
+            _DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config = config
@@ -304,10 +304,10 @@ def load_yaml_dags(
     candidate_dag_files = []
 
     if config_filepath:
-        factory = DagFactory(config_filepath=config_filepath, default_args_config_path=default_args_config_path)
+        factory = _DagFactory(config_filepath=config_filepath, default_args_config_path=default_args_config_path)
         factory._generate_dags(globals_dict)
     elif config_dict:
-        factory = DagFactory(config=config_dict, default_args_config_dict=default_args_config_dict)
+        factory = _DagFactory(config=config_dict, default_args_config_dict=default_args_config_dict)
         factory._generate_dags(globals_dict)
     else:
         for suf in suffix:
@@ -316,7 +316,7 @@ def load_yaml_dags(
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
-                factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
+                factory = _DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
                 factory._generate_dags(globals_dict)
             except Exception:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
