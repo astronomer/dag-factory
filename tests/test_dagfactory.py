@@ -124,7 +124,6 @@ def test_validate_config_filepath_invalid():
 
 
 def test_load_dag_config_valid(monkeypatch):
-    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     expected = {
         "default": {
             "default_args": {
@@ -226,7 +225,6 @@ def test_load_dag_config_invalid():
 
 
 def test_get_dag_configs(monkeypatch):
-    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     expected = {
         "example_dag": {
@@ -367,7 +365,6 @@ def test_kubernetes_pod_operator_dag_lt_2_7():
 
 
 def test_variables_as_arguments_dag(monkeypatch):
-    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     override_command = "value_from_variable"
     os.environ["AIRFLOW_VAR_VAR1"] = override_command
     td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
