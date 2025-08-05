@@ -34,8 +34,8 @@ class _DagFactory:
     :type config_dict: dict
     :param defaults_config_path: The path to a file that contains the default arguments for that DAG.
     :type defaults_config_path: str
-    :param default_config_dict: A dictionary of default arguments for that DAG, as an alternative to default_args_config_path.
-    :type default_config_dict: dict
+    :param defaults_config_dict: A dictionary of default arguments for that DAG, as an alternative to default_args_config_path.
+    :type defaults_config_dict: dict
     """
 
     def __init__(
@@ -43,7 +43,7 @@ class _DagFactory:
         config_filepath: Optional[str] = None,
         config_dict: Optional[dict] = None,
         defaults_config_path: str = airflow_conf.get("core", "dags_folder"),
-        default_config_dict: Optional[dict] = None,
+        defaults_config_dict: Optional[dict] = None,
     ) -> None:
         # Handle the config(_filepath)
         assert bool(config_filepath) ^ bool(config_dict), "Either `config_filepath` or `config` should be provided"
@@ -56,7 +56,7 @@ class _DagFactory:
 
         # These default args are a bit different; these are not the "default" structure that is applied to certain DAGs.
         # These are in-fact the "default" default_args
-        if default_config_dict:
+        if defaults_config_dict:
             # Log a warning if the default_args parameter is specified. If both the default_args and
             # default_args_file_path are passed, we'll throw an exception.
             logging.warning(
@@ -69,15 +69,15 @@ class _DagFactory:
         # We'll still go ahead and set both values. They'll be referenced in _global_default_args.
         self.config_file_path: str = config_filepath
         self.default_args_config_path: str = defaults_config_path
-        self.default_args_config_dict: Optional[dict] = default_config_dict
+        self.defaults_config_dict: Optional[dict] = defaults_config_dict
 
     def _global_default_args(self):
         """
         If self.default_args exists, use this as the global default_args (to be applied to each DAG). Otherwise, fall
         back to the defaults.yml file.
         """
-        if self.default_args_config_dict:
-            return self.default_args_config_dict
+        if self.defaults_config_dict:
+            return self.defaults_config_dict
 
         configs_list = self._retrieve_default_config_list()
         merged_default_config = {
@@ -277,7 +277,7 @@ def load_yaml_dags(
     config_filepath: Optional[str] = None,
     defaults_config_path: str = airflow_conf.get("core", "dags_folder"),
     config_dict: Optional[dict] = None,
-    default_config_dict: Optional[dict] = None,
+    defaults_config_dict: Optional[dict] = None,
     suffix=None,
 ):
     """
@@ -292,7 +292,7 @@ def load_yaml_dags(
     :param config_filepath: A YAML path for DAG config.
     :param defaults_config_path: The Folder path where defaults.yml exist.
     :param config_dict: The DAG dictionary.
-    :param default_config_dict: The dictionary that hold default value.
+    :param defaults_config_dict: The dictionary that hold default value.
     :param suffix: file suffix to filter `in` what files to scan for dags
     """
     # TODO: Support ignoring yml files in load_yaml_dags
@@ -307,7 +307,7 @@ def load_yaml_dags(
         factory = _DagFactory(config_filepath=config_filepath, defaults_config_path=defaults_config_path)
         factory._generate_dags(globals_dict)
     elif config_dict:
-        factory = _DagFactory(config_dict=config_dict, default_config_dict=default_config_dict)
+        factory = _DagFactory(config_dict=config_dict, defaults_config_dict=defaults_config_dict)
         factory._generate_dags(globals_dict)
     else:
         for suf in suffix:
@@ -316,7 +316,7 @@ def load_yaml_dags(
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
-                factory = _DagFactory(config_file_abs_path, default_config_dict=default_config_dict)
+                factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
                 factory._generate_dags(globals_dict)
             except Exception:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)

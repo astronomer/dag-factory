@@ -26,5 +26,5 @@ daily_etl = {
 load_yaml_dags(
     globals_dict=globals(),
     config_dict=daily_etl,
-    default_args_config_dict={"default_args": {"start_date": "2025-01-01", "owner": "global_owner"}},
+    defaults_config_dict={"default_args": {"start_date": "2025-01-01", "owner": "global_owner"}},
 )
