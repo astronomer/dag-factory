@@ -26,7 +26,7 @@ dagfactory [OPTIONS]
 
 #### Identify the CLI version
 
-Display the DAG Factory version:
+Display the DAG Factory version (both the CLI and the library share the same version number):
 
 ```bash
 dagfactory --version
