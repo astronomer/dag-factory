@@ -23,7 +23,8 @@ from tests.utils import get_bash_operator_path
 
 here = os.path.dirname(__file__)
 
-from dagfactory import DagFactory, dagfactory, exceptions, load_yaml_dags
+from dagfactory import dagfactory, load_yaml_dags
+from dagfactory.dagfactory import _DagFactory
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -115,12 +116,12 @@ DAG_FACTORY_CALLBACK_CONFIG = {
 
 
 def test_validate_config_filepath_valid():
-    dagfactory.DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
+    _DagFactory._validate_config_filepath(TEST_DAG_FACTORY)
 
 
 def test_validate_config_filepath_invalid():
     with pytest.raises(Exception):
-        dagfactory.DagFactory._validate_config_filepath("config.yml")
+        _DagFactory._validate_config_filepath("config.yml")
 
 
 def test_load_dag_config_valid(monkeypatch):
@@ -211,7 +212,7 @@ def test_load_dag_config_valid(monkeypatch):
             ],
         },
     }
-    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
+    td = _DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     actual = td._load_dag_config(TEST_DAG_FACTORY)
     actual["example_dag2"]["doc_md_file_path"] = DOC_MD_FIXTURE_FILE
     actual["example_dag3"]["doc_md_python_callable_file"] = DOC_MD_PYTHON_CALLABLE_FILE
@@ -219,13 +220,13 @@ def test_load_dag_config_valid(monkeypatch):
 
 
 def test_load_dag_config_invalid():
-    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
+    td = _DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
     with pytest.raises(Exception):
         td._load_dag_config(INVALID_YAML)
 
 
 def test_get_dag_configs(monkeypatch):
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td = _DagFactory(TEST_DAG_FACTORY)
     expected = {
         "example_dag": {
             "doc_md": "##here is a doc md string",
@@ -305,7 +306,7 @@ def test_get_dag_configs(monkeypatch):
 
 
 def test_get_default_config():
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
+    td = _DagFactory(TEST_DAG_FACTORY)
     expected = {
         "default_args": {
             "owner": "default_owner",
@@ -326,49 +327,59 @@ def test_get_default_config():
 
 
 def test_generate_dags_valid():
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=TEST_DAG_FACTORY,
+    )
+
     assert "example_dag" in globals()
     assert "example_dag2" in globals()
     assert "fake_example_dag" not in globals()
 
 
 def test_generate_dags_with_removal_valid():
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=TEST_DAG_FACTORY,
+    )
     assert "example_dag" in globals()
     assert "example_dag2" in globals()
     assert "fake_example_dag" not in globals()
 
-    del td.config["example_dag"]
-    del td.config["example_dag2"]
-
 
 def test_generate_dags_invalid():
-    td = dagfactory.DagFactory(INVALID_DAG_FACTORY)
     with pytest.raises(Exception):
-        td.generate_dags(globals())
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_filepath=INVALID_DAG_FACTORY,
+        )
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
 def test_kubernetes_pod_operator_dag_gte_2_7():
-    td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR,
+    )
     assert "example_dag" in globals()
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("2.7.0"), reason="Requires Airflow < 2.7.0")
 def test_kubernetes_pod_operator_dag_lt_2_7():
-    td = dagfactory.DagFactory(DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7,
+    )
     assert "example_dag" in globals()
 
 
 def test_variables_as_arguments_dag(monkeypatch):
     override_command = "value_from_variable"
     os.environ["AIRFLOW_VAR_VAR1"] = override_command
-    td = dagfactory.DagFactory(DAG_FACTORY_VARIABLES_AS_ARGUMENTS)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=DAG_FACTORY_VARIABLES_AS_ARGUMENTS,
+    )
     tasks = globals()["example_dag"].tasks
     for task in tasks:
         if task.task_id == "task_3":
@@ -415,9 +426,10 @@ example_dag2:
 
 ```"""
     YAML_PATH = os.path.join(here, "fixtures_without_default_yaml/dag_factory.yml")
-
-    td = dagfactory.DagFactory(YAML_PATH)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=YAML_PATH,
+    )
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(DOC_MD_FIXTURE_FILE, "r") as file:
         expected_doc_md = file.read() + dag_config
@@ -425,10 +437,12 @@ example_dag2:
 
 
 def test_doc_md_callable():
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=TEST_DAG_FACTORY,
+    )
     expected_doc_md = globals()["example_dag3"].doc_md
-    assert str(td.get_dag_configs()["example_dag3"]["doc_md_python_arguments"]) in expected_doc_md
+    assert str(globals()["example_dag3"].doc_md) in expected_doc_md
 
 
 def _get_schedule_value(dag_name: str):
@@ -440,40 +454,31 @@ def _get_schedule_value(dag_name: str):
 
 
 def test_schedule():
-    td = dagfactory.DagFactory(TEST_DAG_FACTORY)
-    td.generate_dags(globals())
+    td = _DagFactory(TEST_DAG_FACTORY)
+    td._generate_dags(globals())
     schedule = _get_schedule_value("example_dag2")
     expected_schedule = None
     assert schedule == expected_schedule
 
 
 def test_no_schedule_supplied():
-    td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
-    td.generate_dags(globals())
+    td = _DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
+    td._generate_dags(globals())
     schedule = _get_schedule_value("example_dag_no_schedule")
     expected_schedule = datetime.timedelta(days=1) if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0") else None
     assert schedule == expected_schedule
 
 
 def test_none_string_schedule_supplied():
-    td = dagfactory.DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
-    td.generate_dags(globals())
+    td = _DagFactory(DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE)
+    td._generate_dags(globals())
     schedule = _get_schedule_value("example_dag_none_string_schedule")
     expected_schedule = None
     assert schedule == expected_schedule
 
 
-def test_schedule_interval_supplied():
-    td = dagfactory.DagFactory(DAG_FACTORY_SCHEDULE_INTERVAL)
-    with pytest.raises(
-        exceptions.DagFactoryException,
-        match="The `schedule_interval` key is no longer supported in Airflow 3\\.0\\+\\. Use `schedule` instead\\.",
-    ):
-        td.generate_dags(globals())
-
-
 def test_dagfactory_dict():
-    td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)
+    td = _DagFactory(config=DAG_FACTORY_CONFIG)
     expected_default = {
         "default_args": {
             "owner": "airflow",
@@ -503,11 +508,11 @@ def test_dagfactory_dict():
 def test_dagfactory_dict_and_yaml():
     error_message = "Either `config_filepath` or `config` should be provided"
     with pytest.raises(AssertionError, match=error_message):
-        dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
+        _DagFactory(config_filepath=TEST_DAG_FACTORY, config=DAG_FACTORY_CONFIG)
 
 
 def test_get_dag_configs_dict():
-    td = dagfactory.DagFactory(config_filepath=TEST_DAG_FACTORY)
+    td = _DagFactory(config_filepath=TEST_DAG_FACTORY)
     assert not set(dagfactory.SYSTEM_PARAMS).issubset(set(td.get_dag_configs()))
 
 
@@ -516,20 +521,23 @@ def print_context_callback(context, **kwargs):
 
 
 def test_generate_dags_with_removal_valid_and_callback():
-    td = dagfactory.DagFactory(config=DAG_FACTORY_CALLBACK_CONFIG)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_dict=DAG_FACTORY_CALLBACK_CONFIG,
+    )
 
 
 def test_set_callback_after_loading_config():
-    td = dagfactory.DagFactory(config=DAG_FACTORY_CONFIG)  # Generate the DAG factory object
+    td = _DagFactory(config=DAG_FACTORY_CONFIG)  # Generate the DAG factory object
     td.config["default"]["default_args"]["on_success_callback"] = f"{__name__}.print_context_callback"
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_dict=DAG_FACTORY_CONFIG,
+    )
 
 
 def test_build_dag_with_global_default():
-    dags = dagfactory.DagFactory(
-        config=DAG_FACTORY_CONFIG, default_args_config_path=DEFAULT_ARGS_CONFIG_ROOT
-    ).build_dags()
+    dags = _DagFactory(config=DAG_FACTORY_CONFIG, default_args_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
 
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
@@ -554,7 +562,7 @@ def test_build_dag_with_global_dag_level_defaults():
         },
     }
 
-    td = dagfactory.DagFactory(config=config)
+    td = _DagFactory(config=config)
     with pytest.MonkeyPatch.context() as m:
         m.setattr(td, "_global_default_args", lambda: global_defaults)
         dags = td.build_dags()
@@ -568,7 +576,7 @@ def test_build_dag_with_global_dag_level_defaults():
 
 
 def test_build_dag_with_global_default_dict():
-    dags = dagfactory.DagFactory(
+    dags = _DagFactory(
         config=DAG_FACTORY_CONFIG,
         default_args_config_dict={
             "default_args": {"start_date": "2025-01-01", "owner": "global_owner", "depends_on_past": True}
@@ -603,10 +611,10 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
 )
 def test_yml_dag_rendering_in_docs():
     dag_path = os.path.join(here, "fixtures_without_default_yaml/dag_md_docs.yml")
-    td = dagfactory.DagFactory(
-        dag_path,
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=dag_path,
     )
-    td.generate_dags(globals())
     generated_doc_md = globals()["example_dag2"].doc_md
     with open(dag_path, "r") as file:
         expected_doc_md = "## YML DAG\n```yaml\n" + file.read() + "\n```"
@@ -623,8 +631,10 @@ def test_generate_dags_with_default_args_execution_timeout():
             },
         },
     }
-    td = dagfactory.DagFactory(config=config_dict)
-    td.generate_dags(globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_dict=config_dict,
+    )
     tasks = globals()["basic_example_dag"].tasks
     assert tasks[0].execution_timeout == datetime.timedelta(seconds=1)
 
@@ -659,9 +669,10 @@ def test_dag_level_start():
         tmp.write(data)
         temp_file = tmp.name
 
-    # Use DagFactory to load and generate DAGs
-    df = DagFactory(config_filepath=temp_file)
-    df.generate_dags(globals=globals())
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=temp_file,
+    )
     dag = globals()["my_dag"]
 
     assert dag.start_date == DateTime(2024, 11, 11, 0, 0, 0, tzinfo=Timezone("UTC"))
@@ -682,7 +693,7 @@ def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
 
     default_config_path = tmp_path / "a"
 
-    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(default_config_path))
+    some_dag = _DagFactory(str(dag_file), default_args_config_path=str(default_config_path))
 
     result = some_dag._retrieve_possible_default_config_dirs()
     expected = [tmp_path / "a" / "b" / "c", tmp_path / "a" / "b", tmp_path / "a"]
@@ -699,7 +710,7 @@ def test_retrieve_possible_default_config_dirs_default_path_not_in_config_parent
     unrelated_default_path = tmp_path / "other"
     unrelated_default_path.mkdir()
 
-    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(unrelated_default_path))
+    some_dag = _DagFactory(str(dag_file), default_args_config_path=str(unrelated_default_path))
 
     result = some_dag._retrieve_possible_default_config_dirs()
     expected = [tmp_path / "config" / "a" / "b" / "c", unrelated_default_path]
@@ -710,9 +721,7 @@ def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
     default_config_path = tmp_path / "default"
     default_config_path.mkdir()
 
-    some_dag = dagfactory.DagFactory(
-        config_filepath=None, config={"a": "b"}, default_args_config_path=str(default_config_path)
-    )
+    some_dag = _DagFactory(config_filepath=None, config={"a": "b"}, default_args_config_path=str(default_config_path))
 
     result = some_dag._retrieve_possible_default_config_dirs()
     assert result == [default_config_path]
@@ -728,7 +737,7 @@ def _write_sample_defaults(path: Path, identifier: str):
         yaml.dump(data, fp)
 
 
-@patch("dagfactory.dagfactory.DagFactory._serialise_config_md")
+@patch("dagfactory.dagfactory._DagFactory._serialise_config_md")
 def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_path):
     # Create structure: tmp_path/a/b/c/dag.yml
     dag_path = tmp_path / "a/b/c"
@@ -740,7 +749,7 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
     _write_sample_defaults(tmp_path / "a/b", "b")
     _write_sample_defaults(tmp_path / "a/b/c", "c")
 
-    some_dag = dagfactory.DagFactory(str(dag_file), default_args_config_path=str(tmp_path / "a"))
+    some_dag = _DagFactory(str(dag_file), default_args_config_path=str(tmp_path / "a"))
 
     result = some_dag.build_dags()
     dag = result["second_example_dag"]
@@ -801,8 +810,7 @@ def test_tasks_and_task_groups_as_dict():
             },
         }
     }
-    td = dagfactory.DagFactory(config=dict_style_config)
-    td.generate_dags(globals())
+    load_yaml_dags(globals_dict=globals(), config_dict=dict_style_config)
     assert "example_dict_dag" in globals()
     dag = globals()["example_dict_dag"]
     assert len(dag.tasks) == 2
@@ -836,8 +844,7 @@ example_dict_dag_yaml:
     yaml_path = tmp_path / "dict_style_dag.yml"
     yaml_path.write_text(yaml_content)
 
-    td = dagfactory.DagFactory(config_filepath=str(yaml_path))
-    td.generate_dags(globals())
+    load_yaml_dags(globals_dict=globals(), config_filepath=str(yaml_path))
     assert "example_dict_dag_yaml" in globals()
     dag = globals()["example_dict_dag_yaml"]
     # Validate two tasks created

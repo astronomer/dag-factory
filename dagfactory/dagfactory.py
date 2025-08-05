@@ -23,7 +23,7 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 SYSTEM_PARAMS: List[str] = ["default", "task_groups"]
 
 
-class DagFactory:
+class _DagFactory:
     """
     Takes a YAML config or a python dictionary and generates DAGs.
 
@@ -49,7 +49,7 @@ class DagFactory:
         assert bool(config_filepath) ^ bool(config), "Either `config_filepath` or `config` should be provided"
 
         if config_filepath:
-            DagFactory._validate_config_filepath(config_filepath=config_filepath)
+            _DagFactory._validate_config_filepath(config_filepath=config_filepath)
             self.config: Dict[str, Any] = self._load_dag_config(config_filepath=config_filepath)
         if config:
             self.config = config
@@ -195,9 +195,7 @@ class DagFactory:
 
         :returns: dict from YAML config file
         """
-        # pylint: disable=consider-using-with
-        config = load_yaml_file(config_filepath)
-        return config
+        return load_yaml_file(config_filepath)
 
     def get_dag_configs(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -262,7 +260,7 @@ class DagFactory:
         for dag_id, dag in dags.items():
             globals[dag_id]: DAG = dag
 
-    def generate_dags(self, globals: Dict[str, Any]) -> None:
+    def _generate_dags(self, globals: Dict[str, Any]) -> None:
         """
         Generates DAGs from YAML config
 
@@ -277,10 +275,13 @@ def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
     default_args_config_path: str = airflow_conf.get("core", "dags_folder"),
+    config_filepath: Optional[str] = None,
+    config_dict: Optional[dict] = None,
+    default_args_config_dict: Optional[dict] = None,
     suffix=None,
 ):
     """
-    Loads all the yaml/yml files in the dags folder
+    Loads YAML or YML files in a specified folder (or from a specific YAML file or dictionary)
 
     The dags folder is defaulted to the airflow dags folder if unspecified.
     And the prefix is set to yaml/yml by default. However, it can be
@@ -289,22 +290,35 @@ def load_yaml_dags(
     :param globals_dict: The globals() from the file used to generate DAGs
     :param dags_folder: Path to the folder you want to get recursively scanned
     :param default_args_config_path: The Folder path where defaults.yml exist.
+    :param config_filepath: A YAML path for DAG config.
+    :param config_dict: The DAG dictionary.
+    :param default_args_config_dict: The dictionary that hold default value.
     :param suffix: file suffix to filter `in` what files to scan for dags
     """
+    # TODO: Support ignoring yml files in load_yaml_dags
+    # https://github.com/astronomer/dag-factory/issues/527
     # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
-    for suf in suffix:
-        candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
-    for config_file_path in candidate_dag_files:
-        config_file_abs_path = str(config_file_path.absolute())
-        logging.info("Loading %s", config_file_abs_path)
-        try:
-            factory = DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
-            factory.generate_dags(globals_dict)
-        except Exception:  # pylint: disable=broad-except
-            logging.exception("Failed to load dag from %s", config_file_path)
-        else:
-            logging.info("DAG loaded: %s", config_file_path)
+
+    if config_filepath:
+        factory = _DagFactory(config_filepath=config_filepath, default_args_config_path=default_args_config_path)
+        factory._generate_dags(globals_dict)
+    elif config_dict:
+        factory = _DagFactory(config=config_dict, default_args_config_dict=default_args_config_dict)
+        factory._generate_dags(globals_dict)
+    else:
+        for suf in suffix:
+            candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
+        for config_file_path in candidate_dag_files:
+            config_file_abs_path = str(config_file_path.absolute())
+            logging.info("Loading %s", config_file_abs_path)
+            try:
+                factory = _DagFactory(config_file_abs_path, default_args_config_path=default_args_config_path)
+                factory._generate_dags(globals_dict)
+            except Exception:  # pylint: disable=broad-except
+                logging.exception("Failed to load dag from %s", config_file_path)
+            else:
+                logging.info("DAG loaded: %s", config_file_path)

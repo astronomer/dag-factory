@@ -132,9 +132,9 @@ sample_project
 Assuming you instantiate the DAG by using:
 
 ```python
-DagFactory(
+load_yaml_dags(
    "a/b/c/some_dags.yml",
-   default_args_config_path="a"
+   default_args_config_path=default_args_config_path="a"
 )`
 
 The DAG will be using the default configuration defined in all the following files:
