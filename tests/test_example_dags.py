@@ -65,7 +65,6 @@ def get_dag_bag() -> DagBag:
             # TODO: https://github.com/astronomer/dag-factory/issues/437
             file.writelines(["example_dag_datasets.py\n"])
             file.writelines(["example_load_airflow2_dags.py\n"])
-            file.writelines(["example_timetable_schedule.py\n"])
 
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
