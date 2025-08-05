@@ -28,7 +28,6 @@ except ImportError:
 
 from airflow.datasets import Dataset
 from airflow.models import MappedOperator
-from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
 from airflow.utils.task_group import TaskGroup
 from airflow.version import version as AIRFLOW_VERSION
@@ -203,18 +202,6 @@ class DagBuilder:
             )
 
         return dag_params
-
-    @staticmethod
-    def make_timetable(timetable: str, timetable_params: Dict[str, Any]) -> Timetable:
-        """
-        Takes a custom timetable and params and creates an instance of that timetable.
-
-        :returns instance of timetable object
-        """
-        # class is a Callable https://stackoverflow.com/a/34578836/3679900
-        timetable_obj: Callable[..., Timetable] = import_string(timetable)
-        schedule: Timetable = timetable_obj(**timetable_params)
-        return schedule
 
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
@@ -782,10 +769,7 @@ class DagBuilder:
             )
 
         if dag_params.get("timetable"):
-            timetable_args = dag_params.get("timetable")
-            dag_kwargs["timetable"] = DagBuilder.make_timetable(
-                timetable_args.get("callable"), timetable_args.get("params")
-            )
+            dag_kwargs["timetable"] = dag_params.get("timetable")
 
         dag_kwargs["catchup"] = dag_params.get(
             "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")

@@ -810,19 +810,6 @@ def test_make_dag_with_callbacks():
         assert sla_miss_callback.username == "username"
 
 
-def test_make_timetable():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
-    timetable_params = {"cron": "0 8,16 * * 1-5", "timezone": "UTC"}
-    actual = td.make_timetable(timetable, timetable_params)
-    assert actual.periodic
-    try:
-        assert actual.can_run
-    except AttributeError:
-        # can_run attribute was removed and replaced with can_be_scheduled in later versions of Airflow.
-        assert actual.can_be_scheduled
-
-
 @pytest.mark.callbacks
 def test_make_dag_with_callbacks_default_args():
     """
