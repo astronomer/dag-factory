@@ -1,6 +1,7 @@
 """Module contains various utilities used by dag-factory"""
 
 import ast
+import copy
 import importlib.util
 import json
 import logging

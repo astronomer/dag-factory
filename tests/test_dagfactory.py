@@ -25,6 +25,7 @@ here = os.path.dirname(__file__)
 
 from dagfactory import DagFactory, dagfactory, exceptions, load_yaml_dags
 
+
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
 DAG_FACTORY_SCHEDULE_INTERVAL = os.path.join(here, "fixtures/dag_factory_schedule_interval.yml")
@@ -304,7 +305,8 @@ def test_get_dag_configs(monkeypatch):
     assert sorted(actual) == sorted(expected)
 
 
-def test_get_default_config():
+def test_get_default_config(monkeypatch):
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
     td = dagfactory.DagFactory(TEST_DAG_FACTORY)
     expected = {
         "default_args": {
@@ -844,3 +846,305 @@ example_dict_dag_yaml:
     assert len(dag.tasks) == 2
     # Validate grouping
     assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
+
+
+def test_load_dag_config_with_extends(monkeypatch):
+    """Test that extends functionality works correctly through get_default_args_from_extends and build_dags."""
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
+    test_config_path = os.path.join(here, "fixtures/dag_factory_extends.yml")
+    fixtures_dir = os.path.join(here, "fixtures")
+    td = dagfactory.DagFactory(test_config_path, default_args_config_path=fixtures_dir)
+
+    # Test that _load_dag_config preserves extends key but doesn't process it
+    config = td._load_dag_config(test_config_path)
+    assert "__extends__" in config
+    assert config["__extends__"] == ["extends_base.yml"]
+
+    # Test that get_default_args_from_extends processes extends correctly
+    extends_defaults = td.get_default_args_from_extends()
+    assert extends_defaults["concurrency"] == 5  # From base config (will be converted to max_active_tasks later)
+    assert extends_defaults["max_active_runs"] == 3  # From base config
+    assert extends_defaults["default_view"] == "graph"  # From base config
+    assert extends_defaults[get_schedule_key()] == "@daily"  # From base config (handles Airflow 2/3 compatibility)
+    assert extends_defaults["default_args"]["owner"] == "base_owner"  # From base config
+    assert extends_defaults["default_args"]["retries"] == 2  # From base config
+
+    # Test that the full DAG building process works correctly
+    dags = td.build_dags()
+    dag = dags["example_dag_with_extends"]
+
+    # Verify that base config values are applied
+    assert dag.max_active_runs == 3  # From base config
+    assert dag.max_active_tasks == 5  # From base config (Airflow 3 equivalent of concurrency)
+
+    # Verify that main config overrides work
+    assert dag.schedule == "@hourly"  # Overridden from main config
+    assert dag.default_args["owner"] == "main_owner"  # Overridden from main config
+
+    # Verify that base config values are preserved when not overridden
+    assert dag.default_args["retries"] == 2  # From base config
+    assert dag.default_args["retry_delay_sec"] == 600  # From base config
+
+    # Verify that new values are added
+    assert dag.default_args["email"] == "test@example.com"  # New from main config
+
+
+def test_load_dag_config_with_chained_extends(monkeypatch):
+    """Test that chained extends functionality works correctly through get_default_args_from_extends and build_dags."""
+    monkeypatch.setenv("AUTO_CONVERT_TO_AF3", "true")
+    test_config_path = os.path.join(here, "fixtures/dag_factory_extends_chained.yml")
+    fixtures_dir = os.path.join(here, "fixtures")
+    td = dagfactory.DagFactory(test_config_path, default_args_config_path=fixtures_dir)
+
+    # Test that _load_dag_config preserves extends key but doesn't process it
+    config = td._load_dag_config(test_config_path)
+    assert "__extends__" in config
+    assert config["__extends__"] == ["dag_factory_extends.yml"]
+
+    # Test that get_default_args_from_extends processes chained extends correctly
+    extends_defaults = td.get_default_args_from_extends()
+
+    # Values should come from the base config (extends_base.yml)
+    assert extends_defaults["concurrency"] == 5  # From base
+    assert extends_defaults["default_view"] == "graph"  # From base
+    assert extends_defaults["default_args"]["retries"] == 2  # From base
+    assert extends_defaults["default_args"]["retry_delay_sec"] == 600  # From base
+
+    # Values from middle config should override base
+    assert extends_defaults[get_schedule_key()] == "@hourly"  # From middle config (overrides @daily from base)
+    assert extends_defaults["default_args"]["email"] == "test@example.com"  # From middle config
+
+    # Test that the full DAG building process works correctly
+    dags = td.build_dags()
+    dag = dags["example_dag_chained_extends"]
+
+    # Verify that chained extends values are applied correctly
+    assert dag.max_active_runs == 1  # Final override from main config
+    assert dag.max_active_tasks == 5  # From base config
+    assert dag.default_args["owner"] == "chained_owner"  # Final override from main config
+    assert dag.default_args["retries"] == 2  # From base config (preserved through chain)
+    assert dag.default_args["email"] == "test@example.com"  # From middle config (preserved)
+
+
+def test_load_dag_config_extends_missing_file():
+    """Test that get_default_args_from_extends raises appropriate error when extended file is missing."""
+    # Create a temporary config that references a non-existent file
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        f.write(
+            """
+__extends__:
+  - non_existent_file.yml
+
+default:
+  default_args:
+    owner: test_owner
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+"""
+        )
+        temp_config_path = f.name
+
+    try:
+        # Set the base directory to the temp directory where the config file is created
+        temp_dir = os.path.dirname(temp_config_path)
+        with pytest.raises(FileNotFoundError):  # Should raise FileNotFoundError due to missing file
+            td = dagfactory.DagFactory(temp_config_path, default_args_config_path=temp_dir)
+            td.get_default_args_from_extends()
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_config_path)
+
+
+def test_load_dag_config_extends_empty_list():
+    """Test that _load_dag_config handles empty __extends__ list correctly."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        f.write(
+            """
+__extends__: []
+
+default:
+  default_args:
+    owner: test_owner
+    start_date: 2023-01-01
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+"""
+        )
+        temp_config_path = f.name
+
+    try:
+        td = dagfactory.DagFactory(temp_config_path)
+        actual = td._load_dag_config(temp_config_path)
+
+        # Verify that the extends key is preserved (even when empty)
+        assert "__extends__" in actual
+        assert actual["__extends__"] == []
+
+        # Verify that the config is processed normally
+        assert actual["default"]["default_args"]["owner"] == "test_owner"
+        assert actual["default"]["default_args"]["start_date"] == datetime.date(2023, 1, 1)  # Parsed as date
+        assert "test_dag" in actual
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_config_path)
+
+
+def test_load_dag_config_extends_infinite_loop():
+    """Test that get_default_args_from_extends raises appropriate error when infinite extending loop is detected."""
+    import tempfile
+
+    # Create two temp files that reference each other to create an infinite loop
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f1:
+        f1.write(
+            """
+__extends__:
+  - file2.yml
+
+default:
+  default_args:
+    owner: file1_owner
+"""
+        )
+        temp_config1_path = f1.name
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f2:
+        f2.write(
+            """
+__extends__:
+  - file1.yml
+
+default:
+  default_args:
+    owner: file2_owner
+"""
+        )
+        temp_config2_path = f2.name
+
+    # Rename files to match the references in the config
+    base_dir = os.path.dirname(temp_config1_path)
+    file1_path = os.path.join(base_dir, "file1.yml")
+    file2_path = os.path.join(base_dir, "file2.yml")
+
+    os.rename(temp_config1_path, file1_path)
+    os.rename(temp_config2_path, file2_path)
+
+    try:
+        # Test starting from file1 -> file2 -> file1 (infinite loop)
+        with pytest.raises(exceptions.DagFactoryConfigException) as exc_info:
+            td = dagfactory.DagFactory(file1_path, default_args_config_path=base_dir)
+            td.get_default_args_from_extends()
+
+        # Verify that the error message mentions the infinite loop and the problematic file
+        error_message = str(exc_info.value)
+        assert "Infinite extending loop detected" in error_message
+        assert "file1.yml" in error_message
+        assert "has already been processed" in error_message
+
+    finally:
+        # Clean up temporary files
+        for file_path in [file1_path, file2_path]:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+
+
+def test_priority_defaults_extends_and_default_block():
+    """Test that defaults.yml, __extends__, and default block are applied with correct priority.
+
+    Priority behavior:
+    - For default_args: main config > __extends__ > defaults.yml
+    - For DAG-level properties: defaults.yml appears to override __extends__ configs
+    - Tags: defaults.yml tags are preserved, with dagfactory auto-added
+    """
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+
+        # 1. Create defaults.yml (lowest priority)
+        defaults_content = """
+default_args:
+  owner: global_owner
+  retries: 5
+  start_date: 2020-01-01
+max_active_runs: 5
+tags: ["global"]
+"""
+        defaults_file = temp_path / "defaults.yml"
+        with open(defaults_file, "w") as f:
+            f.write(defaults_content)
+
+        # 2. Create base config for __extends__ (medium priority)
+        base_config_content = """
+default:
+  default_args:
+    owner: extends_owner
+    retries: 3
+    start_date: 2021-01-01
+    email: test@extends.com
+  max_active_runs: 3
+  tags: ["extends"]
+"""
+        base_config_file = temp_path / "base_config.yml"
+        with open(base_config_file, "w") as f:
+            f.write(base_config_content)
+
+        # 3. Create main config with __extends__ and default block (highest priority)
+        main_config_content = f"""
+__extends__:
+  - base_config.yml
+
+default:
+  default_args:
+    owner: main_owner
+    retries: 1
+    depends_on_past: true
+  tags: ["main"]
+
+test_dag:
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: echo "test"
+"""
+        main_config_file = temp_path / "main_config.yml"
+        with open(main_config_file, "w") as f:
+            f.write(main_config_content)
+
+        # Create DagFactory with defaults.yml path and main config
+        td = dagfactory.DagFactory(
+            config_filepath=str(main_config_file),
+            default_args_config_path=str(temp_path)
+        )
+
+        # Build DAGs to test the full priority chain
+        dags = td.build_dags()
+        dag = dags["test_dag"]
+
+        # Test default_args priority: main > extends > defaults
+        assert dag.default_args["owner"] == "main_owner"  # From main config (highest priority)
+        assert dag.default_args["retries"] == 1  # From main config (highest priority)
+        assert dag.default_args["start_date"] == DateTime(2021, 1, 1, 0, 0, 0, tzinfo=Timezone("UTC"))  # From extends (medium priority, not overridden)
+        assert dag.default_args["email"] == "test@extends.com"  # From extends (medium priority, not overridden)
+        assert dag.default_args["depends_on_past"] == True  # From main config (only defined there)
+
+        # Test DAG-level properties priority:
+        # For max_active_runs, defaults.yml overrides extends config
+        assert dag.max_active_runs == 5  # From defaults.yml (global defaults take precedence for DAG-level props)
+        assert dag.owner == "main_owner"  # From main config default_args (highest priority)
+
+        # Test tags behavior (defaults.yml tags are used as base)
+        # Both "global" from defaults.yml and "dagfactory" (auto-added) should be present
+        assert "global" in dag.tags
+        assert "dagfactory" in dag.tags

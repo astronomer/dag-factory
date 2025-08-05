@@ -1,0 +1,33 @@
+__extends__:
+  - "extends_base.yml"
+  - "extends_environment_specific.yml"
+
+# This demonstrates extending from multiple files at once
+# Later files in the extends list take precedence over earlier ones
+# So extends_environment_specific.yml will override extends_base.yml
+
+default:
+  default_args:
+    owner: "multiple_inheritance_team"
+  tags:
+    - "multi-extend"
+    - "demo"
+
+reporting_dag:
+  description: "Example DAG demonstrating multiple inheritance through __extends__"
+  schedule_interval: "0 6 * * *"  # 6 AM daily
+  tasks:
+    gather_metrics:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Gathering system metrics'"
+    process_logs:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Processing application logs'"
+    generate_dashboard:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Generating daily dashboard'"
+      dependencies: [gather_metrics, process_logs]
+    send_notifications:
+      operator: airflow.operators.bash_operator.BashOperator
+      bash_command: "echo 'Sending notifications to stakeholders'"
+      dependencies: [generate_dashboard]

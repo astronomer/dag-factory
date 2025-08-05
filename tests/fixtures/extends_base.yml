@@ -1,0 +1,10 @@
+default:
+  default_args:
+    owner: base_owner
+    retries: 2
+    retry_delay_sec: 600
+    start_date: 2023-01-01
+  concurrency: 5
+  max_active_runs: 3
+  default_view: graph
+  schedule_interval: "@daily"

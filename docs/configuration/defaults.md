@@ -129,6 +129,8 @@ sample_project
     └── defaults.yml
 ```
 
+Currently, only `default_args` can be specified using the `defaults.yml` file.
+
 Assuming you instantiate the DAG by using:
 
 ```python
@@ -154,3 +156,72 @@ Given the various ways to specify top-level DAG arguments, including `default_ar
 2. In the `default` block within the workflow's YAML file
 3. The arguments defined in `default_args_config_dict`
 4. If (3) is not declared, the `defaults.yml` hierarchy.
+
+
+## Configuration Inheritance with `__extends__`
+
+You can create modular, reusable configuration default config using the `__extends__` feature. This allows you to build configuration hierarchies by extending other YAML configuration files, promoting better organization and reusability of common settings.
+
+The `__extends__` key accepts an array of config file paths, relative to the Airflow's `dags_folder` by default. The root directory of extended files is configurable through `default_args_config_path` argument fo `load_yaml_dags`.
+
+### Benefits of using `__extends__`
+
+- **Modularity**: Split configurations into logical, reusable components
+- **Maintainability**: Centralize common configurations and reduce duplication
+- **Flexibility**: Support multiple inheritance levels and chaining
+- **Organization**: Create clear configuration hierarchies (For example, base → environment → team → DAG)
+
+### Example usage of `__extends__`
+
+#### Basic extension
+
+**File: `extends_base.yml`**
+```yaml
+default:
+  default_args:
+    owner: "data_team"
+    retries: 2
+    retry_delay_sec: 300
+  schedule_interval: "@daily"
+  tags: ["dag-factory"]
+```
+
+**File: `my_dags.yml`**
+```yaml
+__extends__:
+  - "extends_base.yml"
+
+default:
+  default_args:
+    owner: "analytics_team"  # Overrides "data_team"
+    start_date: "2024-01-01"  # Added to inherited config
+
+my_analytics_dag:
+  description: "Analytics pipeline"
+  tasks:
+    extract_data:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 'Extracting data...'"
+```
+
+#### Chained extension
+
+You can create inheritance chains where configurations extend other configurations:
+
+```yaml
+# production_dags.yml extends environment_config.yml which extends base_config.yml
+__extends__:
+  - "environment_config.yml"
+
+default:
+  default_args:
+    owner: "prod_team"  # Final override
+```
+
+### Configuration precedence with `__extends__`
+
+When using `__extends__` along with other default configuration methods, the following precedence order applies:
+
+1. The DAG configuration (highest priority)
+2. The `default` block of the extended configuration files
+3. The global default configuration in `defaults.yml` (lowest priority)
