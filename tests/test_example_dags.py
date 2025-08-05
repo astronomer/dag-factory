@@ -26,6 +26,7 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
         "example_hackernews_plain_airflow",
         "example_pypi_stats_plain_airflow",
     ],
+    "2.7": ["example_timetable_schedule.py"],
     "2.9": ["example_map_index_template.py", "example_object_storage.py"],
 }
 
@@ -64,6 +65,7 @@ def get_dag_bag() -> DagBag:
             # TODO: https://github.com/astronomer/dag-factory/issues/437
             file.writelines(["example_dag_datasets.py\n"])
             file.writelines(["example_load_airflow2_dags.py\n"])
+            file.writelines(["example_timetable_schedule.py\n"])
 
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
