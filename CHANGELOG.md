@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The custom parsing for Kubernetes objects has been removed. You can no longer pass a custom YAML dictionary to DAG-Factory configuration unless accepted by the KubernetesPodOperator. We suggest you to use `__type__` syntax to supply Kubernetes object in your YAML DAG. For an example KPO configuration, visit: [KubernetesPodOperator Documentation](https://astronomer.github.io/dag-factory/dev/features/kpo/).
 - Consolidate `!and`, `!or`, `!join`, `and` and `or` key in YAML DAG configuration by @pankajastro in [#525](https://github.com/astronomer/dag-factory/pull/525)
   - Use `__and__`, `__or__` and `join__` instead
+- Remove custom parsing for DAG parameter `timetable` by @pankajastro in [#533](https://github.com/astronomer/dag-factory/pull/533)
+  - Use the `__type__` annotation for the `timetable` parameter.
+- Rename parameter of `load_yaml_dags` and `_DagFactory` to reflect behaviour by @pankajastro in [#546](https://github.com/astronomer/dag-factory/pull/546)
+  - Rename `config` to `config_dict`
+  - Rename `default_args_config_path` to `defaults_config_path`
+  - Rename `default_args_config_dict`  to `defaults_config_dict`
 
 ### Added
 
@@ -46,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ensure `dag_params` contain `schedule` before operating on it by @pankajkoti in [#488](https://github.com/astronomer/dag-factory/pull/488)
 - Fix `start_date`, `end_date` at the DAG level by @pankajastro in [#495](https://github.com/astronomer/dag-factory/pull/495)
 - Allow `execution_timeout` in `default_args` by @pankajastro in [#501](https://github.com/astronomer/dag-factory/pull/501)
+- Capture Telemetry DNS gaierror and handle it gracefully by @tatiana in [#544](https://github.com/astronomer/dag-factory/pull/544)
 
 ### Docs
 
