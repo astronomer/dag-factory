@@ -232,7 +232,7 @@ jobs:
         run: |
           uv tool install coverage
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: ./coverage
       - name: Combine coverage
