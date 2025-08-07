@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance PyPI Stats API error handling by @viiccwen in [#535](https://github.com/astronomer/dag-factory/pull/535)
 - Update example to be Airflow 3 compatible by @tatiana in [540](https://github.com/astronomer/dag-factory/pull/540)
 - Remove AUTO_CONVERT_TO_AF3 from tests by @tatiana in [#543](https://github.com/astronomer/dag-factory/pull/543)
+- Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548)
 
 ## [0.23.0] - 2025-07-14
 
