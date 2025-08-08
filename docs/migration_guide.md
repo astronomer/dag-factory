@@ -120,7 +120,28 @@ See [Custom Python Object Docs](./configuration/custom_py_object.md) and [PR #51
 
 See [PR #525](https://github.com/astronomer/dag-factory/pull/525)
 
-## 6. Airflow Providers Dependency
+## 6. Remove custom parsing for `timetable`
+
+**Impact:**
+
+- The `timetable` param no longer accept params like `callable` and `params`
+
+**Action:**
+
+- Use the [`__type__`](./features/custom_python_object.md) annotation to define it in your YAML.
+
+**Example:**
+
+```yaml
+timetable:
+  __type__: airflow.timetables.trigger.CronTriggerTimetable
+  __args__:
+    - 0 1 * * 3
+```
+
+For details: See [PR #533](https://github.com/astronomer/dag-factory/pull/533)
+
+## 7. Airflow Providers Dependency
 
 **Impact:**
 
@@ -132,7 +153,7 @@ See [PR #525](https://github.com/astronomer/dag-factory/pull/525)
 
 For details: See [PR #486](https://github.com/astronomer/dag-factory/pull/486)
 
-## 7. Remove Legacy Type Casting for KubernetesPodOperator
+## 8. Remove Legacy Type Casting for KubernetesPodOperator
 
 **Impact:**
 
@@ -174,7 +195,7 @@ kubernetes_pod_dag:
 
 See [PR #523](https://github.com/astronomer/dag-factory/pull/523)
 
-## 8. Removal of `clean_dags()` Method
+## 9. Removal of `clean_dags()` Method
 
 **Impact:**
 
@@ -187,7 +208,7 @@ See [PR #523](https://github.com/astronomer/dag-factory/pull/523)
 
 For details: See [PR #498](https://github.com/astronomer/dag-factory/pull/498)
 
-## 9. List-Based DAG Tasks and Task Groups
+## 10. List-Based DAG Tasks and Task Groups
 
 Although dictionary definitions are still allowed, transition to **list-based** configurations for better readability and maintenance.
 
