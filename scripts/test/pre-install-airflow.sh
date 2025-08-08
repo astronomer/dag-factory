@@ -28,9 +28,19 @@ curl -sSL "$CONSTRAINT_URL" -o /tmp/constraint.txt
 sed '/PyYAML==/d' /tmp/constraint.txt > /tmp/constraint.txt.tmp
 mv /tmp/constraint.txt.tmp /tmp/constraint.txt
 
+# Fix pendulum compatibility issue for Airflow 2.4
+if [ "$AIRFLOW_VERSION" = "2.4" ]; then
+  sed '/pendulum==/d' /tmp/constraint.txt > /tmp/constraint.txt.tmp
+  mv /tmp/constraint.txt.tmp /tmp/constraint.txt
+fi
+
 pip install uv
 uv pip install pip --upgrade
 
+# Fix pendulum compatibility issue for Airflow 2.4
+if [ "$AIRFLOW_VERSION" = "2.4" ]; then
+  uv pip install "pendulum<3.0.0"
+fi
 
 if [ "$AIRFLOW_VERSION" = "3.0" ]; then
   uv pip install "apache-airflow>=3.0.2" --constraint /tmp/constraint.txt
