@@ -1330,40 +1330,76 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#airflow-providers-dependency" class="md-nav__link">
+  <a href="#1-change-dagfactory-class-access-to-private" class="md-nav__link">
     <span class="md-ellipsis">
-      Airflow Providers Dependency
+      1. Change DagFactory Class Access to Private
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#removed-clean_dags-method-from-dagfactory" class="md-nav__link">
+  <a href="#2-rename-parameter-of-load_yaml_dags" class="md-nav__link">
     <span class="md-ellipsis">
-      Removed clean_dags() Method from DagFactory
+      2. Rename Parameter of load_yaml_dags
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#removed-inconsistent-dag-factory-parameters" class="md-nav__link">
+  <a href="#3-remove-schedule_interval-in-favor-of-schedule" class="md-nav__link">
     <span class="md-ellipsis">
-      Removed Inconsistent DAG Factory Parameters
+      3. Remove schedule_interval in Favor of schedule
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#list-based-airflow-dag-tasks-and-task-groups" class="md-nav__link">
+  <a href="#4-removal-of-inconsistent-yaml-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      List-Based Airflow DAG Tasks and Task Groups
+      4. Removal of Inconsistent YAML Parameters
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="List-Based Airflow DAG Tasks and Task Groups">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-consolidate-logical-keys-and-or-join-and-or" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Consolidate Logical Keys (!and, !or, !join, and, or)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-remove-custom-parsing-for-timetable" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Remove custom parsing for timetable
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-airflow-providers-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Airflow Providers Dependency
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-remove-legacy-type-casting-for-kubernetespodoperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Remove Legacy Type Casting for KubernetesPodOperator
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Remove Legacy Type Casting for KubernetesPodOperator">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1381,13 +1417,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#remove-legacy-type-casting-for-kubernetespodoperator" class="md-nav__link">
+  <a href="#9-removal-of-clean_dags-method" class="md-nav__link">
     <span class="md-ellipsis">
-      Remove Legacy Type Casting for KubernetesPodOperator
+      9. Removal of clean_dags() Method
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Remove Legacy Type Casting for KubernetesPodOperator">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-list-based-dag-tasks-and-task-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. List-Based DAG Tasks and Task Groups
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. List-Based DAG Tasks and Task Groups">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1437,84 +1482,214 @@
 
 
 <h1 id="migrate-to-dag-factory-v100">Migrate to DAG-Factory v1.0.0</h1>
-<h2 id="airflow-providers-dependency">Airflow Providers Dependency</h2>
-<p>If you're using operators or sensors from apache-airflow-providers-http or apache-airflow-providers-cncf-kubernetes, you may encounter import errors, causing your DAG to fail. With the new release, DAG Factory no longer enforces the installation of Airflow providers. We recommend that you manually install the required Airflow providers in your environment.</p>
-<p>For more details, check out this <a href="https://github.com/astronomer/dag-factory/pull/486">PR</a>.</p>
-<h2 id="removed-clean_dags-method-from-dagfactory">Removed clean_dags() Method from DagFactory</h2>
-<p>The <code>clean_dags()</code> method is no longer part of the <code>DagFactory</code> class and has been removed. If your DAG was using this method, you can safely remove it from your DAG file. The DAG refresh behavior is now controlled by the Airflow config setting <code>AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL</code>.</p>
-<p>For more details, check out this <a href="https://github.com/astronomer/dag-factory/pull/498">PR</a>.</p>
-<h2 id="removed-inconsistent-dag-factory-parameters">Removed Inconsistent DAG Factory Parameters</h2>
-<p>DAG Factory no longer accepts the parameters <code>dagrun_timeout_sec</code>, <code>retry_delay_sec</code>, <code>sla_secs</code>, <code>execution_delta_secs</code> and <code>execution_timeout_secs</code> in the YAML/YML configuration. If your DAG was using these parameters, we recommend switching to their Airflow equivalents: <code>dagrun_timeout</code>, <code>retry_delay</code>, <code>sla</code>, <code>execution_delta</code>, and <code>execution_timeout</code>.</p>
+<h2 id="1-change-dagfactory-class-access-to-private">1. Change <code>DagFactory</code> Class Access to Private</h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>The <code>DagFactory</code> import path is removed.</li>
+<li>Class is now <code>_DagFactory</code>.</li>
+<li>The <code>generate_dags</code> method is now <code>_generate_dags</code>.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>Use the recommended <code>load_yaml_dags</code> method for DAG generation.</li>
+</ul>
 <p><strong>Example:</strong></p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">dagrun_timeout</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.timedelta</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load DAG from a specific YAML file</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">config_filepath</span><span class="o">=</span><span class="s1">&#39;/path/to/your/dag_config.yaml&#39;</span><span class="p">)</span>
 </span></code></pre></div>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">retry_delay</span><span class="p">:</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.timedelta</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<p>See <a href="../configuration/load_yaml_dags/">load_yaml_dags function docs</a>  and <a href="https://github.com/astronomer/dag-factory/pull/509">PR #509</a></p>
+<h2 id="2-rename-parameter-of-load_yaml_dags">2. Rename Parameter of <code>load_yaml_dags</code></h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>The parameter <code>default_args_config_dict</code> is now <code>defaults_config_dict</code>.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>Update your function signatures accordingly.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">defaults_config_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;default_args&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2025</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}}</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">defaults_config_dict</span><span class="o">=</span><span class="n">defaults_config_dict</span><span class="p">)</span>
 </span></code></pre></div>
-<p>For more examples, check out the documentation at <a href="https://astronomer.github.io/dag-factory/dev/configuration/custom_py_object/">Custom Python Objects in Configuration</a>.</p>
-<p>For further details, refer to this  <a href="https://github.com/astronomer/dag-factory/pull/512">PR</a>.</p>
-<h2 id="list-based-airflow-dag-tasks-and-task-groups">List-Based Airflow DAG Tasks and Task Groups</h2>
-<p>While Airflow DAG tasks and task groups defined as dictionaries are still supported, we recommend transitioning to the list-based approach for better readability and consistency.</p>
+<p>See <a href="https://github.com/astronomer/dag-factory/pull/546">PR #546</a></p>
+<h2 id="3-remove-schedule_interval-in-favor-of-schedule">3. Remove <code>schedule_interval</code> in Favor of <code>schedule</code></h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>The <code>schedule_interval</code> key in YAML DAG configuration is no longer supported.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>Use <code>schedule</code> rather than <code>schedule_interval</code> to define DAG schedules.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="err">@</span><span class="l l-Scalar l-Scalar-Plain">daily</span>
+</span></code></pre></div>
+<p>See <a href="https://github.com/astronomer/dag-factory/pull/503">PR #503</a></p>
+<h2 id="4-removal-of-inconsistent-yaml-parameters">4. Removal of Inconsistent YAML Parameters</h2>
+<p><strong>Impact:</strong></p>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>
+<p>The following parameters are no longer accepted in YAML:</p>
+<ul>
+<li><code>dagrun_timeout_sec</code></li>
+<li><code>retry_delay_sec</code></li>
+<li><code>sla_secs</code></li>
+<li><code>execution_delta_secs</code></li>
+<li><code>execution_timeout_secs</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>
+<p>Switch to Airflow’s direct equivalents:</p>
+<ul>
+<li><code>dagrun_timeout</code></li>
+<li><code>retry_delay</code></li>
+<li><code>sla</code></li>
+<li><code>execution_delta</code></li>
+<li><code>execution_timeout</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">dagrun_timeout</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.timedelta</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span>
+</span></code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">retry_delay</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.timedelta</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span></code></pre></div>
+<p>See <a href="../configuration/custom_py_object/">Custom Python Object Docs</a> and <a href="https://github.com/astronomer/dag-factory/pull/512">PR #512</a></p>
+<h2 id="5-consolidate-logical-keys-and-or-join-and-or">5. Consolidate Logical Keys (<code>!and</code>, <code>!or</code>, <code>!join</code>, <code>and</code>, <code>or</code>)</h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>The previous logical and join keys (<code>!and</code>, <code>!or</code>, <code>!join</code>, <code>and</code>, <code>or</code>) are no longer recognized in YAML DAG configurations.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>
+<p>Update your YAML configuration files by replacing all occurrences of:</p>
+<ul>
+<li><code>!and</code> or <code>and</code> → <code>__and__</code></li>
+<li><code>!or</code> or <code>or</code> → <code>__or__</code></li>
+<li><code>!join</code> → <code>__join__</code></li>
+</ul>
+</li>
+</ul>
+<p>See <a href="https://github.com/astronomer/dag-factory/pull/525">PR #525</a></p>
+<h2 id="6-remove-custom-parsing-for-timetable">6. Remove custom parsing for <code>timetable</code></h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>The <code>timetable</code> param no longer accept params like <code>callable</code> and <code>params</code></li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>Use the <a href="../features/custom_python_object/"><code>__type__</code></a> annotation to define it in your YAML.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">timetable</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.timetables.trigger.CronTriggerTimetable</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">__args__</span><span class="p">:</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0 1 * * 3</span>
+</span></code></pre></div>
+<p>For details: See <a href="https://github.com/astronomer/dag-factory/pull/533">PR #533</a></p>
+<h2 id="7-airflow-providers-dependency">7. Airflow Providers Dependency</h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>DAG-Factory no longer installs Airflow providers (e.g., <code>apache-airflow-providers-http</code>, <code>apache-airflow-providers-cncf-kubernetes</code>) automatically.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>Manually install any required Airflow providers in your environment. Missing providers will cause operator/sensor import errors and lead to DAG failures.</li>
+</ul>
+<p>For details: See <a href="https://github.com/astronomer/dag-factory/pull/486">PR #486</a></p>
+<h2 id="8-remove-legacy-type-casting-for-kubernetespodoperator">8. Remove Legacy Type Casting for KubernetesPodOperator</h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>With the latest update, the DAG-Factory <code>KubernetesPodOperator</code> now accepts a YAML dictionary only if it is compatible with the Airflow <code>KubernetesPodOperator</code>.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>You must use the <code>__type__</code> syntax to specify Python object in DAG config YAML.</li>
+</ul>
+<p><strong>Example:</strong></p>
 <h3 id="example">Example</h3>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">basic_example_dag</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.datetime</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">year</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">month</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">day</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">task_groups</span><span class="p">:</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">group_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example_task_group&quot;</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="nt">tooltip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;this</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">example</span><span class="nv"> </span><span class="s">task</span><span class="nv"> </span><span class="s">group&quot;</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_1&quot;</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">1&quot;</span>
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_2&quot;</span>
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">2&quot;</span>
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_3&quot;</span>
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">3&quot;</span>
-</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
-</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">      </span><span class="nt">task_group_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example_task_group&quot;</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">kubernetes_pod_dag</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-01-01</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@daily&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A</span><span class="nv"> </span><span class="s">DAG</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">runs</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">simple</span><span class="nv"> </span><span class="s">KubernetesPodOperator</span><span class="nv"> </span><span class="s">task&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello-world-pod</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="nt">config_file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path/to/kube/config&quot;</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;python:3.12-slim&quot;</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="nt">cmds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;python&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-c&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">      </span><span class="nt">arguments</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;print(&#39;Hello</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">KubernetesPodOperator!&#39;)&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example-pod-task&quot;</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">      </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;default&quot;</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">      </span><span class="nt">get_logs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="nt">container_resources</span><span class="p">:</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">        </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes.client.models.V1ResourceRequirements</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="nt">limits</span><span class="p">:</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1024Mi&quot;</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="nt">requests</span><span class="p">:</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.5&quot;</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;512Mi&quot;</span>
 </span></code></pre></div>
-<p>For more examples, check out the <a href="https://github.com/astronomer/dag-factory/tree/main/dev/dags">DAG's</a>.</p>
-<p>For further details, refer to this  <a href="https://github.com/astronomer/dag-factory/pull/487">PR</a>.</p>
-<h2 id="remove-legacy-type-casting-for-kubernetespodoperator">Remove Legacy Type Casting for KubernetesPodOperator</h2>
-<p>With the latest update, the DAG-Factory <code>KubernetesPodOperator</code> now accepts a YAML dictionary only if it is compatible with the Airflow <code>KubernetesPodOperator</code>. You must use the <code>__type__</code> syntax to specify Kubernetes objects.</p>
+<p>See <a href="https://github.com/astronomer/dag-factory/pull/523">PR #523</a></p>
+<h2 id="9-removal-of-clean_dags-method">9. Removal of <code>clean_dags()</code> Method</h2>
+<p><strong>Impact:</strong></p>
+<ul>
+<li><code>clean_dags()</code> has been removed from the <code>DagFactory</code> class.</li>
+</ul>
+<p><strong>Action:</strong></p>
+<ul>
+<li>If your DAG references this method, delete the invocation. Control DAG refresh behavior using the Airflow config:
+<code>AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL</code></li>
+</ul>
+<p>For details: See <a href="https://github.com/astronomer/dag-factory/pull/498">PR #498</a></p>
+<h2 id="10-list-based-dag-tasks-and-task-groups">10. List-Based DAG Tasks and Task Groups</h2>
+<p>Although dictionary definitions are still allowed, transition to <strong>list-based</strong> configurations for better readability and maintenance.</p>
+<p><strong>Example:</strong></p>
 <h3 id="example_1">Example</h3>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">kubernetes_pod_dag</span><span class="p">:</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-01-01</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@daily&quot;</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A</span><span class="nv"> </span><span class="s">DAG</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">runs</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">simple</span><span class="nv"> </span><span class="s">KubernetesPodOperator</span><span class="nv"> </span><span class="s">task&quot;</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello-world-pod</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">      </span><span class="nt">config_file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path/to/kube/config&quot;</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;python:3.12-slim&quot;</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="nt">cmds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;python&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-c&quot;</span><span class="p p-Indicator">]</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">arguments</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;print(&#39;Hello</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">KubernetesPodOperator!&#39;)&quot;</span><span class="p p-Indicator">]</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example-pod-task&quot;</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">      </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;default&quot;</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">      </span><span class="nt">get_logs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">      </span><span class="nt">container_resources</span><span class="p">:</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">        </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes.client.models.V1ResourceRequirements</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">        </span><span class="nt">limits</span><span class="p">:</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1024Mi&quot;</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">        </span><span class="nt">requests</span><span class="p">:</span>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">          </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.5&quot;</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">          </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;512Mi&quot;</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">basic_example_dag</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">start_date</span><span class="p">:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">__type__</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime.datetime</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">year</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">month</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="nt">day</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="nt">task_groups</span><span class="p">:</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">group_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example_task_group&quot;</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="nt">tooltip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;this</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">example</span><span class="nv"> </span><span class="s">task</span><span class="nv"> </span><span class="s">group&quot;</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_1&quot;</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">1&quot;</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_2&quot;</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">2&quot;</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;task_3&quot;</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.operators.bash.BashOperator</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">3&quot;</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">task_1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">      </span><span class="nt">task_group_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;example_task_group&quot;</span>
 </span></code></pre></div>
-<p>For more details, check out this <a href="https://github.com/astronomer/dag-factory/pull/523">PR</a>.</p>
+<p>See more examples in the <a href="https://github.com/astronomer/dag-factory/tree/main/dev/dags">dev/dags folder</a> and <a href="https://github.com/astronomer/dag-factory/pull/487">PR #487</a></p>
 
 
 
