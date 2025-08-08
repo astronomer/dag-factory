@@ -16,10 +16,9 @@
 
 ```python
 from dagfactory import load_yaml_dags
-from datetime import datetime
 
-defaults_config_dict = {"default_args": {"start_date": datetime(2025, 1, 1)}}
-load_yaml_dags(..., defaults_config_dict=defaults_config_dict)
+# Load DAG from a specific YAML file
+load_yaml_dags(globals_dict=globals(), config_filepath='/path/to/your/dag_config.yaml')
 ```
 
 See [load_yaml_dags function docs](./configuration/load_yaml_dags.md)  and [PR #509](https://github.com/astronomer/dag-factory/pull/509)
