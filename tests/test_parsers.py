@@ -14,6 +14,11 @@ def dataset_map():
 def visitor(dataset_map):
     return SafeEvalVisitor(dataset_map)
 
+def test_raises_error_if_node_is_missing(visitor):
+    condition_string = "dataset_custom_1 & dataset_custom_2 | dataset_custom_4"
+    tree = ast.parse(condition_string, mode="eval")
+    with pytest.raises(ValueError):
+        visitor.evaluate(tree)
 
 def test_evaluate(visitor):
     condition_string = "dataset_custom_1 & dataset_custom_2 | dataset_custom_3"
