@@ -12,4 +12,4 @@ object_storage_ops:
         my_obj_storage:
           __type__: airflow.io.path.ObjectStoragePath
           __args__:
-            - file:///$CONFIG_ROOT_DIR/data/object_storage_ops.csv
+            - file://$CONFIG_ROOT_DIR/data/object_storage_ops.csv
