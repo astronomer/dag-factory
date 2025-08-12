@@ -11,12 +11,14 @@ import warnings
 from copy import deepcopy
 from datetime import datetime
 from functools import partial, reduce
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union, Optional
 
 from airflow import configuration
 from packaging import version
 
 from dagfactory.utils import check_dict_key
+from dagfactory._yaml import load_yaml_file
+
 
 try:
     from airflow.sdk.bases.operator import BaseOperator
@@ -27,6 +29,7 @@ except ImportError:
     from airflow.models.dag import DAG
 
 from airflow.datasets import Dataset
+from airflow.sdk import Asset, AssetAll, AssetAny
 from airflow.models import MappedOperator
 from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
@@ -512,87 +515,6 @@ class DagBuilder:
                     task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
 
-    @staticmethod
-    def safe_eval(condition_string: str, dataset_map: dict) -> Any:
-        """
-        Safely evaluates a condition string using the provided dataset map.
-
-        :param condition_string: A string representing the condition to evaluate.
-            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
-        :type condition_string: str
-        :param dataset_map: A dictionary where keys are valid variable names (dataset aliases),
-                             and values are Dataset objects.
-        :type dataset_map: dict
-
-        :returns: The result of evaluating the condition.
-        :rtype: Any
-        """
-        tree = ast.parse(condition_string, mode="eval")
-        evaluator = parsers.SafeEvalVisitor(dataset_map)
-        return evaluator.evaluate(tree)
-
-    @staticmethod
-    def _extract_and_transform_datasets(datasets_conditions: str) -> Tuple[str, Dict[str, Any]]:
-        """
-        Extracts dataset names and storage paths from the conditions string and transforms them into valid variable names.
-
-        :param datasets_conditions: A string of conditions dataset URIs to be evaluated in the condition.
-        :type datasets_conditions: str
-
-        :returns: A tuple containing the transformed conditions string and the dataset map.
-        :rtype: Tuple[str, Dict[str, Any]]
-        """
-        dataset_map = {}
-        datasets_filter: List[str] = utils.extract_dataset_names(datasets_conditions) + utils.extract_storage_names(
-            datasets_conditions
-        )
-
-        for uri in datasets_filter:
-            valid_variable_name = utils.make_valid_variable_name(uri)
-            datasets_conditions = datasets_conditions.replace(uri, valid_variable_name)
-            dataset_map[valid_variable_name] = Dataset(uri)
-
-        return datasets_conditions, dataset_map
-
-    @staticmethod
-    def evaluate_condition_with_datasets(datasets_conditions: str) -> Any:
-        """
-        Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
-
-        :param datasets_conditions: A string of conditions dataset URIs to be evaluated in the condition.
-        :type datasets_conditions: str
-
-        :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
-        :rtype: Any
-        """
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-        evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-        return evaluated_condition
-
-    @staticmethod
-    def process_file_with_datasets(file: str, datasets_conditions: str) -> Any:
-        """
-        Processes datasets from a file and evaluates conditions if provided.
-
-        :param file: The file path containing dataset information in a YAML or other structured format.
-        :type file: str
-        :param datasets_conditions: A string of dataset conditions to filter and process.
-        :type datasets_conditions: str
-
-        :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
-        :rtype: Any
-        """
-        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-
-        if is_airflow_version_at_least_2_9:
-            map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
-            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
-            evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-            return evaluated_condition
-        else:
-            datasets_uri = utils.get_datasets_uri_yaml_file(file, list(dataset_map.keys()))
-            return [Dataset(uri) for uri in datasets_uri]
 
     @staticmethod
     def _init_watchers(watchers_data):
@@ -653,6 +575,32 @@ class DagBuilder:
             return value
         else:
             raise TypeError(f"Unexpected data type: {type(value)}")
+    
+    @staticmethod
+    def _build_alias_assets(
+        asset_expression: Dict[str, List[Any]],
+        custom_configs: Optional[List[str]] = []
+    ):
+        _parse = parsers.PyparsingExpressionParser()
+        config_map = {cfg["name"]: cfg for cfg in custom_configs}
+        for leaf, setter in _parse.traverse_with_setter(asset_expression):
+            if leaf in config_map:
+                cfg = config_map[leaf]
+                if "__type__" not in cfg:
+                    cfg["__type__"] = "airflow.sdk.Asset"
+                setter(utils.cast_with_type(cfg))
+            else:
+                setter(Asset(leaf))
+    
+    @staticmethod
+    def _parse_expression(asset: Union[str, List[str]]):
+        _parse = parsers.PyparsingExpressionParser()
+        if isinstance(asset, str):
+            return _parse.parse(asset)
+        elif isinstance(asset, list):
+            return _parse.parse(" & ".join(asset))
+        else:
+            raise ValueError("datasets must be a string or a list of strings")
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -668,38 +616,24 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
+        schedule: Dict[str, Any] = dag_params.get("schedule_interval") if dag_params.get("schedule_interval") else dag_params.get("schedule")
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_4 = version.parse(AIRFLOW_VERSION) >= version.parse("2.4.0")
             is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
-            has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
-            has_schedule_interval_attr = utils.check_dict_key(dag_params, "schedule_interval")
+            has_file_attr = utils.check_dict_key(schedule, "file")
+            has_datasets_attr = utils.check_dict_key(schedule, "datasets")
 
-            if has_schedule_attr and not has_schedule_interval_attr and is_airflow_version_at_least_2_4:
-                schedule: Dict[str, Any] = dag_params.get("schedule")
-
-                has_file_attr = utils.check_dict_key(schedule, "file")
-                has_datasets_attr = utils.check_dict_key(schedule, "datasets")
-
-                if has_file_attr and has_datasets_attr:
-                    file = schedule.get("file")
-                    datasets: Union[List[str], str] = schedule.get("datasets")
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
-
-                elif has_datasets_attr and is_airflow_version_at_least_2_9:
-                    datasets = schedule["datasets"]
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs["schedule"] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
-
-                else:
-                    dag_kwargs["schedule"] = [Dataset(uri) for uri in schedule]
-
+            if has_datasets_attr:
+                datasets: Union[List[str], str] = schedule.get("datasets")
+                asset_expression: Dict[str, List[Any]] = DagBuilder._parse_expression(asset=datasets)
                 if has_file_attr:
-                    schedule.pop("file")
-                if has_datasets_attr:
-                    schedule.pop("datasets")
+                    file_path = schedule.get("file")
+                    custom_config: Dict[str, Any] = load_yaml_file(file_path=file_path)
+                    schedule = DagBuilder._build_alias_assets(custom_configs=custom_config, asset_expression=asset_expression)
+                elif is_airflow_version_at_least_2_9:
+                    schedule = DagBuilder._build_alias_assets(asset_expression=asset_expression)
+                else:
+                    schedule = [Asset(uri) for uri in asset_expression]
         else:
-            schedule = dag_params.get("schedule")
             if DagBuilder._is_asset(schedule):
                 dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
             else:
