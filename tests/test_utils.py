@@ -300,51 +300,6 @@ def test_open_and_filter_yaml_config_datasets_file_notfound():
     with pytest.raises(Exception):
         utils.get_datasets_uri_yaml_file(file_path, datasets_names)
 
-
-def test_extract_dataset_names():
-    expression = "((dataset_custom_1 & dataset_custom_2) | (dataset_custom_3))"
-    expected = ["dataset_custom_1", "dataset_custom_2", "dataset_custom_3"]
-    result = utils.extract_dataset_names(expression)
-    assert result == expected
-
-    expression = "dataset1 | dataset2 & dataset3"
-    expected = ["dataset1", "dataset2", "dataset3"]
-    result = utils.extract_dataset_names(expression)
-    assert result == expected
-
-    expression = "123_invalid_dataset"
-    expected = []
-    result = utils.extract_dataset_names(expression)
-    assert result == expected
-
-    expression = "raw.dataset1 | cleaned.dataset2 & s3://curated.dataset3"
-    expected = ["raw.dataset1", "cleaned.dataset2"]
-    result = utils.extract_dataset_names(expression)
-    assert result == expected
-
-    expression = "raw.dataset1 | cleaned.dataset2 & curated.dataset3"
-    expected = ["raw.dataset1", "cleaned.dataset2", "curated.dataset3"]
-    result = utils.extract_dataset_names(expression)
-    assert result == expected
-
-
-def test_extract_storage_names():
-    expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
-    expected = ["s3://bucket-cjmm/raw/dataset_custom_1", "s3://bucket-cjmm/raw/dataset_custom_2"]
-    result = utils.extract_storage_names(expression)
-    assert result == expected
-
-    expression = "gs://bucket-name/path/to/data | s3://another-bucket/path"
-    expected = ["gs://bucket-name/path/to/data", "s3://another-bucket/path"]
-    result = utils.extract_storage_names(expression)
-    assert result == expected
-
-    expression = "no_storage_paths_here"
-    expected = []
-    result = utils.extract_storage_names(expression)
-    assert result == expected
-
-
 def test_get_json_serialized_callable_dict():
     # Test with dictionary input
     data = {"key1": "value1", "key2": 123}
