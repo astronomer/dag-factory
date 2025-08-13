@@ -3,7 +3,7 @@ producer_dag:
     owner: "example_owner"
     start_date: '2024-01-01'
   description: "Example DAG producer simple datasets"
-  schedule_interval: "0 5 * * *"
+  schedule: "0 5 * * *"
   catchup: false
   tasks:
     - task_id: "task_1"

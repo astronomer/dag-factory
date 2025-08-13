@@ -107,7 +107,8 @@ export CONFIG_ROOT_DIR=$AIRFLOW_HOME/dags
 
 Then, run Airflow in standalone mode; the command below will create a new user (if it does not exist) and run the necessary Airflow component (webserver, scheduler and triggered):
 
-> Note: By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
+!!! note
+    By default, Airflow will use sqlite as a database; you can override this by setting the variable `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN` to the SQL connection string.
 
 ```bash
 airflow standalone
@@ -115,7 +116,8 @@ airflow standalone
 
 After Airflow is running, you can access the Airflow UI at `http://localhost:8080`.
 
-> Note: whenever you want to start the development server, you need to activate the `virtualenv` and set the `environment variables`
+!!! note
+    whenever you want to start the development server, you need to activate the `virtualenv` and set the `environment variables`
 
 ### Use Docker for local development
 
@@ -144,12 +146,6 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 !!! note
     - These tests create local Python virtual environments in a hatch-managed directory.
 
-If you have YAMLs written for Airflow 2 and would like them to be run for Airflow 3 tests, set the following environment variable for DAG Factory to convert and make them compatible with Airflow 3:
-
-```bash
-export AUTO_CONVERT_TO_AF3=true
-```
-
 To run unit tests using Python 3.10 and Airflow 2.5, use the following:
 
 ```bash
@@ -167,7 +163,6 @@ hatch run tests:test-cov
 !!! note
     - These tests create local Python virtual environments within a `hatch`-managed directory.
     - They also use the user-defined `AIRFLOW_HOME`, overriding any pre-existing `airflow.cfg` and `airflow.db` files.
-    - The `AUTO_CONVERT_TO_AF3` environment variable is required to run tests in the Airflow 3 environment.
 
 First, set the following environment variables:
 
@@ -176,7 +171,6 @@ export AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=90
 export AIRFLOW_HOME=$(pwd)/dev/
 export CONFIG_ROOT_DIR=$(pwd)/dev/dags
 export PYTHONPATH=$(pwd)/dev/dags:$PYTHONPATH
-export AUTO_CONVERT_TO_AF3=true
 ```
 
 To run the integration tests using Python 3.9 and Airflow 2.9, use
@@ -232,7 +226,8 @@ We use GitHub actions to create and deploy new releases. To create a new release
 
 It is possible to update the version either by using hatch:
 
-> Note: You can update the version in several different ways. To learn more, check out the [hatch docs](https://hatch.pypa.io/latest/version/#updating).
+!!! note
+    You can update the version in several different ways. To learn more, check out the [hatch docs](https://hatch.pypa.io/latest/version/#updating).
 
 ```bash
 hatch version minor

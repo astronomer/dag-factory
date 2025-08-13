@@ -52,6 +52,7 @@ nav:
       - Astro CLI: getting-started/quick-start-astro-cli.md
   - Configuration:
       - configuration/configuring_workflows.md
+      - configuration/load_yaml_dags.md
       - configuration/environment_variables.md
       - configuration/defaults.md
       - configuration/params.md
@@ -68,6 +69,7 @@ nav:
       - features/custom_python_object.md
       - features/object_storage.md
       - Kubernetes Pod Operator: features/kpo.md
+      - features/asset.md
 
   - Comparison:
       - comparison/index.md

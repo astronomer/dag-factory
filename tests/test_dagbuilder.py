@@ -8,6 +8,8 @@ from unittest.mock import mock_open, patch
 import pendulum
 import pytest
 
+from dagfactory._yaml import load_yaml_file
+
 try:
     from airflow.sdk.definitions.dag import DAG
 except ImportError:
@@ -19,13 +21,18 @@ from airflow.providers.http.sensors.http import HttpSensor
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
-from dagfactory.dagbuilder import INSTALLED_AIRFLOW_VERSION, DagBuilder, DagFactoryConfigException, Dataset
+from dagfactory.dagbuilder import (
+    INSTALLED_AIRFLOW_VERSION,
+    DagBuilder,
+    DagFactoryConfigException,
+    DagFactoryException,
+    Dataset,
+)
 from dagfactory.utils import cast_with_type
 from tests.utils import (
     get_bash_operator_path,
     get_http_sensor_path,
     get_python_operator_path,
-    get_schedule_key,
     get_sql_sensor_path,
     one_hour_ago,
     read_yml,
@@ -67,14 +74,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout": timedelta(seconds=600),
-    get_schedule_key(): "0 1 * * *",
+    "schedule": "0 1 * * *",
 }
 DAG_CONFIG = {
     "doc_md": "##here is a doc md string",
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
     "dag_display_name": "Pretty example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     "render_template_as_native_obj": True,
     "tasks": [
@@ -100,7 +107,7 @@ DAG_CONFIG = {
 }
 DAG_CONFIG_TASK_GROUP = {
     "default_args": {"owner": "custom_owner"},
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "task_groups": [
         {
             "group_name": "task_group_1",
@@ -158,7 +165,7 @@ DAG_CONFIG_TASK_GROUP = {
 DAG_CONFIG_DYNAMIC_TASK_MAPPING = {
     "default_args": {"owner": "custom_owner"},
     "description": "This is an example dag with dynamic task mapping",
-    get_schedule_key(): "0 4 * * *",
+    "schedule": "0 4 * * *",
     "tasks": [
         {
             "task_id": "request",
@@ -186,7 +193,7 @@ DAG_CONFIG_ML = {
 }
 
 DAG_CONFIG_DEFAULT_ML = {
-    get_schedule_key(): "0 0 * * *",
+    "schedule": "0 0 * * *",
     "default_args": {"start_date": "2025-01-01", "owner": "custom_owner"},
     "tasks": {
         "task_1": {
@@ -210,7 +217,7 @@ DAG_CONFIG_CALLBACKS = {
         "on_skipped_callback": f"{__name__}.print_context_callback",
     },
     "description": "this is an example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "tags": ["tag1", "tag2"],
     # This includes each of the four options (str function, str function with params, file and name, provider)
     "on_execute_callback": f"{__name__}.print_context_callback",
@@ -242,7 +249,7 @@ DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS = {
             "param_2": "value_2",
         },
     },
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
     "task_groups": [
         {
             "group_name": "task_group_1",
@@ -329,7 +336,7 @@ def test_get_dag_params():
             "retry_delay": datetime.timedelta(seconds=300),
         },
         "description": "this is an example dag",
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "concurrency": 1,
         "max_active_runs": 1,
         "dagrun_timeout": datetime.timedelta(seconds=600),
@@ -590,7 +597,7 @@ def test_get_dag_params_dag_with_task_group():
             "retries": 1,
             "retry_delay": datetime.timedelta(seconds=300),
         },
-        get_schedule_key(): "0 3 * * *",
+        "schedule": "0 3 * * *",
         "task_groups": [
             {
                 "group_name": "task_group_1",
@@ -801,19 +808,6 @@ def test_make_dag_with_callbacks():
         assert sla_miss_callback.slack_conn_id == "slack_conn_id"
         assert sla_miss_callback.channel == "#channel"
         assert sla_miss_callback.username == "username"
-
-
-def test_make_timetable():
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
-    timetable = "airflow.timetables.interval.CronDataIntervalTimetable"
-    timetable_params = {"cron": "0 8,16 * * 1-5", "timezone": "UTC"}
-    actual = td.make_timetable(timetable, timetable_params)
-    assert actual.periodic
-    try:
-        assert actual.can_run
-    except AttributeError:
-        # can_run attribute was removed and replaced with can_be_scheduled in later versions of Airflow.
-        assert actual.can_be_scheduled
 
 
 @pytest.mark.callbacks
@@ -1172,15 +1166,56 @@ def test_make_nested_task_groups():
     assert sub_task_group == expected["sub_task_group"].__dict__
 
 
-@pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
 class TestSchedule:
 
+    @pytest.mark.skipif(
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
+    def test_asset_schedule_list_of_dataset(self):
+        schedule_data = load_yaml_file(str(schedule_path / "dataset_as_list.yml"))
+        assert schedule_data["schedule"] == [
+            "s3://bucket_example/raw/dataset1.json",
+            "s3://bucket_example/raw/dataset2.json",
+        ]
+
+    @pytest.mark.skipif(
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
+    def test_asset_schedule_list_of_dataset_object(self):
+        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+
+        schedule_data = load_yaml_file(str(schedule_path / "dataset_object_as_list.yml"))
+        expected = DatasetAny(
+            DatasetAll(
+                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
+            ),
+            Dataset(uri="s3://dag3/output_3.txt", extra=None),
+        )
+        assert schedule_data["schedule"].__eq__(expected)
+
+    @pytest.mark.skipif(
+        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
+        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+    )
+    def test_asset_schedule_list_of_dataset_nested(self):
+        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+
+        schedule_data = load_yaml_file(str(schedule_path / "nested_dataset.yml"))
+        expected = DatasetAny(
+            DatasetAll(
+                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
+            ),
+            Dataset(uri="s3://dag3/output_3.txt", extra=None),
+        )
+        assert schedule_data["schedule"].__eq__(expected)
+
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
         from airflow.sdk import Asset
 
-        schedule_data = read_yml(schedule_path / "list_asset.yml")
-        data = schedule_data["schedule"]
-        parsed_schedule = DagBuilder._asset_schedule(cast_with_type(data))
+        schedule_data = load_yaml_file(str(schedule_path / "list_asset.yml"))
 
         expected = [
             Asset(
@@ -1198,15 +1233,13 @@ class TestSchedule:
                 watchers=[],
             ),
         ]
-        assert parsed_schedule == expected
+        assert schedule_data["schedule"] == expected
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_and_operator(self):
         from airflow.sdk import Asset, AssetAll
 
-        schedule_data = read_yml(schedule_path / "and_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(str(schedule_path / "and_asset.yml"))
 
         expected = AssetAll(
             Asset(
@@ -1224,16 +1257,13 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
-        schedule_data = read_yml(schedule_path / "or_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(str(schedule_path / "or_asset.yml"))
 
         expected = AssetAny(
             Asset(
@@ -1251,16 +1281,13 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
-        schedule_data = read_yml(schedule_path / "nested_asset.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(str(schedule_path / "nested_asset.yml"))
 
         expected = AssetAny(
             AssetAll(
@@ -1287,17 +1314,14 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_watcher(self):
         from airflow.providers.standard.triggers.file import FileDeleteTrigger
         from airflow.sdk import Asset, AssetWatcher
 
-        schedule_data = read_yml(schedule_path / "asset_with_watcher.yml")
-        schedule_data = cast_with_type(schedule_data)
-        data = schedule_data["schedule"]
-
-        parsed_schedule = DagBuilder._asset_schedule(data)
+        schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
         expected = [
             Asset(
@@ -1313,7 +1337,7 @@ class TestSchedule:
                 ],
             )
         ]
-        assert parsed_schedule.__eq__(expected)
+        assert schedule_data["schedule"].__eq__(expected)
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
@@ -1334,7 +1358,10 @@ class TestSchedule:
         data = read_yml(schedule_path / "timetable.yml")
         schedule_data = {}
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
-        assert schedule_data["schedule"] == CronTriggerTimetable(cron="* * * * *", timezone="UTC")
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, CronTriggerTimetable)
+        assert actual.serialize()["expression"] == "* * * * *"
+        assert actual.serialize()["timezone"] == "UTC"
 
     def test_resolve_schedule_timedelta_type(self):
 
@@ -1351,40 +1378,109 @@ class TestSchedule:
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
         assert schedule_data["schedule"] == relativedelta(hour=18)
 
-    def test_resolve_schedule_asset_any_type(self):
-        from airflow.sdk import Asset, AssetAny
 
-        yaml_str = """
-        schedule:
-            or:
-                - uri: s3://dag1/output_1.txt
-                  extra:
-                      hi: bye
-                - uri: s3://dag2/output_1.txt
-                  extra:
-                      hi: bye
-        """
-        data = yaml.safe_load(yaml_str)
-        schedule_data = {}
-        DagBuilder.configure_schedule(data, schedule_data)
+# ===============================
+# Test ConfigureSchedule
+# ===============================
 
-        expected = AssetAny(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
+
+@pytest.fixture
+def patch_airflow_version(monkeypatch):
+    def _patch(major_version):
+        class MockVersion:
+            major = major_version
+
+        monkeypatch.setattr("dagfactory.dagbuilder.INSTALLED_AIRFLOW_VERSION", MockVersion())
+
+    return _patch
+
+
+class TestConfigureSchedule:
+    @pytest.mark.parametrize(
+        "airflow_major_version, dag_params",
+        [
+            (2, {"schedule_interval": "0 1 * * *"}),
+            (3, {"schedule_interval": "0 1 * * *"}),
+            (2, {"schedule_interval": 42}),
+        ],
+    )
+    def test_configure_schedule_interval_key_raises(self, patch_airflow_version, airflow_major_version, dag_params):
+        patch_airflow_version(airflow_major_version)
+
+        dag_kwargs = {}
+
+        with pytest.raises(DagFactoryException, match="The `schedule_interval` key is no longer supported"):
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+    @pytest.mark.parametrize(
+        "airflow_major_version, schedule_input, expected_value",
+        [
+            (2, "0 1 * * *", "0 1 * * *"),
+            (3, "0 1 * * *", "0 1 * * *"),
+            (2, 42, 42),
+            (2, 3.14, 3.14),
+            (2, True, True),
+            (3, None, None),
+        ],
+    )
+    def test_configure_schedule_basic_types(
+        self,
+        patch_airflow_version,
+        airflow_major_version,
+        schedule_input,
+        expected_value,
+    ):
+        patch_airflow_version(airflow_major_version)
+
+        dag_params = {"schedule": schedule_input}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == expected_value
+
+    @pytest.mark.parametrize("none_value", ["none", "NONE", " none "])
+    def test_configure_schedule_none_string_handling(self, patch_airflow_version, none_value):
+        patch_airflow_version(2)
+
+        dag_params = {"schedule": none_value}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] is None
+
+    @pytest.mark.parametrize(
+        "dag_params, patch_target, expected_return, airflow_version",
+        [
+            (
+                {"schedule": {"file": "datasets.yml", "datasets": ["dataset1", "dataset2"]}},
+                "process_file_with_datasets",
+                "processed_result",
+                "2.4.0",
             ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
+            (
+                {"schedule": {"datasets": ["dataset1", "dataset2"]}},
+                "evaluate_condition_with_datasets",
+                "evaluated_result",
+                "2.9.0",
             ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        ],
+    )
+    def test_configure_schedule_airflow2_datasets_and_file(
+        self, patch_airflow_version, dag_params, patch_target, expected_return, airflow_version
+    ):
+        patch_airflow_version(2)
+
+        dag_kwargs = {}
+
+        patch_path = f"dagfactory.dagbuilder.DagBuilder.{patch_target}"
+        with patch(patch_path) as mock_func, patch("dagfactory.dagbuilder.AIRFLOW_VERSION", airflow_version):
+            mock_func.return_value = expected_return
+            DagBuilder.configure_schedule(dag_params, dag_kwargs)
+            mock_func.assert_called_once()
+
+        assert dag_kwargs["schedule"] == expected_return
 
 
 class TestTopologicalSortTasks:

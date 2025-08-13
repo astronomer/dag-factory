@@ -1,18 +1,30 @@
-import os
-from pathlib import Path
-
 # The following import is here so Airflow parses this file
 # from airflow import DAG
-import dagfactory
+from dagfactory import load_yaml_dags
 
-DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
-CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
+daily_etl = {
+    "daily_etl": {
+        "schedule": "@daily",
+        "tasks": [
+            {"task_id": "extract", "operator": "airflow.operators.bash.BashOperator", "bash_command": "echo extract"},
+            {
+                "task_id": "transform",
+                "operator": "airflow.operators.bash.BashOperator",
+                "bash_command": "echo transform",
+                "dependencies": ["extract"],
+            },
+            {
+                "task_id": "load",
+                "operator": "airflow.operators.bash.BashOperator",
+                "bash_command": "echo load",
+                "dependencies": ["transform"],
+            },
+        ],
+    }
+}
 
-config_file = str(CONFIG_ROOT_DIR / "example_dag_factory_default_config_dict.yml")
-
-example_dag_factory = dagfactory.DagFactory(
-    config_file, default_args_config_dict={"default_args": {"start_date": "2025-01-01", "owner": "global_owner"}}
+load_yaml_dags(
+    globals_dict=globals(),
+    config_dict=daily_etl,
+    defaults_config_dict={"default_args": {"start_date": "2025-01-01", "owner": "global_owner"}},
 )
-
-# Creating task dependencies
-example_dag_factory.generate_dags(globals())

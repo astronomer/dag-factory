@@ -12,7 +12,7 @@ customized_operator:
   schedule: "0 3 * * *"
   tasks:
     - task_id: "begin"
-      operator: airflow.operators.empty.EmptyOperator
+      operator: airflow.providers.standard.operators.empty.EmptyOperator
     - task_id: "make_bread_1"
       operator: customized.operators.breakfast_operators.MakeBreadOperator
       bread_type: 'Sourdough'
@@ -31,7 +31,7 @@ customized_operator:
         - make_bread_1
         - make_bread_2
     - task_id: "end"
-      operator: airflow.operators.empty.EmptyOperator
+      operator: airflow.providers.standard.operators.empty.EmptyOperator
       dependencies:
         - begin
         - make_bread_1

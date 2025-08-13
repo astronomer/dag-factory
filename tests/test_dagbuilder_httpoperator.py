@@ -7,13 +7,14 @@ from pathlib import Path
 import pendulum
 import pytest
 
+from dagfactory import load_yaml_dags
+
 try:
     from airflow.sdk.definitions.dag import DAG  # noqa: F401
 except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
 from dagfactory.dagbuilder import DagBuilder
-from tests.utils import get_schedule_key
 
 # Get current directory and project root
 here = Path(__file__).parent
@@ -51,14 +52,14 @@ DEFAULT_CONFIG = {
     "concurrency": 1,
     "max_active_runs": 1,
     "dagrun_timeout": timedelta(seconds=600),
-    get_schedule_key(): "0 1 * * *",
+    "schedule": "0 1 * * *",
 }
 
 # Basic DAG config for tests
 DAG_CONFIG = {
     "default_args": {"owner": "custom_owner"},
     "description": "this is an example dag",
-    get_schedule_key(): "0 3 * * *",
+    "schedule": "0 3 * * *",
 }
 
 
@@ -174,7 +175,7 @@ def test_dag_with_http_operator():
     # Create a config with HTTP operator tasks
     http_dag_config = {
         "default_args": {"owner": "test_owner", "start_date": datetime.date(2023, 1, 1)},
-        get_schedule_key(): "0 0 * * *",
+        "schedule": "0 0 * * *",
         "tasks": [
             {
                 "task_id": "http_task_json",
@@ -238,7 +239,6 @@ def test_dag_with_http_operator():
 @pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
 def test_http_operator_from_yaml():
     """Test loading HTTP operator from a fixture YAML file"""
-    from dagfactory import DagFactory
 
     # Select the appropriate fixture based on which operator is available
     if HTTP_OPERATOR_PATH == "airflow.providers.http.operators.http.HttpOperator":
@@ -252,12 +252,12 @@ def test_http_operator_from_yaml():
     if not os.path.exists(fixture_path):
         pytest.skip(f"Test fixture not found: {fixture_path}")
 
-    # Create DagFactory with fixture and build DAGs
-    dag_factory = DagFactory(fixture_path)
-    dags = {}
+    load_yaml_dags(
+        globals_dict=globals(),
+        config_filepath=fixture_path,
+    )
 
-    # Call generate_dags to build all DAGs from the YAML file
-    dag_factory.generate_dags(dags)
+    dags = globals()
 
     # Now check if our DAG is in the result
     dag = dags.get(dag_id)

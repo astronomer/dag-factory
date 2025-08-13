@@ -82,5 +82,5 @@ Below are the supported scheduling types, each with consistent structure and exa
 ### 6. Datasets-Based Triggering
 
 ```yaml
-schedule: [ 's3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json' ]
+--8<-- "tests/schedule/nested_dataset.yml"
 ```

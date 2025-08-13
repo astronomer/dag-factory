@@ -2,14 +2,14 @@ default:
   default_args:
     owner: "default_owner"
     start_date: 2020-01-01
-  schedule_interval: "0 1 * * *"
+  schedule: "0 1 * * *"
 
 example_breadfast:
   default_args:
     owner: "custom_owner"
     start_date: 2 days
   description: "this is an customized operator dag"
-  schedule_interval: "0 3 * * *"
+  schedule: "0 3 * * *"
   catchup: false
   tasks:
     - task_id: "begin"

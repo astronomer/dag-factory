@@ -2,15 +2,15 @@ daily_etl:
   schedule: "@daily"
   tasks:
     - task_id: "extract"
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo extract"
     - task_id: "transform"
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo transform"
       dependencies:
       - extract
     - task_id: "load"
-      operator: airflow.operators.bash_operator.BashOperator
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo load"
       dependencies:
       - transform
