@@ -30,6 +30,10 @@ MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "2.9": ["example_map_index_template.py", "example_object_storage.py"],
 }
 
+MAX_VER_DAG_FILE_VER: dict[str, list[str]] = {
+    "3.0": ["example_timetable_schedule.py"],  # `timetable` parameter removed in Airflow 3.0
+}
+
 
 @provide_session
 def get_session(session=None):
@@ -50,6 +54,11 @@ def get_dag_bag() -> DagBag:
         for min_version, files in MIN_VER_DAG_FILE_VER.items():
             if AIRFLOW_VERSION < Version(min_version):
                 print(f"Adding {files} to .airflowignore")
+                file.writelines([f"{file}\n" for file in files])
+
+        for max_version, files in MAX_VER_DAG_FILE_VER.items():
+            if AIRFLOW_VERSION >= Version(max_version):
+                print(f"Adding {files} to .airflowignore (max version {max_version})")
                 file.writelines([f"{file}\n" for file in files])
 
         for dagfile in IGNORED_DAG_FILES:
