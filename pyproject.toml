@@ -31,7 +31,8 @@ dependencies = [
     "apache-airflow>=2.4",
     "pyyaml",
     "packaging",
-    "typer"
+    "typer",
+    "pyparsing>=3.2.3",
 ]
 
 [project.scripts]
@@ -45,6 +46,7 @@ all = [
     "apache-airflow-providers-cncf-kubernetes>=4.4.0",
     "apache-airflow-providers-common-sql>=1.2.0",
     "pyyaml",
+    "pyparsing>=3.2.3",
     "packaging",
 ]
 kubernetes = [

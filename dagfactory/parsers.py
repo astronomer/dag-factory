@@ -22,7 +22,7 @@ T = TypeVar('T')
 
 @dataclass
 class PyparsingExpressionParser:
-    operand: ParserElement = field(default_factory=lambda: Word(alphanums + "://_."))
+    operand: ParserElement = field(default_factory=lambda: Word(alphanums + "://_.-/"))
     AND:     ParserElement = field(default_factory=lambda: Literal("&"))
     OR:      ParserElement = field(default_factory=lambda: Literal("|"))
     _grammar: ParserElement = field(init=False, repr=False)
@@ -36,11 +36,19 @@ class PyparsingExpressionParser:
                 (self.OR,  2, opAssoc.LEFT, self._make_node),
             ],
         )
+    
+    def _make_node(self, tokens: ParseResults)-> Dict[str, List[Any]]:
+        t = tokens[0]
+        left = t[0]
+        i = 1
+        while i < len(t):
+            op = t[i]
+            right = t[i + 1]
+            key = "and" if op == "&" else "or"
+            left = {key: [left, right]}
+            i += 2
+        return left
 
-    def _make_node(self, tokens: ParseResults) -> Dict[str, List[Any]]:
-        left, op, right = tokens[0]
-        key = "and" if op == "&" else "or"
-        return {key: [left, right]}
 
     def parse(self, expr_str: str) -> Dict[str, List[Any]]:
         try:
