@@ -1,0 +1,18 @@
+consumer_dag_with_file:
+  default_args:
+    owner: "example_owner"
+    start_date: '2024-01-01'
+  description: "Example DAG consumer simple datasets"
+  catchup: false
+  schedule:
+    file: $CONFIG_ROOT_DIR/datasets/example_config_datasets.yml
+    datasets:
+      or:
+        - and:
+          - "dataset_custom_1"
+          - "dataset_custom_2"
+        - "dataset_custom_3"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 'consumer datasets'"
