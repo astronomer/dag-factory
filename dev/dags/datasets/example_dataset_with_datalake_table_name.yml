@@ -1,0 +1,17 @@
+example_dag_with_datalake_table_name:
+  default_args:
+    owner: "example_owner"
+    start_date: '2024-01-01'
+  description: "Example DAG consumer simple datasets"
+  catchup: false
+  schedule:
+    datasets:
+      or:
+        - and:
+          - "silver.table1"
+          - "silver.table2"
+        - "gold.table3"
+  tasks:
+    task_1:
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 'consumer datasets'"
