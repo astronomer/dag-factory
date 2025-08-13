@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import inspect
 import logging
 import os
@@ -11,7 +10,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta
 from functools import partial, reduce
-from typing import Any, Callable, Dict, List, Tuple, Union, Optional
+from typing import Any, Callable, Dict, List, Union, Optional
 
 from airflow import configuration
 from packaging import version
@@ -24,12 +23,12 @@ try:
     from airflow.sdk.bases.operator import BaseOperator
     from airflow.sdk.definitions.dag import DAG
     from airflow.sdk.definitions.variable import Variable
+    from airflow.sdk import Asset
 except ImportError:
     from airflow.models import BaseOperator, Variable
     from airflow.models.dag import DAG
+    from airflow.datasets import Dataset as Asset
 
-from airflow.datasets import Dataset
-from airflow.sdk import Asset, AssetAll, AssetAny
 from airflow.models import MappedOperator
 from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
@@ -45,6 +44,11 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# console_handler = logging.StreamHandler()
+# logger.addHandler(console_handler)
+# formatter = logging.Formatter("%(message)s")
+# console_handler.setFormatter(formatter)
 
 # Try to import HttpOperator and HttpSensor only if the package is installed
 try:
@@ -138,7 +142,9 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
-
+AssetExpression = Dict[str, List[Any]]
+ScheduleConfig = Union[str, List[str], AssetExpression]
+_PARSER = parsers.PyparsingExpressionParser()
 
 class DagBuilder:
     """
@@ -704,8 +710,6 @@ class DagBuilder:
 
     @staticmethod
     def _is_asset(d):
-        from airflow.sdk import Asset
-
         if not isinstance(d, dict):
             return False
         for key, value in d.items():
@@ -722,8 +726,6 @@ class DagBuilder:
     @staticmethod
     def _asset_schedule(value):
         """Recursively parse and construct assets or combinations of assets."""
-        from airflow.sdk import Asset
-
         if isinstance(value, dict):
             if "or" in value:
                 assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
@@ -739,30 +741,45 @@ class DagBuilder:
             raise TypeError(f"Unexpected data type: {type(value)}")
     
     @staticmethod
-    def _build_alias_assets(
-        asset_expression: Dict[str, List[Any]],
-        custom_configs: Optional[List[str]] = []
-    ):
-        _parse = parsers.PyparsingExpressionParser()
+    def _resolve_asset_aliases(
+        asset_expression: AssetExpression,
+        custom_configs: Optional[List[Dict]] = []
+    ) -> AssetExpression:
         config_map = {cfg["name"]: cfg for cfg in custom_configs}
-        for leaf, setter in _parse.traverse_with_setter(asset_expression):
+        for leaf, setter in _PARSER.traverse_with_setter(asset_expression):
             if leaf in config_map:
                 cfg = config_map[leaf]
                 if "__type__" not in cfg:
-                    cfg["__type__"] = "airflow.sdk.Asset"
+                    cfg["__type__"] = f"{Asset.__module__}.{Asset.__name__}"
                 setter(utils.cast_with_type(cfg))
             else:
                 setter(Asset(leaf))
-    
+        return DagBuilder._asset_schedule(asset_expression)
+
     @staticmethod
-    def _parse_expression(asset: Union[str, List[str]]):
-        _parse = parsers.PyparsingExpressionParser()
-        if isinstance(asset, str):
-            return _parse.parse(asset)
-        elif isinstance(asset, list):
-            return _parse.parse(" & ".join(asset))
+    def _parse_expression(expression: Union[str, List[str], Dict]) -> AssetExpression:
+        if isinstance(expression, str):
+            return _PARSER.parse(expression)
+        elif isinstance(expression, list):
+            return _PARSER.parse(" & ".join(expression))
+        elif isinstance(expression, dict):
+            return expression
         else:
             raise ValueError("datasets must be a string or a list of strings")
+    
+    @staticmethod
+    def _build_asset_schedule(
+            expression: Union[str, List[str], Dict],
+            file_path: str
+    ) -> Asset:  
+        asset_expression = DagBuilder._parse_expression(expression)        
+        custom_configs = load_yaml_file(file_path) if file_path else []
+        
+        resolved_assets_expression = DagBuilder._resolve_asset_aliases(
+            asset_expression=asset_expression,
+            custom_configs=custom_configs
+        )        
+        return resolved_assets_expression
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -778,35 +795,27 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
-        schedule: Dict[str, Any] = dag_params.get("schedule_interval") if dag_params.get("schedule_interval") else dag_params.get("schedule")
-        if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
-            has_file_attr = utils.check_dict_key(schedule, "file")
-            has_datasets_attr = utils.check_dict_key(schedule, "datasets")
+        schedule: Union[str, List[str], Dict[str, List[Any]]] = (
+                                                        dag_params["schedule"]
+                                                        if dag_params.get("schedule") is not None
+                                                        else dag_params.get("schedule_interval")
+                                                    )
 
-            if has_datasets_attr:
+        if schedule:
+            if isinstance(schedule, dict) and "datasets" in schedule:
                 datasets: Union[List[str], str] = schedule.get("datasets")
-                asset_expression: Dict[str, List[Any]] = DagBuilder._parse_expression(asset=datasets)
-                if has_file_attr:
-                    file_path = schedule.get("file")
-                    custom_config: Dict[str, Any] = load_yaml_file(file_path=file_path)
-                    schedule = DagBuilder._build_alias_assets(custom_configs=custom_config, asset_expression=asset_expression)
-                elif is_airflow_version_at_least_2_9:
-                    schedule = DagBuilder._build_alias_assets(asset_expression=asset_expression)
-                else:
-                    schedule = [Asset(uri) for uri in asset_expression]
+                file_path = schedule.get("file")
+                schedule = DagBuilder._build_asset_schedule(expression=datasets, file_path=file_path)
+
+        if DagBuilder._is_asset(schedule):
+            dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+        elif (
+            isinstance(schedule, str)
+            and schedule.strip().lower() == "none"
+        ):
+            dag_kwargs["schedule"] = None
         else:
-            if DagBuilder._is_asset(schedule):
-                dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
-            else:
-                if (
-                    utils.check_dict_key(dag_params, "schedule")
-                    and isinstance(dag_params["schedule"], str)
-                    and dag_params["schedule"].strip().lower() == "none"
-                ):
-                    dag_kwargs["schedule"] = None
-                else:
-                    dag_kwargs["schedule"] = schedule
+            dag_kwargs["schedule"] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
@@ -1168,7 +1177,7 @@ class DagBuilder:
                         datasets_uri = task_params[key]
 
                     if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) for uri in datasets_uri]
+                        task_params[key] = [Asset(uri) for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(

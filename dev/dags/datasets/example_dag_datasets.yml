@@ -68,8 +68,8 @@ example_without_custom_config_condition_dataset_consumer_dag:
   catchup: false
   schedule:
     datasets:
-      !or
-        - !and
+      or:
+        - and:
           - "s3://bucket-cjmm/raw/dataset_custom_1"
           - "s3://bucket-cjmm/raw/dataset_custom_2"
         - "s3://bucket-cjmm/raw/dataset_custom_3"

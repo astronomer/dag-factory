@@ -1,4 +1,4 @@
-consumer_dag:
+consumer_dag_yaml_syntax:
   default_args:
     owner: "example_owner"
     start_date: '2024-01-01'
@@ -6,8 +6,8 @@ consumer_dag:
   catchup: false
   schedule:
     datasets:
-      !or
-        - !and
+      or:
+        - and:
           - "s3://bucket-cjmm/raw/dataset_custom_1"
           - "s3://bucket-cjmm/raw/dataset_custom_2"
         - "s3://bucket-cjmm/raw/dataset_custom_3"

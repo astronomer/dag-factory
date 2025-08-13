@@ -1,5 +1,5 @@
-# FROM quay.io/astronomer/astro-runtime:12.7.0
-FROM astrocrpublic.azurecr.io/runtime:3.0-4
+FROM quay.io/astronomer/astro-runtime:13.1.0
+# FROM astrocrpublic.azurecr.io/runtime:3.0-4
 
 ENV CONFIG_ROOT_DIR=/usr/local/airflow/dags/
 ENV AUTO_CONVERT_TO_AF3=True

@@ -16,15 +16,4 @@ producer_dag:
       dependencies: [ task_1 ]
       inlets: [ 's3://bucket_example/raw/dataset2_source.json' ]
       outlets: [ 's3://bucket_example/raw/dataset2.json' ]
-consumer_dag:
-  default_args:
-    owner: "example_owner"
-    retries: 1
-    start_date: '2024-01-01'
-  description: "Example DAG consumer simple datasets"
-  schedule: [ 's3://bucket_example/raw/dataset1.json', 's3://bucket_example/raw/dataset2.json' ]
-  catchup: false
-  tasks:
-    task_1:
-      operator: airflow.operators.bash.BashOperator
-      bash_command: "echo 'consumer datasets'"
+
