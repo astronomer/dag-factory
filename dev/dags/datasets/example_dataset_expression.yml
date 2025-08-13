@@ -1,4 +1,4 @@
-consumer_dag:
+consumer_dag_expression:
   catchup: false
   default_args:
     owner: "example_owner"

@@ -254,7 +254,7 @@ def is_partial_duplicated(partial_kwargs: Dict[str, Any], task_params: Dict[str,
     return False
 
 
-def get_datasets_uri_yaml_file(file_path: str, datasets_filter: str) -> List[str]:
+def get_datasets_uri_yaml_file(file_path: str, datasets_filter: List[str]) -> List[str]:
     """
     Retrieves the URIs of datasets from a YAML file based on a given filter.
 
@@ -305,27 +305,8 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
         logging.error("Error: File '%s' not found.", file_path)
         raise
 
-
-def extract_dataset_names(expression) -> List[str]:
-    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
-    datasets = re.findall(dataset_pattern, expression)
-    return datasets
-
-
-def extract_storage_names(expression) -> List[str]:
-    storage_pattern = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
-    storages = re.findall(storage_pattern, expression)
-    return storages
-
-
 def make_valid_variable_name(uri) -> str:
     return re.sub(r"\W|^(?=\d)", "_", uri)
-
-
-def parse_list_datasets(datasets: Union[List[str], str]) -> str:
-    if isinstance(datasets, list):
-        datasets = " & ".join(datasets)
-    return datasets
 
 
 def get_json_serialized_callable(data_obj):
