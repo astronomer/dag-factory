@@ -12,5 +12,5 @@ config_file = str(CONFIG_ROOT_DIR / "example_timetable_schedule.yml")
 
 load_yaml_dags(
     globals_dict=globals(),
-    dags_folder=config_file,
+    config_filepath=config_file,
 )
