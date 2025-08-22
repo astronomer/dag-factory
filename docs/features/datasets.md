@@ -8,7 +8,7 @@ To leverage datasets, you need to specify the `Dataset` in the `outlets` and `in
 The `outlets` and `inlets` keys should contain a list of strings representing dataset locations.
 In the `schedule` key of the consumer DAG, you can set the `Dataset` that the DAG should be scheduled against. The key
 should contain a list of dataset locations.
-The consumer DAG will run when all the specified datasets become avai
+The consumer DAG will run when all the specified datasets become available.
 
 ### Example: Outlet and Inlet
 

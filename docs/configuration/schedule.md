@@ -27,7 +27,7 @@ Below are the supported scheduling types, each with consistent structure and exa
 
 ### 1. Cron-Based Schedule
 
-```yaml title="Corn Schedule"
+```yaml title="Cron Schedule"
 --8<-- "tests/schedule/cron.yml"
 ```
 
