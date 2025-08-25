@@ -1,5 +1,8 @@
 # Migrate to DAG-Factory v1.0.0
 
+DAG Factory v1.0.0 introduces several breaking changes aimed at improving consistency, maintainability, and compatibility with modern Airflow practices.
+This guide outlines the key changes and actions required to migrate your existing DAG configurations to be compatible with v1.0.0.
+
 ## 1. Change `DagFactory` Class Access to Private
 
 **Impact:**
