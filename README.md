@@ -45,7 +45,7 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 
 Version **1.0** introduces important improvements and breaking changes to support modern Airflow usage.
 
-👉 See the [Migration Guide](./docs/migration_guide.md) to upgrade from earlier versions.
+👉 See the [Migration Guide](https://astronomer.github.io/dag-factory/latest/migration_guide/) to upgrade from earlier versions.
 
 ## 🚀 Dag-Factory Supports Airflow 3
 
