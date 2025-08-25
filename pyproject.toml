@@ -179,6 +179,7 @@ dependencies = [
 dev = "mkdocs build && mkdocs serve" # For local development and preventing publishing
 gh-deploy = "python scripts/docs_deploy.py dev"
 gh-release = "python scripts/docs_deploy.py release"
+build = "mkdocs build --strict"
 
 ######################################
 # THIRD PARTY TOOLS

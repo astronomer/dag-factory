@@ -208,6 +208,7 @@ jobs:
     needs:
       - Run-Unit-Tests
       - Run-Integration-Tests
+      - Build-Mkdocs
       - Authorize
     runs-on: ubuntu-latest
     permissions:
@@ -247,14 +248,35 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
 
+  Build-Mkdocs:
+    name: Build MkDocs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs:
+      - Authorize
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          persist-credentials: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.6.0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install hatch via uv
+        run: uv tool install hatch
+      - name: Build docs (MkDocs)
+        run: hatch run docs:build
+
   Deploy-Pages:
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
     permissions:
       contents: write
     runs-on: ubuntu-latest
     needs:
-      - Static-Check
-      - Run-Unit-Tests
-      - Run-Integration-Tests
       - Authorize
     steps:
       - uses: actions/checkout@v5
@@ -298,6 +320,7 @@ jobs:
       - Deploy-Pages
       - Code-Coverage
       - Authorize
+      - Build-Mkdocs
     runs-on: ubuntu-latest
     environment:
       name: pypi
