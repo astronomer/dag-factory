@@ -4,4 +4,4 @@ TELEMETRY_TIMEOUT = 1.0
 
 AIRFLOW3_MAJOR_VERSION = 3
 
-DEFAULTS_FILE_NAMES = ["defaults.yml", "defaults"]
+DEFAULTS_FILE_NAMES = ["defaults.yml", "defaults.yaml"]
