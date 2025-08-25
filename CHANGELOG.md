@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0a2] - 2025-08-01
+## [1.0.0a3] - 2025-08-25
 
 ### Breaking Changes
 
@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced DAG Factory CLI by @tatiana in [#510](https://github.com/astronomer/dag-factory/pull/510)
 - Added `lint` command to CLI by @tatiana in [#513](https://github.com/astronomer/dag-factory/pull/513)
 - Add convert CLI command to migrate from af2 to af3 by @tatiana in [539](https://github.com/astronomer/dag-factory/pull/539)
+- Allow yaml/yml suffix for shared defaults by @pankajastro in [#567](https://github.com/astronomer/dag-factory/pull/567)
 
 ### Fixed
 
@@ -69,6 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add remaining breaking changes in migration guide by @pankajastro in [#549](https://github.com/astronomer/dag-factory/pull/549)
 - Fix typos in scheduling and datasets docs by @viiccwen in [#565](https://github.com/astronomer/dag-factory/pull/565)
 - docs: Make markdownlint happy (fix MD007 ul-indent in dev/README.md) by @viiccwen in [#566](https://github.com/astronomer/dag-factory/pull/566)
+- Update Index.md by @pankajastro in [#570](https://github.com/astronomer/dag-factory/pull/570)
+- Add an introduction to the migration guide by @pankajastro in [#572](https://github.com/astronomer/dag-factory/pull/572)
 
 ### Other Changes
 
