@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import inspect
 import logging
 import os
@@ -10,24 +9,28 @@ import re
 import warnings
 from copy import deepcopy
 from datetime import datetime
-from functools import partial
-from typing import Any, Callable, Dict, List, Tuple, Union
+from functools import partial, reduce
+from typing import Any, Callable, Dict, List, Union, Optional
 
 from airflow import configuration
 from packaging import version
 
 from dagfactory.utils import check_dict_key
+from dagfactory._yaml import load_yaml_file
+
 
 try:
     from airflow.sdk.bases.operator import BaseOperator
     from airflow.sdk.definitions.dag import DAG
     from airflow.sdk.definitions.variable import Variable
+    from airflow.sdk import Asset
 except ImportError:
     from airflow.models import BaseOperator, Variable
     from airflow.models.dag import DAG
+    from airflow.datasets import Dataset as Asset
 
-from airflow.datasets import Dataset
 from airflow.models import MappedOperator
+from airflow.timetables.base import Timetable
 from airflow.utils.module_loading import import_string
 from airflow.utils.task_group import TaskGroup
 from airflow.version import version as AIRFLOW_VERSION
@@ -41,6 +44,11 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# console_handler = logging.StreamHandler()
+# logger.addHandler(console_handler)
+# formatter = logging.Formatter("%(message)s")
+# console_handler.setFormatter(formatter)
 
 # Try to import HttpOperator and HttpSensor only if the package is installed
 try:
@@ -78,7 +86,9 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
-
+AssetExpression = Dict[str, List[Any]]
+ScheduleConfig = Union[str, List[str], AssetExpression]
+_PARSER = parsers.PyparsingExpressionParser()
 
 class DagBuilder:
     """
@@ -110,6 +120,9 @@ class DagBuilder:
 
         # If there are no default_args, add an empty dictionary
         dag_params["default_args"] = {} if "default_args" not in dag_params else dag_params["default_args"]
+
+        if utils.check_dict_key(dag_params, "schedule_interval") and dag_params["schedule_interval"] == "None":
+            dag_params["schedule_interval"] = None
 
         if utils.check_dict_key(dag_params, "start_date"):
             dag_params["start_date"]: datetime = utils.get_datetime(
@@ -200,8 +213,19 @@ class DagBuilder:
                 date_value=dag_params["default_args"]["start_date"],
                 timezone=dag_params["default_args"].get("timezone", "UTC"),
             )
-
         return dag_params
+
+    @staticmethod
+    def make_timetable(timetable: str, timetable_params: Dict[str, Any]) -> Timetable:
+        """
+        Takes a custom timetable and params and creates an instance of that timetable.
+
+        :returns instance of timetable object
+        """
+        # class is a Callable https://stackoverflow.com/a/34578836/3679900
+        timetable_obj: Callable[..., Timetable] = import_string(timetable)
+        schedule: Timetable = timetable_obj(**timetable_params)
+        return schedule
 
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
@@ -497,87 +521,103 @@ class DagBuilder:
                     task_conf["expand"][expand_key] = tasks_dict[task_id].output
         return task_conf
 
-    @staticmethod
-    def safe_eval(condition_string: str, dataset_map: dict) -> Any:
-        """
-        Safely evaluates a condition string using the provided dataset map.
-
-        :param condition_string: A string representing the condition to evaluate.
-            Example: "(dataset_custom_1 & dataset_custom_2) | dataset_custom_3".
-        :type condition_string: str
-        :param dataset_map: A dictionary where keys are valid variable names (dataset aliases),
-                             and values are Dataset objects.
-        :type dataset_map: dict
-
-        :returns: The result of evaluating the condition.
-        :rtype: Any
-        """
-        tree = ast.parse(condition_string, mode="eval")
-        evaluator = parsers.SafeEvalVisitor(dataset_map)
-        return evaluator.evaluate(tree)
 
     @staticmethod
-    def _extract_and_transform_datasets(datasets_conditions: str) -> Tuple[str, Dict[str, Any]]:
-        """
-        Extracts dataset names and storage paths from the conditions string and transforms them into valid variable names.
+    def _init_watchers(watchers_data):
+        """Initialize watcher objects from configuration."""
+        from dagfactory.utils import _import_from_string
 
-        :param datasets_conditions: A string of conditions dataset URIs to be evaluated in the condition.
-        :type datasets_conditions: str
-
-        :returns: A tuple containing the transformed conditions string and the dataset map.
-        :rtype: Tuple[str, Dict[str, Any]]
-        """
-        dataset_map = {}
-        datasets_filter: List[str] = utils.extract_dataset_names(datasets_conditions) + utils.extract_storage_names(
-            datasets_conditions
-        )
-
-        for uri in datasets_filter:
-            valid_variable_name = utils.make_valid_variable_name(uri)
-            datasets_conditions = datasets_conditions.replace(uri, valid_variable_name)
-            dataset_map[valid_variable_name] = Dataset(uri)
-
-        return datasets_conditions, dataset_map
+        watchers = []
+        for watcher in watchers_data:
+            watcher_class = _import_from_string(watcher["callable"])
+            trigger_data = watcher.get("trigger", {})
+            trigger_class = _import_from_string(trigger_data.get("callable"))
+            trigger_params = trigger_data.get("params", {})
+            watchers.append(watcher_class(name=watcher.get("name"), trigger=trigger_class(**trigger_params)))
+        return watchers
 
     @staticmethod
-    def evaluate_condition_with_datasets(datasets_conditions: str) -> Any:
-        """
-        Evaluates a condition using the dataset filter, transforming URIs into valid variable names.
-
-        :param datasets_conditions: A string of conditions dataset URIs to be evaluated in the condition.
-        :type datasets_conditions: str
-
-        :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
-        :rtype: Any
-        """
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-        evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-        return evaluated_condition
-
-    @staticmethod
-    def process_file_with_datasets(file: str, datasets_conditions: str) -> Any:
-        """
-        Processes datasets from a file and evaluates conditions if provided.
-
-        :param file: The file path containing dataset information in a YAML or other structured format.
-        :type file: str
-        :param datasets_conditions: A string of dataset conditions to filter and process.
-        :type datasets_conditions: str
-
-        :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
-        :rtype: Any
-        """
-        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-
-        if is_airflow_version_at_least_2_9:
-            map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
-            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
-            evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-            return evaluated_condition
+    def _combine_assets(assets, op: str):
+        """Combine a list of Asset objects using logical operators."""
+        if op == "or":
+            return reduce(lambda a, b: a | b, assets)
+        elif op == "and":
+            return reduce(lambda a, b: a & b, assets)
         else:
-            datasets_uri = utils.get_datasets_uri_yaml_file(file, list(dataset_map.keys()))
-            return [Dataset(uri) for uri in datasets_uri]
+            raise ValueError(f"Unknown operator: {op}")
+
+    @staticmethod
+    def _is_asset(d):
+        if not isinstance(d, dict):
+            return False
+        for key, value in d.items():
+            if isinstance(value, Asset):
+                return True
+            elif isinstance(value, list):
+                if any(isinstance(item, Asset) for item in value):
+                    return True
+            elif isinstance(value, dict):
+                if DagBuilder._is_asset(value):
+                    return True
+        return False
+
+    @staticmethod
+    def _asset_schedule(value):
+        """Recursively parse and construct assets or combinations of assets."""
+        if isinstance(value, dict):
+            if "or" in value:
+                assets = [DagBuilder._asset_schedule(item) for item in value["or"]]
+                return DagBuilder._combine_assets(assets, "or")
+            elif "and" in value:
+                assets = [DagBuilder._asset_schedule(item) for item in value["and"]]
+                return DagBuilder._combine_assets(assets, "and")
+        elif isinstance(value, list):
+            return [asset for asset in value]
+        elif isinstance(value, Asset):
+            return value
+        else:
+            raise TypeError(f"Unexpected data type: {type(value)}")
+    
+    @staticmethod
+    def _resolve_asset_aliases(
+        asset_expression: AssetExpression,
+        custom_configs: Optional[List[Dict]] = []
+    ) -> AssetExpression:
+        config_map = {cfg["name"]: cfg for cfg in custom_configs}
+        for leaf, setter in _PARSER.traverse_with_setter(asset_expression):
+            if leaf in config_map:
+                cfg = config_map[leaf]
+                if "__type__" not in cfg:
+                    cfg["__type__"] = f"{Asset.__module__}.{Asset.__name__}"
+                setter(utils.cast_with_type(cfg))
+            else:
+                setter(Asset(leaf))
+        return DagBuilder._asset_schedule(asset_expression)
+
+    @staticmethod
+    def _parse_expression(expression: Union[str, List[str], Dict]) -> AssetExpression:
+        if isinstance(expression, str):
+            return _PARSER.parse(expression)
+        elif isinstance(expression, list):
+            return _PARSER.parse(" & ".join(expression))
+        elif isinstance(expression, dict):
+            return expression
+        else:
+            raise ValueError("datasets must be a string or a list of strings")
+    
+    @staticmethod
+    def _build_asset_schedule(
+            expression: Union[str, List[str], Dict],
+            file_path: str
+    ) -> Asset:  
+        asset_expression = DagBuilder._parse_expression(expression)        
+        custom_configs = load_yaml_file(file_path) if file_path else []
+        
+        resolved_assets_expression = DagBuilder._resolve_asset_aliases(
+            asset_expression=asset_expression,
+            custom_configs=custom_configs
+        )        
+        return resolved_assets_expression
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -593,69 +633,27 @@ class DagBuilder:
         :raises KeyError: If required keys like "schedule" or "datasets" are missing in the parameters.
         :returns: None. The function updates `dag_kwargs` in-place.
         """
-        # We want to align the schedule key with the Airflow version 3.0+, so we raise an error if the `schedule_interval` key is used
-        if utils.check_dict_key(dag_params, "schedule_interval"):
-            raise DagFactoryException(
-                "The `schedule_interval` key is no longer supported in Airflow 3.0+. Use `schedule` instead."
-            )
+        schedule: Union[str, List[str], Dict[str, List[Any]]] = (
+                                                        dag_params["schedule"]
+                                                        if dag_params.get("schedule") is not None
+                                                        else dag_params.get("schedule_interval")
+                                                    )
 
-        # The `schedule_interval` parameter was deprecated in Airflow 2 and removed in Airflow 3.
-        schedule_key = "schedule"
+        if schedule:
+            if isinstance(schedule, dict) and "datasets" in schedule:
+                datasets: Union[List[str], str] = schedule.get("datasets")
+                file_path = schedule.get("file")
+                schedule = DagBuilder._build_asset_schedule(expression=datasets, file_path=file_path)
 
-        if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
-            has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
-
-            if has_schedule_attr:
-                schedule: Dict[str, Any] = dag_params.get("schedule")
-
-                # Only check for file and datasets attributes if schedule is a dict
-                has_file_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "file")
-                has_datasets_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "datasets")
-
-                if has_file_attr and has_datasets_attr:
-                    file = schedule.get("file")
-                    datasets: Union[List[str], str] = schedule.get("datasets")
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
-
-                elif has_datasets_attr and is_airflow_version_at_least_2_9:
-                    datasets = schedule["datasets"]
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
-
-                else:
-                    if isinstance(schedule, str):
-                        # check if it's "none" (case-insensitive, with whitespace)
-                        if schedule.strip().lower() == "none":
-                            dag_kwargs[schedule_key] = None
-                        else:
-                            dag_kwargs[schedule_key] = schedule
-                    elif isinstance(schedule, list):
-                        # if schedule is a list, check if it's a list of URIs
-                        # Filter out any empty strings or None values
-                        valid_uris = [uri for uri in schedule if uri and uri.strip()]
-                        dag_kwargs[schedule_key] = valid_uris
-                    else:
-                        # For other types, use the schedule as is
-                        dag_kwargs[schedule_key] = schedule
-
-                # Only pop keys if schedule is a dict
-                if isinstance(schedule, dict):
-                    if has_file_attr:
-                        schedule.pop("file")
-                    if has_datasets_attr:
-                        schedule.pop("datasets")
+        if DagBuilder._is_asset(schedule):
+            dag_kwargs["schedule"] = DagBuilder._asset_schedule(schedule)
+        elif (
+            isinstance(schedule, str)
+            and schedule.strip().lower() == "none"
+        ):
+            dag_kwargs["schedule"] = None
         else:
-            schedule = dag_params.get("schedule")
-            if (
-                utils.check_dict_key(dag_params, "schedule")
-                and isinstance(schedule, str)
-                and schedule.strip().lower() == "none"
-            ):
-                dag_kwargs[schedule_key] = None
-            else:
-                dag_kwargs[schedule_key] = dag_params.get("schedule")
+            dag_kwargs["schedule"] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
@@ -769,7 +767,10 @@ class DagBuilder:
             )
 
         if dag_params.get("timetable"):
-            dag_kwargs["timetable"] = dag_params.get("timetable")
+            timetable_args = dag_params.get("timetable")
+            dag_kwargs["timetable"] = DagBuilder.make_timetable(
+                timetable_args.get("callable"), timetable_args.get("params")
+            )
 
         dag_kwargs["catchup"] = dag_params.get(
             "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
@@ -1002,7 +1003,7 @@ class DagBuilder:
                         datasets_uri = task_params[key]
 
                     if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) for uri in datasets_uri]
+                        task_params[key] = [Asset(uri) for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(
