@@ -15,7 +15,7 @@ except ImportError:
     from airflow.models import DAG
 
 from dagfactory._yaml import load_yaml_file
-from dagfactory.constants import DEFAULTS_FILE_NAME
+from dagfactory.constants import DEFAULTS_FILE_NAMES
 from dagfactory.dagbuilder import DagBuilder
 from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
@@ -110,14 +110,16 @@ class _DagFactory:
     def _retrieve_default_yaml_filepaths(self):
         """
         Return the paths to existing `defaults.yml` files relevant to run the YAML DAG of interest.
-        The YAML filepahts are sorted by priority, with the top-priority directory being the first element.
+        The YAML filepaths are sorted by priority, with the top-priority directory being the first element.
         """
         default_yaml_filepaths = []
         possible_default_yml_dirs = self._retrieve_possible_default_config_dirs()
         for default_yml_dir in possible_default_yml_dirs:
-            default_yml_filepath = default_yml_dir / DEFAULTS_FILE_NAME
-            if default_yml_filepath.exists():
-                default_yaml_filepaths.append(default_yml_filepath)
+            for default_file_name in DEFAULTS_FILE_NAMES:
+                default_yml_filepath = default_yml_dir / default_file_name
+                if default_yml_filepath.exists():
+                    default_yaml_filepaths.append(default_yml_filepath)
+                    break  # Only use the first one found (yml preferred over yaml)
         return default_yaml_filepaths
 
     def _retrieve_default_config_list(self):

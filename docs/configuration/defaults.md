@@ -6,7 +6,7 @@ DAG Factory allows you to define default values for DAG-level arguments and Airf
 - Define the `default_args` within each DAG definition in the DAGs YAML file;
 - Declare a `default` block within the toplevel of the DAGs YAML file;
 - Define the `default_args_config_dict` argument when instantiating the `DAGFactory` class;
-- Create one or multiple `defaults.yml` and declare the `default_args_config_path` argument in the `DAGFactory` class. This approach includes support for combining multiple `defaults.yml` files.
+- Create one or multiple `defaults.yml` or `defaults.yaml` and declare the `default_args_config_path` argument in the `DAGFactory` class. This approach includes support for combining multiple `defaults.yml` or `defaults.yaml` files.
 
 Although you cannot use the last two configurations together, you can use a combination of the first two configurations with either the third or the last.
 
@@ -77,7 +77,7 @@ It allows you to define DAG-level arguments, including the `default_args`, using
 --8<-- "dev/dags/example_dag_factory_default_config_dict.py:13:19"
 ```
 
-## Declaring default values using the `defaults.yml` file
+## Declaring default values using the `defaults.yml` or `defaults.yaml` file
 
 This configuration affects DAGs created using the `DagFactory` class without the `default_args_config_dict` argument.
 
@@ -154,3 +154,6 @@ Given the various ways to specify top-level DAG arguments, including `default_ar
 2. In the `default` block within the workflow's YAML file
 3. The arguments defined in `default_args_config_dict`
 4. If (3) is not declared, the `defaults.yml` hierarchy.
+
+!!! note
+    The `defaults.yml` is preferred over `defaults.yaml`.

@@ -727,27 +727,28 @@ def test_retrieve_possible_default_config_dirs_no_config_path(tmp_path):
     assert result == [default_config_path]
 
 
-def _write_sample_defaults(path: Path, identifier: str):
+def _write_sample_defaults(path: Path, identifier: str, defaults_file: str):
     data = {
         "default_args": {"owner": identifier, f"{identifier}_param": identifier},
         "tags": [identifier],
         f"{identifier}_dag_param": identifier,
     }
-    with open(path / "defaults.yml", "w") as fp:
+    with open(path / defaults_file, "w") as fp:
         yaml.dump(data, fp)
 
 
+@pytest.mark.parametrize("defaults_file", ["defaults.yml", "defaults.yaml"])
 @patch("dagfactory.dagfactory._DagFactory._serialise_config_md")
-def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_path):
+def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_path, defaults_file):
     # Create structure: tmp_path/a/b/c/dag.yml
     dag_path = tmp_path / "a/b/c"
     dag_path.mkdir(parents=True)
     dag_file = dag_path / "dag.yml"
     shutil.copyfile(DAG_FACTORY_VARIABLES_AS_ARGUMENTS, str(dag_file))
 
-    _write_sample_defaults(tmp_path / "a", "a")
-    _write_sample_defaults(tmp_path / "a/b", "b")
-    _write_sample_defaults(tmp_path / "a/b/c", "c")
+    _write_sample_defaults(tmp_path / "a", "a", defaults_file)
+    _write_sample_defaults(tmp_path / "a/b", "b", defaults_file)
+    _write_sample_defaults(tmp_path / "a/b/c", "c", defaults_file)
 
     some_dag = _DagFactory(str(dag_file), defaults_config_path=str(tmp_path / "a"))
 
