@@ -250,13 +250,15 @@ jobs:
   build-mkdocs:
     name: Build MkDocs
     runs-on: ubuntu-latest
+    needs:
+      - Authorize
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-#        - name: Install uv
-#          uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.6.0
-#          with:
-#            version: "0.7.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.6.0
+        with:
+          version: "0.7.12"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -315,6 +317,7 @@ jobs:
       - Deploy-Pages
       - Code-Coverage
       - Authorize
+      - build-mkdocs
     runs-on: ubuntu-latest
     environment:
       name: pypi
