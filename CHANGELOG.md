@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548), [#558](https://github.com/astronomer/dag-factory/pull/558), [#559](https://github.com/astronomer/dag-factory/pull/559), [#560](https://github.com/astronomer/dag-factory/pull/560), [#562](https://github.com/astronomer/dag-factory/pull/562) and [#653](https://github.com/astronomer/dag-factory/pull/563)
 - Update pyproject.toml to Sync Test Versions with CI/CD Pipeline by @viiccwen in [#553](https://github.com/astronomer/dag-factory/pull/553)
 - Fix file URI format in ObjectStoragePath example to prevent duplicate slashes by @viiccwen in [#556](https://github.com/astronomer/dag-factory/pull/556)
+- CI: Only build docs on PR push event and deploy for merge and release by @pankajastro in [#568](https://github.com/astronomer/dag-factory/pull/568)
 
 ## [0.23.0] - 2025-07-14
 
