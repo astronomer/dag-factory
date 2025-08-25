@@ -737,7 +737,7 @@ def _write_sample_defaults(path: Path, identifier: str, defaults_file: str):
         yaml.dump(data, fp)
 
 
-@pytest.mark.parametrize("defaults_file", ["defaults.ymm", "defaults.yam"])
+@pytest.mark.parametrize("defaults_file", ["defaults.yml", "defaults.yaml"])
 @patch("dagfactory.dagfactory._DagFactory._serialise_config_md")
 def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_path, defaults_file):
     # Create structure: tmp_path/a/b/c/dag.yml
