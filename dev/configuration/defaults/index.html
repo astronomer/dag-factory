@@ -770,13 +770,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#declaring-default-values-using-the-defaultsyml-file" class="md-nav__link">
+  <a href="#declaring-default-values-using-the-defaultsyml-or-defaultsyaml-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Declaring default values using the defaults.yml file
+      Declaring default values using the defaults.yml or defaults.yaml file
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Declaring default values using the defaults.yml file">
+    <nav class="md-nav" aria-label="Declaring default values using the defaults.yml or defaults.yaml file">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1614,13 +1614,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#declaring-default-values-using-the-defaultsyml-file" class="md-nav__link">
+  <a href="#declaring-default-values-using-the-defaultsyml-or-defaultsyaml-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Declaring default values using the defaults.yml file
+      Declaring default values using the defaults.yml or defaults.yaml file
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Declaring default values using the defaults.yml file">
+    <nav class="md-nav" aria-label="Declaring default values using the defaults.yml or defaults.yaml file">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1703,7 +1703,7 @@
 <li>Define the <code>default_args</code> within each DAG definition in the DAGs YAML file;</li>
 <li>Declare a <code>default</code> block within the toplevel of the DAGs YAML file;</li>
 <li>Define the <code>default_args_config_dict</code> argument when instantiating the <code>DAGFactory</code> class;</li>
-<li>Create one or multiple <code>defaults.yml</code> and declare the <code>default_args_config_path</code> argument in the <code>DAGFactory</code> class. This approach includes support for combining multiple <code>defaults.yml</code> files.</li>
+<li>Create one or multiple <code>defaults.yml</code> or <code>defaults.yaml</code> and declare the <code>default_args_config_path</code> argument in the <code>DAGFactory</code> class. This approach includes support for combining multiple <code>defaults.yml</code> or <code>defaults.yaml</code> files.</li>
 </ul>
 <p>Although you cannot use the last two configurations together, you can use a combination of the first two configurations with either the third or the last.</p>
 <p>Below, we detail how to use each of these approaches and also how to combine them.</p>
@@ -1844,7 +1844,7 @@ It is one of DAG Factory's most powerful features; using defaults allows for the
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>                <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;airflow.operators.bash.BashOperator&quot;</span><span class="p">,</span>
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>                <span class="s2">&quot;bash_command&quot;</span><span class="p">:</span> <span class="s2">&quot;echo load&quot;</span><span class="p">,</span>
 </span></code></pre></div>
-<h2 id="declaring-default-values-using-the-defaultsyml-file">Declaring default values using the <code>defaults.yml</code> file</h2>
+<h2 id="declaring-default-values-using-the-defaultsyml-or-defaultsyaml-file">Declaring default values using the <code>defaults.yml</code> or <code>defaults.yaml</code> file</h2>
 <p>This configuration affects DAGs created using the <code>DagFactory</code> class without the <code>default_args_config_dict</code> argument.</p>
 <p>If a <code>defaults.yml</code> file is present in the same directory as the YAML file representing the DAG, DagFactory will use it to build the DAG.</p>
 <p>If the <code>defaults.yml</code> is added to a separate directory, users can share it using <code>DagFactory</code>'s argument <code>default_args_config_path</code>.</p>
@@ -1902,6 +1902,10 @@ load_yaml_dags(
 <li>The arguments defined in <code>default_args_config_dict</code></li>
 <li>If (3) is not declared, the <code>defaults.yml</code> hierarchy.</li>
 </ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>defaults.yml</code> is preferred over <code>defaults.yaml</code>.</p>
+</div>
 
 
 
