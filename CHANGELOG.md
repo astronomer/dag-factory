@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document the Asset example DAG by @pankajastro in [#538](https://github.com/astronomer/dag-factory/pull/538)
 - Add docs for the CLI convert command by @tatiana in [#541](https://github.com/astronomer/dag-factory/pull/541)
 - Add remaining breaking changes in migration guide by @pankajastro in [#549](https://github.com/astronomer/dag-factory/pull/549)
+- Fix typos in scheduling and datasets docs by @viiccwen in [#565](https://github.com/astronomer/dag-factory/pull/565)
+- docs: Make markdownlint happy (fix MD007 ul-indent in dev/README.md) by @viiccwen in [#566](https://github.com/astronomer/dag-factory/pull/566)
 
 ### Other Changes
 
@@ -84,7 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance PyPI Stats API error handling by @viiccwen in [#535](https://github.com/astronomer/dag-factory/pull/535)
 - Update example to be Airflow 3 compatible by @tatiana in [540](https://github.com/astronomer/dag-factory/pull/540)
 - Remove AUTO_CONVERT_TO_AF3 from tests by @tatiana in [#543](https://github.com/astronomer/dag-factory/pull/543)
-- Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548)
+- Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548), [#558](https://github.com/astronomer/dag-factory/pull/558), [#559](https://github.com/astronomer/dag-factory/pull/559), [#560](https://github.com/astronomer/dag-factory/pull/560), [#562](https://github.com/astronomer/dag-factory/pull/562) and [#653](https://github.com/astronomer/dag-factory/pull/563)
+- Update pyproject.toml to Sync Test Versions with CI/CD Pipeline by @viiccwen in [#553](https://github.com/astronomer/dag-factory/pull/553)
+- Fix file URI format in ObjectStoragePath example to prevent duplicate slashes by @viiccwen in [#556](https://github.com/astronomer/dag-factory/pull/556)
 
 ## [0.23.0] - 2025-07-14
 
