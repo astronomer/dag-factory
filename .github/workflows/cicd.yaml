@@ -251,6 +251,8 @@ jobs:
   Build-Mkdocs:
     name: Build MkDocs
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs:
       - Authorize
     steps:
