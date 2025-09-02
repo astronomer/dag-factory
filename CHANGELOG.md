@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0a3] - 2025-08-25
+## [1.0.0a4] - 2025-09-02
 
 ### Breaking Changes
 
@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `start_date`, `end_date` at the DAG level by @pankajastro in [#495](https://github.com/astronomer/dag-factory/pull/495)
 - Allow `execution_timeout` in `default_args` by @pankajastro in [#501](https://github.com/astronomer/dag-factory/pull/501)
 - Capture Telemetry DNS gaierror and handle it gracefully by @tatiana in [#544](https://github.com/astronomer/dag-factory/pull/544)
+- Fix require response_check param in http sensor by @pankajastri in [#576](https://github.com/astronomer/dag-factory/pull/576)
 
 ### Docs
 
@@ -71,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix typos in scheduling and datasets docs by @viiccwen in [#565](https://github.com/astronomer/dag-factory/pull/565)
 - docs: Make markdownlint happy (fix MD007 ul-indent in dev/README.md) by @viiccwen in [#566](https://github.com/astronomer/dag-factory/pull/566)
 - Update Index.md by @pankajastro in [#570](https://github.com/astronomer/dag-factory/pull/570)
+- Document dag-factory reserved keys by @pankajastro in [#571](https://github.com/astronomer/dag-factory/pull/571)
 - Add an introduction to the migration guide by @pankajastro in [#572](https://github.com/astronomer/dag-factory/pull/572)
 
 ### Other Changes
@@ -89,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance PyPI Stats API error handling by @viiccwen in [#535](https://github.com/astronomer/dag-factory/pull/535)
 - Update example to be Airflow 3 compatible by @tatiana in [540](https://github.com/astronomer/dag-factory/pull/540)
 - Remove AUTO_CONVERT_TO_AF3 from tests by @tatiana in [#543](https://github.com/astronomer/dag-factory/pull/543)
-- Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548), [#558](https://github.com/astronomer/dag-factory/pull/558), [#559](https://github.com/astronomer/dag-factory/pull/559), [#560](https://github.com/astronomer/dag-factory/pull/560), [#562](https://github.com/astronomer/dag-factory/pull/562) and [#653](https://github.com/astronomer/dag-factory/pull/563)
+- Bump actions/download-artifact from 4 to 5 by @dependabot in [#548](https://github.com/astronomer/dag-factory/pull/548), [#558](https://github.com/astronomer/dag-factory/pull/558), [#559](https://github.com/astronomer/dag-factory/pull/559), [#560](https://github.com/astronomer/dag-factory/pull/560), [#562](https://github.com/astronomer/dag-factory/pull/562), [#653](https://github.com/astronomer/dag-factory/pull/563) and [#575](https://github.com/astronomer/dag-factory/pull/575)
 - Update pyproject.toml to Sync Test Versions with CI/CD Pipeline by @viiccwen in [#553](https://github.com/astronomer/dag-factory/pull/553)
 - Fix file URI format in ObjectStoragePath example to prevent duplicate slashes by @viiccwen in [#556](https://github.com/astronomer/dag-factory/pull/556)
 - CI: Only build docs on PR push event and deploy for merge and release by @pankajastro in [#568](https://github.com/astronomer/dag-factory/pull/568)
