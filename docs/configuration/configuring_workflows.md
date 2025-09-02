@@ -39,6 +39,18 @@ The **dictionary format** is also supported for backward compatibility. In this 
 !!! note "Format Recommendation"
     While both formats are supported, **we recommend using the list format** as it is more readable and easier to maintain.
 
+## Reserved Keys
+
+The DAG Factory designates certain YAML keys for internal processing. While these keys appear in your YAML files, they are reserved exclusively for specific internal functions and should not be redefined or used for other purposes:
+
+- `__type__`
+- `__args__`
+- `__join__`
+- `__and__`
+- `__or__`
+
+Using these keys outside their intended internal roles may lead to unexpected behavior.
+
 ### Check out more configuration params
 
 - [Environment variables](environment_variables.md)
