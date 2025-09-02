@@ -217,17 +217,6 @@ class DagBuilder:
                     headers["Content-Type"] = "application/json"
                 task_params["headers"] = headers
         elif HTTP_SENSOR_CLASS and issubclass(operator_obj, HTTP_SENSOR_CLASS):
-            if not (
-                task_params.get("response_check_name") and task_params.get("response_check_file")
-            ) and not task_params.get("response_check_lambda"):
-                raise DagFactoryException(
-                    "Failed to create task. HttpSensor requires \
-                    `response_check_name` and `response_check_file` parameters \
-                    or `response_check_lambda` parameter."
-                )
-
-            # remove dag-factory specific parameters
-            # Airflow 2.0 doesn't allow these to
             response_check_name = task_params.pop("response_check_name", None)
             response_check_file = task_params.pop("response_check_file", None)
             if response_check_name:
