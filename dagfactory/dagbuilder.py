@@ -219,13 +219,13 @@ class DagBuilder:
         elif HTTP_SENSOR_CLASS and issubclass(operator_obj, HTTP_SENSOR_CLASS):
             response_check_name = task_params.pop("response_check_name", None)
             response_check_file = task_params.pop("response_check_file", None)
+            response_check_lambda = task_params.pop("response_check_lambda", None)
             if response_check_name:
                 task_params["response_check"]: Callable = utils.get_python_callable(
                     response_check_name, response_check_file
                 )
-            else:
-                response_check_name = task_params.pop("response_check_lambda", None)
-                task_params["response_check"]: Callable = utils.get_python_callable_lambda(response_check_name)
+            elif response_check_lambda:
+                task_params["response_check"]: Callable = utils.get_python_callable_lambda(response_check_lambda)
         return task_params
 
     # pylint: disable=too-many-branches
