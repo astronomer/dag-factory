@@ -19,14 +19,19 @@ The minimum requirements for **dag-factory** are:
 For a gentle introduction, please take a look at our [Quickstart Guide](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-airflow-standalone/). For more examples, please see the
 [examples](/examples) folder.
 
-- [Quickstart](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-astro-cli/)
+- Quickstart
+    - [Astro CLI](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-astro-cli/)
+    - [Airflow Standalone](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-airflow-standalone/)
 - [Benefits](#benefits)
-- [Features](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
+- Features
+    - [load_yml_dags Function](https://astronomer.github.io/dag-factory/latest/configuration/load_yaml_dags/)
+    - [Schedule](https://astronomer.github.io/dag-factory/latest/configuration/schedule/)
     - [Dynamically Mapped Tasks](https://astronomer.github.io/dag-factory/latest/features/dynamic_tasks/)
-    - [Multiple Configuration Files](https://astronomer.github.io/dag-factory/latest/features/multiple_configuration_files/)
-    - [Callbacks](https://astronomer.github.io/dag-factory/latest/features/callbacks/)
+    - [Define Python Object](https://astronomer.github.io/dag-factory/latest/configuration/custom_py_object/)
     - [Custom Operators](https://astronomer.github.io/dag-factory/latest/features/custom_operators/)
-    - [HttpSensor](https://astronomer.github.io/dag-factory/latest/features/http_task/)
+    - [Defaults](https://astronomer.github.io/dag-factory/latest/configuration/defaults/)
+    - [Callbacks](https://astronomer.github.io/dag-factory/latest/features/callbacks/)
+    - [KubernetesPodOperator](https://astronomer.github.io/dag-factory/latest/features/kpo/)
 - [Contributing](https://astronomer.github.io/dag-factory/latest/contributing/howto/)
 
 ## Benefits
@@ -35,6 +40,16 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 - Construct DAGs without learning Airflow primitives
 - Avoid duplicative code
 - Everyone loves YAML! ;)
+
+## 📢 Dag-Factory 1.0 Released
+
+Version **1.0** introduces important improvements and breaking changes to support modern Airflow usage.
+
+👉 See the [Migration Guide](https://astronomer.github.io/dag-factory/latest/migration_guide/) to upgrade from earlier versions.
+
+## 🚀 Dag-Factory Supports Airflow 3
+
+DAG-Factory is compatible with **Apache Airflow 3** and supports modern scheduling, and updated import paths.
 
 ## License
 
