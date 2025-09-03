@@ -2,7 +2,7 @@
 
 from .dagfactory import load_yaml_dags
 
-__version__ = "1.0.0a3"
+__version__ = "1.0.0"
 __all__ = [
     "load_yaml_dags",
 ]
