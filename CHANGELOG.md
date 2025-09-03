@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0a4] - 2025-09-02
+## [1.0.0] - 2025-09-03
 
 ### Breaking Changes
 
@@ -54,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `start_date`, `end_date` at the DAG level by @pankajastro in [#495](https://github.com/astronomer/dag-factory/pull/495)
 - Allow `execution_timeout` in `default_args` by @pankajastro in [#501](https://github.com/astronomer/dag-factory/pull/501)
 - Capture Telemetry DNS gaierror and handle it gracefully by @tatiana in [#544](https://github.com/astronomer/dag-factory/pull/544)
-- Fix require response_check param in http sensor by @pankajastri in [#576](https://github.com/astronomer/dag-factory/pull/576)
+- Fix require response_check param in http sensor by @pankajastro in [#576](https://github.com/astronomer/dag-factory/pull/576)
+- Add none check before evaluating lambda func in HttpSensor @pankajastro in [#577](https://github.com/astronomer/dag-factory/pull/577)
 
 ### Docs
 
