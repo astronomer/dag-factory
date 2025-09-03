@@ -497,6 +497,20 @@ def test_make_http_sensor_lambda():
     assert isinstance(actual, HttpSensor)
 
 
+def test_http_sensor_without_response_check():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    operator = get_http_sensor_path()
+    task_params = {
+        "task_id": "test_task",
+        "http_conn_id": "test-http",
+        "method": "GET",
+        "endpoint": "",
+    }
+    actual = td.make_task(operator, task_params)
+    assert actual.task_id == "test_task"
+    assert isinstance(actual, HttpSensor)
+
+
 def test_make_sql_sensor_success():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     sensor = get_sql_sensor_path()
