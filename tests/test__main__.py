@@ -75,6 +75,26 @@ def test_lint_valid_yaml(tmp_yaml_file):
     assert "no errors found" in result.stdout.lower()
 
 
+def test_lint_exclude_single_file(tmp_yaml_file, tmp_path):
+    ignore_file = tmp_path / "ignore.yaml"
+    ignore_file.write_text("key: value\n")
+    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", str(ignore_file)])
+    assert result.exit_code == 0
+    assert "Ignored 1 YAML file" in result.stdout
+    assert "no errors found" in result.stdout.lower()
+
+
+def test_lint_exclude_multiple_files(tmp_yaml_file, tmp_path):
+    ignore_first_yaml = tmp_path / "first.yaml"
+    ignore_first_yaml.write_text("key: value\n")
+    ignore_second_yaml = tmp_path / "second.yaml"
+    ignore_second_yaml.write_text("key: value\n")
+    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}"])
+    assert result.exit_code == 0
+    assert "Ignored 2 YAML files" in result.stdout
+    assert "no errors found" in result.stdout.lower()
+
+
 @patch("dagfactory.__main__.Table.add_row")
 def test_lint_invalid_yaml(mock_add_row, tmp_invalid_yaml_file):
     result = runner.invoke(app, ["lint", str(tmp_invalid_yaml_file)])
