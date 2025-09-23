@@ -59,6 +59,36 @@ def _find_yaml_files(path: Path) -> list[Path]:
     return files
 
 
+def _exclude_yaml_files(files: list[Path], ignore: Path):
+    """
+    Exclude files and directories from the list of YAML files.
+    """
+    if "," in str(ignore):
+        ignore_files = [Path(p.strip()) for p in str(ignore).split(",")]
+    else:
+        ignore_files = [ignore]
+
+    ignore_paths = set()
+    for ignore_path in ignore_files:
+        if not ignore_path.exists():
+            console.print(f"Ignore path '{ignore_path}' does not exist, skipping.")
+            continue
+
+        if ignore_path.is_dir():
+            ignore_paths.update(list(ignore_path.rglob("*.yaml")) + list(ignore_path.rglob("*.yml")))
+        else:
+            ignore_paths.add(ignore_path)
+
+    initial_count = len(files)
+    files[:] = [f for f in files if f not in ignore_paths]
+    excluded_count = initial_count - len(files)
+
+    if excluded_count > 0:
+        console.print(
+            f"[blue]Ignored {excluded_count} YAML {_file_or_files(excluded_count)} based on --ignore option.[/blue]"
+        )
+
+
 @app.callback()
 def main(
     ctx: typer.Context,
@@ -82,9 +112,12 @@ def main(
 def lint(
     path: Path = typer.Argument(..., help="Path to a directory containing YAML files or to a YAML file to lint"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full error messages"),
+    ignore: Path = typer.Option(None, "--ignore", "-i", help="Files or directories to ignore"),
 ):
     """Scan YAML files for syntax errors."""
     files = _find_yaml_files(path)
+    if ignore:
+        _exclude_yaml_files(files, ignore)
 
     table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: YAML Lint Results", show_lines=True)
     table.add_column("File", style="cyan", no_wrap=True)
