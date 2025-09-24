@@ -140,7 +140,7 @@ class DagBuilder:
             "on_skipped_callback",  # Not applicable at the DAG-level
             "sla_miss_callback",  # Not applicable at the default_args level
         ]:
-            if version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
+            if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
                 # sla_miss_callbacks are fully-deprecated as of 3.1.0. No need to raise a warning, we can silently skip
                 continue
 
