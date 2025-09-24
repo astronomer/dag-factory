@@ -7,7 +7,6 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-from airflow.www.views import Airflow
 
 from dagfactory._yaml import load_yaml_file
 
