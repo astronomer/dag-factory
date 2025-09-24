@@ -50,7 +50,7 @@ jobs:
           python-version: "3.12"
           architecture: "x64"
 
-      - run: uv tool install hatch "click!=8.3.0"
+      - run: uv pip install "hatch" "click!=8.3.0"
       - run: hatch run tests.py3.12-2.10:static-check
 
   Run-Unit-Tests:
@@ -111,7 +111,7 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          uv tool install hatch "click!=8.3.0"
+          uv pip install "hatch" "click!=8.3.0"
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
@@ -183,7 +183,7 @@ jobs:
 
       - name: Install packages and dependencies
         run: |
-          uv tool install hatch "click!=8.3.0"
+          uv pip install "hatch" "click!=8.3.0"
           hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
@@ -267,7 +267,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install hatch via uv
-        run: uv tool install hatch "click!=8.3.0"
+        run: uv pip install "hatch" "click!=8.3.0"
       - name: Build docs (MkDocs)
         run: hatch run docs:build
 
@@ -295,7 +295,7 @@ jobs:
           architecture: "x64"
 
       - name: Install packages and dependencies
-        run: uv tool install hatch "click!=8.3.0"
+        run: uv pip install "hatch" "click!=8.3.0"
 
       - name: Deploy Docs
         run: |
