@@ -802,7 +802,7 @@ def test_make_dag_with_callbacks():
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
         dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)
-        dag_config_callbacks__with_provider["sla_miss_callback"] = {  # TODO: Deprecate this
+        dag_config_callbacks__with_provider["sla_miss_callback"] = {
             "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
             "slack_conn_id": "slack_conn_id",
             "text": f"""Sample callback text.""",
