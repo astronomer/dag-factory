@@ -95,7 +95,7 @@ Once you're set up with uv, you can use these helpful commands:
    Disable loading Airflow standard example DAGs:
 
 ```bash
-export AIRFLOW_HOME=$(pwd)/dev/
+export AIRFLOW_HOME=$(pwd)/dev
 export AIRFLOW__CORE__LOAD_EXAMPLES=false
 ```
 
