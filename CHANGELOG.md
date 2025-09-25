@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-09-25
+
+### Fixed
+
+- Remove sla_miss_callback from dag_kwargs for Airflow >= 3.1.0 by @jroachgolf84 in [#586](https://github.com/astronomer/dag-factory/pull/586)
+- Add logs for the removal of sla_miss_callback by @pankajastro in [#588](https://github.com/astronomer/dag-factory/pull/588)
+
+### Docs
+
+- docs: remove trailing slash from AIRFLOW_HOME example by @jx2lee in [#582](https://github.com/astronomer/dag-factory/pull/582)
+
+### Other Changes
+
+- Restrict the hatch version to fix the CI by @pankajastro in [#585](https://github.com/astronomer/dag-factory/pull/585)
+- Bump GitHub Actions dependencies by @dependabot in [#578](https://github.com/astronomer/dag-factory/pull/578), [#579](https://github.com/astronomer/dag-factory/pull/579), [#580](https://github.com/astronomer/dag-factory/pull/580) and [#581](https://github.com/astronomer/dag-factory/pull/581)
+
 ## [1.0.0] - 2025-09-03
 
 ### Breaking Changes
