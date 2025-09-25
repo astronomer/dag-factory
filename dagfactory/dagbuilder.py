@@ -140,6 +140,10 @@ class DagBuilder:
             "on_skipped_callback",  # Not applicable at the DAG-level
             "sla_miss_callback",  # Not applicable at the default_args level
         ]:
+            if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
+                # sla_miss_callbacks are fully-deprecated as of 3.1.0. No need to raise a warning, we can silently skip
+                continue
+
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
             # copy-and-pasted for each callback type and each configuration option (via a string import, function
             # defined via YAML, or file path and name
@@ -784,7 +788,9 @@ class DagBuilder:
 
         dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
 
-        dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
+        if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
+            # sla_miss_callback is fully-deprecated as of 3.1.0
+            dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
 
         dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
 

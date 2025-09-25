@@ -78,7 +78,6 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         "tags": ["tag1", "tag2"],
         "on_failure_callback": f"{__name__}.print_context_callback",
         "on_success_callback": f"{__name__}.print_context_callback",
-        "sla_miss_callback": f"{__name__}.print_context_callback",
         "tasks": [
             {
                 "task_id": "task_1",
@@ -113,6 +112,9 @@ DAG_FACTORY_CALLBACK_CONFIG = {
         ],
     }
 }
+
+if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
+    DAG_FACTORY_CALLBACK_CONFIG["example_dag"]["sla_miss_callback"] = f"{__name__}.print_context_callback"
 
 
 def test_validate_config_filepath_valid():
