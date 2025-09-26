@@ -3,7 +3,7 @@ name: CI jobs
 on:
   # run on pushes to the default branch
   push:
-    branches: [main]
+    branches: [main, use_af3_in_typecheck]
   # run on pull requests originated from forks based on the `main` branch.
   # note that if you're trying to edit the CI in a pull request,
   # your changes won't run here. you need to temporarily add your branch to
@@ -51,7 +51,7 @@ jobs:
           architecture: "x64"
 
       - run: uv pip install --system "hatch>=1.14.2"
-      - run: hatch run tests.py3.12-2.10:static-check
+      - run: hatch run tests.py3.12-3.0:static-check
 
   Run-Unit-Tests:
     needs: Authorize
