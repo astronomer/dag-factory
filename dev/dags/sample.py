@@ -10,6 +10,19 @@ except ImportError:
     from airflow.operators.python import get_current_context
 
 
+from airflow.utils.context import Context
+
+
+def collect(**context: Context):
+    return {"key1": "value1", "key2": "value2"}
+
+
+def echo(value):
+    print(value)
+    return value
+
+
+
 def build_numbers_list():
     return [2, 4, 6]
 
