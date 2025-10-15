@@ -40,7 +40,7 @@ except ImportError:
     from airflow.operators.python import BranchPythonOperator, PythonOperator
     from airflow.sensors.python import PythonSensor
 
-try: # Try Airflow 2.9
+try:  # Try Airflow 2.9
     from airflow.timetables.datasets import DatasetOrTimeSchedule
 except:
     pass
@@ -622,13 +622,19 @@ class DagBuilder:
                 elif has_datasets_attr and is_airflow_version_at_least_2_9:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(
+                        datasets_conditions
+                    )
                     if has_timetable_attr:
                         timetable_schedule = schedule["timetable"]
                         if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-                            dag_kwargs[schedule_key] = DatasetOrTimeSchedule(timetable = timetable_schedule, datasets = datasets_schedule)
+                            dag_kwargs[schedule_key] = DatasetOrTimeSchedule(
+                                timetable=timetable_schedule, datasets=datasets_schedule
+                            )
                         else:
-                            dag_kwargs[schedule_key] = AssetOrTimeSchedule(timetable = timetable_schedule, assets = datasets_schedule)
+                            dag_kwargs[schedule_key] = AssetOrTimeSchedule(
+                                timetable=timetable_schedule, assets=datasets_schedule
+                            )
                     else:
                         dag_kwargs[schedule_key] = datasets_schedule
                 else:
