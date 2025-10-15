@@ -13,7 +13,7 @@ declaratively via configuration files.
 
 The minimum requirements for **dag-factory** are:
 
-- Python 3.9.0+
+- Python 3.10.0+
 - [Apache Airflow®](https://airflow.apache.org) 2.4+
 
 For a gentle introduction, please take a look at our [Quickstart Guide](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-airflow-standalone/). For more examples, please see the
