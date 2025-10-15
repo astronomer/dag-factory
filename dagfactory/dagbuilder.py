@@ -39,8 +39,11 @@ try:  # Try Airflow 3
 except ImportError:
     from airflow.operators.python import BranchPythonOperator, PythonOperator
     from airflow.sensors.python import PythonSensor
-    from airflow.timetables.datasets import DatasetOrTimeSchedule
 
+try: # Try Airflow 2.9
+    from airflow.timetables.datasets import DatasetOrTimeSchedule
+except:
+    pass
 
 logger = logging.getLogger(__name__)
 
