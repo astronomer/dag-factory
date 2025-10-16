@@ -622,9 +622,7 @@ class DagBuilder:
                 elif has_datasets_attr and is_airflow_version_at_least_2_9:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(
-                        datasets_conditions
-                    )
+                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
                     if has_timetable_attr:
                         timetable_schedule = schedule["timetable"]
                         if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
