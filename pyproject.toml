@@ -10,7 +10,7 @@ authors = [{ name = "Astronomer", email = "humans@astronomer.io" }]
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["airflow", "apache-airflow", "provider", "astronomer", "dag"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -117,7 +116,7 @@ dependencies = [
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.9", "3.10"]
+python = ["3.10"]
 airflow = ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
 
 [[tool.hatch.envs.tests.matrix]]
