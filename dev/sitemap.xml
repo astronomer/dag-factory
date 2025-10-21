@@ -2,122 +2,122 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/migration_guide/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/comparison/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/comparison/taskflow_api/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/comparison/traditional_operators/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/configuring_workflows/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/custom_py_object/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/defaults/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/environment_variables/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/jinja2_template/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/load_yaml_dags/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/params/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/configuration/schedule/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/contributing/code_of_conduct/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/contributing/contributors/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/contributing/howto/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/contributing/roles/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/asset/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/callbacks/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/cli/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/custom_operators/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/custom_python_object/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/datasets/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/dynamic_tasks/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/http_task/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/kpo/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/multiple_configuration_files/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/features/object_storage/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/getting-started/quick-start-airflow-standalone/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
     <url>
          <loc>https://astronomer.github.io/dag-factory/dev/getting-started/quick-start-astro-cli/</loc>
-         <lastmod>2025-10-17</lastmod>
+         <lastmod>2025-10-21</lastmod>
     </url>
 </urlset>
