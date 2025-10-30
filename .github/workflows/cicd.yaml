@@ -272,7 +272,7 @@ jobs:
         run: hatch run docs:build
 
   Deploy-Pages:
-    # if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
     permissions:
       contents: write
     runs-on: ubuntu-latest
