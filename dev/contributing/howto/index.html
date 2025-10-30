@@ -1855,9 +1855,9 @@
 </span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CONFIG_ROOT_DIR</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/dags
 </span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/dev/dags:<span class="nv">$PYTHONPATH</span>
 </span></code></pre></div>
-<p>To run the integration tests using Python 3.9 and Airflow 2.9, use</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration-setup
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:test-integration
+<p>To run the integration tests using Python 3.11 and Airflow 2.9, use</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.11-2.9:test-integration-setup
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.11-2.9:test-integration
 </span></code></pre></div>
 <h2 id="pre-commit-and-linting">Pre-Commit and linting</h2>
 <p>We use pre-commit to run several checks on the code before committing. To install pre-commit hooks, run:</p>
@@ -1867,7 +1867,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 </span></code></pre></div>
 <p>Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using <code>hatch</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.9-2.9:static-check
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.11-2.9:static-check
 </span></code></pre></div>
 <h2 id="write-docs">Write docs</h2>
 <p>We use Markdown to author DAG Factory documentation.</p>
