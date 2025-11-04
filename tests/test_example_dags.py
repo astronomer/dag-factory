@@ -92,7 +92,7 @@ def get_dag_ids() -> list[str]:
 
 @pytest.mark.integration
 @pytest.mark.parametrize("dag_id", get_dag_ids())
-def test_example_dag(session, dag_id: str):
+def test_example_dag(session, dag_id: str, caplog):
     dag_bag = get_dag_bag()
     dag = dag_bag.get_dag(dag_id)
 
@@ -106,3 +106,7 @@ def test_example_dag(session, dag_id: str):
 
     if dag_run is not None:
         assert dag_run.state == DagRunState.SUCCESS
+
+    for record in caplog.records:
+        if "Failed to load dag from" in record.getMessage():
+            pytest.fail(f"Unexpected DAG load failure logged: {record.getMessage()}")
