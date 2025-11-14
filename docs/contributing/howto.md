@@ -173,11 +173,11 @@ export CONFIG_ROOT_DIR=$(pwd)/dev/dags
 export PYTHONPATH=$(pwd)/dev/dags:$PYTHONPATH
 ```
 
-To run the integration tests using Python 3.9 and Airflow 2.9, use
+To run the integration tests using Python 3.11 and Airflow 2.9, use
 
 ```bash
-hatch run tests.py3.9-2.9:test-integration-setup
-hatch run tests.py3.9-2.9:test-integration
+hatch run tests.py3.11-2.9:test-integration-setup
+hatch run tests.py3.11-2.9:test-integration
 ```
 
 ## Pre-Commit and linting
@@ -197,7 +197,7 @@ pre-commit run --all-files
 Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using `hatch`:
 
 ```bash
-hatch run tests.py3.9-2.9:static-check
+hatch run tests.py3.11-2.9:static-check
 ```
 
 ## Write docs
