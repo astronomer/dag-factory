@@ -304,7 +304,8 @@ def load_yaml_dags(
     if suffix is None:
         suffix = [".yaml", ".yml"]
     candidate_dag_files = []
-
+    errors = []
+    no_error_count = 0
     if config_filepath:
         factory = _DagFactory(config_filepath=config_filepath, defaults_config_path=defaults_config_path)
         factory._generate_dags(globals_dict)
@@ -320,7 +321,15 @@ def load_yaml_dags(
             try:
                 factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
                 factory._generate_dags(globals_dict)
-            except Exception:  # pylint: disable=broad-except
+            except Exception as e:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
+                errors.append((config_file_path, e))
             else:
                 logging.info("DAG loaded: %s", config_file_path)
+                no_error_count += 1
+
+    # TODO: Maybe enable based on config or env?
+    if errors:
+        heading = f"{len(errors)} DAGs failed, and an additional {no_error_count} were blocked from loading.\n"
+        msg = "\n".join(f"{i + 1}. {path}: {err}" for i, (path, err) in enumerate(errors))
+        raise Exception(f"{heading}{msg}")
