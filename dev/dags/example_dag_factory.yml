@@ -5,7 +5,7 @@ default:
 # ----8<---   [ start: example_dag_yaml_configuration ]
 basic_example_dag:
   default_args:
-    owner: "custom_owner"
+    owner: "custom_owner1"
   description: "this is an example dag"
   schedule: "0 3 * * *"
   render_template_as_native_obj: True
