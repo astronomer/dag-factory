@@ -35,10 +35,15 @@ from airflow.version import version as AIRFLOW_VERSION
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
     from airflow.providers.standard.sensors.python import PythonSensor
+    from airflow.timetables.assets import AssetOrTimeSchedule
 except ImportError:
     from airflow.operators.python import BranchPythonOperator, PythonOperator
     from airflow.sensors.python import PythonSensor
 
+try:  # Try Airflow 2.9
+    from airflow.timetables.datasets import DatasetOrTimeSchedule
+except:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -606,6 +611,7 @@ class DagBuilder:
                 # Only check for file and datasets attributes if schedule is a dict
                 has_file_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "file")
                 has_datasets_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "datasets")
+                has_timetable_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "timetable")
 
                 if has_file_attr and has_datasets_attr:
                     file = schedule.get("file")
@@ -616,8 +622,19 @@ class DagBuilder:
                 elif has_datasets_attr and is_airflow_version_at_least_2_9:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
-
+                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+                    if has_timetable_attr:
+                        timetable_schedule = schedule["timetable"]
+                        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+                            dag_kwargs[schedule_key] = DatasetOrTimeSchedule(
+                                timetable=timetable_schedule, datasets=datasets_schedule
+                            )
+                        else:
+                            dag_kwargs[schedule_key] = AssetOrTimeSchedule(
+                                timetable=timetable_schedule, assets=datasets_schedule
+                            )
+                    else:
+                        dag_kwargs[schedule_key] = datasets_schedule
                 else:
                     if isinstance(schedule, str):
                         # check if it's "none" (case-insensitive, with whitespace)
