@@ -142,7 +142,7 @@ class DagBuilder:
         ]:
             if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
                 # sla_miss_callbacks are removed as of 3.1.0
-                logger.info("The sla_miss_callback has been removed in Airflow 3.1.0.")
+                logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
                 continue
 
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
