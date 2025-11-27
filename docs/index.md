@@ -30,6 +30,7 @@ Are you new to DAG Factory? This is the place to start!
 ## Features
 
 - [Dynamic tasks](features/dynamic_tasks.md)
+- [TaskFlow Pipeline](features/taskflow_pipeline.md)
 - [Callbacks](features/callbacks.md)
 - [Custom operators](features/custom_operators.md)
 - [Multiple configuration files](features/multiple_configuration_files.md)
