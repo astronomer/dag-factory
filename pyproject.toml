@@ -106,7 +106,9 @@ compile-bytecode = true
 ######################################
 
 [tool.hatch.envs.tests]
-dependencies = []
+dependencies = [
+    "dag-factory[tests]"
+]
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
 [[tool.hatch.envs.tests.matrix]]
