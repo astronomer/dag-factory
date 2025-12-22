@@ -36,7 +36,7 @@ if [ "$AIRFLOW_VERSION" = "3.0" ]; then
   uv pip install "apache-airflow~=3.0.2" "apache-airflow-providers-http>=4.0.0" "apache-airflow-providers-common-sql>=1.2.0" "apache-airflow-providers-slack" --constraint /tmp/constraint.txt
 else
   uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
-  uv pip install  "apache-airflow==$AIRFLOW_VERSION"  "apache-airflow-providers-cncf-kubernetes>=4.4.0"
+  #uv pip install  "apache-airflow==$AIRFLOW_VERSION"  "apache-airflow-providers-cncf-kubernetes>=4.4.0"
 fi;
 
 # Install dag-factory and test dependencies with the same constraints
