@@ -33,10 +33,14 @@ uv pip install pip --upgrade
 
 
 if [ "$AIRFLOW_VERSION" = "3.0" ]; then
-  uv pip install "apache-airflow>=3.0.2" --constraint /tmp/constraint.txt
+  uv pip install "apache-airflow~=3.0.2" --constraint /tmp/constraint.txt
 else
   uv pip install "apache-airflow==$AIRFLOW_VERSION" --constraint /tmp/constraint.txt
 fi;
+
+# Install dag-factory and test dependencies with the same constraints
+uv pip install --constraint /tmp/constraint.txt -e .
+uv pip install --constraint /tmp/constraint.txt apache-airflow-providers-http>=4.0.0 apache-airflow-providers-cncf-kubernetes>=4.4.0 apache-airflow-providers-common-sql>=1.2.0 apache-airflow-providers-slack pytest>=6.0 pytest-cov pre-commit httpx>=0.25.0 pandas
 
 rm /tmp/constraint.txt
 
