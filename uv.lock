@@ -874,6 +874,7 @@ kubernetes = [
     { name = "apache-airflow-providers-cncf-kubernetes" },
 ]
 tests = [
+    { name = "pandas" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -902,6 +903,7 @@ requires-dist = [
     { name = "apache-airflow-providers-http", marker = "extra == 'http'", specifier = ">=4.0.0" },
     { name = "packaging" },
     { name = "packaging", marker = "extra == 'all'" },
+    { name = "pandas", marker = "extra == 'tests'" },
     { name = "pre-commit", marker = "extra == 'tests'" },
     { name = "pytest", marker = "extra == 'tests'", specifier = ">=6.0" },
     { name = "pytest-cov", marker = "extra == 'tests'" },
