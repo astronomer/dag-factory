@@ -39,7 +39,6 @@ else
   pip install  "apache-airflow==$AIRFLOW_VERSION"  "apache-airflow-providers-cncf-kubernetes>=4.4.0"
 fi;
 
-# Install dag-factory and test dependencies with the same constraints
 rm /tmp/constraint.txt
 
 actual_version=$(airflow version | cut -d. -f1,2)
