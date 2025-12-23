@@ -798,7 +798,7 @@ def test_make_dag_with_callbacks():
     assert dag.on_failure_callback.__name__ == "print_context_callback"
 
     # sla_miss_callback is removed as of Airflow 3.1.0
-    if version.parse("2.6.0") <= version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
+    if version.parse("2.6.0") < version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
         dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)

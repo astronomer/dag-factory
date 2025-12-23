@@ -39,7 +39,6 @@ dagfactory = "dagfactory.__main__:app"
 
 [project.optional-dependencies]
 all = [
-    "apache-airflow>=2.4",
     "apache-airflow-providers-http>=4.0.0",
     "apache-airflow-providers-cncf-kubernetes>=4.4.0",
     "apache-airflow-providers-common-sql>=1.2.0",
@@ -56,13 +55,10 @@ common-sql = [
     "apache-airflow-providers-common-sql>=1.2.0"
 ]
 tests = [
-    "apache-airflow-providers-http>=4.0.0",
-    "apache-airflow-providers-cncf-kubernetes>=4.4.0",
-    "apache-airflow-providers-common-sql>=1.2.0",
-    "apache-airflow-providers-slack",
     "pytest>=6.0",
     "pytest-cov",
     "pre-commit",
+    "pandas"
 ]
 
 ######################################
@@ -108,10 +104,7 @@ compile-bytecode = true
 
 [tool.hatch.envs.tests]
 dependencies = [
-    "dag-factory[tests]",
-    "apache-airflow~={matrix:airflow}.0,!=2.9.0,!=2.9.1",  # https://github.com/apache/airflow/pull/39670
-    "httpx>=0.25.0",
-    "pandas",
+    "dag-factory[tests]"
 ]
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
