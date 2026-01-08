@@ -776,7 +776,6 @@ class DagBuilder:
         dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-
             dag_kwargs["default_view"] = dag_params.get(
                 "default_view", configuration.conf.get("webserver", "dag_default_view")
             )
@@ -1044,10 +1043,7 @@ class DagBuilder:
         for arg_key, arg_value in task_params.items():
             if arg_key in callable_args_keys:
                 decorator_kwargs.pop(arg_key)
-                if isinstance(arg_value, str) and arg_value.startswith("+"):
-                    upstream_task_name = arg_value.split("+")[-1]
-                    callable_kwargs[arg_key] = tasks_dict[upstream_task_name]
-                else:
+                if not DagBuilder._replace_kwargs_values_as_xcom(callable_kwargs, arg_key, arg_value, tasks_dict):
                     callable_kwargs[arg_key] = arg_value
 
         expand_kwargs = decorator_kwargs.pop("expand", {})
@@ -1073,11 +1069,28 @@ class DagBuilder:
             return decorator(**decorator_kwargs)(**callable_kwargs)
 
     @staticmethod
+    def _replace_kwargs_values_as_xcom(kwargs: dict(str, Any), key: str, value: Any, tasks_dict: dict(str, Any)):
+        # Match with multiple_outputs=True case with {key}: +{task}["{xcom_key}"]
+        _PATTERN = re.compile(r"^\+(?P<task>\w*)(\[['\"](?P<xcom_key>.*)['\"]\])?$")
+
+        if not isinstance(value, str):
+            return False
+
+        m = _PATTERN.match(value)
+        if m:
+            task = m.group("task")
+            xcom_key = m.group("xcom_key")
+            if not xcom_key:
+                kwargs[key] = tasks_dict[task]
+            else:
+                kwargs[key] = tasks_dict[task][xcom_key]
+            return True
+        return False
+
+    @staticmethod
     def replace_kwargs_values_as_tasks(kwargs: dict(str, Any), tasks_dict: dict(str, Any)):
         for key, value in kwargs.items():
-            if isinstance(value, str) and value.startswith("+"):
-                upstream_task_name = value.split("+")[-1]
-                kwargs[key] = tasks_dict[upstream_task_name]
+            DagBuilder._replace_kwargs_values_as_xcom(kwargs, key, value, tasks_dict)
 
     @staticmethod
     def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
