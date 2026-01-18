@@ -1,5 +1,6 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 
+import fnmatch
 import logging
 import os
 from itertools import chain
@@ -273,6 +274,101 @@ class _DagFactory:
         self.register_dags(dags, globals)
 
 
+def _load_airflowignore(dags_folder: str) -> List[str]:
+    """
+    Loads ignore patterns from .airflowignore file in the dags folder.
+
+    The .airflowignore file follows the same format as Airflow's .airflowignore:
+    - Each line contains a pattern to ignore
+    - Empty lines and lines starting with # are ignored
+    - Patterns support glob-style wildcards
+
+    :param dags_folder: Path to the DAGs folder
+    :type dags_folder: str
+    :returns: List of ignore patterns
+    :rtype: List[str]
+    """
+    ignore_patterns: List[str] = []
+    ignore_file = Path(dags_folder) / ".airflowignore"
+
+    if not ignore_file.exists():
+        return ignore_patterns
+
+    try:
+        with open(ignore_file, "r", encoding="utf-8") as f:
+            for line in f:
+                pattern = line.strip()
+                if pattern and not pattern.startswith("#"):
+                    ignore_patterns.append(pattern)
+    except (OSError, IOError) as e:
+        logging.warning("Failed to read .airflowignore file at %s: %s", ignore_file, e)
+
+    return ignore_patterns
+
+
+def _should_ignore_file(file_path: Path, dags_folder: Path, ignore_patterns: List[str]) -> bool:
+    """
+    Checks if a file should be ignored based on ignore patterns.
+
+    Patterns are matched against both the filename and the relative path from dags_folder.
+    This allows for flexible matching, e.g.:
+    - "test_*.yml" matches any file starting with "test_" and ending with ".yml"
+    - "subdir/*.yaml" matches any .yaml file in the subdir directory
+    - "backup/**/*.yaml" matches any .yaml file in backup directory or any subdirectory
+
+    :param file_path: Path to the file to check
+    :type file_path: Path
+    :param dags_folder: Path to the DAGs folder (base directory)
+    :type dags_folder: Path
+    :param ignore_patterns: List of ignore patterns to match against
+    :type ignore_patterns: List[str]
+    :returns: True if the file should be ignored, False otherwise
+    :rtype: bool
+    """
+    if not ignore_patterns:
+        return False
+
+    try:
+        relative_path = file_path.resolve().relative_to(dags_folder.resolve())
+        relative_path_str = str(relative_path).replace("\\", "/")
+    except (ValueError, OSError):
+        # File is outside dags_folder or path resolution failed, only match by filename
+        relative_path_str = ""
+
+    filename = file_path.name
+
+    def _matches_pattern(pattern: str, filename: str, relative_path_str: str) -> bool:
+        """Checks if a pattern matches the given filename and/or relative path."""
+        if "**" in pattern:
+            prefix, suffix = pattern.split("**", 1)
+            prefix = prefix.rstrip("/")
+            suffix = suffix.lstrip("/")
+
+            if not relative_path_str:
+                # File is outside dags_folder, only match by filename suffix
+                return bool(suffix and fnmatch.fnmatch(filename, suffix))
+
+            if prefix and not relative_path_str.startswith(prefix):
+                return False
+
+            remaining_path = relative_path_str[len(prefix) :].lstrip("/") if prefix else relative_path_str
+
+            if suffix:
+                return fnmatch.fnmatch(remaining_path, suffix) or fnmatch.fnmatch(filename, suffix)
+            else:
+                return True
+        else:
+            return fnmatch.fnmatch(filename, pattern) or (
+                relative_path_str and fnmatch.fnmatch(relative_path_str, pattern)
+            )
+
+    for pattern in ignore_patterns:
+        if _matches_pattern(pattern, filename, relative_path_str):
+            return True
+
+    return False
+
+
 def load_yaml_dags(
     globals_dict: Dict[str, Any],
     dags_folder: str = airflow_conf.get("core", "dags_folder"),
@@ -297,9 +393,6 @@ def load_yaml_dags(
     :param defaults_config_dict: The dictionary that hold default value.
     :param suffix: file suffix to filter `in` what files to scan for dags
     """
-    # TODO: Support ignoring yml files in load_yaml_dags
-    # https://github.com/astronomer/dag-factory/issues/527
-    # chain all file suffixes in a single iterator
     logging.info("Loading DAGs from %s", dags_folder)
     if suffix is None:
         suffix = [".yaml", ".yml"]
@@ -312,9 +405,17 @@ def load_yaml_dags(
         factory = _DagFactory(config_dict=config_dict, defaults_config_dict=defaults_config_dict)
         factory._generate_dags(globals_dict)
     else:
+        dags_folder_path = Path(dags_folder)
+        ignore_patterns = _load_airflowignore(dags_folder)
+
         for suf in suffix:
-            candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
+            candidate_dag_files = list(chain(candidate_dag_files, dags_folder_path.rglob(f"*{suf}")))
+
         for config_file_path in candidate_dag_files:
+            if _should_ignore_file(config_file_path, dags_folder_path, ignore_patterns):
+                logging.debug("Ignoring file %s (matched ignore pattern)", config_file_path)
+                continue
+
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
