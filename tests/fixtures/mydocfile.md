@@ -45,13 +45,13 @@ noviens meosque talia occiderat fecerat cogamque?
 ## Nefasque pone lugubris moveant sceptra
 
 Reddit erat torus cornua pars, sceleris in ecce, illa esse quicquid adicit,
-obstantes. Dum puer egredior, nec telum [veniet](http://www.quo-piget.io/), aura
+obstantes. Dum puer egredior, nec telum [veniet](https://example.com/), aura
 **hic** ambobus septem Aram poteras annis. Traxit pectore: Troiane valebant
 increpat. Thoona fit et sibi adopertaque hanc; virgo natasque essent [quas
-polypus dicens](http://voce.org/corpore-habet) partem genibus, ex.
+polypus dicens](https://example.com/) partem genibus, ex.
 
 > Provolvi ab summa quae verus illis: pronus est agmina flectat sua digna
-> *ille*, longa. [Tantalus](http://tuulmi.org/violentus) Gryneus mihi
+> *ille*, longa. [Tantalus](https://example.com/) Gryneus mihi
 > circumfunditur posse stipitis deprensus porrigit in penetrat digiti! Currus
 > fere canis pectore, odiis, sororia et annis! Adspicit *tu adest* sua inserui
 > Liber! Translucet exigite templis et blanda, orbes gravidus Aeetias qui, et.
