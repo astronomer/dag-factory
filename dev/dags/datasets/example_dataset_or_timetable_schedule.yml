@@ -1,0 +1,16 @@
+consumer_time_schedule_dag:
+  catchup: false
+  default_args:
+    owner: "example_owner"
+    start_date: '2024-01-01'
+  description: "Example DAG consumer scheduled by datasets or timetable"
+  schedule:
+    datasets: "((s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2) | s3://bucket-cjmm/raw/dataset_custom_3)"
+    timetable: 
+      __type__: airflow.timetables.trigger.CronTriggerTimetable
+      cron: "0 1 * * 5"
+      timezone: UTC
+  tasks:
+    - task_id: "task_1"
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 'consumer datasets'"
