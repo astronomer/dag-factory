@@ -244,7 +244,9 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
-          fail_ci_if_error: true
+          # Only fail CI if error when token is available (internal PRs and pushes)
+          # External PRs from forks don't have access to secrets
+          fail_ci_if_error: ${{ secrets.CODECOV_TOKEN != '' }}
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
 
