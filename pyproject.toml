@@ -165,9 +165,6 @@ dependencies = [
     "mike",
     "pymdown-extensions",
     "mkdocs-material",
-    # TODO: Remove it once Airflow 3.1.2 available
-    # Issue: https://github.com/hynek/structlog/issues/769
-    "structlog<25.5.0",
 ]
 
 [tool.hatch.envs.docs.scripts]
