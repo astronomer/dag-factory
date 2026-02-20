@@ -998,7 +998,7 @@ class DagBuilder:
                         datasets_uri = task_params[key]
 
                     if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) for uri in datasets_uri]
+                        task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(
