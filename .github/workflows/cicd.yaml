@@ -243,6 +243,7 @@ jobs:
           coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        if: github.actor != 'dependabot[bot]'
         with:
           # Only fail CI if error when token is available (internal PRs and pushes)
           # External PRs from forks don't have access to secrets
