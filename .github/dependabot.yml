@@ -8,3 +8,5 @@ updates:
       - "dependencies"
     reviewers:
       - "@astronomer/oss-integrations"
+    cooldown:
+      default-days: 7
