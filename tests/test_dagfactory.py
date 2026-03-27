@@ -24,7 +24,7 @@ from tests.utils import get_bash_operator_path
 here = os.path.dirname(__file__)
 
 from dagfactory import dagfactory, load_yaml_dags
-from dagfactory.dagfactory import _DagFactory
+from dagfactory.dagfactory import _DagFactory, _load_airflowignore, _should_ignore_file
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -605,6 +605,169 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
         dags_folder="tests/fixtures",
     )
     assert "Loading DAGs from tests/fixtures" in caplog.messages
+
+
+@pytest.mark.parametrize(
+    "ignore_file_content,expected_patterns",
+    [
+        (None, []),  # File doesn't exist
+        ("", []),  # Empty file
+        (
+            "test_*.yml\n*_test.yaml\n# This is a comment\nold_dags/*.yaml\nbackup/**/*.yml\n",
+            ["test_*.yml", "*_test.yaml", "old_dags/*.yaml", "backup/**/*.yml"],
+        ),
+        ("  test_*.yml  \n    \n*_test.yaml\n", ["test_*.yml", "*_test.yaml"]),
+    ],
+)
+def test_load_airflowignore(tmp_path, ignore_file_content, expected_patterns):
+    """Test that _load_airflowignore loads patterns correctly"""
+    if ignore_file_content is not None:
+        ignore_file = tmp_path / ".airflowignore"
+        ignore_file.write_text(ignore_file_content)
+
+    ignore_patterns = _load_airflowignore(str(tmp_path))
+    assert ignore_patterns == expected_patterns
+    assert "# This is a comment" not in ignore_patterns if ignore_file_content else True
+
+
+def test_load_airflowignore_read_failure(caplog, tmp_path):
+    """Test that _load_airflowignore handles file read failures gracefully"""
+    caplog.set_level(logging.WARNING)
+    ignore_file = tmp_path / ".airflowignore"
+    ignore_file.write_text("test_*.yml\n")
+
+    # Mock open to raise OSError
+    with patch("dagfactory.dagfactory.open", side_effect=OSError("Permission denied")):
+        ignore_patterns = _load_airflowignore(str(tmp_path))
+        assert ignore_patterns == []
+        assert any("Failed to read .airflowignore" in msg for msg in caplog.messages)
+
+
+@pytest.mark.parametrize(
+    "file_path_str,ignore_patterns,expected,outside_dags_folder",
+    [
+        # Basic patterns
+        ("test.yml", [], False, False),
+        ("test_example.yml", ["test_*.yml"], True, False),
+        ("old_dags/dag.yml", ["old_dags/*.yml"], True, False),
+        ("valid_dag.yml", ["test_*.yml", "old_dags/*.yaml"], False, False),
+        # Recursive patterns
+        ("backup/backup_dag.yaml", ["backup/**/*.yaml"], True, False),
+        ("backup/subdir/file.yaml", ["backup/**/*.yaml"], True, False),
+        # Recursive pattern without suffix
+        ("backup/file1.yaml", ["backup/**"], True, False),
+        ("backup/subdir/file2.yaml", ["backup/**"], True, False),
+        ("backup/subdir/nested/file3.yaml", ["backup/**"], True, False),
+        ("other_file.yaml", ["backup/**"], False, False),
+        # Files outside dags_folder
+        ("outside_file.yml", ["outside_*.yml"], True, True),
+        ("outside_file.yml", ["test_*.yml"], False, True),
+        ("backup_file.yaml", ["backup/**/*.yaml"], True, True),
+        ("backup_file.yaml", ["backup/**/*.yml"], False, True),
+    ],
+)
+def test_should_ignore_file(tmp_path, file_path_str, ignore_patterns, expected, outside_dags_folder):
+    """Test that _should_ignore_file matches patterns correctly"""
+    if outside_dags_folder:
+        file_path = tmp_path.parent / file_path_str
+        dags_folder = tmp_path
+    else:
+        file_path = tmp_path / file_path_str
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        dags_folder = tmp_path
+
+    file_path.touch()
+    assert _should_ignore_file(file_path, dags_folder, ignore_patterns) is expected
+
+
+def _create_dag_file(file_path: Path, dag_id: str, bash_operator_path: str) -> None:
+    """Helper function to create a DAG YAML file"""
+    file_path.write_text(
+        f"""
+default:
+  default_args:
+    owner: airflow
+    start_date: 2024-01-01
+{dag_id}:
+  schedule: "@daily"
+  tasks:
+    - task_id: task_1
+      operator: {bash_operator_path}
+      bash_command: echo 1
+"""
+    )
+
+
+def test_load_yaml_dags_with_airflowignore(caplog, tmp_path):
+    """Test that load_yaml_dags respects .airflowignore file"""
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    # Create test DAG files
+    _create_dag_file(tmp_path / "valid_dag.yml", "valid_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "test_ignored.yml", "ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "another_valid.yaml", "another_valid_dag", bash_operator_path)
+
+    # Create .airflowignore file
+    (tmp_path / ".airflowignore").write_text("test_*.yml\n")
+
+    # Load DAGs
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    # Check results
+    assert "valid_dag" in globals_dict
+    assert "another_valid_dag" in globals_dict
+    assert "ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "test_ignored.yml" in msg for msg in caplog.messages)
+
+
+@pytest.mark.parametrize(
+    "dag_files,ignore_patterns,expected_loaded,expected_not_loaded",
+    [
+        # Subdirectory patterns
+        (
+            {"valid_dag.yml": "valid_dag", "old_dags/old_dag.yml": "old_dag", "backup/backup_dag.yaml": "backup_dag"},
+            "old_dags/*.yml\nbackup/**/*.yaml\n",
+            ["valid_dag"],
+            ["old_dag", "backup_dag"],
+        ),
+        # No ignore file
+        ({"dag1.yml": "dag1", "dag2.yaml": "dag2"}, None, ["dag1", "dag2"], []),
+        # Comments in ignore file
+        (
+            {"valid_dag.yml": "valid_dag", "test_dag.yml": "test_dag"},
+            "# This is a comment\n# Another comment\ntest_*.yml\n# Yet another comment\n",
+            ["valid_dag"],
+            ["test_dag"],
+        ),
+    ],
+)
+def test_load_yaml_dags_with_airflowignore_scenarios(
+    tmp_path, dag_files, ignore_patterns, expected_loaded, expected_not_loaded
+):
+    """Test various .airflowignore scenarios"""
+    bash_operator_path = get_bash_operator_path()
+
+    # Create DAG files
+    for file_path_str, dag_id in dag_files.items():
+        file_path = tmp_path / file_path_str
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        _create_dag_file(file_path, dag_id, bash_operator_path)
+
+    # Create .airflowignore file if provided
+    if ignore_patterns:
+        (tmp_path / ".airflowignore").write_text(ignore_patterns)
+
+    # Load DAGs
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    # Check results
+    for dag_id in expected_loaded:
+        assert dag_id in globals_dict, f"Expected {dag_id} to be loaded"
+    for dag_id in expected_not_loaded:
+        assert dag_id not in globals_dict, f"Expected {dag_id} to be ignored"
 
 
 @pytest.mark.skipif(
