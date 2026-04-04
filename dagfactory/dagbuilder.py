@@ -209,6 +209,23 @@ class DagBuilder:
         return dag_params
 
     @staticmethod
+    def _resolve_user_defined_macros(macros: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively resolves user_defined_macros values. String values are imported
+        as callables via their dotted module path. Nested dicts are resolved recursively.
+        Other types are passed through as-is.
+        """
+        resolved: Dict[str, Any] = {}
+        for key, value in macros.items():
+            if isinstance(value, str):
+                resolved[key] = import_string(value)
+            elif isinstance(value, dict):
+                resolved[key] = DagBuilder._resolve_user_defined_macros(value)
+            else:
+                resolved[key] = value
+        return resolved
+
+    @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
         # Only handle if HttpOperator/HttpSensor are available
         if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
@@ -808,6 +825,11 @@ class DagBuilder:
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
+
+        if dag_params.get("user_defined_macros"):
+            dag_kwargs["user_defined_macros"] = DagBuilder._resolve_user_defined_macros(
+                dag_params["user_defined_macros"]
+            )
 
         dag_kwargs["start_date"] = dag_params.get("start_date", None)
         dag_kwargs["end_date"] = dag_params.get("end_date", None)
