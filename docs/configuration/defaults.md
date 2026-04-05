@@ -146,6 +146,42 @@ The DAG will be using the default configuration defined in all the following fil
 
 Following this precedence order. Illustrating, if the DAG `owner` is declared both in `a/b/c/defaults.yml` and in `a/defaults.yml`, the one that takes precedence is the `a/b/c/defaults.yml`, since it is closer to the DAG YAML file.
 
+## Timezone
+
+DAG Factory uses an optional **`timezone`** string when turning YAML date values into timezone-aware datetimes. If you omit it, **`UTC`** is used. Use any name supported by [Pendulum](https://pendulum.eustace.io/docs/#timezone) (for example `UTC`, `America/New_York`, `Europe/Berlin`).
+
+Timezone applies in **two separate places**; they are not interchangeable:
+
+1. **DAG-level `timezone`** (top-level on each DAG, or inherited from the YAML `default:` block via merging) — used when parsing the DAG’s own **`start_date`** and **`end_date`** fields.
+2. **`default_args.timezone`** — used only when parsing **`start_date`** and **`end_date`** inside **`default_args`**.
+
+```yaml title="DAG-level and default_args timezone"
+default:
+  timezone: UTC
+  default_args:
+    start_date: "2024-01-01"
+    timezone: America/New_York   # applies only to default_args.start_date / end_date
+
+my_dag:
+  timezone: Europe/London        # applies to this DAG's start_date / end_date (if set)
+  schedule: "0 3 * * *"
+  tasks:
+    - task_id: t1
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo hello"
+```
+
+Relative values such as `2 days` are resolved with a midnight anchor in the chosen timezone (see implementation in `dagfactory.utils.get_datetime`).
+
+A dedicated example lives in the test fixtures: `tests/fixtures_without_default_yaml/dag_factory_timezone.yml` (DAG-level `timezone` vs `default_args.timezone`). The shared canonical fixture `tests/fixtures/dag_factory.yml` sets `timezone: UTC` on `example_dag`.
+
+!!! note
+    DAG-level `timezone` is a **DAG Factory** configuration key used during YAML loading. It is **not** passed to Airflow’s `DAG()` constructor; only the resulting aware datetimes are. If you put `timezone` under `default_args`, that key remains in the `default_args` mapping passed to Airflow along with other defaults—ensure your Airflow version tolerates it for your operators, or keep `timezone` only at DAG / `default` level if you only need it for DAG-level dates.
+
+### Cron schedule and timezone
+
+A plain cron string in **`schedule`** follows Airflow’s scheduler rules for your Airflow version. To set the **timetable’s** timezone explicitly, model the schedule as a **`CronTriggerTimetable`** (see [Custom Python objects](custom_py_object.md#3-airflow-timetable)). For other schedule types, see [Schedule](schedule.md).
+
 ## Combining multiple methods of defining default values
 
 Given the various ways to specify top-level DAG arguments, including `default_args`, the following precedence order is applied if multiple places define the same argument:
