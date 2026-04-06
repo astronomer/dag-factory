@@ -106,6 +106,12 @@ pip-selfcheck.json
 # vscode
 .vscode
 
+# Claude Code
+.claude/
+
+# Cursor
+.cursor/
+
 # IntelliJ
 .idea/*
 
