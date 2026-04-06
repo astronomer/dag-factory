@@ -56,6 +56,12 @@ def one_day_ago(execution_date: datetime):
     return execution_date - timedelta(days=1)
 
 
+def add_days(ds: str, num_days: int) -> str:
+    """Custom Jinja2 macro that offsets a date string by num_days days."""
+    dt = datetime.strptime(ds, "%Y-%m-%d")
+    return (dt + timedelta(days=num_days)).strftime("%Y-%m-%d")
+
+
 def read_params(params: dict[str, Any]) -> None:
     print("params: ", params)
     print("model_version:", params["model_version"])
