@@ -14,18 +14,9 @@ from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Uni
 
 import pendulum
 import yaml
+from airflow.utils.module_loading import import_string
 
 from dagfactory.exceptions import DagFactoryException
-
-
-def _import_from_string(class_path):
-    """Dynamically import a class from a string."""
-    try:
-        module_path, class_name = class_path.rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        return getattr(module, class_name)
-    except (ImportError, AttributeError) as e:
-        raise ImportError(f"Could not import '{class_path}': {e}")
 
 
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
@@ -416,7 +407,7 @@ def cast_with_type(data):
             args = casted_args
 
         if "__type__" in data:
-            class_type = _import_from_string(data["__type__"])
+            class_type = import_string(data["__type__"])
             return class_type(*args, **processed)
 
         return processed

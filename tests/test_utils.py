@@ -417,14 +417,14 @@ class DummyClassWithArgs:
 
 class TestCustomType:
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_cast_simple_dict_with_type(self, mock_import):
         mock_import.return_value = DummyClass
         data = {"__type__": "path.to.DummyClass", "a": 1, "b": 2}
         result = cast_with_type(data)
         assert result == DummyClass(a=1, b=2)
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_nested_dict(self, mock_import):
         mock_import.return_value = DummyClass
         data = {"__type__": "path.to.DummyClass", "a": {"__type__": "path.to.DummyClass", "a": 10, "b": 20}, "b": 5}
@@ -436,7 +436,7 @@ class TestCustomType:
         result = cast_with_type(data)
         assert result == [1, 2, {"x": 3}]
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_typed_list(self, mock_import):
         mock_import.return_value = DummyClass
         data = {
