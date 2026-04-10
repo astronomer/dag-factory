@@ -1558,3 +1558,175 @@ class TestTopologicalSortTasks:
         assert task_names.index("task1") < task_names.index("task3")
         assert task_names.index("task2") < task_names.index("task4")
         assert task_names.index("task3") < task_names.index("task4")
+
+
+# ---------------------------------------------------------------------------
+# Tests for DagBuilder._build_dag_kwargs
+# ---------------------------------------------------------------------------
+
+
+class TestBuildDagKwargs:
+    """Unit tests for the spec-driven _build_dag_kwargs helper."""
+
+    def _call(self, dag_params):
+        return dagbuilder.DagBuilder._build_dag_kwargs(dag_params)
+
+    # ------------------------------------------------------------------
+    # Basic: only params present in dag_params are forwarded
+    # ------------------------------------------------------------------
+
+    def test_only_present_params_are_included(self):
+        result = self._call({"dag_id": "my_dag"})
+        assert result == {"dag_id": "my_dag"}
+
+    def test_multiple_simple_params(self):
+        result = self._call({"dag_id": "my_dag", "catchup": False, "max_active_runs": 3})
+        assert result["dag_id"] == "my_dag"
+        assert result["catchup"] is False
+        assert result["max_active_runs"] == 3
+        # Params not in dag_params must not appear
+        assert "description" not in result
+        assert "dagrun_timeout" not in result
+
+    # ------------------------------------------------------------------
+    # required flag
+    # ------------------------------------------------------------------
+
+    def test_required_param_missing_raises(self):
+        with pytest.raises(dagbuilder.DagFactoryConfigException, match="dag_id"):
+            self._call({})
+
+    # ------------------------------------------------------------------
+    # deprecated_alias: concurrency → max_active_tasks
+    # ------------------------------------------------------------------
+    # deprecated_in_favor_of
+    # ------------------------------------------------------------------
+
+    def test_deprecated_param_emits_warning_and_maps_to_canonical(self):
+        with pytest.warns(DeprecationWarning, match="concurrency"):
+            result = self._call({"dag_id": "d", "concurrency": 5})
+        assert result["max_active_tasks"] == 5
+        assert "concurrency" not in result
+
+    def test_canonical_key_used_without_warning_when_deprecated_absent(self):
+        import warnings as _warnings
+
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("error", DeprecationWarning)
+            result = self._call({"dag_id": "d", "max_active_tasks": 7})
+        assert result["max_active_tasks"] == 7
+
+    def test_canonical_wins_when_both_deprecated_and_canonical_set(self):
+        # concurrency entry comes first in spec and writes max_active_tasks=5,
+        # then max_active_tasks entry overwrites with the canonical value 7.
+        with pytest.warns(DeprecationWarning, match="concurrency"):
+            result = self._call({"dag_id": "d", "concurrency": 5, "max_active_tasks": 7})
+        assert result["max_active_tasks"] == 7
+
+    # ------------------------------------------------------------------
+    # min_version gating
+    # ------------------------------------------------------------------
+
+    def test_min_version_param_skipped_silently_when_absent(self):
+        # dag_display_name requires >= 2.9.0; if not set, no warning, just absent
+        import warnings as _warnings
+
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("error")
+            result = self._call({"dag_id": "d"})
+        assert "dag_display_name" not in result
+
+    def test_min_version_param_included_when_version_satisfied(self):
+        # Patch INSTALLED_AIRFLOW_VERSION to a version that satisfies 2.9.0
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("2.9.0")):
+            result = self._call({"dag_id": "d", "dag_display_name": "Pretty DAG"})
+        assert result.get("dag_display_name") == "Pretty DAG"
+
+    def test_min_version_violation_emits_warning_and_ignores_param(self):
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("2.8.0")):
+            with pytest.warns(UserWarning, match="dag_display_name"):
+                result = self._call({"dag_id": "d", "dag_display_name": "Pretty DAG"})
+        assert "dag_display_name" not in result
+
+    # ------------------------------------------------------------------
+    # max_version gating
+    # ------------------------------------------------------------------
+
+    def test_max_version_param_included_when_version_below_limit(self):
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("2.10.0")):
+            result = self._call({"dag_id": "d", "default_view": "graph"})
+        assert result.get("default_view") == "graph"
+
+    def test_max_version_violation_emits_warning_and_ignores_param(self):
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("3.0.0")):
+            with pytest.warns(UserWarning, match="default_view"):
+                result = self._call({"dag_id": "d", "default_view": "graph"})
+        assert "default_view" not in result
+
+    def test_max_version_param_absent_no_warning_even_above_limit(self):
+        # default_view not set → no warning, even on Airflow 3+
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+        import warnings as _warnings
+
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("3.0.0")):
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("error", UserWarning)
+                result = self._call({"dag_id": "d"})
+        assert "default_view" not in result
+
+    def test_sla_miss_callback_max_version(self):
+        from packaging import version as pkg_version
+        from unittest.mock import patch
+
+        # Included on Airflow < 3.1.0
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("3.0.0")):
+            result = self._call({"dag_id": "d", "sla_miss_callback": "my_cb"})
+        assert result.get("sla_miss_callback") == "my_cb"
+
+        # Ignored on Airflow >= 3.1.0
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", pkg_version.parse("3.1.0")):
+            with pytest.warns(UserWarning, match="sla_miss_callback"):
+                result = self._call({"dag_id": "d", "sla_miss_callback": "my_cb"})
+        assert "sla_miss_callback" not in result
+
+    # ------------------------------------------------------------------
+    # transform
+    # ------------------------------------------------------------------
+
+    def test_transform_is_applied_to_value(self):
+        from dagfactory import dagbuilder as db
+        from dagfactory.dagbuilder import _DAG_PARAM_SPEC
+
+        # Temporarily inject a spec entry with a transform
+        transform_called_with = []
+
+        def my_transform(value):
+            transform_called_with.append(value)
+            return value * 2
+
+        extra = {"key": "max_active_runs", "transform": my_transform}
+        patched_spec = _DAG_PARAM_SPEC + [extra]
+
+        with __import__("unittest.mock", fromlist=["patch"]).patch.object(db, "_DAG_PARAM_SPEC", patched_spec):
+            result = self._call({"dag_id": "d", "max_active_runs": 3})
+
+        assert transform_called_with == [3]
+        # The last entry in the patched spec overwrites the earlier plain entry
+        assert result["max_active_runs"] == 6
+
+    def test_no_transform_copies_value_directly(self):
+        result = self._call({"dag_id": "d", "max_active_runs": 4})
+        assert result["max_active_runs"] == 4

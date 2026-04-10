@@ -13,7 +13,6 @@ from datetime import datetime
 from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from airflow import configuration
 from packaging import version
 
 from dagfactory.utils import check_dict_key
@@ -78,6 +77,46 @@ from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 # these are params only used in the DAG factory, not in the tasks
 SYSTEM_PARAMS: List[str] = ["operator", "dependencies", "task_group_name", "parent_group_name"]
 INSTALLED_AIRFLOW_VERSION = version.parse(AIRFLOW_VERSION)
+
+# Declarative spec for DAG-level parameters passed to the DAG constructor.
+# Keys:
+#   key                    - the DAG constructor kwarg name (also the dag_params lookup key)
+#   required               - raise DagFactoryConfigException if absent
+#   min_version            - only applicable when Airflow >= this version (Version object); warn+skip if param is set below this
+#   max_version            - only applicable when Airflow <  this version (Version object); warn+skip if param is set at/above this
+#   deprecated_in_favor_of - this key is deprecated; when present, warn and write the value to the given canonical key.
+#                            must appear before the canonical key in the spec so the canonical key wins when both are set.
+#                            warning message is auto-generated from key and deprecated_in_favor_of.
+#   transform              - optional module-level callable applied to the raw dag_params value before writing to dag_kwargs.
+#                            must be defined at module level (before this spec) to avoid forward-reference issues.
+_DAG_PARAM_SPEC: List[Dict[str, Any]] = [
+    {"key": "dag_id", "required": True},
+    {"key": "dag_display_name", "min_version": version.parse("2.9.0")},
+    {"key": "description"},
+    {
+        "key": "concurrency",
+        "deprecated_in_favor_of": "max_active_tasks",
+    },
+    {"key": "max_active_tasks"},
+    {"key": "catchup"},
+    {"key": "max_active_runs"},
+    {"key": "dagrun_timeout"},
+    {"key": "default_view", "max_version": version.parse("3.0.0")},
+    {"key": "orientation", "max_version": version.parse("3.0.0")},
+    {"key": "template_searchpath"},
+    {"key": "render_template_as_native_obj"},
+    {"key": "sla_miss_callback", "max_version": version.parse("3.1.0")},
+    {"key": "on_success_callback"},
+    {"key": "on_failure_callback"},
+    {"key": "default_args"},
+    {"key": "doc_md"},
+    {"key": "access_control"},
+    {"key": "is_paused_upon_creation"},
+    {"key": "params"},
+    {"key": "start_date"},
+    {"key": "end_date"},
+    {"key": "timetable"},
+]
 
 
 class DagBuilder:
@@ -573,6 +612,7 @@ class DagBuilder:
             datasets_uri = utils.get_datasets_uri_yaml_file(file, list(dataset_map.keys()))
             return [Dataset(uri) for uri in datasets_uri]
 
+    # TODO: migrate configure_schedule() out of the class, so it can be used as a transform in _build_dag_kwargs().
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
         """
@@ -730,6 +770,63 @@ class DagBuilder:
 
         raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
 
+    @staticmethod
+    def _build_dag_kwargs(dag_params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Builds the kwargs dict passed to the DAG constructor by iterating over _DAG_PARAM_SPEC.
+
+        Only parameters explicitly present in dag_params are included; absent parameters are
+        left to Airflow's own defaults. Version-gated parameters are skipped silently when the
+        installed Airflow version does not apply, but a UserWarning is emitted when a user
+        explicitly sets a parameter that is incompatible with the installed version.
+        """
+        dag_kwargs: Dict[str, Any] = {}
+        installed = INSTALLED_AIRFLOW_VERSION
+
+        for spec in _DAG_PARAM_SPEC:
+            key: str = spec["key"]
+            param_present: bool = key in dag_params
+
+            if spec.get("required") and not param_present:
+                raise DagFactoryConfigException(f"Required DAG parameter '{key}' is missing.")
+
+            if not param_present:
+                continue
+
+            min_ver = spec.get("min_version")
+            max_ver = spec.get("max_version")
+
+            if min_ver and installed < min_ver:
+                warnings.warn(
+                    f"DAG parameter '{key}' requires Airflow >= {min_ver} "
+                    f"(installed: {AIRFLOW_VERSION}). The parameter will be ignored.",
+                    UserWarning,
+                )
+                continue
+
+            if max_ver and installed >= max_ver:
+                warnings.warn(
+                    f"DAG parameter '{key}' is not supported in Airflow >= {max_ver} "
+                    f"(installed: {AIRFLOW_VERSION}). The parameter will be ignored.",
+                    UserWarning,
+                )
+                continue
+
+            deprecated_in_favor_of: str = spec.get("deprecated_in_favor_of", "")
+            transform = spec.get("transform")
+            value = dag_params[key]
+            value = transform(value) if transform else value
+            if deprecated_in_favor_of:
+                warnings.warn(
+                    f"'{key}' is deprecated. Please use '{deprecated_in_favor_of}' instead.",
+                    DeprecationWarning,
+                )
+                dag_kwargs[deprecated_in_favor_of] = value
+            else:
+                dag_kwargs[key] = value
+
+        return dag_kwargs
+
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -744,73 +841,9 @@ class DagBuilder:
 
         dag_params["task_groups"] = DagBuilder._normalise_task_groups_config(dag_params.get("task_groups"))
 
-        dag_kwargs: Dict[str, Any] = {}
-
-        dag_kwargs["dag_id"] = dag_params["dag_id"]
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
-            dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
-
-        dag_kwargs["description"] = dag_params.get("description", None)
-
-        if "concurrency" in dag_params:
-            warnings.warn(
-                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
-            )
-            dag_kwargs["max_active_tasks"] = dag_params["concurrency"]
-        else:
-            dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
-            )
-
-        if dag_params.get("timetable"):
-            dag_kwargs["timetable"] = dag_params.get("timetable")
-
-        dag_kwargs["catchup"] = dag_params.get(
-            "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
-        )
-
-        dag_kwargs["max_active_runs"] = dag_params.get(
-            "max_active_runs", configuration.conf.getint("core", "max_active_runs_per_dag")
-        )
-
-        dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
-
-        if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-
-            dag_kwargs["default_view"] = dag_params.get(
-                "default_view", configuration.conf.get("webserver", "dag_default_view")
-            )
-
-            dag_kwargs["orientation"] = dag_params.get(
-                "orientation", configuration.conf.get("webserver", "dag_orientation")
-            )
-
-        dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
-
-        dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
-
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
-            # sla_miss_callback is fully-deprecated as of 3.1.0
-            dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
-
-        dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
-
-        dag_kwargs["on_failure_callback"] = dag_params.get("on_failure_callback", None)
-
-        dag_kwargs["default_args"] = dag_params.get("default_args", None)
-
-        dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
-
-        dag_kwargs["access_control"] = dag_params.get("access_control", None)
-
-        dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
+        dag_kwargs: Dict[str, Any] = DagBuilder._build_dag_kwargs(dag_params)
 
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
-
-        dag_kwargs["params"] = dag_params.get("params", None)
-
-        dag_kwargs["start_date"] = dag_params.get("start_date", None)
-        dag_kwargs["end_date"] = dag_params.get("end_date", None)
 
         dag: DAG = DAG(**dag_kwargs)
 
