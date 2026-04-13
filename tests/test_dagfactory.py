@@ -11,6 +11,8 @@ import pytest
 import yaml
 from airflow.version import version as AIRFLOW_VERSION
 
+import dagfactory.settings as dagfactory_settings
+
 try:
     from airflow.sdk.definitions.variable import Variable  # noqa: F401
 except ImportError:
@@ -349,12 +351,23 @@ def test_generate_dags_with_removal_valid():
     assert "fake_example_dag" not in globals()
 
 
-def test_generate_dags_invalid():
-    with pytest.raises(Exception):
-        load_yaml_dags(
-            globals_dict=globals(),
-            config_filepath=INVALID_DAG_FACTORY,
-        )
+def test_generate_dags_invalid_non_strict(monkeypatch, caplog):
+    """In non-strict mode (default), a broken DAG file is logged but does not raise."""
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", False)
+    output: dict = {}
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict=output, config_filepath=INVALID_DAG_FACTORY)
+    assert "example_dag" not in output, "Broken DAG must not be registered"
+    assert any("example_dag" in msg for msg in caplog.messages), "Error should be logged"
+
+
+def test_generate_dags_invalid_strict(monkeypatch):
+    """In strict mode, a broken DAG file raises DagFactoryConfigException."""
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException):
+        load_yaml_dags(globals_dict={}, config_filepath=INVALID_DAG_FACTORY)
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
@@ -539,7 +552,9 @@ def test_set_callback_after_loading_config():
 
 
 def test_build_dag_with_global_default():
-    dags = _DagFactory(config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
+    dags, _failed = _DagFactory(
+        config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT
+    ).build_dags()
 
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
@@ -567,7 +582,7 @@ def test_build_dag_with_global_dag_level_defaults():
     td = _DagFactory(config_dict=config)
     with pytest.MonkeyPatch.context() as m:
         m.setattr(td, "_global_default_args", lambda: global_defaults)
-        dags = td.build_dags()
+        dags, _failed = td.build_dags()
 
     assert dags["test_dag"].catchup == False
     assert "global_tag" in dags["test_dag"].tags
@@ -578,7 +593,7 @@ def test_build_dag_with_global_dag_level_defaults():
 
 
 def test_build_dag_with_global_default_dict():
-    dags = _DagFactory(
+    dags, _failed = _DagFactory(
         config_dict=DAG_FACTORY_CONFIG,
         defaults_config_dict={
             "default_args": {"start_date": "2025-01-01", "owner": "global_owner", "depends_on_past": True}
@@ -754,7 +769,7 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
 
     some_dag = _DagFactory(str(dag_file), defaults_config_path=str(tmp_path / "a"))
 
-    result = some_dag.build_dags()
+    result, _failed = some_dag.build_dags()
     dag = result["second_example_dag"]
     assert dag.default_args["a_param"] == "a"  # accumulates properties define throughout the directories tree
     assert dag.default_args["b_param"] == "b"  # accumulates properties define throughout the directories tree
@@ -854,3 +869,101 @@ example_dict_dag_yaml:
     assert len(dag.tasks) == 2
     # Validate grouping
     assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
+
+
+# ---------------------------------------------------------------------------
+# Per-DAG error isolation tests
+# ---------------------------------------------------------------------------
+
+MULTI_DAG_CONFIG_WITH_BROKEN_DAG = {
+    "default": {
+        "default_args": {
+            "owner": "airflow",
+            "start_date": "2020-01-01",
+        }
+    },
+    "good_dag": {
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": "airflow.operators.bash.BashOperator",
+                "bash_command": "echo hello",
+            }
+        },
+    },
+    "broken_dag": {
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": "dagfactory.operators.nonexistent.BrokenOperator",
+                "bash_command": "echo broken",
+            }
+        },
+    },
+}
+
+
+def test_build_dags_non_strict_partial_success(monkeypatch, caplog):
+    """In non-strict mode a broken DAG is skipped; the healthy DAG is still registered."""
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", False)
+
+    output: dict = {}
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict=output, config_dict=MULTI_DAG_CONFIG_WITH_BROKEN_DAG)
+
+    assert "good_dag" in output, "Healthy DAG must be registered in non-strict mode"
+    assert "broken_dag" not in output, "Broken DAG must not be registered"
+    assert any("broken_dag" in msg for msg in caplog.messages), (
+        "Error for broken_dag should be logged"
+    )
+
+
+def test_build_dags_strict_mode_raises_on_failure(monkeypatch):
+    """In strict mode a broken DAG causes DagFactoryConfigException to be raised."""
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
+    output: dict = {}
+
+    with pytest.raises(DagFactoryConfigException) as exc_info:
+        load_yaml_dags(globals_dict=output, config_dict=MULTI_DAG_CONFIG_WITH_BROKEN_DAG)
+
+    assert "good_dag" in output
+    assert "broken_dag" in str(exc_info.value)
+    assert "Strict mode" in str(exc_info.value)
+
+
+def test_build_dags_strict_mode_all_valid_no_exception(monkeypatch):
+    """Strict mode must not raise when every DAG in the config is valid."""
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
+
+    valid_config = {
+        "default": {
+            "default_args": {
+                "owner": "airflow",
+                "start_date": "2020-01-01",
+            }
+        },
+        "dag_a": {
+            "schedule": "0 1 * * *",
+            "tasks": {
+                "t1": {
+                    "operator": "airflow.operators.bash.BashOperator",
+                    "bash_command": "echo a",
+                }
+            },
+        },
+        "dag_b": {
+            "schedule": "0 2 * * *",
+            "tasks": {
+                "t1": {
+                    "operator": "airflow.operators.bash.BashOperator",
+                    "bash_command": "echo b",
+                }
+            },
+        },
+    }
+    output: dict = {}
+    load_yaml_dags(globals_dict=output, config_dict=valid_config)
+    assert "dag_a" in output
+    assert "dag_b" in output

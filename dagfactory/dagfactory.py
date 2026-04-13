@@ -14,6 +14,7 @@ try:
 except ImportError:
     from airflow.models import DAG
 
+from dagfactory import settings
 from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAMES
 from dagfactory.dagbuilder import DagBuilder
@@ -215,7 +216,7 @@ class _DagFactory:
         """
         return self.config.get("default", {})
 
-    def build_dags(self) -> Dict[str, DAG]:
+    def build_dags(self) -> tuple[Dict[str, DAG], List[str]]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
@@ -232,23 +233,29 @@ class _DagFactory:
         else:
             dag_level_args = {}
 
+        failed_dag_names: List[str] = []
+
         for dag_name, dag_config in dag_configs.items():
-            # Apply DAG-level default arguments from global_default_args to each dag_config,
-            # this is helpful because some arguments are not supported in default_args.
-            if isinstance(global_default_args, dict):
-                dag_config = {**dag_level_args, **dag_config}
+            try:
+                # Apply DAG-level default arguments from global_default_args to each dag_config,
+                # this is helpful because some arguments are not supported in default_args.
+                if isinstance(global_default_args, dict):
+                    dag_config = {**dag_level_args, **dag_config}
 
-            dag_config["task_groups"] = dag_config.get("task_groups", {})
-            dag_builder: DagBuilder = DagBuilder(
-                dag_name=dag_name,
-                dag_config=dag_config,
-                default_config=default_config,
-                yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
-            )
-            dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-            dags[dag["dag_id"]]: DAG = dag["dag"]
+                dag_config["task_groups"] = dag_config.get("task_groups", {})
+                dag_builder: DagBuilder = DagBuilder(
+                    dag_name=dag_name,
+                    dag_config=dag_config,
+                    default_config=default_config,
+                    yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
+                )
+                dag: Dict[str, Union[str, DAG]] = dag_builder.build()
+                dags[dag["dag_id"]]: DAG = dag["dag"]
+            except Exception:  # pylint: disable=broad-except
+                logging.exception("Failed to build DAG '%s'", dag_name)
+                failed_dag_names.append(dag_name)
 
-        return dags
+        return dags, failed_dag_names
 
     # pylint: disable=redefined-builtin
     @staticmethod
@@ -269,8 +276,17 @@ class _DagFactory:
         :param globals: The globals() from the file used to generate DAGs. The dag_id
             must be passed into globals() for Airflow to import
         """
-        dags: Dict[str, Any] = self.build_dags()
+        dags, failed_dag_names = self.build_dags()
         self.register_dags(dags, globals)
+        if settings.strict_mode and failed_dag_names:
+            failed_dag_names_str = ", ".join(failed_dag_names)
+            config_path = self.config_file_path or "<config_dict>"
+            raise DagFactoryConfigException(
+                "Strict mode enabled: failed to build "
+                f"{len(failed_dag_names)} DAG(s) from config '{config_path}'. "
+                f"Failed DAGs: {failed_dag_names_str}. "
+                "Set AIRFLOW__DAG_FACTORY__STRICT_MODE=false to skip broken DAGs and keep loading valid DAGs."
+            )
 
 
 def load_yaml_dags(
