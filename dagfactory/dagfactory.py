@@ -336,8 +336,6 @@ def load_yaml_dags(
             try:
                 factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
                 factory._generate_dags(globals_dict)
-            except DagFactoryConfigException:
-                raise
             except Exception:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
             else:

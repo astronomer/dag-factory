@@ -370,17 +370,17 @@ def test_generate_dags_invalid_strict(monkeypatch):
         load_yaml_dags(globals_dict={}, config_filepath=INVALID_DAG_FACTORY)
 
 
-def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
-    """In strict mode, errors from directory-scanned files propagate (not swallowed)."""
+def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path, caplog):
+    """In strict mode, directory scan still loads other files; per-file strict errors are logged only."""
     import shutil
-
-    from dagfactory.exceptions import DagFactoryConfigException
 
     shutil.copy(INVALID_DAG_FACTORY, tmp_path / "invalid_dag_factory.yml")
 
     monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
-    with pytest.raises(DagFactoryConfigException):
-        load_yaml_dags(globals_dict={}, dags_folder=str(tmp_path))
+    output: dict = {}
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict=output, dags_folder=str(tmp_path))
+    assert any("Failed to load dag from" in msg for msg in caplog.messages), caplog.messages
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
