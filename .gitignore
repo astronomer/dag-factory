@@ -107,10 +107,12 @@ pip-selfcheck.json
 .vscode
 
 # Claude Code
-.claude/
+.claude/settings.local.json
+.claude/plans/
+CLAUDE.local.md
 
 # Cursor
-.cursor/
+.cursor/plans/
 
 # IntelliJ
 .idea/*
