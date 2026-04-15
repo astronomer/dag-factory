@@ -1558,3 +1558,67 @@ class TestTopologicalSortTasks:
         assert task_names.index("task1") < task_names.index("task3")
         assert task_names.index("task2") < task_names.index("task4")
         assert task_names.index("task3") < task_names.index("task4")
+
+
+# Tests for DagBuilder._resolve_user_defined_macros
+class TestResolveUserDefinedMacros:
+    def test_string_value_is_imported_as_callable(self):
+        result = DagBuilder._resolve_user_defined_macros({"ds": "pendulum.now"})
+        import pendulum as _pendulum
+
+        assert result["ds"] is _pendulum.now
+
+    def test_non_string_primitive_passed_through(self):
+        macros = {"my_int": 42, "my_float": 3.14, "my_list": [1, 2, 3]}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        assert result["my_int"] == 42
+        assert result["my_float"] == 3.14
+        assert result["my_list"] == [1, 2, 3]
+
+    def test_callable_passed_through(self):
+        def my_func():
+            pass
+
+        result = DagBuilder._resolve_user_defined_macros({"fn": my_func})
+        assert result["fn"] is my_func
+
+    def test_nested_dict_resolved_recursively(self):
+        macros = {"outer": {"ds": "pendulum.now"}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["outer"]["ds"] is _pendulum.now
+
+    def test_deeply_nested_dict_resolved(self):
+        macros = {"a": {"b": {"ds": "pendulum.now"}}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["a"]["b"]["ds"] is _pendulum.now
+
+    def test_empty_dict_returns_empty_dict(self):
+        assert DagBuilder._resolve_user_defined_macros({}) == {}
+
+    def test_mixed_values_resolved_correctly(self):
+        macros = {"imported": "pendulum.now", "literal": 99}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["imported"] is _pendulum.now
+        assert result["literal"] == 99
+
+    def test_non_dict_input_raises_exception(self):
+        with pytest.raises(DagFactoryConfigException, match="expected a mapping/dict"):
+            DagBuilder._resolve_user_defined_macros("not_a_dict")  # type: ignore[arg-type]
+
+    def test_non_dict_nested_value_raises_exception(self):
+        # A list nested inside is not a dict — the outer loop treats it as "other type"
+        # and passes it through. Only non-dict at the top level (or in a nested dict
+        # slot that itself should be a dict) raises.  Here we verify a non-dict at the
+        # top level raises with the default path label.
+        with pytest.raises(DagFactoryConfigException, match="user_defined_macros"):
+            DagBuilder._resolve_user_defined_macros([1, 2, 3])  # type: ignore[arg-type]
+
+    def test_invalid_import_string_raises(self):
+        with pytest.raises(Exception):
+            DagBuilder._resolve_user_defined_macros({"bad": "nonexistent.module.func"})
