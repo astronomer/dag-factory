@@ -171,7 +171,7 @@ my_dag:
       bash_command: "echo hello"
 ```
 
-Relative values such as `2 days` are resolved with a midnight anchor in the chosen timezone (see implementation in `dagfactory.utils.get_datetime`).
+Relative values such as `2 days` are anchored to the **start of the current calendar day** in the chosen timezone, then shifted backward by the parsed delta (see `dagfactory.utils.get_datetime`).
 
 A dedicated example lives in the test fixtures: `tests/fixtures_without_default_yaml/dag_factory_timezone.yml` (DAG-level `timezone` vs `default_args.timezone`). The shared canonical fixture `tests/fixtures/dag_factory.yml` sets `timezone: UTC` on `example_dag`.
 

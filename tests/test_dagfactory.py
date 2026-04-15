@@ -689,8 +689,6 @@ def test_dag_level_start():
         assert dag.tasks[0].sla == datetime.timedelta(seconds=10)
 
 
-
-
 def test_build_dags_timezone_example():
     """DAG-level and default_args timezone keys yield expected aware datetimes (see docs/configuration/defaults.md)."""
     path = os.path.abspath(DAG_FACTORY_TIMEZONE)
@@ -701,6 +699,7 @@ def test_build_dags_timezone_example():
     assert dags["timezone_dag_level"].start_date == paris
     nyc = DateTime(2024, 7, 1, 0, 0, 0, tzinfo=Timezone("America/New_York"))
     assert dags["timezone_default_args"].default_args["start_date"] == nyc
+
 
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
     # Create structure: tmp_path/a/b/c/dag.yml
