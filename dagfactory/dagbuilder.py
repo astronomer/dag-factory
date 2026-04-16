@@ -30,7 +30,11 @@ except ImportError:
 
 from airflow.datasets import Dataset
 from airflow.models import MappedOperator
-from airflow.utils.module_loading import import_string
+
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 
 try:  # Try Airflow 3
