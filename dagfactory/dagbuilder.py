@@ -30,7 +30,14 @@ except ImportError:
 
 from airflow.datasets import Dataset
 from airflow.models import MappedOperator
-from airflow.utils.module_loading import import_string
+try:
+    from airflow.utils.module_loading import import_string
+except ImportError:
+    import importlib
+
+    def import_string(dotted_path: str):  # type: ignore[misc]
+        module_path, attr = dotted_path.rsplit(".", 1)
+        return getattr(importlib.import_module(module_path), attr)
 from airflow.version import version as AIRFLOW_VERSION
 
 try:  # Try Airflow 3
