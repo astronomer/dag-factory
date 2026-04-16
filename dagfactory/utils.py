@@ -27,6 +27,7 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     """
     Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
+    Relative times use start of the current day in ``timezone``, then subtract the parsed delta.
 
     :param date_value: either a datetime (or date), a date string or a relative time as string
     :type date_value: Uniont[datetime, date, str]
@@ -46,7 +47,7 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
-        now: datetime = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0).replace(tzinfo=local_tz)
+        now: datetime = pendulum.now(local_tz).start_of("day")
         if not rel_delta:
             return now
         return now - rel_delta
