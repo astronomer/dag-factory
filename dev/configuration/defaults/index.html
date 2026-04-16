@@ -890,6 +890,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#cron-schedule-and-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cron schedule and timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1887,6 +1898,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#cron-schedule-and-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cron schedule and timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2121,19 +2143,52 @@ It is one of DAG Factory's most powerful features; using defaults allows for the
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span>└──<span class="w"> </span>defaults.yml
 </span></code></pre></div>
 <p>Assuming you instantiate the DAG by using:</p>
-<p><code>``python
-load_yaml_dags(
-   "a/b/c/some_dags.yml",
-   default_args_config_path=default_args_config_path="a"
-)</code></p>
-<p>The DAG will be using the default configuration defined in all the following files:</p>
-<ul>
-<li><code>a/b/c/some_dags.yml</code></li>
-<li><code>a/b/c/defaults.yml</code></li>
-<li><code>a/b/defaults.yml</code></li>
-<li><code>a/defaults.yml</code></li>
-</ul>
-<p>Following this precedence order. Illustrating, if the DAG <code>owner</code> is declared both in <code>a/b/c/defaults.yml</code> and in <code>a/defaults.yml</code>, the one that takes precedence is the <code>a/b/c/defaults.yml</code>, since it is closer to the DAG YAML file.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">load_yaml_dags</span><span class="p">(</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>   <span class="s2">&quot;a/b/c/some_dags.yml&quot;</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>   <span class="n">default_args_config_path</span><span class="o">=</span><span class="n">default_args_config_path</span><span class="o">=</span><span class="s2">&quot;a&quot;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">)</span><span class="err">`</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">The</span> <span class="n">DAG</span> <span class="n">will</span> <span class="n">be</span> <span class="n">using</span> <span class="n">the</span> <span class="n">default</span> <span class="n">configuration</span> <span class="n">defined</span> <span class="ow">in</span> <span class="nb">all</span> <span class="n">the</span> <span class="n">following</span> <span class="n">files</span><span class="p">:</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="o">-</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">some_dags</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="o">-</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="o">-</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="o">-</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="n">Following</span> <span class="n">this</span> <span class="n">precedence</span> <span class="n">order</span><span class="o">.</span> <span class="n">Illustrating</span><span class="p">,</span> <span class="k">if</span> <span class="n">the</span> <span class="n">DAG</span> <span class="err">`</span><span class="n">owner</span><span class="err">`</span> <span class="ow">is</span> <span class="n">declared</span> <span class="n">both</span> <span class="ow">in</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span> <span class="ow">and</span> <span class="ow">in</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span><span class="p">,</span> <span class="n">the</span> <span class="n">one</span> <span class="n">that</span> <span class="n">takes</span> <span class="n">precedence</span> <span class="ow">is</span> <span class="n">the</span> <span class="err">`</span><span class="n">a</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">defaults</span><span class="o">.</span><span class="n">yml</span><span class="err">`</span><span class="p">,</span> <span class="n">since</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">closer</span> <span class="n">to</span> <span class="n">the</span> <span class="n">DAG</span> <span class="n">YAML</span> <span class="n">file</span><span class="o">.</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1">## Timezone</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="n">DAG</span> <span class="n">Factory</span> <span class="n">uses</span> <span class="n">an</span> <span class="n">optional</span> <span class="o">**</span><span class="err">`</span><span class="n">timezone</span><span class="err">`</span><span class="o">**</span> <span class="n">string</span> <span class="n">when</span> <span class="n">turning</span> <span class="n">YAML</span> <span class="n">date</span> <span class="n">values</span> <span class="n">into</span> <span class="n">timezone</span><span class="o">-</span><span class="n">aware</span> <span class="n">datetimes</span><span class="o">.</span> <span class="n">If</span> <span class="n">you</span> <span class="n">omit</span> <span class="n">it</span><span class="p">,</span> <span class="o">**</span><span class="err">`</span><span class="n">UTC</span><span class="err">`</span><span class="o">**</span> <span class="ow">is</span> <span class="n">used</span><span class="o">.</span> <span class="n">Use</span> <span class="nb">any</span> <span class="n">name</span> <span class="n">supported</span> <span class="n">by</span> <span class="p">[</span><span class="n">Pendulum</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">pendulum</span><span class="o">.</span><span class="n">eustace</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="c1">#timezone) (for example `UTC`, `America/New_York`, `Europe/Berlin`).</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="n">Timezone</span> <span class="n">applies</span> <span class="ow">in</span> <span class="o">**</span><span class="n">two</span> <span class="n">separate</span> <span class="n">places</span><span class="o">**</span><span class="p">;</span> <span class="n">they</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">interchangeable</span><span class="p">:</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="mf">1.</span> <span class="o">**</span><span class="n">DAG</span><span class="o">-</span><span class="n">level</span> <span class="err">`</span><span class="n">timezone</span><span class="err">`</span><span class="o">**</span> <span class="p">(</span><span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">on</span> <span class="n">each</span> <span class="n">DAG</span><span class="p">,</span> <span class="ow">or</span> <span class="n">inherited</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">YAML</span> <span class="err">`</span><span class="n">default</span><span class="p">:</span><span class="err">`</span> <span class="n">block</span> <span class="n">via</span> <span class="n">merging</span><span class="p">)</span> <span class="err">—</span> <span class="n">used</span> <span class="n">when</span> <span class="n">parsing</span> <span class="n">the</span> <span class="n">DAG</span><span class="err">’</span><span class="n">s</span> <span class="n">own</span> <span class="o">**</span><span class="err">`</span><span class="n">start_date</span><span class="err">`</span><span class="o">**</span> <span class="ow">and</span> <span class="o">**</span><span class="err">`</span><span class="n">end_date</span><span class="err">`</span><span class="o">**</span> <span class="n">fields</span><span class="o">.</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="mf">2.</span> <span class="o">**</span><span class="err">`</span><span class="n">default_args</span><span class="o">.</span><span class="n">timezone</span><span class="err">`</span><span class="o">**</span> <span class="err">—</span> <span class="n">used</span> <span class="n">only</span> <span class="n">when</span> <span class="n">parsing</span> <span class="o">**</span><span class="err">`</span><span class="n">start_date</span><span class="err">`</span><span class="o">**</span> <span class="ow">and</span> <span class="o">**</span><span class="err">`</span><span class="n">end_date</span><span class="err">`</span><span class="o">**</span> <span class="n">inside</span> <span class="o">**</span><span class="err">`</span><span class="n">default_args</span><span class="err">`</span><span class="o">**.</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="err">```</span><span class="n">yaml</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;DAG-level and default_args timezone&quot;</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="n">default</span><span class="p">:</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>  <span class="n">timezone</span><span class="p">:</span> <span class="n">UTC</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>  <span class="n">default_args</span><span class="p">:</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>    <span class="n">start_date</span><span class="p">:</span> <span class="s2">&quot;2024-01-01&quot;</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>    <span class="n">timezone</span><span class="p">:</span> <span class="n">America</span><span class="o">/</span><span class="n">New_York</span>   <span class="c1"># applies only to default_args.start_date / end_date</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="n">my_dag</span><span class="p">:</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>  <span class="n">timezone</span><span class="p">:</span> <span class="n">Europe</span><span class="o">/</span><span class="n">London</span>        <span class="c1"># applies to this DAG&#39;s start_date / end_date (if set)</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>  <span class="n">schedule</span><span class="p">:</span> <span class="s2">&quot;0 3 * * *&quot;</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a>  <span class="n">tasks</span><span class="p">:</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a>    <span class="o">-</span> <span class="n">task_id</span><span class="p">:</span> <span class="n">t1</span>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a>      <span class="n">operator</span><span class="p">:</span> <span class="n">airflow</span><span class="o">.</span><span class="n">operators</span><span class="o">.</span><span class="n">bash</span><span class="o">.</span><span class="n">BashOperator</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a>      <span class="n">bash_command</span><span class="p">:</span> <span class="s2">&quot;echo hello&quot;</span>
+</span></code></pre></div>
+<p>Relative values such as <code>2 days</code> are anchored to the <strong>start of the current calendar day</strong> in the chosen timezone, then shifted backward by the parsed delta (see <code>dagfactory.utils.get_datetime</code>).</p>
+<p>A dedicated example lives in the test fixtures: <code>tests/fixtures_without_default_yaml/dag_factory_timezone.yml</code> (DAG-level <code>timezone</code> vs <code>default_args.timezone</code>). The shared canonical fixture <code>tests/fixtures/dag_factory.yml</code> sets <code>timezone: UTC</code> on <code>example_dag</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DAG-level <code>timezone</code> is a <strong>DAG Factory</strong> configuration key used during YAML loading. It is <strong>not</strong> passed to Airflow’s <code>DAG()</code> constructor; only the resulting aware datetimes are. If you put <code>timezone</code> under <code>default_args</code>, that key remains in the <code>default_args</code> mapping passed to Airflow along with other defaults—ensure your Airflow version tolerates it for your operators, or keep <code>timezone</code> only at DAG / <code>default</code> level if you only need it for DAG-level dates.</p>
+</div>
+<h3 id="cron-schedule-and-timezone">Cron schedule and timezone</h3>
+<p>A plain cron string in <strong><code>schedule</code></strong> follows Airflow’s scheduler rules for your Airflow version. To set the <strong>timetable’s</strong> timezone explicitly, model the schedule as a <strong><code>CronTriggerTimetable</code></strong> (see <a href="../custom_py_object/#3-airflow-timetable">Custom Python objects</a>). For other schedule types, see <a href="../schedule/">Schedule</a>.</p>
 <h2 id="combining-multiple-methods-of-defining-default-values">Combining multiple methods of defining default values</h2>
 <p>Given the various ways to specify top-level DAG arguments, including <code>default_args</code>, the following precedence order is applied if multiple places define the same argument:</p>
 <ol>
