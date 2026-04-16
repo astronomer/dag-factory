@@ -596,8 +596,7 @@ def test_build():
     assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
-        assert actual["dag"].dag_display_name == "Pretty example dag"
+    assert actual["dag"].dag_display_name == "Pretty example dag"
     assert sorted(actual["dag"].tags) == sorted(["tag1", "tag2", "dagfactory"])
 
 
@@ -747,16 +746,7 @@ def test_set_callback_exceptions():
     Validate that exceptions are being throw for an incompatible version of Airflow, as well as for an invalid type
     passed to the parameter config.
     """
-    # Test a versioning exception
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
-        error_message = "Cannot parse callbacks with an Airflow version less than 2.0.0"
-        with pytest.raises(DagFactoryConfigException, match=error_message):
-            DagBuilder.set_callback(
-                parameters={"dummy_key": "dummy_value"},
-                callback_type="on_execute_callback",
-            )
-
-    # Now, test an exception parsing the parameters dictionary
+    # Test an exception parsing the parameters dictionary
     invalid_type_passed_message = "Invalid type passed to on_execute_callback"
     with pytest.raises(DagFactoryConfigException, match=invalid_type_passed_message):
         DagBuilder.set_callback(
@@ -798,7 +788,7 @@ def test_make_dag_with_callbacks():
     assert dag.on_failure_callback.__name__ == "print_context_callback"
 
     # sla_miss_callback is removed as of Airflow 3.1.0
-    if version.parse("2.6.0") < version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
         dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)
@@ -848,22 +838,19 @@ def test_make_dag_with_callbacks_default_args():
         "on_retry_callback",
         "on_skipped_callback",
     ):
-        # on_skipped_callback could only be added to default_args starting in Airflow version 2.7.0
-        # TODO: Address this, this should be 2.7.0
-        if not (version.parse(AIRFLOW_VERSION) < version.parse("2.9.0") and callback_type == "on_skipped_callback"):
-            assert callback_type in default_args
-            assert callable(default_args.get(callback_type))
-            assert default_args.get(callback_type).__name__ == "print_context_callback"
+        assert callback_type in default_args
+        assert callable(default_args.get(callback_type))
+        assert default_args.get(callback_type).__name__ == "print_context_callback"
 
-            # Assert that these callbacks have been applied at the Task-level
-            assert callback_type in task_1.__dict__
-            # Airflow 3 callback type is sequence
-            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-                assert callable(task_1.__dict__[callback_type][0])
-                assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
-            else:
-                assert callable(task_1.__dict__[callback_type])
-                assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+        # Assert that these callbacks have been applied at the Task-level
+        assert callback_type in task_1.__dict__
+        # Airflow 3 callback type is sequence
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(task_1.__dict__[callback_type][0])
+            assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
+        else:
+            assert callable(task_1.__dict__[callback_type])
+            assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
         # Assert that these callbacks have been applied at the Task-level
         assert "on_failure_callback" in task_1.__dict__
@@ -893,24 +880,17 @@ def test_make_dag_with_task_group_callbacks():
     # Import the DAG using the callback config that was build above
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
-    # This will be done only once; validate the exception that is raised if trying to use an invalid version of Airflow
-    # when building TaskGroups
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
-        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
-        with pytest.raises(Exception, match=error_message):
-            td.build()
-    else:
-        dag = td.build()["dag"]  # Also, pull the dag
+    dag = td.build()["dag"]
 
-        # Basic checks to ensure the DAG was built as expected
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-            assert dag.task_count == 4
-        assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
-        assert (
-            "task_group_1.task_1" in dag.task_dict
-            and "task_group_1.task_2" in dag.task_dict
-            and "task_group_1.task_3" in dag.task_dict
-        )
+    # Basic checks to ensure the DAG was built as expected
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        assert dag.task_count == 4
+    assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
+    assert (
+        "task_group_1.task_1" in dag.task_dict
+        and "task_group_1.task_2" in dag.task_dict
+        and "task_group_1.task_3" in dag.task_dict
+    )
 
 
 @pytest.mark.callbacks
@@ -929,45 +909,43 @@ def test_make_dag_with_task_group_callbacks_default_args():
     # if the version was not met. Here, we'll pass testing
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
-    # TODO: This should be 2.2.0
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):  # This is a work-around for now
-        dag = td.build()["dag"]  # Also, pull the dag
+    dag = td.build()["dag"]
 
-        # Now, loop through each of the callback types and validate
-        assert "task_group_1" in td.dag_config["task_groups"]
-        task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
+    # Now, loop through each of the callback types and validate
+    assert "task_group_1" in td.dag_config["task_groups"]
+    task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
 
-        # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
-        # grouped into task_group_1
-        assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
-        # Airflow 3 callback type is sequence
-        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
-            assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
-        else:
-            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
-            assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
+    # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
+    # grouped into task_group_1
+    assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
+    # Airflow 3 callback type is sequence
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
+        assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
+    else:
+        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
+        assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
 
-        # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
-        # validated but checking the type, "callab-ility", name, and parameters configured with it
-        # Airflow 3 callback type is sequence
-        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
-            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
-            assert (
-                dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
-                == "empty_callback_with_params"
-            )
-            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
-            assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
-        else:
-            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
-            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-            assert (
-                dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-            )
-            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
-            assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
+    # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
+    # validated but checking the type, "callab-ility", name, and parameters configured with it
+    # Airflow 3 callback type is sequence
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
+        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
+        assert (
+            dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
+            == "empty_callback_with_params"
+        )
+        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
+    else:
+        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
+        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
+        assert (
+            dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
+        )
+        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
 
 @pytest.mark.callbacks
@@ -1063,44 +1041,35 @@ def test_make_task_with_duplicated_partial_kwargs():
 
 def test_dynamic_task_mapping():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        error_message = "Dynamic task mapping available only in Airflow >= 2.3.0"
-        with pytest.raises(Exception, match=error_message):
-            td.build()
-    else:
-        operator = get_python_operator_path()
-        task_params = {
-            "task_id": "process",
-            "python_callable_name": "expand_task",
-            "python_callable_file": os.path.realpath(__file__),
-            "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": {"request_output": "request.output"}},
-        }
-        actual = td.make_task(operator, task_params)
-        assert isinstance(actual, MappedOperator)
+    operator = get_python_operator_path()
+    task_params = {
+        "task_id": "process",
+        "python_callable_name": "expand_task",
+        "python_callable_file": os.path.realpath(__file__),
+        "partial": {"op_kwargs": {"test_id": "test"}},
+        "expand": {"op_args": {"request_output": "request.output"}},
+    }
+    actual = td.make_task(operator, task_params)
+    assert isinstance(actual, MappedOperator)
 
 
 def test_replace_expand_string_with_xcom():
+    from airflow.models.xcom_arg import XComArg
+
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        with pytest.raises(Exception):
-            td.build()
-    else:
-        from airflow.models.xcom_arg import XComArg
+    task_conf_output = {"expand": {"key_1": "task_1.output"}}
+    task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
 
-        task_conf_output = {"expand": {"key_1": "task_1.output"}}
-        task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
+    task1 = PythonOperator(
+        task_id="task1",
+        python_callable=lambda: print("hello"),
+    )
 
-        task1 = PythonOperator(
-            task_id="task1",
-            python_callable=lambda: print("hello"),
-        )
-
-        tasks_dict = {"task_1": task1}
-        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
-        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
-        assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
-        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+    tasks_dict = {"task_1": task1}
+    updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
+    updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
+    assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+    assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
 
 @pytest.mark.skipif(
@@ -1184,8 +1153,8 @@ def test_make_nested_task_groups():
 class TestSchedule:
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset(self):
         schedule_data = load_yaml_file(str(schedule_path / "dataset_as_list.yml"))
@@ -1195,8 +1164,8 @@ class TestSchedule:
         ]
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
@@ -1211,8 +1180,8 @@ class TestSchedule:
         assert schedule_data["schedule"].__eq__(expected)
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_nested(self):
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
