@@ -8,7 +8,6 @@ import pytest
 from dagfactory import utils
 from dagfactory.utils import cast_with_type
 
-NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 CET = pendulum.timezone("Europe/Amsterdam")
 UTC = pendulum.timezone("UTC")
 
@@ -26,7 +25,7 @@ def test_get_start_date_datetime_no_timezone():
 
 
 def test_get_start_date_relative_time_no_timezone():
-    expected = NOW.replace(tzinfo=UTC) - datetime.timedelta(days=1)
+    expected = pendulum.now(UTC).start_of("day") - datetime.timedelta(days=1)
     actual = utils.get_datetime("1 day")
     assert actual == expected
 
@@ -44,7 +43,7 @@ def test_get_start_date_datetime_timezone():
 
 
 def test_get_start_date_relative_time_timezone():
-    expected = NOW.replace(tzinfo=CET) - datetime.timedelta(days=1)
+    expected = pendulum.now(CET).start_of("day") - datetime.timedelta(days=1)
     actual = utils.get_datetime("1 day", "Europe/Amsterdam")
     assert actual == expected
 
