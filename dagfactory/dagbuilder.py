@@ -21,15 +21,27 @@ from dagfactory.utils import check_dict_key
 try:
     from airflow.sdk.bases.operator import BaseOperator
     from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.taskgroup import TaskGroup
     from airflow.sdk.definitions.variable import Variable
 except ImportError:
     from airflow.models import BaseOperator, Variable
     from airflow.models.dag import DAG
+    from airflow.utils.task_group import TaskGroup
 
-from airflow.datasets import Dataset
-from airflow.models import MappedOperator
-from airflow.utils.module_loading import import_string
-from airflow.utils.task_group import TaskGroup
+try:
+    from airflow.sdk.definitions.asset import Asset as Dataset
+except ImportError:
+    from airflow.datasets import Dataset
+
+try:
+    from airflow.sdk.definitions.mappedoperator import MappedOperator
+except ImportError:
+    from airflow.models import MappedOperator
+
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 
 try:  # Try Airflow 3
