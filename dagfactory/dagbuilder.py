@@ -781,7 +781,6 @@ class DagBuilder:
         explicitly sets a parameter that is incompatible with the installed version.
         """
         dag_kwargs: Dict[str, Any] = {}
-        installed = INSTALLED_AIRFLOW_VERSION
 
         for spec in _DAG_PARAM_SPEC:
             key: str = spec["key"]
@@ -796,18 +795,18 @@ class DagBuilder:
             min_ver = spec.get("min_version")
             max_ver = spec.get("max_version")
 
-            if min_ver and installed < min_ver:
+            if min_ver and INSTALLED_AIRFLOW_VERSION < min_ver:
                 warnings.warn(
                     f"DAG parameter '{key}' requires Airflow >= {min_ver} "
-                    f"(installed: {AIRFLOW_VERSION}). The parameter will be ignored.",
+                    f"(installed: {INSTALLED_AIRFLOW_VERSION}). The parameter will be ignored.",
                     UserWarning,
                 )
                 continue
 
-            if max_ver and installed >= max_ver:
+            if max_ver and INSTALLED_AIRFLOW_VERSION >= max_ver:
                 warnings.warn(
                     f"DAG parameter '{key}' is not supported in Airflow >= {max_ver} "
-                    f"(installed: {AIRFLOW_VERSION}). The parameter will be ignored.",
+                    f"(installed: {INSTALLED_AIRFLOW_VERSION}). The parameter will be ignored.",
                     UserWarning,
                 )
                 continue
