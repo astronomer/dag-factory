@@ -1720,7 +1720,7 @@ class TestBuildDagKwargs:
         extra = {"key": "max_active_runs", "transform": my_transform}
         patched_spec = _DAG_PARAM_SPEC + [extra]
 
-        with __import__("unittest.mock", fromlist=["patch"]).patch.object(db, "_DAG_PARAM_SPEC", patched_spec):
+        with patch.object(db, "_DAG_PARAM_SPEC", patched_spec):
             result = self._call({"dag_id": "d", "max_active_runs": 3})
 
         assert transform_called_with == [3]
