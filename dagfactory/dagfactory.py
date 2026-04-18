@@ -4,7 +4,7 @@ import logging
 import os
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 from airflow.configuration import conf as airflow_conf
@@ -216,7 +216,7 @@ class _DagFactory:
         """
         return self.config.get("default", {})
 
-    def build_dags(self) -> tuple[Dict[str, DAG], List[str]]:
+    def build_dags(self) -> Tuple[Dict[str, DAG], List[str]]:
         """Build DAGs using the config file."""
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()

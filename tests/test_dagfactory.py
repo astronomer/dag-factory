@@ -376,8 +376,6 @@ def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
     A valid YAML alongside a broken one must still have its DAGs registered,
     proving the scan does not stop at the first strict failure.
     """
-    import shutil
-
     from dagfactory.exceptions import DagFactoryConfigException
 
     shutil.copy(INVALID_DAG_FACTORY, tmp_path / "invalid_dag_factory.yml")
