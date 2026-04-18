@@ -38,10 +38,14 @@ logs the error with a full traceback and continues building the remaining DAGs i
 Healthy DAGs are still registered and visible in Airflow. Only the broken DAG is skipped.
 
 **Strict mode (`strict_mode = True`):**
-DAG Factory still attempts to build every DAG in the file (so all failures are collected and logged),
-but after the loop it raises a `DagFactoryConfigException` listing every DAG that failed.
-This causes Airflow to record a file-level import error, making the problem visible in the Airflow UI
-and preventing any partially-loaded state from going unnoticed.
+DAG Factory still attempts to build every DAG in the file (so all failures are collected and logged).
+Healthy DAGs built before any failure are registered into the Airflow globals, then a
+`DagFactoryConfigException` is raised listing every DAG that failed.
+This causes Airflow to record a file-level import error, making the problem visible in the Airflow UI.
+
+When using directory scan (no `config_filepath` argument), DAG Factory processes **all** YAML files
+before raising. Errors from each file are collected and combined into a single exception at the end,
+so you see every failure at once rather than stopping at the first broken file.
 
 Strict mode is recommended for CI/CD pipelines and environments where silent failures are not acceptable.
 

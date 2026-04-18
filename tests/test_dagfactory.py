@@ -370,17 +370,36 @@ def test_generate_dags_invalid_strict(monkeypatch):
         load_yaml_dags(globals_dict={}, config_filepath=INVALID_DAG_FACTORY)
 
 
-def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path, caplog):
-    """In strict mode, directory scan still loads other files; per-file strict errors are logged only."""
+def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
+    """In strict mode, directory scan processes ALL files before raising.
+
+    A valid YAML alongside a broken one must still have its DAGs registered,
+    proving the scan does not stop at the first strict failure.
+    """
     import shutil
+
+    from dagfactory.exceptions import DagFactoryConfigException
 
     shutil.copy(INVALID_DAG_FACTORY, tmp_path / "invalid_dag_factory.yml")
 
+    (tmp_path / "valid_dag_factory.yml").write_text(
+        "healthy_dag:\n"
+        "  schedule: '0 1 * * *'\n"
+        "  default_args:\n"
+        "    owner: airflow\n"
+        "    start_date: '2020-01-01'\n"
+        "  tasks:\n"
+        "    task_1:\n"
+        "      operator: airflow.operators.bash.BashOperator\n"
+        "      bash_command: echo hello\n"
+    )
+
     monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
     output: dict = {}
-    with caplog.at_level(logging.ERROR):
+    with pytest.raises(DagFactoryConfigException):
         load_yaml_dags(globals_dict=output, dags_folder=str(tmp_path))
-    assert any("Failed to load dag from" in msg for msg in caplog.messages), caplog.messages
+
+    assert "healthy_dag" in output, "Valid DAG from a separate file must be registered even when strict mode raises"
 
 
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")

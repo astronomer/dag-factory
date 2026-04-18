@@ -330,13 +330,18 @@ def load_yaml_dags(
     else:
         for suf in suffix:
             candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
+        strict_errors: List[DagFactoryConfigException] = []
         for config_file_path in candidate_dag_files:
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
                 factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
                 factory._generate_dags(globals_dict)
+            except DagFactoryConfigException as e:
+                strict_errors.append(e)
             except Exception:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
             else:
                 logging.info("DAG loaded: %s", config_file_path)
+        if strict_errors:
+            raise DagFactoryConfigException(" | ".join(str(e) for e in strict_errors))
