@@ -405,8 +405,6 @@ def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
 
 def test_directory_scan_passes_defaults_config_path(tmp_path):
     """defaults_config_path passed to load_yaml_dags must reach _DagFactory during directory scan."""
-    from unittest.mock import call, patch
-
     (tmp_path / "my_dag.yml").write_text(
         "my_dag:\n"
         "  schedule: '0 1 * * *'\n"
