@@ -178,25 +178,19 @@ class DagBuilder:
                         parameters=dag_params, callback_type=callback_type, has_name_and_file=True
                     )
 
-            # SLAs are defined at the DAG-level, and will be applied to every task.
-            # https://www.astronomer.io/docs/learn/error-notifications-in-airflow/. Here, we are not going to add
-            # callbacks for sla_miss_callback, or on_skipped_callback if the Airflow version is less than 2.7.0
-            if (callback_type != "sla_miss_callback") or not (
-                callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")
-            ):
-                # Next, check for a callback at the Task-level using default_args
-                if utils.check_dict_key(dag_params["default_args"], callback_type):
-                    dag_params["default_args"][callback_type]: Callable = self.set_callback(
-                        parameters=dag_params["default_args"], callback_type=callback_type
-                    )
+            # Next, check for a callback at the Task-level using default_args
+            if utils.check_dict_key(dag_params["default_args"], callback_type):
+                dag_params["default_args"][callback_type]: Callable = self.set_callback(
+                    parameters=dag_params["default_args"], callback_type=callback_type
+                )
 
-                # Finally, check for file path and name at the Task-level using default_args
-                if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") and utils.check_dict_key(
-                    dag_params["default_args"], f"{callback_type}_file"
-                ):
-                    dag_params["default_args"][callback_type] = self.set_callback(
-                        parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
-                    )
+            # Finally, check for file path and name at the Task-level using default_args
+            if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") and utils.check_dict_key(
+                dag_params["default_args"], f"{callback_type}_file"
+            ):
+                dag_params["default_args"][callback_type] = self.set_callback(
+                    parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
+                )
 
         if utils.check_dict_key(dag_params, "template_searchpath"):
             if isinstance(dag_params["template_searchpath"], (list, str)) and utils.check_template_searchpath(
@@ -358,13 +352,7 @@ class DagBuilder:
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
-        # The Airflow version needs to be at least 2.2.0, and default args must be present. Basically saying here: if
-        # it's not the case that we're using at least Airflow 2.2.0 and default_args are present, then return the
-        # TaskGroup configuration without doing anything
-        if not (
-            version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
-            and isinstance(task_group_conf.get("default_args"), dict)
-        ):
+        if not isinstance(task_group_conf.get("default_args"), dict):
             return task_group_conf
 
         # Check the callback types that can be in the default_args of the TaskGroup
@@ -375,10 +363,6 @@ class DagBuilder:
             "on_retry_callback",
             "on_skipped_callback",  # This is only available AIRFLOW_VERSION >= 2.7.0
         ]:
-            # on_skipped_callback can only be added to the default_args of a TaskGroup for AIRFLOW_VERSION >= 2.7.0
-            if callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"):
-                continue
-
             # First, check for a str, str with params, or provider callback
             if utils.check_dict_key(task_group_conf["default_args"], callback_type):
                 task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
@@ -573,17 +557,10 @@ class DagBuilder:
         :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
         :rtype: Any
         """
-        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
         datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-
-        if is_airflow_version_at_least_2_9:
-            map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
-            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
-            evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-            return evaluated_condition
-        else:
-            datasets_uri = utils.get_datasets_uri_yaml_file(file, list(dataset_map.keys()))
-            return [Dataset(uri) for uri in datasets_uri]
+        map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
+        dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
+        return DagBuilder.safe_eval(datasets_conditions, dataset_map)
 
     @staticmethod
     def configure_schedule(dag_params: Dict[str, Any], dag_kwargs: Dict[str, Any]) -> None:
@@ -609,7 +586,6 @@ class DagBuilder:
         schedule_key = "schedule"
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
             has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
 
             if has_schedule_attr:
@@ -625,7 +601,7 @@ class DagBuilder:
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
                     dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
 
-                elif has_datasets_attr and is_airflow_version_at_least_2_9:
+                elif has_datasets_attr:
                     datasets = schedule["datasets"]
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
                     dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
@@ -759,8 +735,7 @@ class DagBuilder:
         dag_kwargs: Dict[str, Any] = {}
 
         dag_kwargs["dag_id"] = dag_params["dag_id"]
-        if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
-            dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
+        dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
 
         dag_kwargs["description"] = dag_params.get("description", None)
 
@@ -1064,11 +1039,6 @@ class DagBuilder:
 
         expand_kwargs = decorator_kwargs.pop("expand", {})
         partial_kwargs = decorator_kwargs.pop("partial", {})
-
-        if ("map_index_template" in decorator_kwargs) and (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")):
-            raise DagFactoryConfigException(
-                "The dynamic task mapping argument `map_index_template` is only supported since Airflow 2.7"
-            )
 
         if expand_kwargs and partial_kwargs:
             if callable_kwargs:
