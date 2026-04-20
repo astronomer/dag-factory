@@ -30,34 +30,8 @@ Each option can also be set via the standard Airflow environment variable conven
 | `[dag_factory] strict_mode` | `False` |
 | `AIRFLOW__DAG_FACTORY__STRICT_MODE` | `false` |
 
-Controls how DAG Factory handles errors that occur while building individual DAGs from a YAML config file.
+By default, DAGs that are misformatted never raise an error, which can mislead users into thinking that the lack of 
+an error means all DAGs have been rendered. whe `AIRFLOW__DAG_FACTORY__STRICT_MODE = true`, DAG Factory raises an error to all failed DAGs, 
+causing Airflow to record a file-level import error and making the problem visible in the Airflow UI. This is the recommended mode for
+CI/CD pipelines where silent failures are not acceptable.
 
-**Default behaviour (`strict_mode = False`):**
-When a single DAG definition fails to build (e.g. invalid operator, missing required field), DAG Factory
-logs the error with a full traceback and continues building the remaining DAGs in the same file.
-Healthy DAGs are still registered and visible in Airflow. Only the broken DAG is skipped.
-
-**Strict mode (`strict_mode = True`):**
-DAG Factory still attempts to build every DAG in the file (so all failures are collected and logged).
-Healthy DAGs built before any failure are registered into the Airflow globals, then a
-`DagFactoryConfigException` is raised listing every DAG that failed.
-This causes Airflow to record a file-level import error, making the problem visible in the Airflow UI.
-
-When using directory scan (no `config_filepath` argument), DAG Factory processes **all** YAML files
-before raising. Errors from each file are collected and combined into a single exception at the end,
-so you see every failure at once rather than stopping at the first broken file.
-
-Strict mode is recommended for CI/CD pipelines and environments where silent failures are not acceptable.
-
-**Enable via environment variable:**
-
-```bash
-export AIRFLOW__DAG_FACTORY__STRICT_MODE=true
-```
-
-**Enable via `airflow.cfg`:**
-
-```ini
-[dag_factory]
-strict_mode = True
-```
