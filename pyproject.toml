@@ -27,7 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "apache-airflow>=2.4",
+    "apache-airflow>=2.9",
     "pyyaml",
     "packaging",
     "typer"
@@ -79,7 +79,7 @@ dev-dependencies = [
 
 # Respect existing constraints for Airflow compatibility
 constraint-dependencies = [
-    "apache-airflow>=2.4",
+    "apache-airflow>=2.9",
 ]
 
 [tool.uv.workspace]
@@ -109,15 +109,7 @@ dependencies = [
 pre-install-commands = ["sh scripts/test/pre-install-airflow.sh {matrix:airflow} {matrix:python}"]
 
 [[tool.hatch.envs.tests.matrix]]
-python = ["3.10"]
-airflow = ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
-
-[[tool.hatch.envs.tests.matrix]]
-python = ["3.11"]
-airflow = ["2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
-
-[[tool.hatch.envs.tests.matrix]]
-python = ["3.12"]
+python = ["3.10", "3.11", "3.12"]
 airflow = ["2.9", "2.10", "2.11", "3.0"]
 
 

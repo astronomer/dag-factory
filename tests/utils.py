@@ -182,11 +182,7 @@ def one_hour_ago(execution_date: datetime):
 
 
 def get_http_sensor_path():
-    airflow_version = version.parse(AIRFLOW_VERSION)
-    if airflow_version < version.parse("2.4.0"):
-        return "airflow.sensors.http_sensor.HttpSensor"
-    else:
-        return "airflow.providers.http.sensors.http.HttpSensor"
+    return "airflow.providers.http.sensors.http.HttpSensor"
 
 
 def get_bash_operator_path():

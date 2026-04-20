@@ -451,20 +451,10 @@ def test_directory_scan_non_strict_mode_logs_yaml_parse_error(monkeypatch, tmp_p
     assert any("broken_syntax.yml" in msg for msg in caplog.messages), "Parse error should be logged"
 
 
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
-def test_kubernetes_pod_operator_dag_gte_2_7():
+def test_kubernetes_pod_operator_dag():
     load_yaml_dags(
         globals_dict=globals(),
         config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR,
-    )
-    assert "example_dag" in globals()
-
-
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("2.7.0"), reason="Requires Airflow < 2.7.0")
-def test_kubernetes_pod_operator_dag_lt_2_7():
-    load_yaml_dags(
-        globals_dict=globals(),
-        config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7,
     )
     assert "example_dag" in globals()
 

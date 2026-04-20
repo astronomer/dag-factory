@@ -10,7 +10,7 @@ resolution-markers = [
 ]
 
 [manifest]
-constraints = [{ name = "apache-airflow", specifier = ">=2.4" }]
+constraints = [{ name = "apache-airflow", specifier = ">=2.9" }]
 
 [[package]]
 name = "a2wsgi"
@@ -957,7 +957,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "apache-airflow", specifier = ">=2.4" },
+    { name = "apache-airflow", specifier = ">=2.9" },
     { name = "apache-airflow-providers-cncf-kubernetes", marker = "extra == 'all'", specifier = ">=4.4.0" },
     { name = "apache-airflow-providers-cncf-kubernetes", marker = "extra == 'kubernetes'", specifier = ">=4.4.0" },
     { name = "apache-airflow-providers-common-sql", marker = "extra == 'all'", specifier = ">=1.2.0" },
