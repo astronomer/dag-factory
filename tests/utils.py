@@ -65,9 +65,7 @@ def new_test_dag(dag: DAG) -> DagRun:
 
 
 def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
-    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-        return new_test_dag(dag)
-    return test_old_dag(dag=dag, conn_file_path=conn_file_path)
+    return new_test_dag(dag)
 
 
 @provide_session
