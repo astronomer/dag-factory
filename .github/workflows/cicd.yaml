@@ -9,7 +9,7 @@ on:
   # your changes won't run here. you need to temporarily add your branch to
   # the `branches` list above.
   pull_request:
-    branches: [main]
+    branches: [main, add-airflow-3.1-support]
   # run on releases
   release:
     types: ["published"]
