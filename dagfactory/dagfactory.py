@@ -335,12 +335,22 @@ def load_yaml_dags(
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
-                factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
+                factory = _DagFactory(
+                    config_file_abs_path,
+                    defaults_config_path=defaults_config_path,
+                    defaults_config_dict=defaults_config_dict,
+                )
                 factory._generate_dags(globals_dict)
             except DagFactoryConfigException as e:
                 strict_errors.append(e)
-            except Exception:  # pylint: disable=broad-except
+            except Exception as e:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
+                if settings.strict_mode:
+                    strict_errors.append(
+                        DagFactoryConfigException(
+                            f"Failed to load dag config from '{config_file_abs_path}': {e}"
+                        )
+                    )
             else:
                 logging.info("DAG loaded: %s", config_file_path)
         if strict_errors:

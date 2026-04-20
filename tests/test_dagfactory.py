@@ -400,6 +400,56 @@ def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
     assert "healthy_dag" in output, "Valid DAG from a separate file must be registered even when strict mode raises"
 
 
+def test_directory_scan_passes_defaults_config_path(tmp_path):
+    """defaults_config_path passed to load_yaml_dags must reach _DagFactory during directory scan."""
+    from unittest.mock import call, patch
+
+    (tmp_path / "my_dag.yml").write_text(
+        "my_dag:\n"
+        "  schedule: '0 1 * * *'\n"
+        "  default_args:\n"
+        "    owner: airflow\n"
+        "    start_date: '2020-01-01'\n"
+        "  tasks:\n"
+        "    task_1:\n"
+        "      operator: airflow.operators.bash.BashOperator\n"
+        "      bash_command: echo hello\n"
+    )
+    custom_defaults_path = str(tmp_path / "custom_defaults")
+
+    with patch("dagfactory.dagfactory._DagFactory", wraps=dagfactory._DagFactory) as mock_factory:
+        load_yaml_dags(globals_dict={}, dags_folder=str(tmp_path), defaults_config_path=custom_defaults_path)
+
+    expected_file = str((tmp_path / "my_dag.yml").absolute())
+    mock_factory.assert_called_once_with(
+        expected_file,
+        defaults_config_path=custom_defaults_path,
+        defaults_config_dict=None,
+    )
+
+
+def test_directory_scan_strict_mode_surfaces_yaml_parse_error(monkeypatch, tmp_path):
+    """In strict mode, a YAML syntax error (parse-time failure) must also raise DagFactoryConfigException."""
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    shutil.copy(INVALID_YAML, tmp_path / "broken_syntax.yml")
+
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException, match="broken_syntax.yml"):
+        load_yaml_dags(globals_dict={}, dags_folder=str(tmp_path))
+
+
+def test_directory_scan_non_strict_mode_logs_yaml_parse_error(monkeypatch, tmp_path, caplog):
+    """In non-strict mode, a YAML syntax error is logged but does not raise."""
+    shutil.copy(INVALID_YAML, tmp_path / "broken_syntax.yml")
+
+    monkeypatch.setattr(dagfactory_settings, "strict_mode", False)
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict={}, dags_folder=str(tmp_path))
+
+    assert any("broken_syntax.yml" in msg for msg in caplog.messages), "Parse error should be logged"
+
+
 @pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
 def test_kubernetes_pod_operator_dag_gte_2_7():
     load_yaml_dags(
