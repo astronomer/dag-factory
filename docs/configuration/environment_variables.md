@@ -17,13 +17,7 @@ In the above example, `$CONFIG_ROOT_DIR` is used to reference an environment var
 directory of your DAG configurations. During DAG parsing, it will be resolved to the value specified for the
 `CONFIG_ROOT_DIR` environment variable.
 
-## DAG Factory runtime settings
-
-DAG Factory exposes Airflow-style configuration options under the `[dag_factory]` section of `airflow.cfg`.
-Each option can also be set via the standard Airflow environment variable convention
-`AIRFLOW__DAG_FACTORY__<KEY>`.
-
-### `strict_mode`
+## `strict_mode`
 
 | Setting | Default |
 |---------|---------|
