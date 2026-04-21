@@ -43,7 +43,11 @@ def new_test_dag(dag: DAG) -> DagRun:
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
         # Airflow 3.1+ requires DAG to be serialized to database before calling dag.test()
         # because create_dagrun() checks for DagVersion and DagModel records
-        from airflow.models.dagbag import DagBag, sync_bag_to_db
+        try:
+            from airflow.dag_processing.dagbag import sync_bag_to_db
+        except ImportError:
+            from airflow.models.dagbag import sync_bag_to_db
+        from airflow.models.dagbag import DagBag
         from airflow.models.dagbundle import DagBundleModel
         from airflow.utils.session import create_session
 
