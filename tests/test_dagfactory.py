@@ -1013,7 +1013,8 @@ def test_build_dags_strict_mode_raises_on_failure(monkeypatch):
 
     assert "good_dag" in output
     assert "broken_dag" in str(exc_info.value)
-    assert "Strict mode" in str(exc_info.value)
+    assert "DAG build failed" in str(exc_info.value)
+    assert exc_info.value.__cause__ is not None
 
 
 def test_build_dags_strict_mode_all_valid_no_exception(monkeypatch):

@@ -233,7 +233,7 @@ class _DagFactory:
         else:
             dag_level_args = {}
 
-        failed_dag_names: List[str] = []
+        build_errors: List[tuple[str, Exception]] = []
 
         for dag_name, dag_config in dag_configs.items():
             try:
@@ -251,11 +251,11 @@ class _DagFactory:
                 )
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
                 dags[dag["dag_id"]]: DAG = dag["dag"]
-            except Exception:  # pylint: disable=broad-except
+            except Exception as exc:  # pylint: disable=broad-except
                 logging.exception("Failed to build DAG '%s'", dag_name)
-                failed_dag_names.append(dag_name)
+                build_errors.append((dag_name, exc))
 
-        return dags, failed_dag_names
+        return dags, build_errors
 
     # pylint: disable=redefined-builtin
     @staticmethod
@@ -276,17 +276,11 @@ class _DagFactory:
         :param globals: The globals() from the file used to generate DAGs. The dag_id
             must be passed into globals() for Airflow to import
         """
-        dags, failed_dag_names = self.build_dags()
+        dags, build_errors = self.build_dags()
         self.register_dags(dags, globals)
-        if settings.strict_mode and failed_dag_names:
-            failed_dag_names_str = ", ".join(failed_dag_names)
-            config_path = self.config_file_path or "<config_dict>"
-            raise DagFactoryConfigException(
-                "Strict mode enabled: failed to build "
-                f"{len(failed_dag_names)} DAG(s) from config '{config_path}'. "
-                f"Failed DAGs: {failed_dag_names_str}. "
-                "Set AIRFLOW__DAG_FACTORY__STRICT_MODE=false to skip broken DAGs and keep loading valid DAGs."
-            )
+        if settings.strict_mode and build_errors:
+            details = "; ".join(f"{name}: {exc}" for name, exc in build_errors)
+            raise DagFactoryConfigException(f"DAG build failed -> {details}") from build_errors[0][1]
 
 
 def load_yaml_dags(
