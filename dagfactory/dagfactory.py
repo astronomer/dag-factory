@@ -280,7 +280,9 @@ class _DagFactory:
         self.register_dags(dags, globals)
         if settings.strict_mode and build_errors:
             details = "; ".join(f"{name}: {exc}" for name, exc in build_errors)
-            raise DagFactoryConfigException(f"DAG build failed -> {details}") from build_errors[0][1]
+            # Chain the first exception so Airflow's UI shows its traceback as __cause__.
+            first_error = build_errors[0][1]
+            raise DagFactoryConfigException(f"DAG build failed: {details}") from first_error
 
 
 def load_yaml_dags(
