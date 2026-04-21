@@ -64,7 +64,7 @@ def new_test_dag(dag: DAG) -> DagRun:
         return dag.test()
 
 
-def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
+def run_dag(dag: DAG) -> DagRun:
     return new_test_dag(dag)
 
 
