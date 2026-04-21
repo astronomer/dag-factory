@@ -216,8 +216,13 @@ class _DagFactory:
         """
         return self.config.get("default", {})
 
-    def build_dags(self) -> Tuple[Dict[str, DAG], List[str]]:
-        """Build DAGs using the config file."""
+    def build_dags(self) -> Tuple[Dict[str, DAG], List[Tuple[str, Exception]]]:
+        """Build DAGs using the config file.
+
+        :returns: a tuple of ``(dags, build_errors)``. ``dags`` maps ``dag_id`` to the
+            successfully built :class:`DAG` instances; ``build_errors`` is a list of
+            ``(dag_name, exception)`` tuples for DAGs that failed to build.
+        """
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
@@ -233,7 +238,7 @@ class _DagFactory:
         else:
             dag_level_args = {}
 
-        build_errors: List[tuple[str, Exception]] = []
+        build_errors: List[Tuple[str, Exception]] = []
 
         for dag_name, dag_config in dag_configs.items():
             try:
@@ -252,7 +257,8 @@ class _DagFactory:
                 dag: Dict[str, Union[str, DAG]] = dag_builder.build()
                 dags[dag["dag_id"]]: DAG = dag["dag"]
             except Exception as exc:  # pylint: disable=broad-except
-                logging.exception("Failed to build DAG '%s'", dag_name)
+                config_origin = self.config_file_path or "<config_dict>"
+                logging.exception("Failed to build DAG '%s' from '%s'", dag_name, config_origin)
                 build_errors.append((dag_name, exc))
 
         return dags, build_errors
@@ -338,15 +344,19 @@ def load_yaml_dags(
                 )
                 factory._generate_dags(globals_dict)
             except DagFactoryConfigException as e:
-                strict_errors.append(e)
+                # Wrap so the aggregated error names the offending YAML file and keeps the
+                # original exception chain available via __cause__ for debugging.
+                wrapped = DagFactoryConfigException(f"Failed to load dag config from '{config_file_abs_path}': {e}")
+                wrapped.__cause__ = e
+                strict_errors.append(wrapped)
             except Exception as e:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
                 if settings.strict_mode:
-                    strict_errors.append(
-                        DagFactoryConfigException(
-                            f"Failed to load dag config from '{config_file_abs_path}': {e}"
-                        )
+                    wrapped = DagFactoryConfigException(
+                        f"Failed to load dag config from '{config_file_abs_path}': {e}"
                     )
+                    wrapped.__cause__ = e
+                    strict_errors.append(wrapped)
             else:
                 logging.info("DAG loaded: %s", config_file_path)
         if strict_errors:

@@ -391,7 +391,7 @@ def test_generate_dags_invalid_strict_directory_scan(monkeypatch, tmp_path):
         "    start_date: '2020-01-01'\n"
         "  tasks:\n"
         "    task_1:\n"
-        "      operator: airflow.operators.bash.BashOperator\n"
+        f"      operator: {get_bash_operator_path()}\n"
         "      bash_command: echo hello\n"
     )
 
@@ -413,7 +413,7 @@ def test_directory_scan_passes_defaults_config_path(tmp_path):
         "    start_date: '2020-01-01'\n"
         "  tasks:\n"
         "    task_1:\n"
-        "      operator: airflow.operators.bash.BashOperator\n"
+        f"      operator: {get_bash_operator_path()}\n"
         "      bash_command: echo hello\n"
     )
     custom_defaults_path = str(tmp_path / "custom_defaults")
@@ -776,7 +776,7 @@ def test_build_dags_timezone_example():
     """DAG-level and default_args timezone keys yield expected aware datetimes (see docs/configuration/defaults.md)."""
     path = os.path.abspath(DAG_FACTORY_TIMEZONE)
     factory = _DagFactory(config_filepath=path)
-    dags = factory.build_dags()
+    dags, _build_errors = factory.build_dags()
     assert set(dags) == {"timezone_dag_level", "timezone_default_args"}
     paris = DateTime(2024, 6, 15, 0, 0, 0, tzinfo=Timezone("Europe/Paris"))
     assert dags["timezone_dag_level"].start_date == paris
@@ -969,7 +969,7 @@ MULTI_DAG_CONFIG_WITH_BROKEN_DAG = {
         "schedule": "0 3 * * *",
         "tasks": {
             "task_1": {
-                "operator": "airflow.operators.bash.BashOperator",
+                "operator": get_bash_operator_path(),
                 "bash_command": "echo hello",
             }
         },
@@ -1032,7 +1032,7 @@ def test_build_dags_strict_mode_all_valid_no_exception(monkeypatch):
             "schedule": "0 1 * * *",
             "tasks": {
                 "t1": {
-                    "operator": "airflow.operators.bash.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo a",
                 }
             },
@@ -1041,7 +1041,7 @@ def test_build_dags_strict_mode_all_valid_no_exception(monkeypatch):
             "schedule": "0 2 * * *",
             "tasks": {
                 "t1": {
-                    "operator": "airflow.operators.bash.BashOperator",
+                    "operator": get_bash_operator_path(),
                     "bash_command": "echo b",
                 }
             },
