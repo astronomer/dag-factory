@@ -16,7 +16,10 @@ except ImportError:
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
-from airflow.utils import timezone
+try:
+    from airflow.sdk import timezone
+except ImportError:
+    from airflow.utils import timezone
 from airflow.utils.session import NEW_SESSION, provide_session
 from airflow.utils.state import DagRunState, State
 from airflow.utils.types import DagRunType
@@ -27,14 +30,46 @@ from sqlalchemy.orm.session import Session
 log = logging.getLogger(__name__)
 
 
-def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
-    return test_dag(dag=dag, conn_file_path=conn_file_path)
+def check_dag_success(dag_run: DagRun | None, expect_success: bool = True) -> bool:
+    if dag_run is None:
+        return False
+    if expect_success:
+        return dag_run.state == DagRunState.SUCCESS
+    else:
+        return dag_run.state == DagRunState.FAILED
 
 
-# DAG.test() was added in Airflow version 2.5.0. And to test on older Airflow versions, we need to copy the
-# implementation here.
+def new_test_dag(dag: DAG) -> DagRun:
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
+        # Airflow 3.1+ requires DAG to be serialized to database before calling dag.test()
+        # because create_dagrun() checks for DagVersion and DagModel records
+        from airflow.models.dagbag import DagBag, sync_bag_to_db
+        from airflow.models.dagbundle import DagBundleModel
+        from airflow.utils.session import create_session
+
+        with create_session() as session:
+            dag_bundle = DagBundleModel(name="test_bundle")
+            session.merge(dag_bundle)
+            session.commit()
+
+        # collect_dags=False starts an empty bag so bag_dag() won't raise
+        # AirflowDagDuplicatedIdException from DAGs already on disk
+        dagbag = DagBag(collect_dags=False)
+        dagbag.bag_dag(dag)
+        sync_bag_to_db(dagbag, bundle_name="test_bundle", bundle_version="1")
+        return dag.test(logical_date=timezone.utcnow())
+    elif version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        return dag.test(logical_date=timezone.utcnow())
+    else:
+        return dag.test()
+
+
+def run_dag(dag: DAG) -> DagRun:
+    return new_test_dag(dag)
+
+
 @provide_session
-def test_dag(
+def test_old_dag(
     dag,
     execution_date: datetime | None = None,
     run_conf: dict[str, Any] | None = None,

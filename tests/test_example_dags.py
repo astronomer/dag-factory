@@ -8,7 +8,6 @@ import pytest
 from airflow.models.dagbag import DagBag
 from airflow.utils.db import create_default_connections
 from airflow.utils.session import provide_session
-from airflow.utils.state import DagRunState
 from packaging.version import Version
 
 from . import utils as test_utils
@@ -87,7 +86,6 @@ def test_example_dag(session, dag_id: str):
     dag_bag = get_dag_bag()
     dag = dag_bag.get_dag(dag_id)
 
-    dag_run = dag.test()
+    dag_run = test_utils.run_dag(dag)
 
-    if dag_run is not None:
-        assert dag_run.state == DagRunState.SUCCESS
+    assert test_utils.check_dag_success(dag_run)
