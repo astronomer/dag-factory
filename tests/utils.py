@@ -47,6 +47,7 @@ def new_test_dag(dag: DAG) -> DagRun:
             from airflow.dag_processing.dagbag import sync_bag_to_db
         except ImportError:
             from airflow.models.dagbag import sync_bag_to_db
+            
         from airflow.models.dagbag import DagBag
         from airflow.models.dagbundle import DagBundleModel
         from airflow.utils.session import create_session
@@ -68,7 +69,7 @@ def new_test_dag(dag: DAG) -> DagRun:
         return dag.test()
 
 
-def run_dag(dag: DAG, conn_file_path: str | None = None) -> DagRun:
+def run_dag(dag: DAG) -> DagRun:
     return new_test_dag(dag)
 
 
