@@ -31,13 +31,12 @@ log = logging.getLogger(__name__)
 
 
 def check_dag_success(dag_run: DagRun | None, expect_success: bool = True) -> bool:
-    if dag_run is not None:
-        if expect_success:
-            return dag_run.state == DagRunState.SUCCESS
-        else:
-            return dag_run.state == DagRunState.FAILED
-    return True
-
+    if dag_run is None:
+        return False
+    if expect_success:
+        return dag_run.state == DagRunState.SUCCESS
+    else:
+        return dag_run.state == DagRunState.FAILED
 
 def new_test_dag(dag: DAG) -> DagRun:
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
