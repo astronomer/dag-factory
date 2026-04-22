@@ -13,7 +13,10 @@ from datetime import datetime
 from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from airflow import configuration
+try:
+    from airflow import configuration
+except ImportError:
+    import airflow.configuration as configuration
 from packaging import version
 
 from dagfactory.utils import check_dict_key
