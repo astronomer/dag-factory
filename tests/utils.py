@@ -37,7 +37,6 @@ def check_dag_success(dag_run: DagRun | None, expect_success: bool = True) -> bo
         return dag_run.state == DagRunState.SUCCESS
     else:
         return dag_run.state == DagRunState.FAILED
-
 def new_test_dag(dag: DAG) -> DagRun:
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
         # Airflow 3.1+ requires DAG to be serialized to database before calling dag.test()
