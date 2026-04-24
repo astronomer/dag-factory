@@ -1177,7 +1177,7 @@ class TestSchedule:
             ),
             Dataset(uri="s3://dag3/output_3.txt", extra=None),
         )
-        assert schedule_data["schedule"].__eq__(expected)
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(
         INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
@@ -1193,7 +1193,7 @@ class TestSchedule:
             ),
             Dataset(uri="s3://dag3/output_3.txt", extra=None),
         )
-        assert schedule_data["schedule"].__eq__(expected)
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
@@ -1241,7 +1241,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert schedule_data["schedule"].__eq__(expected)
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_or_operator(self):
@@ -1265,7 +1265,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert schedule_data["schedule"].__eq__(expected)
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_nested_operators(self):
@@ -1298,7 +1298,7 @@ class TestSchedule:
                 watchers=[],
             ),
         )
-        assert schedule_data["schedule"].__eq__(expected)
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_watcher(self):
@@ -1307,21 +1307,19 @@ class TestSchedule:
 
         schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
-        expected = [
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[
-                    AssetWatcher(
-                        name="test_asset_watcher",
-                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
-                    )
-                ],
-            )
-        ]
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = Asset(
+            name="s3://dag1/output_1.txt",
+            uri="s3://dag1/output_1.txt",
+            group="asset",
+            extra={"hi": "bye"},
+            watchers=[
+                AssetWatcher(
+                    name="test_asset_watcher",
+                    trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                )
+            ],
+        )
+        assert schedule_data["schedule"] == expected
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
