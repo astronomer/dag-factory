@@ -318,7 +318,7 @@ class DagBuilder:
         expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
         if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
             # Getting expand and partial kwargs from task_params
-            (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+            task_params, expand_kwargs, partial_kwargs = utils.get_expand_partial_kwargs(task_params)
 
             # If there are partial_kwargs we should merge them with existing task_params
             if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
