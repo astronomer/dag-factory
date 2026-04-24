@@ -1168,15 +1168,13 @@ class TestSchedule:
         reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
-        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+        from airflow.datasets import Dataset
 
         schedule_data = load_yaml_file(str(schedule_path / "dataset_object_as_list.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
+        expected = [
+            Dataset(uri="s3://dag1/output_1.txt", extra=None),
+            Dataset(uri="s3://dag2/output_1.txt", extra=None),
+        ]
         assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(
@@ -1187,13 +1185,12 @@ class TestSchedule:
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_dataset.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"] == expected
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, DatasetAny)
+        assert isinstance(actual.objects[0], DatasetAll)
+        assert actual.objects[0].objects[0] == Dataset(uri="s3://dag1/output_1.txt", extra=None)
+        assert actual.objects[0].objects[1] == Dataset(uri="s3://dag2/output_1.txt", extra=None)
+        assert actual.objects[1] == Dataset(uri="s3://dag3/output_3.txt", extra=None)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
