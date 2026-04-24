@@ -45,7 +45,7 @@ fi;
 
 rm /tmp/constraint.txt
 
-actual_version=$(airflow version | cut -d. -f1,2)
+actual_version=$(airflow version 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+' | head -1)
 
 if [ "$actual_version" = $AIRFLOW_VERSION ]; then
     echo "Version is as expected: $AIRFLOW_VERSION"
