@@ -1,9 +1,11 @@
 import difflib
 from copy import deepcopy
 from pathlib import Path
+from typing import Optional
 
 import typer
 import yaml
+from airflow.version import version as AIRFLOW_VERSION
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
@@ -11,6 +13,7 @@ from rich.text import Text
 from dagfactory import __version__
 from dagfactory._yaml import load_yaml_file
 from dagfactory.utils import update_yaml_structure
+from dagfactory.validator import DagParameterValidator, imports_dagfactory
 
 DESCRIPTION = """
 [bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: Dynamically build Apache Airflow DAGs from YAML files
@@ -29,20 +32,55 @@ app = typer.Typer(
 )
 
 
-def _check_yaml_syntax(file_path: Path):
+def _find_lintable_files(path: Path, lint_yaml_in_dir: bool = False) -> list[Path]:
+    """Find files lint can process under *path*.
+
+    For a single file target, it's lintable if the file suffix is .py or .yml/.yaml.
+
+    For a directory target, .py loaders are always discovered. YAML files
+    are only included when lint_yaml_in_dir is True.
     """
-    Check if the YAML file is valid.
-    """
-    try:
-        load_yaml_file(file_path)
-    except yaml.YAMLError as e:
-        return str(e)
+    if not path.exists():
+        console.print(f"[red]Error:[/red] Path '{path}' does not exist.")
+        raise typer.Exit(1)
+
+    if path.is_dir():
+        py_candidates = list(path.rglob("*.py"))
+        py_loaders = [p for p in py_candidates if imports_dagfactory(p)]
+        if lint_yaml_in_dir:
+            yaml_files = list(path.rglob("*.yml")) + list(path.rglob("*.yaml"))
+            files = py_loaders + yaml_files
+        else:
+            files = py_loaders
+        if not files:
+            extra = "" if lint_yaml_in_dir else " (pass --lint-yaml-in-dir to also include .yml/.yaml files)"
+            console.print(
+                f"[yellow]No lintable files found in '{path}' "
+                f"({len(py_candidates)} .py file(s) scanned; none import dagfactory).{extra}[/yellow]"
+            )
+            raise typer.Exit()
+        return files
+
+    if path.suffix == ".py":
+        if not imports_dagfactory(path):
+            console.print(
+                f"[yellow]'{path}' does not import dagfactory; skipping (not a loader file).[/yellow]"
+            )
+            raise typer.Exit()
+        return [path]
+
+    if path.suffix in (".yml", ".yaml"):
+        return [path]
+
+    console.print(
+        f"[red]Error:[/red] lint operates on .py loader files or .yml/.yaml configs; "
+        f"got '{path.suffix}'."
+    )
+    raise typer.Exit(1)
 
 
 def _find_yaml_files(path: Path) -> list[Path]:
-    """
-    Find all YAML files in the directory.
-    """
+    """YAML-only file finder retained for the ``convert`` command."""
     if not path.exists():
         console.print(f"[red]Error:[/red] Path '{path}' does not exist.")
         raise typer.Exit(1)
@@ -80,35 +118,125 @@ def main(
 
 @app.command()
 def lint(
-    path: Path = typer.Argument(..., help="Path to a directory containing YAML files or to a YAML file to lint"),
+    path: Optional[Path] = typer.Argument(
+        None,
+        help="Path to a Python loader (.py) file, a YAML config (.yml/.yaml) file, "
+        "or a directory containing either. External defaults are not supported when linting YAML files.",
+    ),
+    yaml_content: Optional[str] = typer.Option(
+        None,
+        "--yaml-content",
+        "-c",
+        help="Inline YAML content to validate (mutually exclusive with the path argument).",
+    ),
+    airflow_version: str = typer.Option(
+        AIRFLOW_VERSION,
+        "--airflow-version",
+        "-a",
+        help="Airflow version to validate against (e.g. '3.1.2' or just '2'). "
+        "Defaults to the installed Airflow version.",
+    ),
+    schema_only: bool = typer.Option(
+        False,
+        "--schema-only",
+        help="Validate only against the bundled JSON schema; do not build real Airflow DAGs. "
+        "Useful when not every operator package referenced in the YAML is installed.",
+    ),
+    lint_yaml_in_dir: bool = typer.Option(
+        False,
+        "--lint-yaml-in-dir",
+        help="When the path argument is a directory, also lint .yml/.yaml files alongside .py "
+        "loaders. No effect on single-file or --yaml-content invocations.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full error messages"),
 ):
-    """Scan YAML files for syntax errors."""
-    files = _find_yaml_files(path)
+    """Validate dag-factory loaders and YAML configs.
 
-    table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: YAML Lint Results", show_lines=True)
+    Default (build mode) runs the full dag-factory + Airflow build pipeline and reports
+    any exception (operator typos, dependency cycles, schedule conflicts, etc.).
+    Pass --schema-only to validate against the bundled JSON schema instead — cheaper,
+    and works without every operator package installed.
+    """
+    if (path is None) == (yaml_content is None):
+        console.print(
+            "[red]Error:[/red] provide either a path argument or --yaml-content (not both)."
+        )
+        raise typer.Exit(1)
+
+    table = Table(
+        title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: Lint Results",
+        show_lines=True,
+    )
     table.add_column("File", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("Error Message", style="red", no_wrap=False, overflow="fold")
 
+    validator = DagParameterValidator(airflow_version=airflow_version, schema_only=schema_only)
+
     total_errors = 0
-    for file_path in files:
-        error = _check_yaml_syntax(file_path)
-        if error:
-            total_errors += 1
-            message = error.strip() if verbose else error.strip().split("\n")[0][:120] + "..."
-            table.add_row(str(file_path), Text("Syntax Error", style="red"), Text(message, style="red"))
-        else:
-            table.add_row(str(file_path), Text("OK", style="green"), "")
+    total_warnings = 0
+
+    def render_results(label_prefix, results):
+        """Render a list of FileValidationResult into the table."""
+        nonlocal total_errors, total_warnings
+        for sub in results:
+            if label_prefix and sub.file != Path(label_prefix):
+                label = f"{label_prefix} → {sub.file.name}"
+            else:
+                label = str(sub.file)
+            if sub.errors:
+                total_errors += 1
+                total_warnings += len(sub.warnings)
+                msg = _format_issues(sub, verbose)
+                table.add_row(label, Text("Error", style="red"), Text(msg, style="red"))
+            elif sub.warnings:
+                total_warnings += len(sub.warnings)
+                msg = _format_issues(sub, verbose)
+                table.add_row(label, Text("Warnings", style="yellow"), Text(msg, style="yellow"))
+            else:
+                table.add_row(label, Text("OK", style="green"), "")
+
+    if yaml_content is not None:
+        results = validator.validate_yaml_content(yaml_content)
+        render_results(label_prefix=None, results=results)
+        analysed = 1
+    else:
+        files = _find_lintable_files(path, lint_yaml_in_dir=lint_yaml_in_dir)
+        for file_path in files:
+            if file_path.suffix == ".py":
+                results = validator.validate_python_loader(file_path)
+            else:  # .yml / .yaml
+                results = validator.validate_yaml_file(file_path)
+            render_results(label_prefix=str(file_path), results=results)
+        analysed = len(files)
 
     console.print(table)
-    if total_errors > 0:
-        console.print(f"Analysed {len(files)} files, found [red]{total_errors}[/red] invalid YAML files.")
+    summary = f"Analysed {analysed} file(s)"
+    if total_errors:
+        console.print(
+            f"{summary}, found [red]{total_errors}[/red] file(s) with errors and "
+            f"[yellow]{total_warnings}[/yellow] warning(s)."
+        )
         if not verbose:
             console.print(f"For more details on the errors, run with --verbose.")
         raise typer.Exit(1)
-    else:
-        console.print(f"Analysed {len(files)} files, [green]no errors found.[/green]")
+    if total_warnings:
+        console.print(
+            f"{summary}, [green]no errors[/green], [yellow]{total_warnings}[/yellow] warning(s)."
+        )
+        return
+    console.print(f"{summary}, [green]no errors found.[/green]")
+
+
+def _format_issues(result, verbose: bool) -> str:
+    """Format validator findings for display in the lint table."""
+    lines = [f"{i.severity.upper()}: {i.render()}" for i in result.issues]
+    text = "\n".join(lines)
+    if verbose:
+        return text
+    if len(text) > 200:
+        return text[:197] + "..."
+    return text
 
 
 def _file_or_files(count: int) -> str:

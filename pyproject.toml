@@ -30,7 +30,8 @@ dependencies = [
     "apache-airflow>=2.9",
     "pyyaml",
     "packaging",
-    "typer"
+    "typer",
+    "jsonschema>=4.0",
 ]
 
 [project.scripts]
