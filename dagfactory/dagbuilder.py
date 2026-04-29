@@ -50,15 +50,19 @@ from airflow.version import version as AIRFLOW_VERSION
 try:  # Try Airflow 3
     from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
     from airflow.providers.standard.sensors.python import PythonSensor
-    from airflow.timetables.assets import AssetOrTimeSchedule
 except ImportError:
     from airflow.operators.python import BranchPythonOperator, PythonOperator
     from airflow.sensors.python import PythonSensor
 
+try:
+    from airflow.timetables.assets import AssetOrTimeSchedule
+except ImportError:
+    AssetOrTimeSchedule = None
+
 try:  # Try Airflow 2.9
     from airflow.timetables.datasets import DatasetOrTimeSchedule
-except:
-    pass
+except ImportError:
+    DatasetOrTimeSchedule = None
 
 logger = logging.getLogger(__name__)
 
@@ -379,6 +383,18 @@ class DagBuilder:
         return task_groups_dict
 
     @staticmethod
+    def _build_datasets_schedule(schedule: Dict[str, Any]) -> Any:
+        datasets = schedule["datasets"]
+        datasets_conditions: str = utils.parse_list_datasets(datasets)
+        datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+        if utils.check_dict_key(schedule, "timetable"):
+            timetable_schedule = schedule["timetable"]
+            if INSTALLED_AIRFLOW_VERSION.major >= AIRFLOW3_MAJOR_VERSION:
+                return AssetOrTimeSchedule(timetable=timetable_schedule, assets=datasets_schedule)
+            return DatasetOrTimeSchedule(timetable=timetable_schedule, datasets=datasets_schedule)
+        return datasets_schedule
+
+    @staticmethod
     def _init_task_group_callback_param(task_group_conf):
         """
         _init_task_group_callback_param
@@ -638,21 +654,7 @@ class DagBuilder:
                     dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
 
                 elif has_datasets_attr:
-                    datasets = schedule["datasets"]
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
-                    if has_timetable_attr:
-                        timetable_schedule = schedule["timetable"]
-                        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-                            dag_kwargs[schedule_key] = DatasetOrTimeSchedule(
-                                timetable=timetable_schedule, datasets=datasets_schedule
-                            )
-                        else:
-                            dag_kwargs[schedule_key] = AssetOrTimeSchedule(
-                                timetable=timetable_schedule, assets=datasets_schedule
-                            )
-                    else:
-                        dag_kwargs[schedule_key] = datasets_schedule
+                    dag_kwargs[schedule_key] = DagBuilder._build_datasets_schedule(schedule)
                 else:
                     if isinstance(schedule, str):
                         # check if it's "none" (case-insensitive, with whitespace)
