@@ -6,7 +6,7 @@ consumer_time_schedule_dag:
   description: "Example DAG consumer scheduled by datasets or timetable"
   schedule:
     datasets: "((dataset_uri_1 & dataset_uri_2) | dataset_uri_3)"
-    timetable: 
+    timetable:
       __type__: airflow.timetables.trigger.CronTriggerTimetable
       cron: "0 1 * * 5"
       timezone: UTC
