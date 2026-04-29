@@ -1168,16 +1168,14 @@ class TestSchedule:
         reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
-        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+        from airflow.datasets import Dataset
 
         schedule_data = load_yaml_file(str(schedule_path / "dataset_object_as_list.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = [
+            Dataset(uri="s3://dag1/output_1.txt", extra=None),
+            Dataset(uri="s3://dag2/output_1.txt", extra=None),
+        ]
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(
         INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
@@ -1187,13 +1185,12 @@ class TestSchedule:
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_dataset.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, DatasetAny)
+        assert isinstance(actual.objects[0], DatasetAll)
+        assert actual.objects[0].objects[0] == Dataset(uri="s3://dag1/output_1.txt", extra=None)
+        assert actual.objects[0].objects[1] == Dataset(uri="s3://dag2/output_1.txt", extra=None)
+        assert actual.objects[1] == Dataset(uri="s3://dag3/output_3.txt", extra=None)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
@@ -1224,81 +1221,40 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAll
 
         schedule_data = load_yaml_file(str(schedule_path / "and_asset.yml"))
-
-        expected = AssetAll(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAll)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "or_asset.yml"))
-
-        expected = AssetAny(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_asset.yml"))
-
-        expected = AssetAny(
-            AssetAll(
-                Asset(
-                    name="s3://dag1/output_1.txt",
-                    uri="s3://dag1/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-                Asset(
-                    name="s3://dag2/output_1.txt",
-                    uri="s3://dag2/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-            ),
-            Asset(
-                name="s3://dag3/output_3.txt",
-                uri="s3://dag3/output_3.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert isinstance(actual.objects[0], AssetAll)
+        assert list(actual.objects[0].objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
+        assert actual.objects[1] == Asset(
+            name="s3://dag3/output_3.txt", uri="s3://dag3/output_3.txt", group="asset", extra={"hi": "bye"}, watchers=[]
         )
-        assert schedule_data["schedule"].__eq__(expected)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_watcher(self):
@@ -1307,21 +1263,19 @@ class TestSchedule:
 
         schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
-        expected = [
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[
-                    AssetWatcher(
-                        name="test_asset_watcher",
-                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
-                    )
-                ],
-            )
-        ]
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = Asset(
+            name="s3://dag1/output_1.txt",
+            uri="s3://dag1/output_1.txt",
+            group="asset",
+            extra={"hi": "bye"},
+            watchers=[
+                AssetWatcher(
+                    name="test_asset_watcher",
+                    trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                )
+            ],
+        )
+        assert schedule_data["schedule"] == expected
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"

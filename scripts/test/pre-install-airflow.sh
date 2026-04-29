@@ -45,9 +45,14 @@ fi;
 
 rm /tmp/constraint.txt
 
-actual_version=$(airflow version | cut -d. -f1,2)
+actual_version=$(airflow version | grep -oE '^[0-9]+\.[0-9]+' | head -1)
 
-if [ "$actual_version" = $AIRFLOW_VERSION ]; then
+if [ -z "$actual_version" ]; then
+    echo "Failed to determine installed Airflow version"
+    exit 1
+fi
+
+if [ "$actual_version" = "$AIRFLOW_VERSION" ]; then
     echo "Version is as expected: $AIRFLOW_VERSION"
 else
     echo "Version does not match. Expected: $AIRFLOW_VERSION, but got: $actual_version"

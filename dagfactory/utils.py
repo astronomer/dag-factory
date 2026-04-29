@@ -205,7 +205,7 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
 
 
 def get_expand_partial_kwargs(
-    task_params: Dict[str, Any]
+    task_params: Dict[str, Any],
 ) -> Tuple[Dict[str, Any], Dict[str, Union[Dict[str, Any], Any]], Dict[str, Union[Dict[str, Any], Any]]]:
     """
     Getting expand and partial kwargs if existed from task_params
