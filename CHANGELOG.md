@@ -21,13 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - Change log info to warning by @pankajastro in [#590](https://github.com/astronomer/dag-factory/pull/590)
-- Unify import_from_string methods by gyli in [#694](https://github.com/astronomer/dag-factory/pull/694)
+- Unify import_from_string methods by @gyli in [#694](https://github.com/astronomer/dag-factory/pull/694)
 
 ### Fixed
 
 - Fix main branch tests by @tatiana in [#638](https://github.com/astronomer/dag-factory/pull/638)
 - fix: support DatasetAlias in outlets by @AppKiv in [#601](https://github.com/astronomer/dag-factory/pull/601)
-- Import TaskGroup in the Airflow 3 way if available by gyli in [#706](https://github.com/astronomer/dag-factory/pull/706)
+- Import TaskGroup in the Airflow 3 way if available by @gyli in [#706](https://github.com/astronomer/dag-factory/pull/706)
 - Handle removal of airflow.utils.module_loading in Airflow 3.1+ by @pankajastro in [#712](https://github.com/astronomer/dag-factory/pull/712)
 - Fix import for datatset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
 
