@@ -77,3 +77,16 @@ example_without_custom_config_condition_dataset_consumer_dag:
     - task_id: "task_1"
       operator: airflow.operators.bash.BashOperator
       bash_command: "echo 'consumer datasets'"
+
+example_simple_dataset_alias_dag:
+  description: "Example DAG simple datasets alias"
+  schedule: "0 5 * * *"
+  catchup: false
+  tasks:
+    - task_id: "task_1"
+      operator: airflow.operators.bash.BashOperator
+      bash_command: "echo 'may set dynamic_outputs'"
+      inlets: [ 's3://bucket_example/raw/dataset1_source.json' ]
+      outlets:
+        - __type__: airflow.datasets.DatasetAlias
+          name: "dynamic_outputs"

@@ -34,6 +34,10 @@ uv pip install pip --upgrade
 
 if [ "$AIRFLOW_VERSION" = "3.0" ]; then
   uv pip install "apache-airflow~=3.0.2" "apache-airflow-providers-http>=4.0.0"  "apache-airflow-providers-cncf-kubernetes>=4.4.0" "apache-airflow-providers-common-sql>=1.2.0" "apache-airflow-providers-slack" --constraint /tmp/constraint.txt
+elif [ "$AIRFLOW_VERSION" = "3.1" ]; then
+  uv pip install "apache-airflow~=3.1.0" "apache-airflow-providers-http>=4.0.0"  "apache-airflow-providers-cncf-kubernetes>=4.4.0" "apache-airflow-providers-common-sql>=1.2.0" "apache-airflow-providers-slack" --constraint /tmp/constraint.txt
+elif [ "$AIRFLOW_VERSION" = "3.2" ]; then
+  uv pip install "apache-airflow~=3.2.0" "apache-airflow-providers-http>=4.0.0"  "apache-airflow-providers-cncf-kubernetes>=4.4.0" "apache-airflow-providers-common-sql>=1.2.0" "apache-airflow-providers-slack" --constraint /tmp/constraint.txt
 else
   uv pip install "apache-airflow==$AIRFLOW_VERSION"  "apache-airflow-providers-http>=4.0.0" "apache-airflow-providers-common-sql>=1.2.0" "apache-airflow-providers-slack"  --constraint /tmp/constraint.txt
   pip install  "apache-airflow==$AIRFLOW_VERSION"  "apache-airflow-providers-cncf-kubernetes>=4.4.0"
@@ -41,9 +45,14 @@ fi;
 
 rm /tmp/constraint.txt
 
-actual_version=$(airflow version | cut -d. -f1,2)
+actual_version=$(airflow version | grep -oE '^[0-9]+\.[0-9]+' | head -1)
 
-if [ "$actual_version" = $AIRFLOW_VERSION ]; then
+if [ -z "$actual_version" ]; then
+    echo "Failed to determine installed Airflow version"
+    exit 1
+fi
+
+if [ "$actual_version" = "$AIRFLOW_VERSION" ]; then
     echo "Version is as expected: $AIRFLOW_VERSION"
 else
     echo "Version does not match. Expected: $AIRFLOW_VERSION, but got: $actual_version"

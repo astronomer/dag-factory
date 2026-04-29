@@ -37,6 +37,7 @@ DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7 = os.path.join(
     here, "fixtures/dag_factory_kubernetes_pod_operator_lt_2_7.yml"
 )
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
+DAG_FACTORY_TIMEZONE = os.path.join(here, "fixtures_without_default_yaml/dag_factory_timezone.yml")
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
@@ -145,6 +146,7 @@ def test_load_dag_config_valid(monkeypatch):
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
+            "timezone": "UTC",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule": "0 3 * * *",
@@ -232,6 +234,7 @@ def test_get_dag_configs(monkeypatch):
     expected = {
         "example_dag": {
             "doc_md": "##here is a doc md string",
+            "timezone": "UTC",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule": "0 3 * * *",
@@ -357,20 +360,10 @@ def test_generate_dags_invalid():
         )
 
 
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
-def test_kubernetes_pod_operator_dag_gte_2_7():
+def test_kubernetes_pod_operator_dag():
     load_yaml_dags(
         globals_dict=globals(),
         config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR,
-    )
-    assert "example_dag" in globals()
-
-
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("2.7.0"), reason="Requires Airflow < 2.7.0")
-def test_kubernetes_pod_operator_dag_lt_2_7():
-    load_yaml_dags(
-        globals_dict=globals(),
-        config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7,
     )
     assert "example_dag" in globals()
 
@@ -684,6 +677,18 @@ def test_dag_level_start():
     assert dag.tasks[0].execution_timeout == datetime.timedelta(seconds=15)
     if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
         assert dag.tasks[0].sla == datetime.timedelta(seconds=10)
+
+
+def test_build_dags_timezone_example():
+    """DAG-level and default_args timezone keys yield expected aware datetimes (see docs/configuration/defaults.md)."""
+    path = os.path.abspath(DAG_FACTORY_TIMEZONE)
+    factory = _DagFactory(config_filepath=path)
+    dags = factory.build_dags()
+    assert set(dags) == {"timezone_dag_level", "timezone_default_args"}
+    paris = DateTime(2024, 6, 15, 0, 0, 0, tzinfo=Timezone("Europe/Paris"))
+    assert dags["timezone_dag_level"].start_date == paris
+    nyc = DateTime(2024, 7, 1, 0, 0, 0, tzinfo=Timezone("America/New_York"))
+    assert dags["timezone_default_args"].default_args["start_date"] == nyc
 
 
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):

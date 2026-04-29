@@ -49,6 +49,8 @@ The DAG Factory designates certain YAML keys for internal processing. While thes
 - `__and__`
 - `__or__`
 
+The key `items` is also reserved when used inside a `__type__: builtins.list` block — don't add a custom field named `items` to a typed list construction.
+
 Using these keys outside their intended internal roles may lead to unexpected behavior.
 
 ### Check out more configuration params
