@@ -19,8 +19,8 @@ configuration files.
 
 | Task | Command |
 | --- | --- |
-| Unit tests (one matrix cell) | `hatch run tests.py3.10-2.5:test` |
-| Unit tests with coverage | `hatch run tests.py3.10-2.5:test-cov` |
+| Unit tests (one matrix cell) | `hatch run tests.py3.10-2.9:test` |
+| Unit tests with coverage | `hatch run tests.py3.10-2.9:test-cov` |
 | Unit tests across the full matrix | `hatch run tests:test-cov` |
 | Integration tests setup | `hatch run tests.py3.11-2.9:test-integration-setup` |
 | Integration tests | `hatch run tests.py3.11-2.9:test-integration` |
@@ -55,8 +55,9 @@ dag-factory/
 │   └── plugin/         # Airflow plugin entry point (DagFactoryPlugin)
 ├── tests/              # Pytest suite, mirrors `dagfactory/`
 │   ├── fixtures/       # YAML fixtures used by unit tests
-│   └── dags/           # DAGs used by tests/test_example_dags.py
+│   └── fixtures_without_default_yaml/  # Fixtures for tests that omit a default YAML
 ├── dev/                # Local Astro/Airflow sandbox (Dockerfile, dags/, logs/)
+│   └── dags/           # Example DAGs used locally and by tests/test_example_dags.py
 ├── examples/dags/      # Example YAML DAG configs published with the project
 ├── docs/               # mkdocs-material site
 ├── scripts/            # Test, doc, and release helpers
