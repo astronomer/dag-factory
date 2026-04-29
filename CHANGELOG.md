@@ -6,6 +6,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0a1] - 2026-04-29
+
+### Breaking Changes
+
+- Drop Python 3.9 Support by @pankajastro in [#600](https://github.com/astronomer/dag-factory/pull/600)
+- Drop support for Airflow < 2.9 by @pankajastro in [#711](https://github.com/astronomer/dag-factory/pull/711)
+
+### Added
+
+- Add airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
+- Add Airflow 3.2 to CI test matrix by @pankajastro in [#723](https://github.com/astronomer/dag-factory/pull/723)
+
+### Improved
+
+- Change log info to warning by @pankajastro in [#590](https://github.com/astronomer/dag-factory/pull/590)
+- Unify import_from_string methods by gyli in [#694](https://github.com/astronomer/dag-factory/pull/694)
+
+### Fixed
+
+- Fix main branch tests by @tatiana in [#638](https://github.com/astronomer/dag-factory/pull/638)
+- fix: support DatasetAlias in outlets by @AppKiv in [#601](https://github.com/astronomer/dag-factory/pull/601)
+- Import TaskGroup in the Airflow 3 way if available by gyli in [#706](https://github.com/astronomer/dag-factory/pull/706)
+- Handle removal of airflow.utils.module_loading in Airflow 3.1+ by @pankajastro in [#712](https://github.com/astronomer/dag-factory/pull/712)
+- Fix import for datatset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
+
+### Docs
+
+- Fix markdown lint issues due to dead links by @viiccwen in [#642](https://github.com/astronomer/dag-factory/pull/642)
+- Update docs copyright year to 2026 by @pankajkoti in [#698](https://github.com/astronomer/dag-factory/pull/698)
+- adding timezone references by @sri-codes-python in [#701](https://github.com/astronomer/dag-factory/pull/701)
+- Add ``items`` as a reserved keys in doc by @gyli in [#726](https://github.com/astronomer/dag-factory/pull/726)
+
+### Other Changes
+
+- Pin structlog to fix the deploy docs job by @pankajastro in [#608](https://github.com/astronomer/dag-factory/pull/608)
+- Remove structlog pin by @pankajkoti in [#656](https://github.com/astronomer/dag-factory/pull/656)
+- Avoid error we're seeing in PRs from external contributors by @tatiana in [#660](https://github.com/astronomer/dag-factory/pull/660)
+- Replace tags with SHAs and update to latest version by @fbuechel92 in [#663](https://github.com/astronomer/dag-factory/pull/663)
+- Add 7-day cooldown to Dependabot config by @pankajkoti in [#686](https://github.com/astronomer/dag-factory/pull/686)
+- Ignore simple_auth_manager_passwords.json.generated from git by @gyli [#695](https://github.com/astronomer/dag-factory/pull/695)
+- Ignore more editor local settings folder by @gyli [#697](https://github.com/astronomer/dag-factory/pull/697)
+
 ## [1.0.1] - 2025-09-25
 
 ### Fixed
