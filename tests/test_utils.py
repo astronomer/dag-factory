@@ -8,7 +8,6 @@ import pytest
 from dagfactory import utils
 from dagfactory.utils import cast_with_type
 
-NOW = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 CET = pendulum.timezone("Europe/Amsterdam")
 UTC = pendulum.timezone("UTC")
 
@@ -26,7 +25,7 @@ def test_get_start_date_datetime_no_timezone():
 
 
 def test_get_start_date_relative_time_no_timezone():
-    expected = NOW.replace(tzinfo=UTC) - datetime.timedelta(days=1)
+    expected = pendulum.now(UTC).start_of("day") - datetime.timedelta(days=1)
     actual = utils.get_datetime("1 day")
     assert actual == expected
 
@@ -44,7 +43,7 @@ def test_get_start_date_datetime_timezone():
 
 
 def test_get_start_date_relative_time_timezone():
-    expected = NOW.replace(tzinfo=CET) - datetime.timedelta(days=1)
+    expected = pendulum.now(CET).start_of("day") - datetime.timedelta(days=1)
     actual = utils.get_datetime("1 day", "Europe/Amsterdam")
     assert actual == expected
 
@@ -417,14 +416,14 @@ class DummyClassWithArgs:
 
 class TestCustomType:
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_cast_simple_dict_with_type(self, mock_import):
         mock_import.return_value = DummyClass
         data = {"__type__": "path.to.DummyClass", "a": 1, "b": 2}
         result = cast_with_type(data)
         assert result == DummyClass(a=1, b=2)
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_nested_dict(self, mock_import):
         mock_import.return_value = DummyClass
         data = {"__type__": "path.to.DummyClass", "a": {"__type__": "path.to.DummyClass", "a": 10, "b": 20}, "b": 5}
@@ -436,7 +435,7 @@ class TestCustomType:
         result = cast_with_type(data)
         assert result == [1, 2, {"x": 3}]
 
-    @patch("dagfactory.utils._import_from_string")
+    @patch("dagfactory.utils.import_string")
     def test_typed_list(self, mock_import):
         mock_import.return_value = DummyClass
         data = {

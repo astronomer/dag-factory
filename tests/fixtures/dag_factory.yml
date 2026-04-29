@@ -16,6 +16,7 @@ default:
   orientation: LR
   schedule: 0 1 * * *
 example_dag:
+  timezone: UTC
   default_args:
     owner: custom_owner
     start_date: 2 days

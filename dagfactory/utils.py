@@ -15,23 +15,19 @@ from typing import Any, AnyStr, Dict, List, Match, Optional, Pattern, Tuple, Uni
 import pendulum
 import yaml
 
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
+
 from dagfactory.exceptions import DagFactoryException
-
-
-def _import_from_string(class_path):
-    """Dynamically import a class from a string."""
-    try:
-        module_path, class_name = class_path.rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        return getattr(module, class_name)
-    except (ImportError, AttributeError) as e:
-        raise ImportError(f"Could not import '{class_path}': {e}")
 
 
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
     """
     Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
+    Relative times use start of the current day in ``timezone``, then subtract the parsed delta.
 
     :param date_value: either a datetime (or date), a date string or a relative time as string
     :type date_value: Uniont[datetime, date, str]
@@ -51,7 +47,7 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
-        now: datetime = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0).replace(tzinfo=local_tz)
+        now: datetime = pendulum.now(local_tz).start_of("day")
         if not rel_delta:
             return now
         return now - rel_delta
@@ -209,7 +205,7 @@ def check_template_searchpath(template_searchpath: Union[str, List[str]]) -> boo
 
 
 def get_expand_partial_kwargs(
-    task_params: Dict[str, Any]
+    task_params: Dict[str, Any],
 ) -> Tuple[Dict[str, Any], Dict[str, Union[Dict[str, Any], Any]], Dict[str, Union[Dict[str, Any], Any]]]:
     """
     Getting expand and partial kwargs if existed from task_params
@@ -416,7 +412,7 @@ def cast_with_type(data):
             args = casted_args
 
         if "__type__" in data:
-            class_type = _import_from_string(data["__type__"])
+            class_type = import_string(data["__type__"])
             return class_type(*args, **processed)
 
         return processed
