@@ -1365,6 +1365,20 @@ class TestSchedule:
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
         assert schedule_data["schedule"] == relativedelta(hour=18)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
+    def test_resolve_schedule_dataset_timetable_type(self):
+        from airflow.timetables.trigger import CronTriggerTimetable
+
+        data = read_yml(schedule_path / "dataset_timetable.yml")
+        schedule_data = {}
+        DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
+        actual = schedule_data["schedule"]
+        assert actual["datasets"] == "((dataset_uri_1 & dataset_uri_2) | dataset_uri_3)"
+
+        actual_timetable = actual["timetable"]
+        assert isinstance(actual_timetable, CronTriggerTimetable)
+        assert actual_timetable.serialize()["expression"] == "* * * * *"
+        assert actual_timetable.serialize()["timezone"] == "UTC"
 
 # ===============================
 # Test ConfigureSchedule

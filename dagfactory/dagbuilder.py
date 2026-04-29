@@ -645,7 +645,6 @@ class DagBuilder:
                 # Only check for file and datasets attributes if schedule is a dict
                 has_file_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "file")
                 has_datasets_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "datasets")
-                has_timetable_attr = isinstance(schedule, dict) and utils.check_dict_key(schedule, "timetable")
 
                 if has_file_attr and has_datasets_attr:
                     file = schedule.get("file")
