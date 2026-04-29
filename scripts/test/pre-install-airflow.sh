@@ -3,7 +3,6 @@
 set -v
 set -x
 set -e
-set -o pipefail
 
 AIRFLOW_VERSION="$1"
 PYTHON_VERSION="$2"
