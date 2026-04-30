@@ -42,7 +42,7 @@ Notes:
 ```
 dag-factory/
 ├── dagfactory/         # Library source
-│   ├── dagfactory.py   # Public entry points (load_yaml_dags, _DagFactory)
+│   ├── dagfactory.py   # Public entry points (load_yaml_dags)
 │   ├── dagbuilder.py   # Translates YAML config into Airflow DAG/Task objects
 │   ├── parsers.py      # Schedule/parameter parsing helpers
 │   ├── _yaml.py        # YAML loading (safe loader, custom tags)
@@ -58,7 +58,7 @@ dag-factory/
 │   └── fixtures_without_default_yaml/  # Fixtures for tests that omit a default YAML
 ├── dev/                # Local Astro/Airflow sandbox (Dockerfile, dags/, logs/)
 │   └── dags/           # Example DAGs used locally and by tests/test_example_dags.py
-├── examples/dags/      # Example YAML DAG configs published with the project
+├── examples/dags/      # Example YAML DAG configs included in the source tree
 ├── docs/               # mkdocs-material site
 ├── scripts/            # Test, doc, and release helpers
 ├── pyproject.toml      # Build + tool config (ruff, black, hatch, uv)
@@ -77,7 +77,7 @@ dag-factory is a thin authoring layer that runs *inside* an Airflow deployment. 
 4. **CLI** (`__main__.py`, the `dagfactory` Typer console script) is for operator commands; it should not import from runtime listener code.
 5. **Telemetry** (`telemetry.py`) must stay opt-out and must never block DAG parsing if the network is down. Errors are swallowed by design.
 
-Don't import Airflow at module top-level in code that may run before Airflow is initialized; prefer local imports or guarded `try/except ImportError`. dag-factory must keep working on both Airflow 2.4+ and Airflow 3.x.
+Don't import Airflow at module top-level in code that may run before Airflow is initialized; prefer local imports or guarded `try/except ImportError`. dag-factory must keep working on both Airflow 2.9+ and Airflow 3.x.
 
 ## Security Model
 
