@@ -81,7 +81,7 @@ try:
 except ImportError:
     pass
 
-if not _python_operator_classes:
+if not _python_operator_classes:  # pragma: no cover
     raise ImportError(
         "Could not import PythonOperator/BranchPythonOperator/PythonSensor from either "
         "'airflow.providers.standard.operators.python' or 'airflow.operators.python'. "
