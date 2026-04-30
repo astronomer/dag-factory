@@ -65,7 +65,7 @@ try:
     _python_operator_classes.append(_StdPythonOperator)
     _branch_python_operator_classes.append(_StdBranchPythonOperator)
     _python_sensor_classes.append(_StdPythonSensor)
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 try:
@@ -78,7 +78,7 @@ try:
     _python_operator_classes.append(_CorePythonOperator)
     _branch_python_operator_classes.append(_CoreBranchPythonOperator)
     _python_sensor_classes.append(_CorePythonSensor)
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 if not _python_operator_classes:  # pragma: no cover
