@@ -81,6 +81,13 @@ try:
 except ImportError:
     pass
 
+if not _python_operator_classes:
+    raise ImportError(
+        "Could not import PythonOperator/BranchPythonOperator/PythonSensor from either "
+        "'airflow.providers.standard.operators.python' or 'airflow.operators.python'. "
+        "Install apache-airflow (with the standard provider, where applicable)."
+    )
+
 PythonOperator = _python_operator_classes[0]
 BranchPythonOperator = _branch_python_operator_classes[0]
 PythonSensor = _python_sensor_classes[0]
