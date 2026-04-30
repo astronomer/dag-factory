@@ -96,12 +96,16 @@ jobs:
 
       - name: Compute hatch env name
         id: hatch-env
+        env:
+          PY_VERSION: ${{ matrix.python-version }}
+          AF_VERSION: ${{ matrix.airflow-version }}
+          PROVIDERS_STANDARD_VERSION: ${{ matrix.providers-standard-version }}
         run: |
           suffix=""
-          if [ -n "${{ matrix.providers-standard-version }}" ]; then
-            suffix="-${{ matrix.providers-standard-version }}"
+          if [ -n "$PROVIDERS_STANDARD_VERSION" ]; then
+            suffix="-$PROVIDERS_STANDARD_VERSION"
           fi
-          echo "name=tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}${suffix}" >> "$GITHUB_OUTPUT"
+          echo "name=tests.py${PY_VERSION}-${AF_VERSION}${suffix}" >> "$GITHUB_OUTPUT"
           echo "suffix=${suffix}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -123,13 +127,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install packages and dependencies
+        env:
+          HATCH_ENV_NAME: ${{ steps.hatch-env.outputs.name }}
         run: |
           uv pip install  --system "hatch>=1.14.2"
-          hatch -e ${{ steps.hatch-env.outputs.name }} run pip freeze
+          hatch -e "$HATCH_ENV_NAME" run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
+        env:
+          HATCH_ENV_NAME: ${{ steps.hatch-env.outputs.name }}
         run: |
-          hatch run ${{ steps.hatch-env.outputs.name }}:test-cov
+          hatch run "$HATCH_ENV_NAME:test-cov"
 
       - name: Upload coverage to Github
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
