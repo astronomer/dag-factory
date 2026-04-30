@@ -19,6 +19,10 @@ except ImportError:
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
@@ -39,16 +43,12 @@ from tests.utils import (
     read_yml,
 )
 
-try:
-    from airflow.providers.standard.operators.bash import BashOperator
-except ImportError:
-    from airflow.operators.bash import BashOperator
-
-
-try:  # Try Airflow 3
-    from airflow.providers.standard.operators.python import PythonOperator
-except ImportError:
-    from airflow.operators.python import PythonOperator
+# Resolve operator classes through the same module path the YAML helpers point to,
+# so isinstance assertions match the class actually instantiated by make_task. On
+# AF2 with providers-standard installed, the core and providers.standard classes
+# are unrelated — picking the wrong one breaks isinstance checks.
+BashOperator = import_string(get_bash_operator_path())
+PythonOperator = import_string(get_python_operator_path())
 
 
 from dagfactory import dagbuilder
@@ -447,6 +447,53 @@ def test_make_python_operator_with_callable_str():
     assert actual.task_id == "test_task"
     assert callable(actual.python_callable)
     assert isinstance(actual, PythonOperator)
+
+
+# Regression test for issue #679: on Airflow 2.x with apache-airflow-providers-standard
+# installed, `airflow.operators.python.PythonOperator` and
+# `airflow.providers.standard.operators.python.PythonOperator` are different, unrelated
+# classes. dagbuilder must resolve python_callable_name/file regardless of which path the
+# YAML uses.
+def _module_importable(module_path):
+    try:
+        __import__(module_path)
+        return True
+    except ImportError:
+        return False
+
+
+_PYTHON_OPERATOR_PATHS = [
+    pytest.param(
+        "airflow.providers.standard.operators.python.PythonOperator",
+        id="providers-standard",
+        marks=pytest.mark.skipif(
+            not _module_importable("airflow.providers.standard.operators.python"),
+            reason="apache-airflow-providers-standard is not installed",
+        ),
+    ),
+    pytest.param(
+        "airflow.operators.python.PythonOperator",
+        id="core",
+        marks=pytest.mark.skipif(
+            INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+            reason="airflow.operators.python was removed in Airflow 3",
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize("operator_path", _PYTHON_OPERATOR_PATHS)
+def test_python_callable_resolution_both_paths(operator_path):
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    task_params = {
+        "task_id": "test_task",
+        "python_callable_name": "print_test",
+        "python_callable_file": os.path.realpath(__file__),
+    }
+    actual = td.make_task(operator_path, task_params)
+    assert callable(actual.python_callable)
+    assert "python_callable_name" not in task_params
+    assert "python_callable_file" not in task_params
 
 
 def test_make_python_operator_missing_param():
