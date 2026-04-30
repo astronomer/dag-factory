@@ -218,9 +218,7 @@ class DagBuilder:
         return dag_params
 
     @staticmethod
-    def _resolve_user_defined_macros(
-        macros: Dict[str, Any], path: str = "user_defined_macros"
-    ) -> Dict[str, Any]:
+    def _resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
         """
         Recursively resolves user_defined_macros values. String values are imported
         as callables via their dotted module path. Nested dicts are resolved recursively.
