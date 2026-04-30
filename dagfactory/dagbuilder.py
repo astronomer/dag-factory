@@ -47,12 +47,44 @@ except ImportError:
     from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 
-try:  # Try Airflow 3
-    from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
-    from airflow.providers.standard.sensors.python import PythonSensor
+# On Airflow 2.x with apache-airflow-providers-standard installed, both module paths
+# exist and resolve to *different* classes that aren't related by inheritance, so a
+# single try/except would let issubclass() checks miss whichever path the user's YAML
+# didn't pick. Import both when available and check against the union.
+_python_operator_classes = []
+_branch_python_operator_classes = []
+_python_sensor_classes = []
+
+try:
+    from airflow.providers.standard.operators.python import (
+        BranchPythonOperator as _StdBranchPythonOperator,
+        PythonOperator as _StdPythonOperator,
+    )
+    from airflow.providers.standard.sensors.python import PythonSensor as _StdPythonSensor
+
+    _python_operator_classes.append(_StdPythonOperator)
+    _branch_python_operator_classes.append(_StdBranchPythonOperator)
+    _python_sensor_classes.append(_StdPythonSensor)
 except ImportError:
-    from airflow.operators.python import BranchPythonOperator, PythonOperator
-    from airflow.sensors.python import PythonSensor
+    pass
+
+try:
+    from airflow.operators.python import (
+        BranchPythonOperator as _CoreBranchPythonOperator,
+        PythonOperator as _CorePythonOperator,
+    )
+    from airflow.sensors.python import PythonSensor as _CorePythonSensor
+
+    _python_operator_classes.append(_CorePythonOperator)
+    _branch_python_operator_classes.append(_CoreBranchPythonOperator)
+    _python_sensor_classes.append(_CorePythonSensor)
+except ImportError:
+    pass
+
+PythonOperator = _python_operator_classes[0]
+BranchPythonOperator = _branch_python_operator_classes[0]
+PythonSensor = _python_sensor_classes[0]
+PYTHON_CALLABLE_CLASSES = tuple(_python_operator_classes + _branch_python_operator_classes + _python_sensor_classes)
 
 
 logger = logging.getLogger(__name__)
@@ -255,7 +287,7 @@ class DagBuilder:
         # class is a Callable https://stackoverflow.com/a/34578836/3679900
         operator_obj: Callable[..., BaseOperator] = import_string(operator)
         # pylint: disable=too-many-nested-blocks
-        if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
+        if issubclass(operator_obj, PYTHON_CALLABLE_CLASSES):
             if (
                 not task_params.get("python_callable")
                 and not task_params.get("python_callable_name")
