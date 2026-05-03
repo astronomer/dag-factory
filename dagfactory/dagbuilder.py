@@ -972,23 +972,28 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-            for key in ["inlets", "outlets"]:
-                if utils.check_dict_key(task_params, key):
-                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
-                        task_params[key], "datasets"
-                    ):
-                        file = task_params[key]["file"]
-                        datasets_filter = task_params[key]["datasets"]
-                        datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+        # Convert URI strings in inlets/outlets into Dataset/Asset objects.
+        # On Airflow 3, the ``Dataset`` symbol imported above resolves to
+        # ``airflow.sdk.definitions.asset.Asset``. Without this conversion,
+        # outlets passed as bare URI strings stay as strings on the task; no
+        # AssetEvent is emitted on task success, so consumer DAGs scheduled on
+        # the corresponding Asset never trigger. See issue #718.
+        for key in ["inlets", "outlets"]:
+            if utils.check_dict_key(task_params, key):
+                if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
+                    task_params[key], "datasets"
+                ):
+                    file = task_params[key]["file"]
+                    datasets_filter = task_params[key]["datasets"]
+                    datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
 
-                        del task_params[key]["file"]
-                        del task_params[key]["datasets"]
-                    else:
-                        datasets_uri = task_params[key]
+                    del task_params[key]["file"]
+                    del task_params[key]["datasets"]
+                else:
+                    datasets_uri = task_params[key]
 
-                    if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
+                if key in task_params and datasets_uri:
+                    task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(
