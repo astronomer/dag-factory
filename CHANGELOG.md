@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add user_defined_macros support by @gyli in [#693](https://github.com/astronomer/dag-factory/pull/693)
 - Add airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
 - Add Airflow 3.2 to CI test matrix by @pankajastro in [#723](https://github.com/astronomer/dag-factory/pull/723)
 
@@ -29,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: support DatasetAlias in outlets by @AppKiv in [#601](https://github.com/astronomer/dag-factory/pull/601)
 - Import TaskGroup in the Airflow 3 way if available by @gyli in [#706](https://github.com/astronomer/dag-factory/pull/706)
 - Handle removal of airflow.utils.module_loading in Airflow 3.1+ by @pankajastro in [#712](https://github.com/astronomer/dag-factory/pull/712)
-- Fix import for datatset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
+- Fix import for dataset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
+- Fix Asset-based Scheduling on Airflow 3: Convert URI strings to Asset for inlets/outlets by @ArusheeVerma in [#737](https://github.com/astronomer/dag-factory/pull/737)
 
 ### Docs
 
@@ -47,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add 7-day cooldown to Dependabot config by @pankajkoti in [#686](https://github.com/astronomer/dag-factory/pull/686)
 - Ignore simple_auth_manager_passwords.json.generated from git by @gyli [#695](https://github.com/astronomer/dag-factory/pull/695)
 - Ignore more editor local settings folder by @gyli [#697](https://github.com/astronomer/dag-factory/pull/697)
+- Add Python 3.14 to CI test matrix by @pankajastro in [#731](https://github.com/astronomer/dag-factory/pull/731/)
+- Add AGENTS.md for AI coding agents by @gyli in [#717](https://github.com/astronomer/dag-factory/pull/717)
 
 ## [1.0.1] - 2025-09-25
 
