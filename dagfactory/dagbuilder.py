@@ -661,8 +661,31 @@ class DagBuilder:
                 and schedule.strip().lower() == "none"
             ):
                 dag_kwargs[schedule_key] = None
+            elif isinstance(schedule, list):
+                # Convert URI strings into Asset objects on Airflow 3 and normalise
+                # the list (skip None, strip strings, drop empties). Without the
+                # conversion, Airflow 3's _default_timetable validator raises
+                # ValueError if any list element is not a BaseAsset. The ``Dataset``
+                # symbol imported at the top of this module resolves to
+                # ``airflow.sdk.definitions.asset.Asset`` on Airflow 3, so the same
+                # conversion that adjust_general_task_params performs for
+                # outlets/inlets (see #737) is correct here for schedule too.
+                # The normalisation step mirrors the existing AF2 list filter at
+                # lines 619-623 so cross-version behaviour is consistent. See #718.
+                normalized_schedule = []
+                for uri in schedule:
+                    if uri is None:
+                        continue
+                    if isinstance(uri, str):
+                        uri = uri.strip()
+                        if not uri:
+                            continue
+                        normalized_schedule.append(Dataset(uri))
+                    else:
+                        normalized_schedule.append(uri)
+                dag_kwargs[schedule_key] = normalized_schedule
             else:
-                dag_kwargs[schedule_key] = dag_params.get("schedule")
+                dag_kwargs[schedule_key] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
