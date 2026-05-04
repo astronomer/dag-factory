@@ -1124,9 +1124,6 @@ def test_replace_expand_string_with_xcom():
     assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"), reason="Requires Airflow version less than 3.0.0"
-)
 @pytest.mark.parametrize(
     "inlets, outlets, expected_inlets, expected_outlets",
     [
@@ -1220,16 +1217,14 @@ class TestSchedule:
         reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
-        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+        from airflow.datasets import Dataset
 
         schedule_data = load_yaml_file(str(schedule_path / "dataset_object_as_list.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = [
+            Dataset(uri="s3://dag1/output_1.txt", extra=None),
+            Dataset(uri="s3://dag2/output_1.txt", extra=None),
+        ]
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(
         INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
@@ -1239,13 +1234,12 @@ class TestSchedule:
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_dataset.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, DatasetAny)
+        assert isinstance(actual.objects[0], DatasetAll)
+        assert actual.objects[0].objects[0] == Dataset(uri="s3://dag1/output_1.txt", extra=None)
+        assert actual.objects[0].objects[1] == Dataset(uri="s3://dag2/output_1.txt", extra=None)
+        assert actual.objects[1] == Dataset(uri="s3://dag3/output_3.txt", extra=None)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
@@ -1276,81 +1270,40 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAll
 
         schedule_data = load_yaml_file(str(schedule_path / "and_asset.yml"))
-
-        expected = AssetAll(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAll)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "or_asset.yml"))
-
-        expected = AssetAny(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_asset.yml"))
-
-        expected = AssetAny(
-            AssetAll(
-                Asset(
-                    name="s3://dag1/output_1.txt",
-                    uri="s3://dag1/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-                Asset(
-                    name="s3://dag2/output_1.txt",
-                    uri="s3://dag2/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-            ),
-            Asset(
-                name="s3://dag3/output_3.txt",
-                uri="s3://dag3/output_3.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert isinstance(actual.objects[0], AssetAll)
+        assert list(actual.objects[0].objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
+        assert actual.objects[1] == Asset(
+            name="s3://dag3/output_3.txt", uri="s3://dag3/output_3.txt", group="asset", extra={"hi": "bye"}, watchers=[]
         )
-        assert schedule_data["schedule"].__eq__(expected)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_watcher(self):
@@ -1359,21 +1312,19 @@ class TestSchedule:
 
         schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
-        expected = [
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[
-                    AssetWatcher(
-                        name="test_asset_watcher",
-                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
-                    )
-                ],
-            )
-        ]
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = Asset(
+            name="s3://dag1/output_1.txt",
+            uri="s3://dag1/output_1.txt",
+            group="asset",
+            extra={"hi": "bye"},
+            watchers=[
+                AssetWatcher(
+                    name="test_asset_watcher",
+                    trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                )
+            ],
+        )
+        assert schedule_data["schedule"] == expected
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
@@ -1518,6 +1469,85 @@ class TestConfigureSchedule:
 
         assert dag_kwargs["schedule"] == expected_return
 
+    def test_configure_schedule_airflow3_list_of_uri_strings(self, patch_airflow_version):
+        """On Airflow 3, ``schedule`` declared as a list of bare URI strings should be
+        converted to Asset objects.
+
+        Without this conversion, Airflow 3's ``_default_timetable`` validator raises
+        ``ValueError`` at DAG construction time because list elements are not
+        ``BaseAsset`` instances. Mirrors the producer-side fix in PR #737. See #718.
+        """
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": ["s3://bucket/data1.parquet", "s3://bucket/data2.parquet"]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/data1.parquet"), Dataset("s3://bucket/data2.parquet")]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_list_mixed_string_and_object(self, patch_airflow_version):
+        """``isinstance(uri, str)`` guard preserves already-typed Asset/Dataset
+        objects, so users can mix bare URIs with explicit ``__type__`` entries
+        (e.g. ``airflow.sdk.AssetAlias``) in the same schedule list.
+
+        Pattern reused from PR #601.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {"schedule": ["s3://bucket/raw.parquet", pre_built]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/raw.parquet"), pre_built]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_empty_list(self, patch_airflow_version):
+        """An empty schedule list must round-trip as an empty list, not crash."""
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": []}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == []
+
+    def test_configure_schedule_airflow3_list_normalises_none_and_empty(self, patch_airflow_version):
+        """On Airflow 3, list elements are normalised the same way the AF2 branch
+        normalises them (see ``configure_schedule`` lines 619-623): ``None`` entries
+        are dropped, string entries are ``strip()``-ed, and entries that strip to
+        empty are dropped. Pre-typed Asset/Dataset objects pass through unchanged.
+
+        Mirrors the filter behaviour already present on AF2 so cross-version
+        behaviour is consistent. Suggested by Copilot review on PR #738.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {
+            "schedule": [
+                "s3://bucket/data.parquet",  # kept, wrapped in Dataset
+                None,  # dropped
+                "",  # dropped (empty string)
+                "   ",  # dropped (whitespace-only)
+                "  s3://bucket/padded.parquet  ",  # kept, stripped, then wrapped
+                pre_built,  # passes through unchanged
+            ]
+        }
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == [
+            Dataset("s3://bucket/data.parquet"),
+            Dataset("s3://bucket/padded.parquet"),
+            pre_built,
+        ]
+
 
 class TestTopologicalSortTasks:
 
@@ -1579,3 +1609,67 @@ class TestTopologicalSortTasks:
         assert task_names.index("task1") < task_names.index("task3")
         assert task_names.index("task2") < task_names.index("task4")
         assert task_names.index("task3") < task_names.index("task4")
+
+
+# Tests for DagBuilder._resolve_user_defined_macros
+class TestResolveUserDefinedMacros:
+    def test_string_value_is_imported_as_callable(self):
+        result = DagBuilder._resolve_user_defined_macros({"ds": "pendulum.now"})
+        import pendulum as _pendulum
+
+        assert result["ds"] is _pendulum.now
+
+    def test_non_string_primitive_passed_through(self):
+        macros = {"my_int": 42, "my_float": 3.14, "my_list": [1, 2, 3]}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        assert result["my_int"] == 42
+        assert result["my_float"] == 3.14
+        assert result["my_list"] == [1, 2, 3]
+
+    def test_callable_passed_through(self):
+        def my_func():
+            pass
+
+        result = DagBuilder._resolve_user_defined_macros({"fn": my_func})
+        assert result["fn"] is my_func
+
+    def test_nested_dict_resolved_recursively(self):
+        macros = {"outer": {"ds": "pendulum.now"}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["outer"]["ds"] is _pendulum.now
+
+    def test_deeply_nested_dict_resolved(self):
+        macros = {"a": {"b": {"ds": "pendulum.now"}}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["a"]["b"]["ds"] is _pendulum.now
+
+    def test_empty_dict_returns_empty_dict(self):
+        assert DagBuilder._resolve_user_defined_macros({}) == {}
+
+    def test_mixed_values_resolved_correctly(self):
+        macros = {"imported": "pendulum.now", "literal": 99}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["imported"] is _pendulum.now
+        assert result["literal"] == 99
+
+    def test_non_dict_input_raises_exception(self):
+        with pytest.raises(DagFactoryConfigException, match="expected a mapping/dict"):
+            DagBuilder._resolve_user_defined_macros("not_a_dict")  # type: ignore[arg-type]
+
+    def test_non_dict_nested_value_raises_exception(self):
+        # A list nested inside is not a dict — the outer loop treats it as "other type"
+        # and passes it through. Only non-dict at the top level (or in a nested dict
+        # slot that itself should be a dict) raises.  Here we verify a non-dict at the
+        # top level raises with the default path label.
+        with pytest.raises(DagFactoryConfigException, match="user_defined_macros"):
+            DagBuilder._resolve_user_defined_macros([1, 2, 3])  # type: ignore[arg-type]
+
+    def test_invalid_import_string_raises(self):
+        with pytest.raises(Exception):
+            DagBuilder._resolve_user_defined_macros({"bad": "nonexistent.module.func"})

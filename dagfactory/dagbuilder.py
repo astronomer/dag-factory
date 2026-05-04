@@ -223,6 +223,28 @@ class DagBuilder:
         return dag_params
 
     @staticmethod
+    def _resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
+        """
+        Recursively resolves user_defined_macros values. String values are imported
+        as callables via their dotted module path. Nested dicts are resolved recursively.
+        Other types are passed through as-is.
+        """
+        if not isinstance(macros, dict):
+            raise DagFactoryConfigException(
+                f"Invalid `{path}` config: expected a mapping/dict, got {type(macros).__name__}."
+            )
+
+        resolved: Dict[str, Any] = {}
+        for key, value in macros.items():
+            if isinstance(value, str):
+                resolved[key] = import_string(value)
+            elif isinstance(value, dict):
+                resolved[key] = DagBuilder._resolve_user_defined_macros(value, path=f"{path}.{key}")
+            else:
+                resolved[key] = value
+        return resolved
+
+    @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
         # Only handle if HttpOperator/HttpSensor are available
         if HTTP_OPERATOR_CLASS and issubclass(operator_obj, HTTP_OPERATOR_CLASS):
@@ -323,7 +345,7 @@ class DagBuilder:
         expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
         if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
             # Getting expand and partial kwargs from task_params
-            (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+            task_params, expand_kwargs, partial_kwargs = utils.get_expand_partial_kwargs(task_params)
 
             # If there are partial_kwargs we should merge them with existing task_params
             if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
@@ -644,8 +666,31 @@ class DagBuilder:
                 and schedule.strip().lower() == "none"
             ):
                 dag_kwargs[schedule_key] = None
+            elif isinstance(schedule, list):
+                # Convert URI strings into Asset objects on Airflow 3 and normalise
+                # the list (skip None, strip strings, drop empties). Without the
+                # conversion, Airflow 3's _default_timetable validator raises
+                # ValueError if any list element is not a BaseAsset. The ``Dataset``
+                # symbol imported at the top of this module resolves to
+                # ``airflow.sdk.definitions.asset.Asset`` on Airflow 3, so the same
+                # conversion that adjust_general_task_params performs for
+                # outlets/inlets (see #737) is correct here for schedule too.
+                # The normalisation step mirrors the existing AF2 list filter at
+                # lines 619-623 so cross-version behaviour is consistent. See #718.
+                normalized_schedule = []
+                for uri in schedule:
+                    if uri is None:
+                        continue
+                    if isinstance(uri, str):
+                        uri = uri.strip()
+                        if not uri:
+                            continue
+                        normalized_schedule.append(Dataset(uri))
+                    else:
+                        normalized_schedule.append(uri)
+                dag_kwargs[schedule_key] = normalized_schedule
             else:
-                dag_kwargs[schedule_key] = dag_params.get("schedule")
+                dag_kwargs[schedule_key] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
@@ -803,6 +848,11 @@ class DagBuilder:
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
 
         dag_kwargs["params"] = dag_params.get("params", None)
+
+        if dag_params.get("user_defined_macros"):
+            dag_kwargs["user_defined_macros"] = DagBuilder._resolve_user_defined_macros(
+                dag_params["user_defined_macros"]
+            )
 
         dag_kwargs["start_date"] = dag_params.get("start_date", None)
         dag_kwargs["end_date"] = dag_params.get("end_date", None)
@@ -977,23 +1027,28 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-            for key in ["inlets", "outlets"]:
-                if utils.check_dict_key(task_params, key):
-                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
-                        task_params[key], "datasets"
-                    ):
-                        file = task_params[key]["file"]
-                        datasets_filter = task_params[key]["datasets"]
-                        datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+        # Convert URI strings in inlets/outlets into Dataset/Asset objects.
+        # On Airflow 3, the ``Dataset`` symbol imported above resolves to
+        # ``airflow.sdk.definitions.asset.Asset``. Without this conversion,
+        # outlets passed as bare URI strings stay as strings on the task; no
+        # AssetEvent is emitted on task success, so consumer DAGs scheduled on
+        # the corresponding Asset never trigger. See issue #718.
+        for key in ["inlets", "outlets"]:
+            if utils.check_dict_key(task_params, key):
+                if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
+                    task_params[key], "datasets"
+                ):
+                    file = task_params[key]["file"]
+                    datasets_filter = task_params[key]["datasets"]
+                    datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
 
-                        del task_params[key]["file"]
-                        del task_params[key]["datasets"]
-                    else:
-                        datasets_uri = task_params[key]
+                    del task_params[key]["file"]
+                    del task_params[key]["datasets"]
+                else:
+                    datasets_uri = task_params[key]
 
-                    if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
+                if key in task_params and datasets_uri:
+                    task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(

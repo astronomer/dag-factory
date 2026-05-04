@@ -23,7 +23,7 @@ load_yaml_dags(globals_dict=globals(), config_filepath='/path/to/your/dag_config
 
 ```
 
-### 3. Loading from YAML File with default_args_config_path
+### 3. Loading from YAML File with defaults_config_path
 
 ```python
 from dagfactory import load_yaml_dags
@@ -32,7 +32,7 @@ from dagfactory import load_yaml_dags
 load_yaml_dags(
     globals_dict=globals(),
     config_filepath='/path/to/your/dag_config.yaml',
-    default_args_config_path='/path/to/your/default_args.yml'
+    defaults_config_path='/path/to/your/defaults.yml'
 )
 ```
 

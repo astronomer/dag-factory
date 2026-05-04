@@ -6,7 +6,7 @@ DAG Factory allows you to define default values for DAG-level arguments and Airf
 - Define the `default_args` within each DAG definition in the DAGs YAML file;
 - Declare a `default` block within the toplevel of the DAGs YAML file;
 - Define the `default_args_config_dict` argument when instantiating the `DAGFactory` class;
-- Create one or multiple `defaults.yml` or `defaults.yaml` and declare the `default_args_config_path` argument in the `DAGFactory` class. This approach includes support for combining multiple `defaults.yml` or `defaults.yaml` files.
+- Create one or multiple `defaults.yml` or `defaults.yaml` and declare the `defaults_config_path` argument in the `DAGFactory` class. This approach includes support for combining multiple `defaults.yml` or `defaults.yaml` files.
 
 Although you cannot use the last two configurations together, you can use a combination of the first two configurations with either the third or the last.
 
@@ -71,7 +71,7 @@ It allows you to define DAG-level arguments, including the `default_args`, using
 ```
 
  In this example, users create a YAML DAG by using the `DagFactory` class and declare default arguments in the form of a Python dictionary by setting the `default_args_config_dict` parameter in the `DAGFactory` class. This feature mirrors the functionality of
- manually specifying a `default_args_config_path` in the `DAGFactory` class, described in the next section.
+ manually specifying a `defaults_config_path` in the `DAGFactory` class, described in the next section.
 
 ```python title="Usage of default_args_config_dict in .py file"
 --8<-- "dev/dags/example_dag_factory_default_config_dict.py:13:19"
@@ -83,7 +83,7 @@ This configuration affects DAGs created using the `DagFactory` class without the
 
 If a `defaults.yml` file is present in the same directory as the YAML file representing the DAG, DagFactory will use it to build the DAG.
 
-If the `defaults.yml` is added to a separate directory, users can share it using `DagFactory`'s argument `default_args_config_path`.
+If the `defaults.yml` is added to a separate directory, users can share it using `DagFactory`'s argument `defaults_config_path`.
 
 ### Example of declaring the `default_args` using `defaults.yml`
 
@@ -114,7 +114,7 @@ If the `defaults.yml` is added to a separate directory, users can share it using
 
 It is possible to combine and merge the content of multiple `defaults.yml` files.
 
-To accomplish this, you should declare in the `default_args_config_path` a folder that is a parent folder of a DAG-defined `YAML` file. In this case, DAG Factory will merge all the `defaults.yml` configurations, following the directories' hierarchy, and give precedence to the arguments declared in the `defaults.yml` file closest to the DAG YAML file.
+To accomplish this, you should declare in the `defaults_config_path` a folder that is a parent folder of a DAG-defined `YAML` file. In this case, DAG Factory will merge all the `defaults.yml` configurations, following the directories' hierarchy, and give precedence to the arguments declared in the `defaults.yml` file closest to the DAG YAML file.
 
 As an example, let's say there are DagFactory DAGs defined inside the `a/b/c/some_dags.yml` file following this directory tree:
 
@@ -134,7 +134,7 @@ Assuming you instantiate the DAG by using:
 ```python
 load_yaml_dags(
    "a/b/c/some_dags.yml",
-   default_args_config_path=default_args_config_path="a"
+   defaults_config_path="a"
 )`
 
 The DAG will be using the default configuration defined in all the following files:
