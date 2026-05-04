@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add user_defined_macros support by @gyli in [#693](https://github.com/astronomer/dag-factory/pull/693)
+- feat: support key: +{task}[{xcom_key}] use by @yanshil in [#593](https://github.com/astronomer/dag-factory/pull/593)
+- Support dataset timetable by @AppKiv in [#599](https://github.com/astronomer/dag-factory/pull/599)
 - Add airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
 - Add Airflow 3.2 to CI test matrix by @pankajastro in [#723](https://github.com/astronomer/dag-factory/pull/723)
 
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change log info to warning by @pankajastro in [#590](https://github.com/astronomer/dag-factory/pull/590)
 - Unify import_from_string methods by @gyli in [#694](https://github.com/astronomer/dag-factory/pull/694)
+- Ensure default_args_config_path is fully renamed to defaults_config_path @gyli in [#725](https://github.com/astronomer/dag-factory/pull/725)
 
 ### Fixed
 
@@ -32,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handle removal of airflow.utils.module_loading in Airflow 3.1+ by @pankajastro in [#712](https://github.com/astronomer/dag-factory/pull/712)
 - Fix import for dataset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
 - Fix Asset-based Scheduling on Airflow 3: Convert URI strings to Asset for inlets/outlets by @ArusheeVerma in [#737](https://github.com/astronomer/dag-factory/pull/737)
+- Fix Consumer-side Asset Scheduling on Airflow 3: Convert URI strings in schedule to Asset by @ArusheeVerma in [#738](https://github.com/astronomer/dag-factory/pull/738)
+- Fix unconditional sla_miss_callback removal warning in Airflow 3.1+ by manipatnam in [#734](https://github.com/astronomer/dag-factory/pull/734)
 
 ### Docs
 
