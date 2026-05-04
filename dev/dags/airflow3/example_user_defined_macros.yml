@@ -1,0 +1,20 @@
+default:
+  catchup: false
+  default_args:
+    start_date: 2025-01-01
+
+example_user_defined_macros:
+  description: "DAG-Factory example using user_defined_macros"
+  schedule: "@daily"
+  user_defined_macros:
+    add_days: "sample.add_days"         # top-level callable
+    date_utils:                         # nested dict with callable leaf
+      shift: "sample.add_days"
+  tasks:
+    - task_id: "print_macros"
+      operator: "airflow.providers.standard.operators.bash.BashOperator"
+      bash_command: >-
+        echo 'Run date: {{ ds }} |
+        Yesterday: {{ add_days(ds, -1) }} |
+        Tomorrow: {{ add_days(ds, 1) }} |
+        Nested yesterday: {{ date_utils.shift(ds, -1) }}'
