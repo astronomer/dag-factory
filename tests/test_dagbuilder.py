@@ -1417,6 +1417,85 @@ class TestConfigureSchedule:
 
         assert dag_kwargs["schedule"] == expected_return
 
+    def test_configure_schedule_airflow3_list_of_uri_strings(self, patch_airflow_version):
+        """On Airflow 3, ``schedule`` declared as a list of bare URI strings should be
+        converted to Asset objects.
+
+        Without this conversion, Airflow 3's ``_default_timetable`` validator raises
+        ``ValueError`` at DAG construction time because list elements are not
+        ``BaseAsset`` instances. Mirrors the producer-side fix in PR #737. See #718.
+        """
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": ["s3://bucket/data1.parquet", "s3://bucket/data2.parquet"]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/data1.parquet"), Dataset("s3://bucket/data2.parquet")]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_list_mixed_string_and_object(self, patch_airflow_version):
+        """``isinstance(uri, str)`` guard preserves already-typed Asset/Dataset
+        objects, so users can mix bare URIs with explicit ``__type__`` entries
+        (e.g. ``airflow.sdk.AssetAlias``) in the same schedule list.
+
+        Pattern reused from PR #601.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {"schedule": ["s3://bucket/raw.parquet", pre_built]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/raw.parquet"), pre_built]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_empty_list(self, patch_airflow_version):
+        """An empty schedule list must round-trip as an empty list, not crash."""
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": []}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == []
+
+    def test_configure_schedule_airflow3_list_normalises_none_and_empty(self, patch_airflow_version):
+        """On Airflow 3, list elements are normalised the same way the AF2 branch
+        normalises them (see ``configure_schedule`` lines 619-623): ``None`` entries
+        are dropped, string entries are ``strip()``-ed, and entries that strip to
+        empty are dropped. Pre-typed Asset/Dataset objects pass through unchanged.
+
+        Mirrors the filter behaviour already present on AF2 so cross-version
+        behaviour is consistent. Suggested by Copilot review on PR #738.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {
+            "schedule": [
+                "s3://bucket/data.parquet",  # kept, wrapped in Dataset
+                None,  # dropped
+                "",  # dropped (empty string)
+                "   ",  # dropped (whitespace-only)
+                "  s3://bucket/padded.parquet  ",  # kept, stripped, then wrapped
+                pre_built,  # passes through unchanged
+            ]
+        }
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == [
+            Dataset("s3://bucket/data.parquet"),
+            Dataset("s3://bucket/padded.parquet"),
+            pre_built,
+        ]
+
 
 class TestTopologicalSortTasks:
 
