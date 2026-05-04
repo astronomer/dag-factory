@@ -156,8 +156,13 @@ class DagBuilder:
             "sla_miss_callback",  # Not applicable at the default_args level
         ]:
             if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
-                # sla_miss_callbacks are removed as of 3.1.0
-                logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
+                # sla_miss_callbacks are removed as of 3.1.0; only warn if it was actually configured
+                sla_configured = utils.check_dict_key(dag_params, "sla_miss_callback") or (
+                    utils.check_dict_key(dag_params, "sla_miss_callback_name")
+                    and utils.check_dict_key(dag_params, "sla_miss_callback_file")
+                )
+                if sla_configured:
+                    logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
                 continue
 
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
