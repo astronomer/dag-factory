@@ -34,7 +34,7 @@ class _DagFactory:
     :type config_dict: dict
     :param defaults_config_path: The path to a file that contains the default arguments for that DAG.
     :type defaults_config_path: str
-    :param defaults_config_dict: A dictionary of default arguments for that DAG, as an alternative to default_args_config_path.
+    :param defaults_config_dict: A dictionary of default arguments for that DAG, as an alternative to defaults_config_path.
     :type defaults_config_dict: dict
     """
 
@@ -64,11 +64,11 @@ class _DagFactory:
             )
 
             if defaults_config_path != airflow_conf.get("core", "dags_folder"):
-                raise DagFactoryException("Cannot pass both `default_args_config_dict` and `default_args_config_path`.")
+                raise DagFactoryException("Cannot pass both `default_args_config_dict` and `defaults_config_path`.")
 
         # We'll still go ahead and set both values. They'll be referenced in _global_default_args.
         self.config_file_path: str = config_filepath
-        self.default_args_config_path: str = defaults_config_path
+        self.defaults_config_path: str = defaults_config_path
         self.defaults_config_dict: Optional[dict] = defaults_config_dict
 
     def _global_default_args(self):
@@ -96,7 +96,7 @@ class _DagFactory:
         else:
             dag_yml_file_parent_dirs = []
 
-        default_config_root_dir_path = Path(self.default_args_config_path)
+        default_config_root_dir_path = Path(self.defaults_config_path)
 
         # Assuming default_config_root_dir_path is a parent directory of the dag_yml_file_dir_path
         if default_config_root_dir_path in dag_yml_file_parent_dirs:
