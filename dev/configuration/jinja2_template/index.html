@@ -796,6 +796,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#built-in-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Variables
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Built-in Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#example-dag" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -803,6 +815,50 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-defined-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User-Defined Macros
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User-Defined Macros">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-dag_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example DAG
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accessing-macros-in-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing macros in templates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1581,6 +1637,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#built-in-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in Variables
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Built-in Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#example-dag" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1588,6 +1656,50 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-defined-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User-Defined Macros
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User-Defined Macros">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-dag_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example DAG
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accessing-macros-in-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing macros in templates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1625,8 +1737,10 @@
 
 
 <h1 id="jinja2-template">Jinja2 Template</h1>
-<p>This example shows how to use <a href="https://airflow.apache.org/">Apache Airflow®</a> built-in Jinja templating within a YAML-based DAG definition using DAG-Factory</p>
-<h2 id="example-dag">Example DAG</h2>
+<p>This page shows how to use <a href="https://airflow.apache.org/">Apache Airflow®</a> Jinja2 templating within a YAML-based DAG definition using DAG-Factory.</p>
+<h2 id="built-in-variables">Built-in Variables</h2>
+<p>Airflow exposes a set of built-in Jinja2 variables (e.g. <code>ds</code>, <code>run_id</code>, <code>task</code>) that are available in all task templates without any configuration.</p>
+<h3 id="example-dag">Example DAG</h3>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">example_jinja2_template_dag</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2025-01-01&quot;</span>
@@ -1644,6 +1758,36 @@
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">dependencies</span><span class="p">:</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">print_run_id</span>
 </span></code></pre></div>
+<h2 id="user-defined-macros">User-Defined Macros</h2>
+<p>Airflow allows you to extend the Jinja2 templating environment with custom macros via the <code>user_defined_macros</code> DAG parameter. These macros are callable functions or values made available in all task templates of the DAG.</p>
+<p>In DAG-Factory, <code>user_defined_macros</code> values are specified as dotted import paths (e.g. <code>module.function</code>) and are imported at DAG build time. Nested dicts are supported, allowing you to group related macros under a namespace.</p>
+<h3 id="example-dag_1">Example DAG</h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">default</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">catchup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">default_args</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-01-01</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">example_user_defined_macros</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;DAG-Factory</span><span class="nv"> </span><span class="s">example</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">user_defined_macros&quot;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@daily&quot;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">user_defined_macros</span><span class="p">:</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">add_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sample.add_days&quot;</span><span class="w">         </span><span class="c1"># top-level callable</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">date_utils</span><span class="p">:</span><span class="w">                         </span><span class="c1"># nested dict with callable leaf</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">shift</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sample.add_days&quot;</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;print_macros&quot;</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;airflow.providers.standard.operators.bash.BashOperator&quot;</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="no">echo &#39;Run date: {{ ds }} |</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">        </span><span class="no">Yesterday: {{ add_days(ds, -1) }} |</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">        </span><span class="no">Tomorrow: {{ add_days(ds, 1) }} |</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="no">Nested yesterday: {{ date_utils.shift(ds, -1) }}&#39;</span>
+</span></code></pre></div>
+<h3 id="accessing-macros-in-templates">Accessing macros in templates</h3>
+<ul>
+<li><strong>Top-level callable</strong>: <code>{{ add_days(ds, -1) }}</code></li>
+<li><strong>Nested callable</strong>: <code>{{ date_utils.shift(ds, -1) }}</code></li>
+</ul>
 
 
 
