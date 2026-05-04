@@ -8,26 +8,24 @@
       
       
       
-        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/">
+        <link rel="canonical" href="https://astronomer.github.io/dag-factory/dev/features/taskflow_pipeline/">
       
       
-      
-        <link rel="next" href="getting-started/quick-start-airflow-standalone/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>DAG Factory</title>
+        <title>Taskflow pipeline - DAG Factory</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
       
 
@@ -46,7 +44,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -64,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dag-factory-documentation" class="md-skip">
+        <a href="#taskflow-pipeline-with-multiple_outputstrue" class="md-skip">
           Skip to content
         </a>
       
@@ -82,7 +80,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="DAG Factory" class="md-header__button md-logo" aria-label="DAG Factory" data-md-component="logo">
+    <a href="../.." title="DAG Factory" class="md-header__button md-logo" aria-label="DAG Factory" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -102,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Taskflow pipeline
             
           </span>
         </div>
@@ -192,11 +190,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -217,7 +213,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="getting-started/quick-start-airflow-standalone/" class="md-tabs__link">
+        <a href="../../getting-started/quick-start-airflow-standalone/" class="md-tabs__link">
           
   
   
@@ -239,7 +235,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="configuration/configuring_workflows/" class="md-tabs__link">
+        <a href="../../configuration/configuring_workflows/" class="md-tabs__link">
           
   
   
@@ -261,7 +257,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="features/dynamic_tasks/" class="md-tabs__link">
+        <a href="../dynamic_tasks/" class="md-tabs__link">
           
   
   
@@ -283,7 +279,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="comparison/" class="md-tabs__link">
+        <a href="../../comparison/" class="md-tabs__link">
           
   
   
@@ -305,7 +301,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="contributing/code_of_conduct/" class="md-tabs__link">
+        <a href="../../contributing/code_of_conduct/" class="md-tabs__link">
           
   
   
@@ -341,7 +337,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="DAG Factory" class="md-nav__button md-logo" aria-label="DAG Factory" data-md-component="logo">
+    <a href="../.." title="DAG Factory" class="md-nav__button md-logo" aria-label="DAG Factory" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -368,37 +364,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -414,147 +383,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting started
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#command-line" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command Line
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dag-factory-10-released" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        📢 Dag-Factory 1.0 Released
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dag-factory-supports-airflow-3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🚀 Dag-Factory Supports Airflow 3
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting help
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Contributing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        License
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#privacy-notice" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Privacy Notice
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -624,7 +452,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/quick-start-airflow-standalone/" class="md-nav__link">
+      <a href="../../getting-started/quick-start-airflow-standalone/" class="md-nav__link">
         
   
   
@@ -652,7 +480,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/quick-start-astro-cli/" class="md-nav__link">
+      <a href="../../getting-started/quick-start-astro-cli/" class="md-nav__link">
         
   
   
@@ -757,7 +585,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/configuring_workflows/" class="md-nav__link">
+      <a href="../../configuration/configuring_workflows/" class="md-nav__link">
         
   
   
@@ -785,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/load_yaml_dags/" class="md-nav__link">
+      <a href="../../configuration/load_yaml_dags/" class="md-nav__link">
         
   
   
@@ -813,7 +641,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/environment_variables/" class="md-nav__link">
+      <a href="../../configuration/environment_variables/" class="md-nav__link">
         
   
   
@@ -841,7 +669,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/defaults/" class="md-nav__link">
+      <a href="../../configuration/defaults/" class="md-nav__link">
         
   
   
@@ -869,7 +697,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/params/" class="md-nav__link">
+      <a href="../../configuration/params/" class="md-nav__link">
         
   
   
@@ -897,7 +725,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/jinja2_template/" class="md-nav__link">
+      <a href="../../configuration/jinja2_template/" class="md-nav__link">
         
   
   
@@ -925,7 +753,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/schedule/" class="md-nav__link">
+      <a href="../../configuration/schedule/" class="md-nav__link">
         
   
   
@@ -953,7 +781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configuration/custom_py_object/" class="md-nav__link">
+      <a href="../../configuration/custom_py_object/" class="md-nav__link">
         
   
   
@@ -1062,7 +890,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/dynamic_tasks/" class="md-nav__link">
+      <a href="../dynamic_tasks/" class="md-nav__link">
         
   
   
@@ -1090,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/datasets/" class="md-nav__link">
+      <a href="../datasets/" class="md-nav__link">
         
   
   
@@ -1118,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/callbacks/" class="md-nav__link">
+      <a href="../callbacks/" class="md-nav__link">
         
   
   
@@ -1146,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/custom_operators/" class="md-nav__link">
+      <a href="../custom_operators/" class="md-nav__link">
         
   
   
@@ -1174,7 +1002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/http_task/" class="md-nav__link">
+      <a href="../http_task/" class="md-nav__link">
         
   
   
@@ -1202,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/multiple_configuration_files/" class="md-nav__link">
+      <a href="../multiple_configuration_files/" class="md-nav__link">
         
   
   
@@ -1230,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/custom_python_object/" class="md-nav__link">
+      <a href="../custom_python_object/" class="md-nav__link">
         
   
   
@@ -1258,7 +1086,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/object_storage/" class="md-nav__link">
+      <a href="../object_storage/" class="md-nav__link">
         
   
   
@@ -1286,7 +1114,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/kpo/" class="md-nav__link">
+      <a href="../kpo/" class="md-nav__link">
         
   
   
@@ -1314,7 +1142,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/asset/" class="md-nav__link">
+      <a href="../asset/" class="md-nav__link">
         
   
   
@@ -1376,7 +1204,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="comparison/" class="md-nav__link ">
+            <a href="../../comparison/" class="md-nav__link ">
               
   
   
@@ -1420,7 +1248,7 @@
   
   
     <li class="md-nav__item">
-      <a href="comparison/traditional_operators/" class="md-nav__link">
+      <a href="../../comparison/traditional_operators/" class="md-nav__link">
         
   
   
@@ -1448,7 +1276,7 @@
   
   
     <li class="md-nav__item">
-      <a href="comparison/taskflow_api/" class="md-nav__link">
+      <a href="../../comparison/taskflow_api/" class="md-nav__link">
         
   
   
@@ -1545,7 +1373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/code_of_conduct/" class="md-nav__link">
+      <a href="../../contributing/code_of_conduct/" class="md-nav__link">
         
   
   
@@ -1573,7 +1401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/contributors/" class="md-nav__link">
+      <a href="../../contributing/contributors/" class="md-nav__link">
         
   
   
@@ -1601,7 +1429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/howto/" class="md-nav__link">
+      <a href="../../contributing/howto/" class="md-nav__link">
         
   
   
@@ -1629,7 +1457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/roles/" class="md-nav__link">
+      <a href="../../contributing/roles/" class="md-nav__link">
         
   
   
@@ -1674,8 +1502,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1684,123 +1510,52 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#taskflow-pipeline-with-multiple_outputstrue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        TaskFlow Pipeline with multiple_outputs=True
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TaskFlow Pipeline with multiple_outputs=True">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-it-enables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it enables
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#command-line" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Command Line
+        Syntax
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration
+        Examples
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dag-factory-10-released" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        📢 Dag-Factory 1.0 Released
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dag-factory-supports-airflow-3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🚀 Dag-Factory Supports Airflow 3
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting help
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Contributing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        License
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#privacy-notice" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Privacy Notice
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security Policy
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1821,7 +1576,7 @@
 
 
   
-    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/index.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/astronomer/dag-factory/blob/main/docs/features/taskflow_pipeline.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1830,84 +1585,43 @@
     
       
     
-    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/index.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/astronomer/dag-factory/raw/main/docs/features/taskflow_pipeline.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="dag-factory-documentation">DAG Factory documentation</h1>
-<p>Everything you need to know about how to build Apache Airflow® workflows using YAML files.</p>
-<h2 id="getting-started">Getting started</h2>
-<p>Are you new to DAG Factory? This is the place to start!</p>
+  <h1>Taskflow pipeline</h1>
+
+<h2 id="taskflow-pipeline-with-multiple_outputstrue">TaskFlow Pipeline with <code>multiple_outputs=True</code></h2>
+<p>DAG Factory supports Airflow’s
+<a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html">Pythonic Dags with the TaskFlow API</a>,
+enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mappings (multiple_outputs=True).</p>
+<h3 id="what-it-enables">What it enables</h3>
 <ul>
-<li>
-<p>DAG Factory at a glance</p>
+<li>When a TaskFlow-decorated task returns a dict (for example, using <code>multiple_outputs=True</code>), downstream task arguments can reference either the whole returned mapping or a single key from it using a concise syntax.</li>
+</ul>
+<h3 id="syntax">Syntax</h3>
 <ul>
-<li><a href="getting-started/quick-start-airflow-standalone/">Quickstart with Airflow standalone</a></li>
-<li><a href="getting-started/quick-start-astro-cli/">Quickstart with Astro CLI</a></li>
+<li><code>+task_id</code> (with default <code>multiple_outputs=False</code>) — reference the entire Python function return value (the pushed value from the task). This is useful when the upstream task returns a mapping and the downstream callable expects the return_value.</li>
+<li><code>+task_id['key']</code> or <code>+task_id["key"]</code> — reference a single value from the mapping returned by the upstream TaskFlow task.</li>
 </ul>
-</li>
-<li>
-<p><a href="comparison/">Using YAML instead of Python</a></p>
-<ul>
-<li><a href="comparison/traditional_operators/">Traditional Airflow Operators</a></li>
-<li><a href="comparison/taskflow_api/">TaskFlow API</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="command-line">Command Line</h2>
-<ul>
-<li><a href="features/cli/">Using DAG Factory CLI features</a></li>
-</ul>
-<h2 id="configuration">Configuration</h2>
-<ul>
-<li><a href="configuration/configuring_workflows/">Configuring your workflows</a></li>
-<li><a href="configuration/load_yaml_dags/">load_yml_dags Function</a></li>
-<li><a href="configuration/custom_py_object/">Define Python Object</a></li>
-<li><a href="configuration/defaults/">Defaults</a></li>
-<li><a href="configuration/environment_variables/">Environment variables</a></li>
-<li><a href="configuration/schedule/">Schedule</a></li>
-</ul>
-<h2 id="features">Features</h2>
-<ul>
-<li><a href="features/dynamic_tasks/">Dynamic tasks</a></li>
-<li><a href="features/taskflow_pipeline/">TaskFlow Pipeline</a></li>
-<li><a href="features/callbacks/">Callbacks</a></li>
-<li><a href="features/custom_operators/">Custom operators</a></li>
-<li><a href="features/multiple_configuration_files/">Multiple configuration files</a></li>
-<li><a href="features/datasets/">Datasets scheduling</a></li>
-<li><a href="features/asset/">Assets Scheduling</a></li>
-<li><a href="features/kpo/">KubernetesPodOperator</a></li>
-<li><a href="features/http_task/">HttpSensor</a></li>
-</ul>
-<h2 id="dag-factory-10-released">📢 Dag-Factory 1.0 Released</h2>
-<p>Version <strong>1.0</strong> introduces important improvements and breaking changes to support modern Airflow usage.</p>
-<p>👉 See the <a href="migration_guide/">Migration Guide</a> to upgrade from earlier versions.</p>
-<h2 id="dag-factory-supports-airflow-3">🚀 Dag-Factory Supports Airflow 3</h2>
-<p>DAG-Factory is compatible with <strong>Apache Airflow 3</strong> and supports modern scheduling, and updated import paths.</p>
-<h2 id="getting-help">Getting help</h2>
-<p>Having trouble? We'd like to help!</p>
-<ul>
-<li>Report bugs, questions and feature requests in our <a href="https://github.com/astronomer/dag-factory/issues">ticket tracker</a>.</li>
-</ul>
-<h2 id="contributing">Contributing</h2>
-<p>DAG Factory is an Open-Source project. Learn about its development process and about how you can contribute:</p>
-<ul>
-<li><a href="contributing/howto/">Contributing to DAG Factory</a></li>
-<li><a href="https://github.com/astronomer/dag-factory/">Github repository</a></li>
-</ul>
-<h2 id="license">License</h2>
-<p>To learn more about the terms and conditions for use, reproduction and distribution, read the <a href="https://github.com/astronomer/dag-factory/blob/main/LICENSE">Apache License 2.0</a>.</p>
-<h2 id="privacy-notice">Privacy Notice</h2>
-<p>This project follows <a href="https://www.astronomer.io/privacy/">Astronomer's Privacy Policy</a>.</p>
-<p>For further information, <a href="https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md">read this</a></p>
-<h2 id="security-policy">Security Policy</h2>
-<p>Check the project's <a href="https://github.com/astronomer/dag-factory/blob/main/SECURITY.md">Security Policy</a> to learn
-how to report security vulnerabilities in DAG Factory and how security issues reported to the DAG Factory
-security team are handled.</p>
-<p><img alt=analytics referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=2bb92a5b-beb3-48cc-a722-79dda1089eda" /></p>
+<h3 id="examples">Examples</h3>
+<p>Given a TaskFlow task <code>collect</code> that returns a multiple_outputs dict like:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>@task(multiple_ouputs=True)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>def collect(**context):
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    return {&quot;key1&quot;: &quot;value1&quot;, &quot;key2&quot;: &quot;value2&quot;}
+</span></code></pre></div>
+<p>It's representation in dag_factory yaml is like
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- task_id: collect
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  multiple_outputs: true
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  decorator: airflow.decorators.task
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  python_callable: sample.collect
+</span></code></pre></div></p>
+<p>Then you can use a single value from the mapping with:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>value: &quot;+collect[&#39;key1&#39;]&quot;
+</span></code></pre></div>
 
 
 
@@ -1939,28 +1653,6 @@ security team are handled.</p>
         <footer class="md-footer">
   
     
-      
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
-        
-        
-          
-          <a href="getting-started/quick-start-airflow-standalone/" class="md-footer__link md-footer__link--next" aria-label="Next: Airflow Standalone">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Airflow Standalone
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
-    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -1991,10 +1683,10 @@ security team are handled.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.sections", "navigation.tabs", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.sections", "navigation.tabs", "navigation.footer", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

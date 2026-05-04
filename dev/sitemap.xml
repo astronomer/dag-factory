@@ -113,6 +113,10 @@
          <lastmod>2026-05-04</lastmod>
     </url>
     <url>
+         <loc>https://astronomer.github.io/dag-factory/dev/features/taskflow_pipeline/</loc>
+         <lastmod>2026-05-04</lastmod>
+    </url>
+    <url>
          <loc>https://astronomer.github.io/dag-factory/dev/getting-started/quick-start-airflow-standalone/</loc>
          <lastmod>2026-05-04</lastmod>
     </url>
