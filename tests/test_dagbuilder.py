@@ -1072,9 +1072,6 @@ def test_replace_expand_string_with_xcom():
     assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"), reason="Requires Airflow version less than 3.0.0"
-)
 @pytest.mark.parametrize(
     "inlets, outlets, expected_inlets, expected_outlets",
     [
