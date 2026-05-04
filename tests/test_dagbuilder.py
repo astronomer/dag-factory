@@ -7,7 +7,8 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-
+import logging
+import copy
 from dagfactory._yaml import load_yaml_file
 
 try:
@@ -791,7 +792,7 @@ def test_make_dag_with_callbacks():
     if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
-        dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)
+        dag_config_callbacks__with_provider = copy.deepcopy(DAG_CONFIG_CALLBACKS)
         dag_config_callbacks__with_provider["sla_miss_callback"] = {
             "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
             "slack_conn_id": "slack_conn_id",
@@ -825,9 +826,8 @@ def test_sla_miss_callback_no_warning_when_not_configured(caplog):
     When sla_miss_callback is NOT present in the DAG config and Airflow >= 3.1.0,
     no deprecation warning should be emitted during DAG parsing.
     """
-    import logging
 
-    dag_config_no_sla = dict(DAG_CONFIG_CALLBACKS)
+    dag_config_no_sla = copy.deepcopy(DAG_CONFIG_CALLBACKS)
     dag_config_no_sla.pop("sla_miss_callback", None)
 
     with caplog.at_level(logging.WARNING, logger="dagfactory"):
@@ -851,9 +851,8 @@ def test_sla_miss_callback_warning_when_configured(caplog):
     When sla_miss_callback IS present in the DAG config and Airflow >= 3.1.0,
     a warning about its removal should be emitted.
     """
-    import logging
 
-    dag_config_with_sla = dict(DAG_CONFIG_CALLBACKS)
+    dag_config_with_sla = copy.deepcopy(DAG_CONFIG_CALLBACKS)
     dag_config_with_sla["sla_miss_callback"] = f"{__name__}.print_context_callback"
 
     with caplog.at_level(logging.WARNING, logger="dagfactory"):
