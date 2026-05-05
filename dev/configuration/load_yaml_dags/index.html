@@ -718,10 +718,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-loading-from-yaml-file-with-defaults_config_path" class="md-nav__link">
+  <a href="#3-loading-from-a-yaml-file-with-defaults_config_path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Loading from YAML File with defaults_config_path
+        3. Loading from a YAML File with defaults_config_path
       
     </span>
   </a>
@@ -740,10 +740,49 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-loading-from-a-dictionary-with-default_args_config_dict" class="md-nav__link">
+  <a href="#5-loading-from-a-dictionary-with-defaults_config_dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Loading from a Dictionary with default_args_config_dict
+        5. Loading from a Dictionary with defaults_config_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airflowignore-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .airflowignore Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=".airflowignore Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-airflowignore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example .airflowignore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
       
     </span>
   </a>
@@ -1676,10 +1715,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-loading-from-yaml-file-with-defaults_config_path" class="md-nav__link">
+  <a href="#3-loading-from-a-yaml-file-with-defaults_config_path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Loading from YAML File with defaults_config_path
+        3. Loading from a YAML File with defaults_config_path
       
     </span>
   </a>
@@ -1698,10 +1737,49 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-loading-from-a-dictionary-with-default_args_config_dict" class="md-nav__link">
+  <a href="#5-loading-from-a-dictionary-with-defaults_config_dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Loading from a Dictionary with default_args_config_dict
+        5. Loading from a Dictionary with defaults_config_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airflowignore-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .airflowignore Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=".airflowignore Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-airflowignore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example .airflowignore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
       
     </span>
   </a>
@@ -1747,40 +1825,42 @@
 
 
 <h1 id="load_yaml_dags-function">load_yaml_dags Function</h1>
-<p>The <code>load_yaml_dags</code> function is responsible for loading DAG configurations from YAML or YML files in a specified folder (or from a specific YAML file or dictionary). It parses the files or dictionary and generates Airflow DAGs by utilizing the provided globals_dict.</p>
+<p>The <code>load_yaml_dags</code> function loads DAG configurations from YAML/YML files in a folder, from a specific YAML file, or from a Python dictionary. It parses the config and generates Airflow DAGs with the provided <code>globals_dict</code>.</p>
 <h2 id="example-usage">Example Usage</h2>
 <h3 id="1-loading-from-yaml-files-in-a-folder">1. Loading from YAML Files in a Folder</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load DAGs from a folder, e.g., /path/to/dags</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">dags_folder</span><span class="o">=</span><span class="s1">&#39;/path/to/your/dags&#39;</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load DAGs from a folder, e.g. /path/to/dags</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">dags_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/your/dags&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="2-loading-from-a-specific-yaml-file">2. Loading from a Specific YAML File</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Load DAG from a specific YAML file</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">config_filepath</span><span class="o">=</span><span class="s1">&#39;/path/to/your/dag_config.yaml&#39;</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Load DAGs from a specific YAML file</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">config_filepath</span><span class="o">=</span><span class="s2">&quot;/path/to/your/dag_config.yaml&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="3-loading-from-yaml-file-with-defaults_config_path">3. Loading from YAML File with defaults_config_path</h3>
+<h3 id="3-loading-from-a-yaml-file-with-defaults_config_path">3. Loading from a YAML File with <code>defaults_config_path</code></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Load a single DAG from a YAML file with custom default arguments config path</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Load a single DAG from a YAML file with a custom defaults root directory</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">load_yaml_dags</span><span class="p">(</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">config_filepath</span><span class="o">=</span><span class="s1">&#39;/path/to/your/dag_config.yaml&#39;</span><span class="p">,</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">defaults_config_path</span><span class="o">=</span><span class="s1">&#39;/path/to/your/defaults.yml&#39;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">config_filepath</span><span class="o">=</span><span class="s2">&quot;/path/to/your/dag_config.yaml&quot;</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">defaults_config_path</span><span class="o">=</span><span class="s2">&quot;/path/to/your/config-root&quot;</span><span class="p">,</span>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">)</span>
 </span></code></pre></div>
+<p><code>defaults_config_path</code> should point to a directory root that contains one or more
+<code>defaults.yml</code> or <code>defaults.yaml</code> files, not to an individual defaults file.</p>
 <h3 id="4-loading-from-a-dictionary">4. Loading from a Dictionary</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Load DAG from a dictionary configuration</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Load DAGs from a dictionary configuration</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">dag_config_dict</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="c1"># Your DAG configuration here</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">}</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">config_dict</span><span class="o">=</span><span class="n">dag_config_dict</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="5-loading-from-a-dictionary-with-default_args_config_dict">5. Loading from a Dictionary with default_args_config_dict</h3>
+<h3 id="5-loading-from-a-dictionary-with-defaults_config_dict">5. Loading from a Dictionary with <code>defaults_config_dict</code></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Load DAGs with custom default arguments from a dictionary</span>
@@ -1789,10 +1869,56 @@
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">dag_config_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>     <span class="c1"># Your DAG configuration here</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="c1"># Your DAG configuration here</span>
 </span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">}</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">load_yaml_dags</span><span class="p">(</span><span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">config_dict</span><span class="o">=</span><span class="n">dag_config_dict</span><span class="p">,</span> <span class="n">default_args_config_dict</span><span class="o">=</span><span class="n">default_args_dict</span><span class="p">)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">load_yaml_dags</span><span class="p">(</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">config_dict</span><span class="o">=</span><span class="n">dag_config_dict</span><span class="p">,</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">defaults_config_dict</span><span class="o">=</span><span class="n">default_args_dict</span><span class="p">,</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="airflowignore-support"><code>.airflowignore</code> Support</h2>
+<p>When <code>load_yaml_dags</code> scans a <code>dags_folder</code>, it reads <code>.airflowignore</code> files in that folder tree and skips matching YAML files.</p>
+<ul>
+<li>Matching syntax follows Airflow's <code>core.dag_ignore_file_syntax</code> setting.</li>
+<li>In <code>glob</code> mode, patterns use gitignore-style <code>gitwildmatch</code> semantics, matching Airflow more closely.</li>
+<li>In <code>regexp</code> mode, each non-comment line is treated as a regular expression matched against the DAG-root-relative path.</li>
+<li>Empty lines are ignored.</li>
+<li><code>#</code> starts a comment for the rest of the line, so inline comments are stripped before matching.</li>
+<li>In <code>glob</code> mode, patterns without <code>/</code> match matching basenames anywhere in the scoped subtree, not just at the root.</li>
+<li>In <code>glob</code> mode, patterns ending in <code>/</code> ignore matching directories and everything beneath them.</li>
+<li>In <code>glob</code> mode, negation patterns beginning with <code>!</code> re-include matching files, with later matches overriding earlier ones.</li>
+<li>In <code>glob</code> mode, patterns with <code>/</code> are matched against the POSIX-style path relative to the directory that contains the matching <code>.airflowignore</code>.</li>
+<li>Nested <code>.airflowignore</code> files apply to files in their own directory subtree and can override parent rules, unless a parent rule already prunes that subtree from traversal.</li>
+<li>Symlinked directories are traversed for both YAML discovery and nested <code>.airflowignore</code> lookup.</li>
+<li>Lexically in-tree symlinked files still participate in path-based matching.</li>
+<li>For files outside <code>dags_folder</code>, only root-level basename patterns are considered in <code>glob</code> mode; scoped path rules do not apply.</li>
+</ul>
+<h3 id="example-airflowignore">Example <code>.airflowignore</code></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>*.yml
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>!keep.yml
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>ignored/
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>backup/**/*.yaml
+</span></code></pre></div>
+<p>With this file:</p>
+<ul>
+<li><code>nested/test_example.yml</code> is ignored because basename patterns apply throughout the subtree.</li>
+<li><code>keep.yml</code> is <strong>not</strong> ignored because <code>!keep.yml</code> overrides the earlier <code>*.yml</code> match.</li>
+<li><code>ignored/dag.yml</code> is ignored.</li>
+<li><code>nested/ignored/dag.yml</code> is also ignored by <code>ignored/</code>.</li>
+<li><code>backup/file.yaml</code> is ignored.</li>
+<li><code>backup/subdir/file.yaml</code> is ignored.</li>
+<li><code>backup2/file.yaml</code> is <strong>not</strong> ignored by <code>backup/**/*.yaml</code>.</li>
+</ul>
+<h3 id="example">Example</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagfactory</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml_dags</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">load_yaml_dags</span><span class="p">(</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">globals_dict</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">dags_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/your/dags&quot;</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>If <code>/path/to/your/dags/.airflowignore</code> exists, matching YAML files are skipped during discovery.</p>
 
 
 
