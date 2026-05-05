@@ -951,6 +951,7 @@ source = { editable = "." }
 dependencies = [
     { name = "apache-airflow" },
     { name = "packaging" },
+    { name = "pathspec" },
     { name = "pyyaml" },
     { name = "typer" },
 ]
@@ -1003,6 +1004,7 @@ requires-dist = [
     { name = "packaging" },
     { name = "packaging", marker = "extra == 'all'" },
     { name = "pandas", marker = "extra == 'tests'" },
+    { name = "pathspec" },
     { name = "pre-commit", marker = "extra == 'tests'" },
     { name = "pytest", marker = "extra == 'tests'", specifier = ">=6.0" },
     { name = "pytest-cov", marker = "extra == 'tests'" },

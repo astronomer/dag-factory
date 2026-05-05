@@ -1,14 +1,15 @@
 """Module contains code for loading a DagFactory config and generating DAGs"""
 
-import fnmatch
 import logging
 import os
-from itertools import chain
+import re
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
 from airflow.configuration import conf as airflow_conf
+from pathspec.gitignore import GitIgnoreSpec
 
 try:
     from airflow.sdk.definitions.dag import DAG
@@ -33,7 +34,7 @@ class _DagFactory:
     :type config_filepath: str
     :param config_dict: DAG factory config dictionary. Cannot be used with `config_filepath`.
     :type config_dict: dict
-    :param defaults_config_path: The path to a file that contains the default arguments for that DAG.
+    :param defaults_config_path: The root directory to search for defaults.yml/defaults.yaml files.
     :type defaults_config_path: str
     :param defaults_config_dict: A dictionary of default arguments for that DAG, as an alternative to defaults_config_path.
     :type defaults_config_dict: dict
@@ -274,31 +275,15 @@ class _DagFactory:
         self.register_dags(dags, globals)
 
 
-def _load_airflowignore(dags_folder: str) -> List[str]:
-    """
-    Loads ignore patterns from .airflowignore file in the dags folder.
-
-    The .airflowignore file follows the same format as Airflow's .airflowignore:
-    - Each line contains a pattern to ignore
-    - Empty lines and lines starting with # are ignored
-    - Patterns support glob-style wildcards
-
-    :param dags_folder: Path to the DAGs folder
-    :type dags_folder: str
-    :returns: List of ignore patterns
-    :rtype: List[str]
-    """
+def _read_airflowignore(ignore_file: Path) -> List[str]:
+    """Load ignore patterns from a single .airflowignore file."""
     ignore_patterns: List[str] = []
-    ignore_file = Path(dags_folder) / ".airflowignore"
-
-    if not ignore_file.exists():
-        return ignore_patterns
 
     try:
         with open(ignore_file, "r", encoding="utf-8") as f:
             for line in f:
-                pattern = line.strip()
-                if pattern and not pattern.startswith("#"):
+                pattern = line.split("#", 1)[0].strip()
+                if pattern:
                     ignore_patterns.append(pattern)
     except (OSError, IOError) as e:
         logging.warning("Failed to read .airflowignore file at %s: %s", ignore_file, e)
@@ -306,11 +291,118 @@ def _load_airflowignore(dags_folder: str) -> List[str]:
     return ignore_patterns
 
 
-def _should_ignore_file(file_path: Path, dags_folder: Path, ignore_patterns: List[str]) -> bool:
+def _iter_dags_folder_contents(dags_folder: Path) -> Iterator[Tuple[Path, List[str], List[str]]]:
+    """Yield directory contents while following symlinked directories once."""
+    visited_dirs = set()
+    ignore_patterns_by_dir: Dict[Path, List[str]] = {}
+
+    for root, dirs, files in os.walk(dags_folder, topdown=True, followlinks=True):
+        root_path = Path(root)
+
+        try:
+            resolved_root = root_path.resolve(strict=False)
+        except OSError:
+            resolved_root = root_path.absolute()
+
+        if resolved_root in visited_dirs:
+            dirs[:] = []
+            continue
+
+        visited_dirs.add(resolved_root)
+        dirs.sort()
+        files.sort()
+
+        if ".airflowignore" in files:
+            ignore_file = root_path / ".airflowignore"
+            ignore_patterns_by_dir[ignore_file.parent] = _read_airflowignore(ignore_file)
+
+        dirs[:] = [
+            subdir
+            for subdir in dirs
+            if not _should_ignore_path(root_path / subdir, dags_folder, ignore_patterns_by_dir)
+        ]
+
+        yield root_path, dirs, files
+
+
+def _load_airflowignore(dags_folder: str) -> Dict[Path, List[str]]:
+    """
+    Loads ignore patterns from .airflowignore files in the dags folder tree.
+
+    The .airflowignore file follows the same format as Airflow's .airflowignore:
+    - Each line contains a pattern to ignore
+    - Empty lines and inline comments starting with # are ignored
+    - Patterns support glob-style wildcards
+    - Nested .airflowignore files are applied relative to the directory that contains them
+    - Symlinked directories are traversed during discovery
+
+    :param dags_folder: Path to the DAGs folder
+    :type dags_folder: str
+    :returns: Mapping of directories to ignore patterns from .airflowignore files
+    :rtype: Dict[Path, List[str]]
+    """
+    dags_folder_path = Path(dags_folder)
+    ignore_patterns: Dict[Path, List[str]] = {}
+
+    for root_path, _dirs, files in _iter_dags_folder_contents(dags_folder_path):
+        if ".airflowignore" not in files:
+            continue
+
+        ignore_file = root_path / ".airflowignore"
+        ignore_patterns[ignore_file.parent] = _read_airflowignore(ignore_file)
+
+    return ignore_patterns
+
+
+def _lexical_relative_path(path: Path, root: Path) -> str:
+    """Return a lexical POSIX-style path relative to root without resolving symlinks."""
+    return Path(os.path.abspath(path)).relative_to(Path(os.path.abspath(root))).as_posix()
+
+
+def _get_dag_ignore_file_syntax() -> str:
+    """Return the configured Airflow ignore syntax, defaulting to glob."""
+    return airflow_conf.get("core", "dag_ignore_file_syntax", fallback="glob").lower()
+
+
+@lru_cache(maxsize=None)
+def _compile_airflowignore_spec(patterns: tuple[str, ...]) -> GitIgnoreSpec:
+    """Compile .airflowignore patterns using gitwildmatch semantics."""
+    return GitIgnoreSpec.from_lines(patterns)
+
+
+@lru_cache(maxsize=None)
+def _compile_airflowignore_regex(pattern: str) -> re.Pattern[str]:
+    """Compile an airflowignore regexp pattern."""
+    return re.compile(pattern)
+
+
+def _matches_airflowignore_patterns(path: str, patterns: List[str]) -> Optional[bool]:
+    """Return the last matching gitignore-style decision for a scoped relative path."""
+    spec = _compile_airflowignore_spec(tuple(patterns))
+    include, _index = GitIgnoreSpec._match_file(enumerate(spec.patterns), path)
+    return include
+
+
+def _matches_airflowignore_regex(path: str, patterns: List[str]) -> bool:
+    """Return whether any regexp pattern matches the DAG-root-relative path."""
+    for pattern in patterns:
+        try:
+            if _compile_airflowignore_regex(pattern).search(path) is not None:
+                return True
+        except re.error as exc:
+            logging.warning("Ignoring invalid regex '%s' from .airflowignore: %s", pattern, exc)
+    return False
+
+
+def _should_ignore_file(file_path: Path, dags_folder: Path, ignore_patterns_by_dir: Dict[Path, List[str]]) -> bool:
     """
     Checks if a file should be ignored based on ignore patterns.
 
-    Patterns are matched against both the filename and the relative path from dags_folder.
+    Patterns use gitignore/Airflow-style gitwildmatch semantics, including directory
+    patterns ending in `/` and negation via `!`. Each .airflowignore applies relative
+    to the directory that contains it, and nested .airflowignore files are evaluated
+    from the DAG root down to the file's parent so later matches can override earlier ones.
+
     This allows for flexible matching, e.g.:
     - "test_*.yml" matches any file starting with "test_" and ending with ".yml"
     - "subdir/*.yaml" matches any .yaml file in the subdir directory
@@ -320,53 +412,81 @@ def _should_ignore_file(file_path: Path, dags_folder: Path, ignore_patterns: Lis
     :type file_path: Path
     :param dags_folder: Path to the DAGs folder (base directory)
     :type dags_folder: Path
-    :param ignore_patterns: List of ignore patterns to match against
-    :type ignore_patterns: List[str]
+    :param ignore_patterns_by_dir: Mapping of directory paths to ignore patterns
+    :type ignore_patterns_by_dir: Dict[Path, List[str]]
     :returns: True if the file should be ignored, False otherwise
     :rtype: bool
     """
-    if not ignore_patterns:
+    return _should_ignore_path(file_path, dags_folder, ignore_patterns_by_dir)
+
+
+
+def _should_ignore_path(path: Path, dags_folder: Path, ignore_patterns_by_dir: Dict[Path, List[str]]) -> bool:
+    """Checks if a file or directory should be ignored based on ignore patterns."""
+    if not ignore_patterns_by_dir:
         return False
 
+    ignore_file_syntax = _get_dag_ignore_file_syntax()
+
     try:
-        relative_path = file_path.resolve().relative_to(dags_folder.resolve())
-        relative_path_str = str(relative_path).replace("\\", "/")
-    except (ValueError, OSError):
-        # File is outside dags_folder or path resolution failed, only match by filename
+        relative_path_str = _lexical_relative_path(path, dags_folder)
+    except ValueError:
+        # Files outside dags_folder only match root-level basename patterns without path separators.
         relative_path_str = ""
 
-    filename = file_path.name
+    if ignore_file_syntax == "regexp":
+        if not relative_path_str:
+            return False
 
-    def _matches_pattern(pattern: str, filename: str, relative_path_str: str) -> bool:
-        """Checks if a pattern matches the given filename and/or relative path."""
-        if "**" in pattern:
-            prefix, suffix = pattern.split("**", 1)
-            prefix = prefix.rstrip("/")
-            suffix = suffix.lstrip("/")
+        scoped_patterns: List[str] = []
+        path_parts = Path(relative_path_str).parts
+        ancestor_dirs = [dags_folder]
+        for index in range(1, len(path_parts)):
+            ancestor_dirs.append(dags_folder / Path(*path_parts[:index]))
 
-            if not relative_path_str:
-                # File is outside dags_folder, only match by filename suffix
-                return bool(suffix and fnmatch.fnmatch(filename, suffix))
+        for ignore_dir in ancestor_dirs:
+            patterns = ignore_patterns_by_dir.get(ignore_dir)
+            if patterns:
+                scoped_patterns.extend(patterns)
 
-            if prefix and not relative_path_str.startswith(prefix):
-                return False
+        if path.is_dir():
+            relative_path_str = f"{relative_path_str}/"
 
-            remaining_path = relative_path_str[len(prefix) :].lstrip("/") if prefix else relative_path_str
+        return _matches_airflowignore_regex(relative_path_str, scoped_patterns)
 
-            if suffix:
-                return fnmatch.fnmatch(remaining_path, suffix) or fnmatch.fnmatch(filename, suffix)
-            else:
-                return True
-        else:
-            return fnmatch.fnmatch(filename, pattern) or (
-                relative_path_str and fnmatch.fnmatch(relative_path_str, pattern)
-            )
+    if ignore_file_syntax not in {"", "glob"}:
+        raise ValueError(f"Unsupported ignore_file_syntax: {ignore_file_syntax}")
 
-    for pattern in ignore_patterns:
-        if _matches_pattern(pattern, filename, relative_path_str):
-            return True
+    ignored = False
 
-    return False
+    if relative_path_str:
+        path_parts = Path(relative_path_str).parts
+        ancestor_dirs = [dags_folder]
+        for index in range(1, len(path_parts)):
+            ancestor_dirs.append(dags_folder / Path(*path_parts[:index]))
+
+        for ignore_dir in ancestor_dirs:
+            patterns = ignore_patterns_by_dir.get(ignore_dir)
+            if not patterns:
+                continue
+
+            scoped_relative_path = _lexical_relative_path(path, ignore_dir)
+            if path.is_dir():
+                scoped_relative_path = f"{scoped_relative_path}/"
+
+            match = _matches_airflowignore_patterns(scoped_relative_path, patterns)
+            if match is not None:
+                ignored = match
+
+        return ignored
+
+    root_patterns = ignore_patterns_by_dir.get(dags_folder, [])
+    if root_patterns:
+        match = _matches_airflowignore_patterns(path.name, root_patterns)
+        if match is not None:
+            ignored = match
+
+    return ignored
 
 
 def load_yaml_dags(
@@ -399,17 +519,27 @@ def load_yaml_dags(
     candidate_dag_files = []
 
     if config_filepath:
-        factory = _DagFactory(config_filepath=config_filepath, defaults_config_path=defaults_config_path)
+        factory = _DagFactory(
+            config_filepath=config_filepath,
+            defaults_config_path=defaults_config_path,
+            defaults_config_dict=defaults_config_dict,
+        )
         factory._generate_dags(globals_dict)
     elif config_dict:
-        factory = _DagFactory(config_dict=config_dict, defaults_config_dict=defaults_config_dict)
+        factory = _DagFactory(
+            config_dict=config_dict,
+            defaults_config_path=defaults_config_path,
+            defaults_config_dict=defaults_config_dict,
+        )
         factory._generate_dags(globals_dict)
     else:
         dags_folder_path = Path(dags_folder)
         ignore_patterns = _load_airflowignore(dags_folder)
 
-        for suf in suffix:
-            candidate_dag_files = list(chain(candidate_dag_files, dags_folder_path.rglob(f"*{suf}")))
+        for root_path, _dirs, files in _iter_dags_folder_contents(dags_folder_path):
+            for file_name in files:
+                if any(file_name.endswith(suf) for suf in suffix):
+                    candidate_dag_files.append(root_path / file_name)
 
         for config_file_path in candidate_dag_files:
             if _should_ignore_file(config_file_path, dags_folder_path, ignore_patterns):
@@ -419,7 +549,11 @@ def load_yaml_dags(
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
-                factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
+                factory = _DagFactory(
+                    config_file_abs_path,
+                    defaults_config_path=defaults_config_path,
+                    defaults_config_dict=defaults_config_dict,
+                )
                 factory._generate_dags(globals_dict)
             except Exception:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
