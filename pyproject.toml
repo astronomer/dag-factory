@@ -155,6 +155,7 @@ universal = true
 filterwarnings = ["ignore::DeprecationWarning"]
 minversion = "6.0"
 markers = ["integration", "callbacks"]
+pythonpath = ["dev/dags"]
 
 ######################################
 # DOCS
