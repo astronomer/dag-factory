@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add user_defined_macros support by @gyli in [#693](https://github.com/astronomer/dag-factory/pull/693)
 - feat: support key: +{task}[{xcom_key}] use by @yanshil in [#593](https://github.com/astronomer/dag-factory/pull/593)
 - Support dataset timetable by @AppKiv in [#599](https://github.com/astronomer/dag-factory/pull/599)
+- Add support for `.airflowignore` file to exclude specific YAML files by @viiccwen in [#654](https://github.com/astronomer/dag-factory/pull/654)
 - Add airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
 - Add Airflow 3.2 to CI test matrix by @pankajastro in [#723](https://github.com/astronomer/dag-factory/pull/723)
 
@@ -56,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ignore more editor local settings folder by @gyli [#697](https://github.com/astronomer/dag-factory/pull/697)
 - Add Python 3.14 to CI test matrix by @pankajastro in [#731](https://github.com/astronomer/dag-factory/pull/731/)
 - Add AGENTS.md for AI coding agents by @gyli in [#717](https://github.com/astronomer/dag-factory/pull/717)
+- fix: use __file__-relative paths in dev examples for Airflow 3 on Astro Hosted by @pankajastro in [#613](https://github.com/astronomer/dag-factory/pull/613)
 
 ## [1.0.1] - 2025-09-25
 
