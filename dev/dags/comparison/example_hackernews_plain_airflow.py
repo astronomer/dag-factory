@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Astro DAG bundles deploy to a timestamped path not in sys.path; insert parent dags dir so helper modules are importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from datetime import datetime
 
 try:
