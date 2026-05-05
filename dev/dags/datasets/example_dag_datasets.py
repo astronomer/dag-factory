@@ -6,7 +6,7 @@ from dagfactory import load_yaml_dags
 
 CONFIG_ROOT_DIR = Path(__file__).resolve().parent
 
-config_file = str(CONFIG_ROOT_DIR / "datasets/example_dag_datasets.yml")
+config_file = str(CONFIG_ROOT_DIR / "example_dag_datasets.yml")
 
 load_yaml_dags(
     globals_dict=globals(),
