@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix import for dataset and MappedOperator by @pankajastro in [#713](https://github.com/astronomer/dag-factory/pull/713)
 - Fix Asset-based Scheduling on Airflow 3: Convert URI strings to Asset for inlets/outlets by @ArusheeVerma in [#737](https://github.com/astronomer/dag-factory/pull/737)
 - Fix Consumer-side Asset Scheduling on Airflow 3: Convert URI strings in schedule to Asset by @ArusheeVerma in [#738](https://github.com/astronomer/dag-factory/pull/738)
-- Fix unconditional sla_miss_callback removal warning in Airflow 3.1+ by manipatnam in [#734](https://github.com/astronomer/dag-factory/pull/734)
+- Fix unconditional sla_miss_callback removal warning in Airflow 3.1+ by @manipatnam in [#734](https://github.com/astronomer/dag-factory/pull/734)
 
 ### Docs
 
