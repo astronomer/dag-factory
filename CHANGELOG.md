@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change log info to warning by @pankajastro in [#590](https://github.com/astronomer/dag-factory/pull/590)
 - Unify import_from_string methods by @gyli in [#694](https://github.com/astronomer/dag-factory/pull/694)
-- Ensure default_args_config_path is fully renamed to defaults_config_path @gyli in [#725](https://github.com/astronomer/dag-factory/pull/725)
+- Ensure default_args_config_path is fully renamed to defaults_config_path by @gyli in [#725](https://github.com/astronomer/dag-factory/pull/725)
 
 ### Fixed
 
