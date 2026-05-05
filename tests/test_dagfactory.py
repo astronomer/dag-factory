@@ -764,8 +764,9 @@ def test_load_airflowignore_read_failure(caplog, tmp_path):
         ),
     ],
 )
-def test_should_ignore_file(tmp_path, file_path_str, ignore_patterns, expected, outside_dags_folder):
+def test_should_ignore_file(monkeypatch, tmp_path, file_path_str, ignore_patterns, expected, outside_dags_folder):
     """Test that _should_ignore_file matches patterns correctly."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     dags_folder = tmp_path
     ignore_patterns_by_dir = {dags_folder / relative_dir: patterns for relative_dir, patterns in ignore_patterns.items()}
 
@@ -779,8 +780,9 @@ def test_should_ignore_file(tmp_path, file_path_str, ignore_patterns, expected, 
     assert _should_ignore_file(file_path, dags_folder, ignore_patterns_by_dir) is expected
 
 
-def test_should_ignore_file_uses_lexical_path_for_symlinked_files(tmp_path):
+def test_should_ignore_file_uses_lexical_path_for_symlinked_files(monkeypatch, tmp_path):
     """Lexically in-tree symlinked files should still match path-based ignore patterns."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     dags_folder = tmp_path
     external_target = tmp_path.parent / "external_dag.yml"
     external_target.write_text("external")
@@ -854,8 +856,9 @@ default:
     )
 
 
-def test_load_yaml_dags_with_airflowignore(caplog, tmp_path):
+def test_load_yaml_dags_with_airflowignore(monkeypatch, caplog, tmp_path):
     """Test that load_yaml_dags respects .airflowignore file."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -878,8 +881,9 @@ def test_load_yaml_dags_with_airflowignore(caplog, tmp_path):
     assert any("Ignoring file" in msg and "test_ignored.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_with_nested_airflowignore(caplog, tmp_path):
+def test_load_yaml_dags_with_nested_airflowignore(monkeypatch, caplog, tmp_path):
     """Nested .airflowignore files should apply relative to their own directory."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -901,8 +905,9 @@ def test_load_yaml_dags_with_nested_airflowignore(caplog, tmp_path):
     assert any("Ignoring file" in msg and "nested/ignored/skip.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_with_symlinked_file_uses_lexical_path_ignore(caplog, tmp_path):
+def test_load_yaml_dags_with_symlinked_file_uses_lexical_path_ignore(monkeypatch, caplog, tmp_path):
     """Path-based ignore patterns should still match lexically in-tree symlinked files."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -922,8 +927,9 @@ def test_load_yaml_dags_with_symlinked_file_uses_lexical_path_ignore(caplog, tmp
     assert any("Ignoring file" in msg and "symlinked/external_dag.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_follows_symlinked_directories_and_nested_airflowignore(caplog, tmp_path):
+def test_load_yaml_dags_follows_symlinked_directories_and_nested_airflowignore(monkeypatch, caplog, tmp_path):
     """Symlinked directories should be scanned and use their nested .airflowignore rules."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -944,8 +950,9 @@ def test_load_yaml_dags_follows_symlinked_directories_and_nested_airflowignore(c
     assert any("Ignoring file" in msg and "linked/ignored/skip.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_with_airflowignore_negation(caplog, tmp_path):
+def test_load_yaml_dags_with_airflowignore_negation(monkeypatch, caplog, tmp_path):
     """Negated patterns should re-include matching files within the same ignore scope."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -962,8 +969,9 @@ def test_load_yaml_dags_with_airflowignore_negation(caplog, tmp_path):
     assert any("Ignoring file" in msg and "skip.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_with_nested_airflowignore_negation(caplog, tmp_path):
+def test_load_yaml_dags_with_nested_airflowignore_negation(monkeypatch, caplog, tmp_path):
     """Nested negations should override parent ignore rules for files in that subtree."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -1007,8 +1015,9 @@ def test_load_yaml_dags_prunes_parent_ignored_subtrees(monkeypatch, caplog, tmp_
     assert not any("Loading" in msg and "ignored/keep.yml" in msg for msg in caplog.messages)
 
 
-def test_load_yaml_dags_with_directory_airflowignore_pattern(caplog, tmp_path):
+def test_load_yaml_dags_with_directory_airflowignore_pattern(monkeypatch, caplog, tmp_path):
     """Directory patterns ending with `/` should ignore matching subtrees."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     caplog.set_level(logging.DEBUG)
     bash_operator_path = get_bash_operator_path()
 
@@ -1085,9 +1094,10 @@ def test_load_yaml_dags_with_airflowignore_regexp_syntax(monkeypatch, caplog, tm
     ],
 )
 def test_load_yaml_dags_with_airflowignore_scenarios(
-    tmp_path, dag_files, ignore_patterns, expected_loaded, expected_not_loaded
+    monkeypatch, tmp_path, dag_files, ignore_patterns, expected_loaded, expected_not_loaded
 ):
     """Test various .airflowignore scenarios"""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     bash_operator_path = get_bash_operator_path()
 
     # Create DAG files

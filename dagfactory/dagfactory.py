@@ -379,8 +379,15 @@ def _compile_airflowignore_regex(pattern: str) -> re.Pattern[str]:
 def _matches_airflowignore_patterns(path: str, patterns: List[str]) -> Optional[bool]:
     """Return the last matching gitignore-style decision for a scoped relative path."""
     spec = _compile_airflowignore_spec(tuple(patterns))
-    include, _index = GitIgnoreSpec._match_file(enumerate(spec.patterns), path)
-    return include
+    decision: Optional[bool] = None
+
+    for pattern in spec.patterns:
+        if pattern.include is None:
+            continue
+        if pattern.match_file(path):
+            decision = pattern.include
+
+    return decision
 
 
 def _matches_airflowignore_regex(path: str, patterns: List[str]) -> bool:
@@ -418,7 +425,6 @@ def _should_ignore_file(file_path: Path, dags_folder: Path, ignore_patterns_by_d
     :rtype: bool
     """
     return _should_ignore_path(file_path, dags_folder, ignore_patterns_by_dir)
-
 
 
 def _should_ignore_path(path: Path, dags_folder: Path, ignore_patterns_by_dir: Dict[Path, List[str]]) -> bool:
