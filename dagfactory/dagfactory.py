@@ -4,7 +4,7 @@ import logging
 import os
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 from airflow.configuration import conf as airflow_conf
@@ -14,6 +14,7 @@ try:
 except ImportError:
     from airflow.models import DAG
 
+from dagfactory import settings
 from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAMES
 from dagfactory.dagbuilder import DagBuilder
@@ -215,8 +216,13 @@ class _DagFactory:
         """
         return self.config.get("default", {})
 
-    def build_dags(self) -> Dict[str, DAG]:
-        """Build DAGs using the config file."""
+    def build_dags(self) -> Tuple[Dict[str, DAG], List[Tuple[str, Exception]]]:
+        """Build DAGs using the config file.
+
+        :returns: a tuple of ``(dags, build_errors)``. ``dags`` maps ``dag_id`` to the
+            successfully built :class:`DAG` instances; ``build_errors`` is a list of
+            ``(dag_name, exception)`` tuples for DAGs that failed to build.
+        """
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
@@ -232,23 +238,30 @@ class _DagFactory:
         else:
             dag_level_args = {}
 
+        build_errors: List[Tuple[str, Exception]] = []
+
         for dag_name, dag_config in dag_configs.items():
-            # Apply DAG-level default arguments from global_default_args to each dag_config,
-            # this is helpful because some arguments are not supported in default_args.
-            if isinstance(global_default_args, dict):
-                dag_config = {**dag_level_args, **dag_config}
+            try:
+                # Apply DAG-level default arguments from global_default_args to each dag_config,
+                # this is helpful because some arguments are not supported in default_args.
+                if isinstance(global_default_args, dict):
+                    dag_config = {**dag_level_args, **dag_config}
 
-            dag_config["task_groups"] = dag_config.get("task_groups", {})
-            dag_builder: DagBuilder = DagBuilder(
-                dag_name=dag_name,
-                dag_config=dag_config,
-                default_config=default_config,
-                yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
-            )
-            dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-            dags[dag["dag_id"]]: DAG = dag["dag"]
+                dag_config["task_groups"] = dag_config.get("task_groups", {})
+                dag_builder: DagBuilder = DagBuilder(
+                    dag_name=dag_name,
+                    dag_config=dag_config,
+                    default_config=default_config,
+                    yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
+                )
+                dag: Dict[str, Union[str, DAG]] = dag_builder.build()
+                dags[dag["dag_id"]]: DAG = dag["dag"]
+            except Exception as exc:  # pylint: disable=broad-except
+                config_origin = self.config_file_path or "<config_dict>"
+                logging.exception("Failed to build DAG '%s' from '%s'", dag_name, config_origin)
+                build_errors.append((dag_name, exc))
 
-        return dags
+        return dags, build_errors
 
     # pylint: disable=redefined-builtin
     @staticmethod
@@ -269,8 +282,13 @@ class _DagFactory:
         :param globals: The globals() from the file used to generate DAGs. The dag_id
             must be passed into globals() for Airflow to import
         """
-        dags: Dict[str, Any] = self.build_dags()
+        dags, build_errors = self.build_dags()
         self.register_dags(dags, globals)
+        if settings.strict_mode and build_errors:
+            details = "; ".join(f"{name}: {exc}" for name, exc in build_errors)
+            # Chain the first exception so Airflow's UI shows its traceback as __cause__.
+            first_error = build_errors[0][1]
+            raise DagFactoryConfigException(f"DAG build failed: {details}") from first_error
 
 
 def load_yaml_dags(
@@ -314,13 +332,32 @@ def load_yaml_dags(
     else:
         for suf in suffix:
             candidate_dag_files = list(chain(candidate_dag_files, Path(dags_folder).rglob(f"*{suf}")))
+        strict_errors: List[DagFactoryConfigException] = []
         for config_file_path in candidate_dag_files:
             config_file_abs_path = str(config_file_path.absolute())
             logging.info("Loading %s", config_file_abs_path)
             try:
-                factory = _DagFactory(config_file_abs_path, defaults_config_dict=defaults_config_dict)
+                factory = _DagFactory(
+                    config_file_abs_path,
+                    defaults_config_path=defaults_config_path,
+                    defaults_config_dict=defaults_config_dict,
+                )
                 factory._generate_dags(globals_dict)
-            except Exception:  # pylint: disable=broad-except
+            except DagFactoryConfigException as e:
+                # Wrap so the aggregated error names the offending YAML file and keeps the
+                # original exception chain available via __cause__ for debugging.
+                wrapped = DagFactoryConfigException(f"Failed to load dag config from '{config_file_abs_path}': {e}")
+                wrapped.__cause__ = e
+                strict_errors.append(wrapped)
+            except Exception as e:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
+                if settings.strict_mode:
+                    wrapped = DagFactoryConfigException(
+                        f"Failed to load dag config from '{config_file_abs_path}': {e}"
+                    )
+                    wrapped.__cause__ = e
+                    strict_errors.append(wrapped)
             else:
                 logging.info("DAG loaded: %s", config_file_path)
+        if strict_errors:
+            raise DagFactoryConfigException(" | ".join(str(e) for e in strict_errors))
