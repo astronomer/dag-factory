@@ -1,5 +1,5 @@
 # FROM quay.io/astronomer/astro-runtime:12.7.0
-FROM astrocrpublic.azurecr.io/runtime:3.0-4
+FROM astrocrpublic.azurecr.io/runtime:3.2-3
 
 ENV CONFIG_ROOT_DIR=/usr/local/airflow/dags/
 ENV PYTHONPATH=$AIRFLOW_HOME/dags:$PYTHONPATH
