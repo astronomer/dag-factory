@@ -3,8 +3,10 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Astro DAG bundles deploy to a timestamped path not in sys.path; insert parent dags dir so helper modules are importable.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Astro DAG bundles deploy to a timestamped path not in sys.path; add parent dags dir so helper modules are importable.
+dags_parent_dir = str(Path(__file__).resolve().parent.parent)
+if dags_parent_dir not in sys.path:
+    sys.path.append(dags_parent_dir)
 
 from datetime import datetime
 from typing import Any
