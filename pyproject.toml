@@ -30,6 +30,7 @@ classifiers = [
 ]
 dependencies = [
     "apache-airflow>=2.9",
+    "pathspec",
     "pyyaml",
     "packaging",
     "typer"
