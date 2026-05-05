@@ -6,6 +6,7 @@ set -e
 
 AIRFLOW_VERSION="$1"
 PYTHON_VERSION="$2"
+PROVIDERS_STANDARD_VERSION="$3"
 
 # Use this to set the appropriate Python environment in Github Actions,
 # while also not assuming --system when running locally.
@@ -44,6 +45,13 @@ else
 fi;
 
 rm /tmp/constraint.txt
+
+# Optionally pin apache-airflow-providers-standard to reproduce issue #679's environment.
+# Installed without the constraints file so its own dependency on
+# apache-airflow-providers-common-compat>=1.7.1 is honoured.
+if [ -n "$PROVIDERS_STANDARD_VERSION" ]; then
+  uv pip install "apache-airflow-providers-standard==$PROVIDERS_STANDARD_VERSION"
+fi
 
 actual_version=$(airflow version | grep -oE '^[0-9]+\.[0-9]+' | head -1)
 
