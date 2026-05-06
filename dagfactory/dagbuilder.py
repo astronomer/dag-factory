@@ -47,10 +47,16 @@ except ImportError:
     from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 
-# On Airflow 2.x with apache-airflow-providers-standard installed, both module paths
-# exist and resolve to *different* classes that aren't related by inheritance, so a
-# single try/except would let issubclass() checks miss whichever path the user's YAML
-# didn't pick. Import both when available and check against the union.
+# On Airflow 2.x with apache-airflow-providers-standard installed, both
+# `airflow.operators.python` and `airflow.providers.standard.operators.python`
+# resolve to *different* classes that aren't related by inheritance, so a single
+# try/except would let issubclass() checks miss whichever path the user's YAML
+# didn't pick. Import both when available so the union (PYTHON_CALLABLE_CLASSES)
+# matches either canonical path.
+#
+# We deliberately keep this as classes (and check via issubclass) rather than a
+# set of dotted paths: users may YAML-reference a subclass of PythonOperator
+# (e.g. a custom wrapper), and python_callable resolution should still apply.
 _python_operator_classes = []
 _branch_python_operator_classes = []
 _python_sensor_classes = []
@@ -83,9 +89,13 @@ except ImportError:  # pragma: no cover
 
 if not _python_operator_classes:  # pragma: no cover
     raise ImportError(
-        "Could not import PythonOperator/BranchPythonOperator/PythonSensor from either "
-        "'airflow.providers.standard.operators.python' or 'airflow.operators.python'. "
-        "Install apache-airflow (with the standard provider, where applicable)."
+        "Could not import PythonOperator/BranchPythonOperator/PythonSensor. "
+        "On Airflow 2 these live under `airflow.operators.python` (built-in); "
+        "on Airflow 3 they live under `airflow.providers.standard.operators.python` "
+        "and require `apache-airflow-providers-standard`, which is a hard dependency "
+        "of `apache-airflow>=3` and is normally pulled in automatically. "
+        "Reaching this branch means the install is broken — reinstall apache-airflow "
+        "(and apache-airflow-providers-standard on Airflow 3)."
     )
 
 PythonOperator = _python_operator_classes[0]

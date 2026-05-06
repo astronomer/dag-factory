@@ -63,6 +63,23 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         airflow-version: ["2.9", "2.10", "2.11", "3.0", "3.1", "3.2"]
+        # Third matrix axis: optional pin for apache-airflow-providers-standard.
+        #
+        # Purpose: regression coverage for issue #679. On Airflow 2.x with
+        # `apache-airflow-providers-standard==1.9.1` installed, the core and
+        # providers.standard PythonOperator classes diverge — dagbuilder must
+        # handle both. To exercise that combination in CI we need a job where
+        # providers-standard is pinned to a specific version.
+        #
+        # We run this through the same `Run-Unit-Tests` job, not a dedicated
+        # one — the value flows through to `scripts/test/pre-install-airflow.sh`
+        # (3rd arg) via a Hatch matrix variable of the same name in
+        # pyproject.toml. Empty string here = the base-matrix default; every
+        # base combination runs without an explicit pin so providers-standard
+        # is resolved from Airflow's constraints file as usual. The single
+        # `include:` row below adds one extra Run-Unit-Tests job that pins it
+        # to 1.9.1, giving us the regression coverage without multiplying the
+        # matrix across every Python/Airflow combination.
         providers-standard-version: [""]
         exclude:
           - python-version: "3.13"
