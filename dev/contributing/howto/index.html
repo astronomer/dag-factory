@@ -2007,7 +2007,7 @@
 <h3 id="requirements">Requirements</h3>
 <ul>
 <li><a href="https://git-scm.com/">Git</a></li>
-<li><a href="https://www.python.org/">Python</a> &lt;= 3.12 (due to dependencies, such as <code>google-re2</code> not supporting Python 3.13 yet)</li>
+<li><a href="https://www.python.org/">Python</a> 3.10–3.14</li>
 <li><a href="https://docs.astral.sh/uv/">uv</a> (for fast package management)</li>
 <li><a href="https://hatch.pypa.io/latest/">Hatch</a> (installed automatically via uv)</li>
 </ul>
@@ -2083,8 +2083,8 @@
 <li>These tests create local Python virtual environments in a hatch-managed directory.</li>
 </ul>
 </div>
-<p>To run unit tests using Python 3.10 and Airflow 2.5, use the following:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.5:test-cov
+<p>To run unit tests using Python 3.10 and Airflow 2.9, use the following:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests.py3.10-2.9:test-cov
 </span></code></pre></div>
 <p>It is also possible to run the tests using all the matrix combinations, by using:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>hatch<span class="w"> </span>run<span class="w"> </span>tests:test-cov
