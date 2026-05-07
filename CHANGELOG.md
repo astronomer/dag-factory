@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix markdown lint issues due to dead links by @viiccwen in [#642](https://github.com/astronomer/dag-factory/pull/642)
 - Update docs copyright year to 2026 by @pankajkoti in [#698](https://github.com/astronomer/dag-factory/pull/698)
-- adding timezone references by @sri-codes-python in [#701](https://github.com/astronomer/dag-factory/pull/701)
+- Add timezone references by @sri-codes-python in [#701](https://github.com/astronomer/dag-factory/pull/701)
 - Add ``items`` as a reserved key in doc by @gyli in [#726](https://github.com/astronomer/dag-factory/pull/726)
 - docs: align contributor and quick-start docs with current Python/Airflow support by @pankajastro in [#740](https://github.com/astronomer/dag-factory/pull/740)
 
