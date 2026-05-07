@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: support key: +{task}[{xcom_key}] use by @yanshil in [#593](https://github.com/astronomer/dag-factory/pull/593)
 - Support dataset timetable by @AppKiv in [#599](https://github.com/astronomer/dag-factory/pull/599)
 - Add support for `.airflowignore` file to exclude specific YAML files by @viiccwen in [#654](https://github.com/astronomer/dag-factory/pull/654)
-- Add airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
+- Add Airflow 3.1 support by @pankajastro in [#720](https://github.com/astronomer/dag-factory/pull/720)
 - Add Airflow 3.2 to CI test matrix by @pankajastro in [#723](https://github.com/astronomer/dag-factory/pull/723)
 
 ### Improved
