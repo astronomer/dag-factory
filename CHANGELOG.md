@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update docs copyright year to 2026 by @pankajkoti in [#698](https://github.com/astronomer/dag-factory/pull/698)
 - adding timezone references by @sri-codes-python in [#701](https://github.com/astronomer/dag-factory/pull/701)
 - Add ``items`` as a reserved key in doc by @gyli in [#726](https://github.com/astronomer/dag-factory/pull/726)
+- docs: align contributor and quick-start docs with current Python/Airflow support by @pankajastro in [#740](https://github.com/astronomer/dag-factory/pull/740)
 
 ### Other Changes
 
@@ -59,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Python 3.14 to CI test matrix by @pankajastro in [#731](https://github.com/astronomer/dag-factory/pull/731/)
 - Add AGENTS.md for AI coding agents by @gyli in [#717](https://github.com/astronomer/dag-factory/pull/717)
 - fix: use __file__-relative paths in dev examples for Airflow 3 on Astro Hosted by @pankajastro in [#613](https://github.com/astronomer/dag-factory/pull/613)
+- Fix sys.path for DAG helper modules in Astro bundle environments by @pankajastro in [#739](https://github.com/astronomer/dag-factory/pull/739)
 
 ## [1.0.1] - 2025-09-25
 
