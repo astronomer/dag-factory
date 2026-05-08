@@ -16,6 +16,7 @@ try:
 except ImportError:
     from airflow.models import DAG
 
+from dagfactory import settings
 from dagfactory._yaml import load_yaml_file
 from dagfactory.constants import DEFAULTS_FILE_NAMES
 from dagfactory.dagbuilder import DagBuilder
@@ -217,8 +218,14 @@ class _DagFactory:
         """
         return self.config.get("default", {})
 
-    def build_dags(self) -> Dict[str, DAG]:
-        """Build DAGs using the config file."""
+    def build_dags(self) -> Tuple[Dict[str, DAG], Optional[Tuple[str, Exception]]]:
+        """Build DAGs using the config file.
+
+        :returns: a tuple of ``(dags, first_build_error)``. ``dags`` maps ``dag_id`` to the
+            successfully built :class:`DAG` instances; ``first_build_error`` is ``None`` if all
+            DAGs built successfully, otherwise a ``(dag_name, exception)`` tuple for the first
+            DAG that failed. Each individual failure is also logged via :func:`logging.exception`.
+        """
         dag_configs: Dict[str, Dict[str, Any]] = self.get_dag_configs()
         global_default_args = self._global_default_args()
         default_config: Dict[str, Any] = self.get_default_config()
@@ -234,23 +241,31 @@ class _DagFactory:
         else:
             dag_level_args = {}
 
+        first_build_error = None
+
         for dag_name, dag_config in dag_configs.items():
-            # Apply DAG-level default arguments from global_default_args to each dag_config,
-            # this is helpful because some arguments are not supported in default_args.
-            if isinstance(global_default_args, dict):
-                dag_config = {**dag_level_args, **dag_config}
+            try:
+                # Apply DAG-level default arguments from global_default_args to each dag_config,
+                # this is helpful because some arguments are not supported in default_args.
+                if isinstance(global_default_args, dict):
+                    dag_config = {**dag_level_args, **dag_config}
 
-            dag_config["task_groups"] = dag_config.get("task_groups", {})
-            dag_builder: DagBuilder = DagBuilder(
-                dag_name=dag_name,
-                dag_config=dag_config,
-                default_config=default_config,
-                yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
-            )
-            dag: Dict[str, Union[str, DAG]] = dag_builder.build()
-            dags[dag["dag_id"]]: DAG = dag["dag"]
+                dag_config["task_groups"] = dag_config.get("task_groups", {})
+                dag_builder: DagBuilder = DagBuilder(
+                    dag_name=dag_name,
+                    dag_config=dag_config,
+                    default_config=default_config,
+                    yml_dag=self._serialise_config_md(dag_name, dag_config, default_config),
+                )
+                dag: Dict[str, Union[str, DAG]] = dag_builder.build()
+                dags[dag["dag_id"]]: DAG = dag["dag"]
+            except Exception as exc:  # pylint: disable=broad-except
+                config_origin = self.config_file_path or "<config_dict>"
+                logging.exception("Failed to build DAG '%s' from '%s'", dag_name, config_origin)
+                if not first_build_error:
+                    first_build_error = (dag_name, exc)
 
-        return dags
+        return dags, first_build_error
 
     # pylint: disable=redefined-builtin
     @staticmethod
@@ -271,8 +286,11 @@ class _DagFactory:
         :param globals: The globals() from the file used to generate DAGs. The dag_id
             must be passed into globals() for Airflow to import
         """
-        dags: Dict[str, Any] = self.build_dags()
+        dags, first_build_error = self.build_dags()
         self.register_dags(dags, globals)
+        if settings.strict_mode and first_build_error:
+            name, exc = first_build_error
+            raise DagFactoryConfigException(f"DAG build failed: {name}: {exc}") from exc
 
 
 def _read_airflowignore(ignore_file: Path) -> List[str]:
@@ -547,6 +565,8 @@ def load_yaml_dags(
                 if any(file_name.endswith(suf) for suf in suffix):
                     candidate_dag_files.append(root_path / file_name)
 
+        first_strict_error = None
+
         for config_file_path in candidate_dag_files:
             if _should_ignore_file(config_file_path, dags_folder_path, ignore_patterns):
                 logging.debug("Ignoring file %s (matched ignore pattern)", config_file_path)
@@ -561,7 +581,13 @@ def load_yaml_dags(
                     defaults_config_dict=defaults_config_dict,
                 )
                 factory._generate_dags(globals_dict)
-            except Exception:  # pylint: disable=broad-except
+            except Exception as e:  # pylint: disable=broad-except
                 logging.exception("Failed to load dag from %s", config_file_path)
+                if settings.strict_mode and not first_strict_error:
+                    first_strict_error = (config_file_abs_path, e)
             else:
                 logging.info("DAG loaded: %s", config_file_path)
+
+        if first_strict_error:
+            path, exc = first_strict_error
+            raise DagFactoryConfigException(f"Failed to load dag config from '{path}': {exc}") from exc

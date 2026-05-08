@@ -352,12 +352,30 @@ def test_generate_dags_with_removal_valid():
     assert "fake_example_dag" not in globals()
 
 
-def test_generate_dags_invalid():
-    with pytest.raises(Exception):
+def test_generate_dags_invalid_strict(monkeypatch):
+    """In strict mode a broken DAG config raises DagFactoryConfigException."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    monkeypatch.setattr(dag_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException, match="DAG build failed"):
         load_yaml_dags(
             globals_dict=globals(),
             config_filepath=INVALID_DAG_FACTORY,
         )
+
+
+def test_generate_dags_invalid_non_strict(monkeypatch, caplog):
+    """In non-strict mode a broken DAG config is logged but does not raise."""
+    from dagfactory import settings as dag_settings
+
+    monkeypatch.setattr(dag_settings, "strict_mode", False)
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_filepath=INVALID_DAG_FACTORY,
+        )
+    assert any("Failed to build DAG" in r.message for r in caplog.records)
 
 
 def test_kubernetes_pod_operator_dag():
@@ -532,7 +550,7 @@ def test_set_callback_after_loading_config():
 
 
 def test_build_dag_with_global_default():
-    dags = _DagFactory(config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
+    dags, _ = _DagFactory(config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
 
     assert dags.get("example_dag").tasks[0].depends_on_past == True
 
@@ -605,7 +623,7 @@ def test_build_dag_with_global_dag_level_defaults():
     td = _DagFactory(config_dict=config)
     with pytest.MonkeyPatch.context() as m:
         m.setattr(td, "_global_default_args", lambda: global_defaults)
-        dags = td.build_dags()
+        dags, _ = td.build_dags()
 
     assert dags["test_dag"].catchup == False
     assert "global_tag" in dags["test_dag"].tags
@@ -616,7 +634,7 @@ def test_build_dag_with_global_dag_level_defaults():
 
 
 def test_build_dag_with_global_default_dict():
-    dags = _DagFactory(
+    dags, _ = _DagFactory(
         config_dict=DAG_FACTORY_CONFIG,
         defaults_config_dict={
             "default_args": {"start_date": "2025-01-01", "owner": "global_owner", "depends_on_past": True}
@@ -678,7 +696,9 @@ def test_load_airflowignore(tmp_path, root_ignore_file_content, nested_ignore_fi
         (nested_dir / ".airflowignore").write_text(nested_ignore_file_content)
 
     ignore_patterns = _load_airflowignore(str(tmp_path))
-    relative_ignore_patterns = {ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()}
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
     assert relative_ignore_patterns == expected_patterns
 
     loaded_patterns = [pattern for patterns in ignore_patterns.values() for pattern in patterns]
@@ -695,7 +715,9 @@ def test_load_airflowignore_follows_symlinked_directories(tmp_path):
     symlink_dir.symlink_to(external_dir, target_is_directory=True)
 
     ignore_patterns = _load_airflowignore(str(tmp_path))
-    relative_ignore_patterns = {ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()}
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
 
     assert relative_ignore_patterns == {Path("linked"): ["ignored/*.yml"]}
 
@@ -768,7 +790,9 @@ def test_should_ignore_file(monkeypatch, tmp_path, file_path_str, ignore_pattern
     """Test that _should_ignore_file matches patterns correctly."""
     monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
     dags_folder = tmp_path
-    ignore_patterns_by_dir = {dags_folder / relative_dir: patterns for relative_dir, patterns in ignore_patterns.items()}
+    ignore_patterns_by_dir = {
+        dags_folder / relative_dir: patterns for relative_dir, patterns in ignore_patterns.items()
+    }
 
     if outside_dags_folder:
         file_path = tmp_path.parent / file_path_str
@@ -840,8 +864,7 @@ def test_should_ignore_file_regexp_ignores_outside_files(monkeypatch, tmp_path):
 def _create_dag_file(file_path: Path, dag_id: str, bash_operator_path: str) -> None:
     """Helper function to create a DAG YAML file"""
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(
-        f"""
+    file_path.write_text(f"""
 default:
   default_args:
     owner: airflow
@@ -852,8 +875,7 @@ default:
     - task_id: task_1
       operator: {bash_operator_path}
       bash_command: echo 1
-"""
-    )
+""")
 
 
 def test_load_yaml_dags_with_airflowignore(monkeypatch, caplog, tmp_path):
@@ -1004,7 +1026,9 @@ def test_load_yaml_dags_prunes_parent_ignored_subtrees(monkeypatch, caplog, tmp_
     (tmp_path / "ignored" / ".airflowignore").write_text("!keep.yml\n")
 
     ignore_patterns = _load_airflowignore(str(tmp_path))
-    relative_ignore_patterns = {ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()}
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
     assert relative_ignore_patterns == {Path("."): ["ignored/"]}
 
     globals_dict = {}
@@ -1204,7 +1228,7 @@ def test_build_dags_timezone_example():
     """DAG-level and default_args timezone keys yield expected aware datetimes (see docs/configuration/defaults.md)."""
     path = os.path.abspath(DAG_FACTORY_TIMEZONE)
     factory = _DagFactory(config_filepath=path)
-    dags = factory.build_dags()
+    dags, _ = factory.build_dags()
     assert set(dags) == {"timezone_dag_level", "timezone_default_args"}
     paris = DateTime(2024, 6, 15, 0, 0, 0, tzinfo=Timezone("Europe/Paris"))
     assert dags["timezone_dag_level"].start_date == paris
@@ -1280,7 +1304,7 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
 
     some_dag = _DagFactory(str(dag_file), defaults_config_path=str(tmp_path / "a"))
 
-    result = some_dag.build_dags()
+    result, _ = some_dag.build_dags()
     dag = result["second_example_dag"]
     assert dag.default_args["a_param"] == "a"  # accumulates properties define throughout the directories tree
     assert dag.default_args["b_param"] == "b"  # accumulates properties define throughout the directories tree
@@ -1380,3 +1404,140 @@ example_dict_dag_yaml:
     assert len(dag.tasks) == 2
     # Validate grouping
     assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
+
+
+# ---------------------------------------------------------------------------
+# Strict mode tests
+# ---------------------------------------------------------------------------
+
+_GOOD_DAG_CONFIG = {
+    "good_dag": {
+        "default_args": {"owner": "airflow", "start_date": "2024-01-01"},
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": get_bash_operator_path(),
+                "bash_command": "echo hello",
+            }
+        },
+    }
+}
+
+_BAD_DAG_CONFIG = {
+    "bad_dag": {
+        "default_args": {"owner": "airflow", "start_date": "2024-01-01"},
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": "non.existent.Operator",
+                "bash_command": "echo hello",
+            }
+        },
+    }
+}
+
+_MIXED_DAG_CONFIG = {**_GOOD_DAG_CONFIG, **_BAD_DAG_CONFIG}
+
+
+def test_build_dags_returns_tuple():
+    """build_dags always returns (dags_dict, first_build_error)."""
+    factory = _DagFactory(config_dict=_GOOD_DAG_CONFIG)
+    result = factory.build_dags()
+    assert isinstance(result, tuple) and len(result) == 2
+    dags, first_error = result
+    assert "good_dag" in dags
+    assert first_error is None
+
+
+def test_build_dags_partial_failure_returns_good_dags():
+    """A broken DAG does not prevent valid ones from being returned."""
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    dags, first_error = factory.build_dags()
+    assert "good_dag" in dags
+    assert first_error is not None
+    assert first_error[0] == "bad_dag"
+    assert isinstance(first_error[1], Exception)
+
+
+def test_generate_dags_non_strict_swallows_errors():
+    """In non-strict mode, build errors are logged but no exception is raised."""
+    from dagfactory import settings as dag_settings
+
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    g: dict = {}
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(dag_settings, "strict_mode", False)
+        factory._generate_dags(g)  # must not raise
+
+    assert "good_dag" in g
+
+
+def test_generate_dags_strict_raises_and_registers_good():
+    """In strict mode, good DAGs are registered AND an exception is raised."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    g: dict = {}
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(dag_settings, "strict_mode", True)
+        with pytest.raises(DagFactoryConfigException, match="DAG build failed"):
+            factory._generate_dags(g)
+
+    assert "good_dag" in g
+
+
+def test_load_yaml_dags_strict_mode_folder_scan_bad_file_raises(tmp_path, monkeypatch):
+    """In folder-scan strict mode a broken YAML file raises after loading good files."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    good_yaml = tmp_path / "good.yml"
+    good_yaml.write_text(f"""
+good_scan_dag:
+  default_args:
+    owner: airflow
+    start_date: "2024-01-01"
+  schedule: "@daily"
+  tasks:
+    t1:
+      operator: {get_bash_operator_path()}
+      bash_command: echo 1
+""")
+    bad_yaml = tmp_path / "bad.yml"
+    bad_yaml.write_text("not: valid: yaml: [")
+
+    g: dict = {}
+    monkeypatch.setattr(dag_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException):
+        load_yaml_dags(globals_dict=g, dags_folder=str(tmp_path))
+
+    assert "good_scan_dag" in g
+
+
+def test_load_yaml_dags_non_strict_folder_scan_continues_on_error(tmp_path, monkeypatch, caplog):
+    """In non-strict folder-scan mode a broken file is logged but does not prevent other files loading."""
+    from dagfactory import settings as dag_settings
+
+    good_yaml = tmp_path / "good.yml"
+    good_yaml.write_text(f"""
+good_scan_dag2:
+  default_args:
+    owner: airflow
+    start_date: "2024-01-01"
+  schedule: "@daily"
+  tasks:
+    t1:
+      operator: {get_bash_operator_path()}
+      bash_command: echo 1
+""")
+    bad_yaml = tmp_path / "bad.yml"
+    bad_yaml.write_text("not: valid: yaml: [")
+
+    g: dict = {}
+    monkeypatch.setattr(dag_settings, "strict_mode", False)
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict=g, dags_folder=str(tmp_path))  # must not raise
+
+    assert "good_scan_dag2" in g
+    assert any("bad.yml" in r.message for r in caplog.records)

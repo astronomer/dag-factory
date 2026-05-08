@@ -18,3 +18,4 @@ def convert_to_boolean(value: str | None) -> bool:
 enable_telemetry = conf.getboolean("dag_factory", "enable_telemetry", fallback=True)
 do_not_track = convert_to_boolean(os.getenv("DO_NOT_TRACK"))
 no_analytics = convert_to_boolean(os.getenv("SCARF_NO_ANALYTICS"))
+strict_mode = conf.getboolean("dag_factory", "strict_mode", fallback=False)
