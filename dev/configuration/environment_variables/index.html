@@ -722,6 +722,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1591,6 +1602,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1655,6 +1677,39 @@ configurations that work seamlessly across various environments.</p>
 <p>In the above example, <code>$CONFIG_ROOT_DIR</code> is used to reference an environment variable that points to the root
 directory of your DAG configurations. During DAG parsing, it will be resolved to the value specified for the
 <code>CONFIG_ROOT_DIR</code> environment variable.</p>
+<h2 id="strict-mode">Strict Mode</h2>
+<p>By default DAG Factory logs the error and skips DAGs that fail to build so other DAGs in the same YAML file
+or folder can still be loaded. Setting strict mode raises an exception for every problematic DAG while still
+registering all DAGs that built successfully.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Section</th>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AIRFLOW__DAG_FACTORY__STRICT_MODE</code></td>
+<td><code>dag_factory</code></td>
+<td><code>strict_mode</code></td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">AIRFLOW__DAG_FACTORY__STRICT_MODE</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></div>
+<p>When strict mode is enabled:</p>
+<ul>
+<li>Each DAG in a YAML file is attempted independently; successfully built DAGs are registered before any
+  exception is raised.</li>
+<li>If one or more DAGs fail to build, a <code>DagFactoryConfigException</code> is raised after registration so Airflow
+  surfaces the error as a broken-DAG import error for that file.</li>
+<li>In folder-scan mode, each YAML file is still processed independently — a broken file does not prevent other
+  files from loading.</li>
+</ul>
 
 
 
