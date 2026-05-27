@@ -1,3 +1,9 @@
 default_args:
   start_date: "2025-01-01"
   owner: "global_owner"
+
+operator_aliases:
+  - operator_alias: BashOperator
+    operator_path: airflow.operators.bash.BashOperator
+  - operator_alias: PythonOperator
+    operator_path: airflow.operators.python.PythonOperator
