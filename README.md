@@ -53,7 +53,7 @@ DAG-Factory is compatible with **Apache Airflow 3** and supports modern scheduli
 
 ##  Community
 
-Join us on the Airflow `Slack <https://apache-airflow.slack.com/archives/C099751BPHT>`_ at #yaml-dags
+Join us on the Apache Airflow Slack Workspace at [#yaml-dags](https://apache-airflow.slack.com/archives/C099751BPHT)
 
 ## License
 
