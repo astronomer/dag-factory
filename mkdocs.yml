@@ -80,6 +80,7 @@ nav:
       - contributing/contributors.md
       - contributing/howto.md
       - contributing/roles.md
+      - Security: contributing/security.md
 
 plugins:
   - mike:
