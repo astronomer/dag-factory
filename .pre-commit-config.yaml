@@ -55,7 +55,7 @@ repos:
           - "--disable=MD033"  # disable no inline html (needed for analytics dead pixel)
 
   - repo: https://github.com/tcort/markdown-link-check
-    rev: v3.13.6
+    rev: v3.14.2
     hooks:
       - id: markdown-link-check
         args: [-q]
