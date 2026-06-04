@@ -4,6 +4,6 @@ default_args:
 
 operator_aliases:
   - operator_alias: BashOperator
-    operator_path: airflow.operators.bash.BashOperator
+    operator_path: airflow.providers.standard.operators.bash.BashOperator
   - operator_alias: PythonOperator
-    operator_path: airflow.operators.python.PythonOperator
+    operator_path: airflow.providers.standard.operators.python.PythonOperator
