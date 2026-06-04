@@ -9,7 +9,7 @@ repos:
           - --fix
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-merge-conflict
@@ -34,7 +34,7 @@ repos:
       - id: uv-lock
 
   - repo: https://github.com/psf/black
-    rev: 26.3.1
+    rev: 26.5.1
     hooks:
       - id: black
         args: [ "--config", "./pyproject.toml" ]
@@ -55,7 +55,7 @@ repos:
           - "--disable=MD033"  # disable no inline html (needed for analytics dead pixel)
 
   - repo: https://github.com/tcort/markdown-link-check
-    rev: v3.13.6
+    rev: v3.14.2
     hooks:
       - id: markdown-link-check
         args: [-q]
