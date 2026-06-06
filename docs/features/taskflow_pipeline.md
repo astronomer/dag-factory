@@ -18,7 +18,7 @@ enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mapp
 Given a TaskFlow task `collect` that returns a multiple_outputs dict like:
 
 ```python
-@task(multiple_ouputs=True)
+@task(multiple_outputs=True)
 def collect(**context):
     return {"key1": "value1", "key2": "value2"}
 ```
