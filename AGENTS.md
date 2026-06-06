@@ -11,9 +11,9 @@ configuration files.
 - Activate the venv: `source .venv/bin/activate` (or `source venv/bin/activate` if you used `make setup`).
 - Install pre-commit hooks once: `pre-commit install`.
 - To run example DAGs locally, export:
-  - `AIRFLOW_HOME=$(pwd)/dev`
-  - `AIRFLOW__CORE__LOAD_EXAMPLES=false`
-  - `CONFIG_ROOT_DIR=$AIRFLOW_HOME/dags`
+    - `AIRFLOW_HOME=$(pwd)/dev`
+    - `AIRFLOW__CORE__LOAD_EXAMPLES=false`
+    - `CONFIG_ROOT_DIR=$AIRFLOW_HOME/dags`
 
 ## Commands
 
@@ -39,7 +39,7 @@ Notes:
 
 ## Repository Structure
 
-```
+```text
 dag-factory/
 ├── dagfactory/         # Library source
 │   ├── dagfactory.py   # Public entry points (load_yaml_dags)
@@ -86,9 +86,9 @@ Vulnerability reports go to `oss_security@astronomer.io` (see `SECURITY.md`). Do
 ## Coding Standards
 
 - Formatting and linting are enforced via `pre-commit`:
-  - `black` and `ruff`, both with `line-length = 120`. Ruff rule selection is `["C901", "D300", "I", "F"]`; isort `known-first-party = ["dagfactory", "tests"]`.
-  - `codespell`, `markdownlint`, `markdown-link-check`, plus checks for large files, merge conflicts, private keys, and AWS credentials.
-  - `uv-lock` keeps `uv.lock` in sync — re-run `uv lock` after editing dependencies.
+    - `black` and `ruff`, both with `line-length = 120`. Ruff rule selection is `["C901", "D300", "I", "F"]`; isort `known-first-party = ["dagfactory", "tests"]`.
+    - `codespell`, `markdownlint`, `markdown-link-check`, plus checks for large files, merge conflicts, private keys, and AWS credentials.
+    - `uv-lock` keeps `uv.lock` in sync — re-run `uv lock` after editing dependencies.
 - All source files are Apache-2.0 licensed (see `LICENSE`); don't add files under a different license without maintainer sign-off.
 - Raise library-specific exceptions from `dagfactory/exceptions.py` (e.g. `DagFactoryException`, `DagFactoryConfigException`) rather than bare `Exception` or generic `RuntimeError`.
 - Public API is whatever `dagfactory/__init__.py` re-exports (`__all__`). Treat it as a contract — additions are fine, renames/removals need a deprecation cycle and a `CHANGELOG.md` entry.
