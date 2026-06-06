@@ -23,7 +23,7 @@ def collect(**context):
     return {"key1": "value1", "key2": "value2"}
 ```
 
-It's representation in dag_factory yaml is like
+Its representation in dag_factory YAML looks like:
 
 ```yaml
 - task_id: collect
