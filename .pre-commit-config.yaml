@@ -40,7 +40,7 @@ repos:
         args: [ "--config", "./pyproject.toml" ]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.4.2
     hooks:
       - id: codespell
         exclude: 'tests/fixtures/mydocfile\.md|uv\.lock'
