@@ -46,7 +46,7 @@ repos:
         exclude: 'tests/fixtures/mydocfile\.md|uv\.lock'
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args:
