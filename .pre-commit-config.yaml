@@ -29,7 +29,7 @@ repos:
         args: [ "--allow-missing-credentials" ]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.16
+    rev: 0.11.18
     hooks:
       - id: uv-lock
 
@@ -46,7 +46,7 @@ repos:
         exclude: 'tests/fixtures/mydocfile\.md|uv\.lock'
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args:
