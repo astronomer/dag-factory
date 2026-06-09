@@ -70,6 +70,7 @@ nav:
       - features/object_storage.md
       - Kubernetes Pod Operator: features/kpo.md
       - features/asset.md
+      - CLI: features/cli.md
 
   - Comparison:
       - comparison/index.md
