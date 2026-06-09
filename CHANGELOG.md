@@ -325,12 +325,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support using envvar in config YAML by @tatiana in #236
-- **Callback improvements**
+- __Callback improvements__
   - Support installed code via python callable string by @john-drews in #221
   - Add `callback_file` & `callback_name` to `default_args` DAG level by @subbota19 in #218
   - Cast callbacks to functions when set with `default_args` on TaskGroups by @Baraldo and @pankajastro in #235
 
-- **Telemetry**
+- __Telemetry__
   - For more information, please, read the [Privacy Notice](https://github.com/astronomer/dag-factory/blob/main/PRIVACY_NOTICE.md#collection-of-data).
   - Add scarf to readme for website analytics by @cmarteepants in #219
   - Support telemetry during DAG parsing emitting data to Scarf by @tatiana in #250.
