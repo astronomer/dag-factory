@@ -51,7 +51,7 @@ Version **1.0** introduces important improvements and breaking changes to suppor
 
 DAG-Factory is compatible with **Apache Airflow 3** and supports modern scheduling, and updated import paths.
 
-##  Community
+## Community
 
 Join us on the Apache Airflow Slack Workspace at [#yaml-dags](https://apache-airflow.slack.com/archives/C099751BPHT)
 
