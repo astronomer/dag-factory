@@ -59,6 +59,64 @@ def _find_yaml_files(path: Path) -> list[Path]:
     return files
 
 
+def _find_yaml_files_on_airflow_ignore(path: Path) -> list[Path] | None:
+    """
+    Find YAML files on airflowignore.
+    """
+    airflow_ignore = next(path.rglob(".airflowignore"), None)
+    if not airflow_ignore:
+        return airflow_ignore
+
+    with open(airflow_ignore, "r") as f:
+        files = [path / Path(line.strip()) for line in f if line.strip() and not line.startswith("#")]
+        if not files:
+            return None
+    return files
+
+
+def _exclude_yaml_files(files: list[Path], ignore: Path, airflow_ignore: list[Path] | None):
+    """
+    Exclude files and directories from the list of YAML files.
+    """
+    if "," in str(ignore):
+        ignore_files = [Path(p.strip()) for p in str(ignore).split(",")]
+    else:
+        ignore_files = [ignore]
+
+    ignore_paths = set()
+    for ignore_path in ignore_files:
+        if not ignore_path.exists():
+            console.print(f"Ignore path '{ignore_path}' does not exist, skipping.")
+            continue
+
+        if ignore_path.is_dir():
+            ignore_paths.update(list(ignore_path.rglob("*.yaml")) + list(ignore_path.rglob("*.yml")))
+        else:
+            ignore_paths.add(ignore_path)
+
+    if airflow_ignore:
+        for ignore_path in airflow_ignore:
+            if ignore_path.is_dir():
+                ignore_paths.update(list(ignore_path.rglob("*.yaml")) + list(ignore_path.rglob("*.yml")))
+                continue
+
+            file_without_suffix = ignore_path.with_suffix("")
+            ignore_file = next(ignore_path.parent.rglob(file_without_suffix.name + ".yaml"), None) or next(
+                ignore_path.parent.rglob(file_without_suffix.name + ".yml"), None
+            )
+            if ignore_file:
+                ignore_paths.add(ignore_file)
+
+    initial_count = len(files)
+    files[:] = [f for f in files if f not in ignore_paths]
+    excluded_count = initial_count - len(files)
+
+    if excluded_count > 0:
+        console.print(
+            f"[blue]Ignored {excluded_count} YAML {_file_or_files(excluded_count)} based on --ignore option.[/blue]"
+        )
+
+
 @app.callback()
 def main(
     ctx: typer.Context,
@@ -82,9 +140,13 @@ def main(
 def lint(
     path: Path = typer.Argument(..., help="Path to a directory containing YAML files or to a YAML file to lint"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full error messages"),
+    ignore: Path = typer.Option(None, "--ignore", "-i", help="Files or directories to ignore"),
 ):
     """Scan YAML files for syntax errors."""
     files = _find_yaml_files(path)
+    airflow_ignore_files = _find_yaml_files_on_airflow_ignore(path)
+    if ignore:
+        _exclude_yaml_files(files, ignore, airflow_ignore_files)
 
     table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: YAML Lint Results", show_lines=True)
     table.add_column("File", style="cyan", no_wrap=True)
