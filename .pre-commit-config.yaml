@@ -29,7 +29,7 @@ repos:
         args: [ "--allow-missing-credentials" ]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.16
+    rev: 0.11.18
     hooks:
       - id: uv-lock
 
