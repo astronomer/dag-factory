@@ -21,7 +21,7 @@
     
     
       
-        <title>Taskflow pipeline - DAG Factory</title>
+        <title>TaskFlow Pipeline with multiple_outputs=True - DAG Factory</title>
       
     
     
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Taskflow pipeline
+              TaskFlow Pipeline with multiple_outputs=True
             
           </span>
         </div>
@@ -1532,6 +1532,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1540,18 +1542,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#taskflow-pipeline-with-multiple_outputstrue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TaskFlow Pipeline with multiple_outputs=True
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="TaskFlow Pipeline with multiple_outputs=True">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#what-it-enables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1561,8 +1551,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1572,8 +1562,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1581,11 +1571,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1622,35 +1607,33 @@
   
 
 
-  <h1>Taskflow pipeline</h1>
-
-<h2 id="taskflow-pipeline-with-multiple_outputstrue">TaskFlow Pipeline with <code>multiple_outputs=True</code></h2>
+<h1 id="taskflow-pipeline-with-multiple_outputstrue">TaskFlow Pipeline with <code>multiple_outputs=True</code></h1>
 <p>DAG Factory supports Airflow’s
 <a href="https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html">Pythonic Dags with the TaskFlow API</a>,
 enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mappings (multiple_outputs=True).</p>
-<h3 id="what-it-enables">What it enables</h3>
+<h2 id="what-it-enables">What it enables</h2>
 <ul>
 <li>When a TaskFlow-decorated task returns a dict (for example, using <code>multiple_outputs=True</code>), downstream task arguments can reference either the whole returned mapping or a single key from it using a concise syntax.</li>
 </ul>
-<h3 id="syntax">Syntax</h3>
+<h2 id="syntax">Syntax</h2>
 <ul>
 <li><code>+task_id</code> (with default <code>multiple_outputs=False</code>) — reference the entire Python function return value (the pushed value from the task). This is useful when the upstream task returns a mapping and the downstream callable expects the return_value.</li>
 <li><code>+task_id['key']</code> or <code>+task_id["key"]</code> — reference a single value from the mapping returned by the upstream TaskFlow task.</li>
 </ul>
-<h3 id="examples">Examples</h3>
+<h2 id="examples">Examples</h2>
 <p>Given a TaskFlow task <code>collect</code> that returns a multiple_outputs dict like:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>@task(multiple_ouputs=True)
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>def collect(**context):
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    return {&quot;key1&quot;: &quot;value1&quot;, &quot;key2&quot;: &quot;value2&quot;}
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@task</span><span class="p">(</span><span class="n">multiple_outputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">collect</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">):</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;key1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;key2&quot;</span><span class="p">:</span> <span class="s2">&quot;value2&quot;</span><span class="p">}</span>
 </span></code></pre></div>
-<p>It's representation in dag_factory yaml is like
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- task_id: collect
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  multiple_outputs: true
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  decorator: airflow.decorators.task
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  python_callable: sample.collect
-</span></code></pre></div></p>
+<p>Its representation in dag_factory YAML looks like:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">collect</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">multiple_outputs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">decorator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">airflow.decorators.task</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">python_callable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sample.collect</span>
+</span></code></pre></div>
 <p>Then you can use a single value from the mapping with:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>value: &quot;+collect[&#39;key1&#39;]&quot;
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;+collect[&#39;key1&#39;]&quot;</span>
 </span></code></pre></div>
 
 
