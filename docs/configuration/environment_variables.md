@@ -23,8 +23,8 @@ By default DAG Factory logs the error and skips DAGs that fail to build so other
 or folder can still be loaded. Setting strict mode raises an exception for every problematic DAG while still
 registering all DAGs that built successfully.
 
-| Variable | Section | Key | Default |
-|---|---|---|---|
+| Variable                            | Section       | Key           | Default |
+| ----------------------------------- | ------------- | ------------- | ------- |
 | `AIRFLOW__DAG_FACTORY__STRICT_MODE` | `dag_factory` | `strict_mode` | `False` |
 
 ```bash

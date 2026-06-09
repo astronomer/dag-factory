@@ -38,14 +38,14 @@ The generalized object feature is **extremely flexible**—it supports Python ty
 !!! note
     If you use a custom or third-party class, make sure it is installed and importable in your Airflow environment.
 
-| Python Object/Class                        | YAML `__type__` Value                        | Example Use Case                |
-|--------------------------------------------|----------------------------------------------|---------------------------------|
-| `datetime.datetime`                        | `datetime.datetime`                          | DAG start date                  |
-| `datetime.timedelta`                       | `datetime.timedelta`                         | Task timeout                    |
-| `airflow.timetables.trigger.CronTriggerTimetable` | `airflow.timetables.trigger.CronTriggerTimetable` | Custom scheduling               |
-| `airflow.sdk.Asset`                        | `airflow.sdk.Asset`                          | Asset definition                |
-| `airflow.io.path.ObjectStoragePath`        | `airflow.io.path.ObjectStoragePath`           | Object storage path             |
-| `kubernetes.client.models.V1Pod`           | `kubernetes.client.models.V1Pod`              | Kubernetes pod override         |
+| Python Object/Class                               | YAML `__type__` Value                             | Example Use Case        |
+| ------------------------------------------------- | ------------------------------------------------- | ----------------------- |
+| `datetime.datetime`                               | `datetime.datetime`                               | DAG start date          |
+| `datetime.timedelta`                              | `datetime.timedelta`                              | Task timeout            |
+| `airflow.timetables.trigger.CronTriggerTimetable` | `airflow.timetables.trigger.CronTriggerTimetable` | Custom scheduling       |
+| `airflow.sdk.Asset`                               | `airflow.sdk.Asset`                               | Asset definition        |
+| `airflow.io.path.ObjectStoragePath`               | `airflow.io.path.ObjectStoragePath`               | Object storage path     |
+| `kubernetes.client.models.V1Pod`                  | `kubernetes.client.models.V1Pod`                  | Kubernetes pod override |
 
 ---
 
