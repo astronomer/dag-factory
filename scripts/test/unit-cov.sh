@@ -6,4 +6,5 @@ env -u AIRFLOW_HOME pytest \
     --cov=dagfactory \
     --cov-report=term-missing \
     --cov-report=xml \
+    -m "not integration" \
     --ignore=tests/test_example_dags.py
