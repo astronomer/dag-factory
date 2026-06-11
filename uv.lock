@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "apache-airflow-providers-cncf-kubernetes"
-version = "10.17.0"
+version = "10.17.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -365,23 +365,23 @@ dependencies = [
     { name = "kubernetes-asyncio" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/ca/ec6c4614040811f65a8dc32d7444543facd3f351aa33e3d44bdaa5b53fcc/apache_airflow_providers_cncf_kubernetes-10.17.0.tar.gz", hash = "sha256:5b1f749e6fb59cf5411d602d5a3d7c7140af2f776b0fc2c9ef6cccbd81caadfb", size = 466186, upload-time = "2026-05-11T15:44:50.304Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cb/7d/91f10d478344896bf8f147d71bc8ba293775110fe0e95e03f438b8b2269e/apache_airflow_providers_cncf_kubernetes-10.17.1.tar.gz", hash = "sha256:8b8122ec7c18c0fa7530d67e89a83fe28c33820562dc1983cf134da8ac17d21e", size = 474135, upload-time = "2026-05-23T12:32:22.116Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/d9/4d61798e47026f14ed4214dd8cbcd9484d55db17bc5576f3333d35268ce0/apache_airflow_providers_cncf_kubernetes-10.17.0-py3-none-any.whl", hash = "sha256:638027ec107975e0683efda6808959912dd49b3c76bcd285e846534cac377c2e", size = 171971, upload-time = "2026-05-11T15:44:26.193Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/b3/fa8a96fcb0cba016e68096e289a2aa366fc28a561ce05027126dcc468366/apache_airflow_providers_cncf_kubernetes-10.17.1-py3-none-any.whl", hash = "sha256:145080dec202add179e1952ed743bf330279316c51d07e734e37676db6fb278b", size = 174829, upload-time = "2026-05-23T12:31:16.779Z" },
 ]
 
 [[package]]
 name = "apache-airflow-providers-common-compat"
-version = "1.14.1"
+version = "1.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apache-airflow" },
     { name = "asgiref", version = "3.8.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "asgiref", version = "3.11.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/c0/d0b7d96fb2b2a6b6b377280f1e87e93f6df556fa5a357084092c2efa26da/apache_airflow_providers_common_compat-1.14.1.tar.gz", hash = "sha256:c1a42cf8ad0219d2f9aa82c5e84ad41e9876609cd3fdf1abce0f1b2bea4513d7", size = 39513, upload-time = "2026-03-13T17:31:05.653Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/f4/21478e8686a430a1718a419f21ccebfa095133ba575b6f29e61df427ecdc/apache_airflow_providers_common_compat-1.15.0.tar.gz", hash = "sha256:1d3e05cddc66615307683309e2443c8c92de74817c1e08d6b26d278b8c20eb00", size = 40119, upload-time = "2026-05-23T12:32:24.629Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/98/d188902d79e9a0e5e436dea85433ad739067e40c6c28117a67f7d9e76121/apache_airflow_providers_common_compat-1.14.1-py3-none-any.whl", hash = "sha256:548d3db1a7cb8d2453cf3c9741539b2988b794303ba74b9726bb264c401fa09f", size = 42142, upload-time = "2026-03-13T17:30:27.043Z" },
+    { url = "https://files.pythonhosted.org/packages/08/c2/57896190db40cbcdf7e41f5c07b21a2e33fb97c6db81f05c6cd7069ef832/apache_airflow_providers_common_compat-1.15.0-py3-none-any.whl", hash = "sha256:86cbc6363baef2cd02962af0877cec71cc99ff7c298cb2d19cac0b788c40e1d2", size = 42403, upload-time = "2026-05-23T12:31:20.675Z" },
 ]
 
 [[package]]
@@ -415,7 +415,7 @@ wheels = [
 
 [[package]]
 name = "apache-airflow-providers-http"
-version = "6.0.0"
+version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -426,9 +426,9 @@ dependencies = [
     { name = "requests" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/21/b03b7c40252a36ceef3b02873365a4885195dcc193cbb50610cf7bfc80ae/apache_airflow_providers_http-6.0.0.tar.gz", hash = "sha256:cae4369e2265432feaf7507eaa2bf4fca542817c33516215243fee0ab45dd3f0", size = 70577, upload-time = "2026-03-02T21:06:03.87Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b2/ff/0f185ebd64675285d4f48d131b7cdd1d5e075bed6519bb296b16d15ad381/apache_airflow_providers_http-6.0.2.tar.gz", hash = "sha256:5363fdd504cf47664da4af92ae180c5d17d4dd501bcaad99a173800f09c93cff", size = 72198, upload-time = "2026-04-12T14:22:12.128Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/c3/0dc0e975fb4d62e40e25f601da21ed9767080eee2709f2414d5bbe10c179/apache_airflow_providers_http-6.0.0-py3-none-any.whl", hash = "sha256:f620eb385641c0ce977a63f911ebc8a636237955040044f3ebc9af955e464bb2", size = 33833, upload-time = "2026-03-02T20:52:20.727Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/65/0c4fee7cb2b552783276a526e540dc45b168712fde1b056023526966bb91/apache_airflow_providers_http-6.0.2-py3-none-any.whl", hash = "sha256:8eab92a31399edbc5cf5c4f60358381a17d8de1d46ac8709d49c28435afc70ed", size = 34973, upload-time = "2026-04-12T14:20:28.01Z" },
 ]
 
 [[package]]
@@ -2528,7 +2528,7 @@ wheels = [
 
 [[package]]
 name = "pre-commit"
-version = "4.2.0"
+version = "4.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cfgv" },
@@ -2537,9 +2537,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/39/679ca9b26c7bb2999ff122d50faa301e49af82ca9c066ec061cfbc0c6784/pre_commit-4.2.0.tar.gz", hash = "sha256:601283b9757afd87d40c4c4a9b2b5de9637a8ea02eaff7adc2d0fb4e04841146", size = 193424, upload-time = "2025-03-18T21:35:20.987Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/22/2de9408ac81acbb8a7d05d4cc064a152ccf33b3d480ebe0cd292153db239/pre_commit-4.6.0.tar.gz", hash = "sha256:718d2208cef53fdc38206e40524a6d4d9576d103eb16f0fec11c875e7716e9d9", size = 198525, upload-time = "2026-04-21T20:31:41.613Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/74/a88bf1b1efeae488a0c0b7bdf71429c313722d1fc0f377537fbe554e6180/pre_commit-4.2.0-py2.py3-none-any.whl", hash = "sha256:a009ca7205f1eb497d10b845e52c838a98b6cdd2102a6c8e4540e94ee75c58bd", size = 220707, upload-time = "2025-03-18T21:35:19.343Z" },
+    { url = "https://files.pythonhosted.org/packages/80/6e/4b28b62ecb6aae56769c34a8ff1d661473ec1e9519e2d5f8b2c150086b26/pre_commit-4.6.0-py2.py3-none-any.whl", hash = "sha256:e2cf246f7299edcabcf15f9b0571fdce06058527f0a06535068a86d38089f29b", size = 226472, upload-time = "2026-04-21T20:31:40.092Z" },
 ]
 
 [[package]]
@@ -3589,17 +3589,17 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.16.0"
+version = "0.26.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click" },
+    { name = "annotated-doc" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "rich" },
     { name = "shellingham" },
-    { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c5/8c/7d682431efca5fd290017663ea4588bf6f2c6aad085c7f108c5dbc316e70/typer-0.16.0.tar.gz", hash = "sha256:af377ffaee1dbe37ae9440cb4e8f11686ea5ce4e9bae01b84ae7c63b87f1dd3b", size = 102625, upload-time = "2025-05-26T14:30:31.824Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/1a/2cf40b65b1d9c254fe5814bb0519f9b8f2ac38059df0810f9b866300c04a/typer-0.26.5.tar.gz", hash = "sha256:9b9b39e35c3afc9e1e51a06f21155246e457c0911279b09b35d8210ca74b935c", size = 201494, upload-time = "2026-06-01T14:42:49.744Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/42/3efaf858001d2c2913de7f354563e3a3a2f0decae3efe98427125a8f441e/typer-0.16.0-py3-none-any.whl", hash = "sha256:1f79bed11d4d02d4310e3c1b7ba594183bcedb0ac73b27a9e5f28f6fb5b98855", size = 46317, upload-time = "2025-05-26T14:30:30.523Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/d6/baac76fc04a6532883de3d8722c7f921dae94d10965e7ffba9e38e42a251/typer-0.26.5-py3-none-any.whl", hash = "sha256:4bfd901d564e41608920134aa5d4481200f4ba76d98e982d9f9d32dcb7b84da0", size = 122451, upload-time = "2026-06-01T14:42:51.021Z" },
 ]
 
 [[package]]
