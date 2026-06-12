@@ -71,9 +71,6 @@ network:
 # The ONLY action this workflow can take: post one advisory comment per bot PR.
 # Approve / merge / push are not declared, so the agent has no way to perform them.
 safe-outputs:
-  # PREVIEW-ONLY for first rollout: comments render in the Actions run summary (🎭)
-  # instead of being posted. Delete this line (or set it to false) to start posting for real.
-  staged: true
   add-comment:
     target: "*"        # comment on each bot PR it reviews (not just a triggering one)
     max: 10            # cap comments per run
