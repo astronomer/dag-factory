@@ -12,4 +12,4 @@
 rules:
   template-injection:
     ignore:
-      - review-bot-prs.lock.yml
+      - .github/workflows/review-bot-prs.lock.yml
