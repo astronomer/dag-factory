@@ -1,45 +1,41 @@
-version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "@astronomer/oss-integrations"
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: "pre-commit"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "@astronomer/oss-integrations"
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: "uv"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "@astronomer/oss-integrations"
-    cooldown:
-      default-days: 7
-    # Batch routine (minor/patch) Python bumps into a single PR to limit
-    # noise; major bumps still open as individual PRs for careful review.
-    # Security updates are unaffected by cooldown/grouping and continue to
-    # open as soon as an advisory is published.
-    groups:
-      python-minor-and-patch:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+- cooldown:
+    default-days: 7
+  directory: /
+  ignore:
+  - dependency-name: "github/gh-aw-actions" # Managed by gh aw compile. Version-locked to the gh-aw compiler; do not bump.
+  labels:
+  - dependencies
+  package-ecosystem: github-actions
+  reviewers:
+  - "@astronomer/oss-integrations"
+  schedule:
+    interval: daily
+- cooldown:
+    default-days: 7
+  directory: /
+  labels:
+  - dependencies
+  package-ecosystem: pre-commit
+  reviewers:
+  - "@astronomer/oss-integrations"
+  schedule:
+    interval: daily
+- cooldown:
+    default-days: 7
+  directory: /
+  groups:
+    python-minor-and-patch:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  labels:
+  - dependencies
+  package-ecosystem: uv
+  reviewers:
+  - "@astronomer/oss-integrations"
+  schedule:
+    interval: daily
+version: 2

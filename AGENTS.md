@@ -120,6 +120,18 @@ Vulnerability reports go to `oss_security@astronomer.io` (see `SECURITY.md`). Do
 - CI runs the full matrix (`.github/workflows/cicd.yaml`). Wait for green before merging.
 - A maintainer must approve before merge — don't self-merge.
 
+## Automated Agentic Workflows (gh-aw)
+
+`.github/workflows/review-bot-prs.md` is a [GitHub Agentic Workflow](https://github.com/githubnext/gh-aw). It runs **hourly**, reviews open **Dependabot / pre-commit-ci** PRs in this repo, and posts one advisory comment per PR with a **✅ Merge / ⏸️ Hold / ⚠️ Review carefully** verdict (cooldown, security/OSV, blast radius, CI gate, and github-actions SHA↔tag integrity) — though it is **preview-only until the staged flag is removed** (see Rollout state). It runs **read-only** and can only comment — it never approves, merges, or pushes.
+
+Working with it:
+
+- **Edit the `.md`, never the `.lock.yml`.** The `.md` is the source; `review-bot-prs.lock.yml` is generated. After any edit run `gh aw compile` (needs `gh extension install githubnext/gh-aw`) and commit **both** files.
+- **`aw.json`** sets `"maintenance": false`, so `gh aw compile` does not emit the `agentics-maintenance.yml` companion (we create no expiring issues, so it has nothing to do). Leave it in place.
+- **Rollout state:** `safe-outputs.staged: true` is currently set, so comments render as a 🎭 preview in the Actions run summary instead of being posted. Remove that line (or set it `false`) to start posting for real.
+- **Scope:** dag-factory only (`tools.github.allowed-repos: ${{ github.repository }}`), Copilot engine, `min-integrity: approved`. Scheduled runs only fire from `main`.
+- Dry-run against the live repo without posting: `gh aw trial ./.github/workflows/review-bot-prs.md --logical-repo astronomer/dag-factory --delete-host-repo-after`.
+
 ## Boundaries
 
 Ask first:
