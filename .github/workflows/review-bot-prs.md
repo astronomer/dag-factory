@@ -6,9 +6,11 @@
 # After editing this file, run `gh aw compile` and commit BOTH files.
 #
 # Ported from the internal `review-bot-prs` Claude Code skill, scoped to dag-factory
-# only (no cross-repo access). The agent runs read-only; the single thing it can do
-# is post one advisory comment per bot PR via safe-outputs. It cannot approve, merge,
-# rebase, or push — those capabilities are simply not granted.
+# only (no cross-repo access). The agent runs read-only; its only routine action is
+# posting one advisory comment per bot PR via safe-outputs (a "nothing to review" run
+# logs a no-op to the Actions run summary, not an issue). gh-aw opens a tracking issue
+# only if a run is incomplete or needs a missing tool. It cannot approve, merge, rebase,
+# or push — those capabilities are simply not granted.
 
 on:
   # Hourly sweep, plus a manual "Run workflow" button.
@@ -74,6 +76,10 @@ safe-outputs:
   # PREVIEW-ONLY for first rollout: comments render in the Actions run summary (🎭)
   # instead of being posted. Delete this line (or set it to false) to start posting for real.
   staged: true
+  # The "nothing to review" steady state calls noop (see the prompt). Report it to the run
+  # summary only — NOT as a new issue — so the hourly schedule doesn't open issues each run.
+  noop:
+    report-as-issue: false
   add-comment:
     target: "*"        # comment on each bot PR it reviews (not just a triggering one)
     max: 10            # cap comments per run

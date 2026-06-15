@@ -122,7 +122,7 @@ Vulnerability reports go to `oss_security@astronomer.io` (see `SECURITY.md`). Do
 
 ## Automated Agentic Workflows (gh-aw)
 
-`.github/workflows/review-bot-prs.md` is a [GitHub Agentic Workflow](https://github.com/githubnext/gh-aw). It runs **hourly**, reviews open **Dependabot / pre-commit-ci** PRs in this repo, and posts one advisory comment per PR with a **✅ Merge / ⏸️ Hold / ⚠️ Review carefully** verdict (cooldown, security/OSV, blast radius, CI gate, and github-actions SHA↔tag integrity) — though it is **preview-only until the staged flag is removed** (see Rollout state). It runs **read-only** and can only comment — it never approves, merges, or pushes.
+`.github/workflows/review-bot-prs.md` is a [GitHub Agentic Workflow](https://github.com/githubnext/gh-aw). It runs **hourly**, reviews open **Dependabot / pre-commit-ci** PRs in this repo, and posts one advisory comment per PR with a **✅ Merge / ⏸️ Hold / ⚠️ Review carefully** verdict (cooldown, security/OSV, blast radius, CI gate, and github-actions SHA↔tag integrity) — though it is **preview-only until the staged flag is removed** (see Rollout state). It runs **read-only**; its only routine write is the PR comment (a "nothing to review" run logs a no-op to the Actions run summary, and gh-aw opens a tracking issue only on an incomplete run or a missing tool). It never approves, merges, or pushes.
 
 Working with it:
 
