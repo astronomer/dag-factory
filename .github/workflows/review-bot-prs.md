@@ -73,9 +73,6 @@ network:
 # The ONLY action this workflow can take: post one advisory comment per bot PR.
 # Approve / merge / push are not declared, so the agent has no way to perform them.
 safe-outputs:
-  # PREVIEW-ONLY for first rollout: comments render in the Actions run summary (🎭)
-  # instead of being posted. Delete this line (or set it to false) to start posting for real.
-  staged: true
   # The "nothing to review" steady state calls noop (see the prompt). Report it to the run
   # summary only — NOT as a new issue — so the hourly schedule doesn't open issues each run.
   noop:
