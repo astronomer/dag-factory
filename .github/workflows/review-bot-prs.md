@@ -16,6 +16,12 @@ on:
   # Daily sweep, plus a manual "Run workflow" button.
   schedule: daily
   workflow_dispatch:
+    inputs:
+      aw_context:
+        default: ""
+        description: "Leave blank for manual runs. Internal JSON used only by gh-aw."
+        required: false
+        type: string
 
   # Pre-activation guard: skip the (paid) agent run unless there is at least one open
   # bot PR that does not already have this workflow's review comment.
@@ -75,7 +81,8 @@ permissions:
 tools:
   github:
     toolsets: [repos, pull_requests, issues]
-    allowed-repos: "${{ github.repository }}"
+    allowed-repos:
+      - astronomer/dag-factory
     # Only read content at 'approved' integrity or higher (the default for public repos).
     # Same-repo bot PRs (Dependabot / pre-commit-ci, non-fork) qualify; injected content
     # from unapproved external accounts on the PR thread is filtered out before the agent.
@@ -93,9 +100,6 @@ network:
 # The ONLY action this workflow can take: post one advisory comment per bot PR.
 # Approve / merge / push are not declared, so the agent has no way to perform them.
 safe-outputs:
-  # PREVIEW-ONLY for first rollout: comments render in the Actions run summary (🎭)
-  # instead of being posted. Delete this line (or set it to false) to start posting for real.
-  staged: true
   # The "nothing to review" steady state calls noop (see the prompt). Report it to the run
   # summary only — NOT as a new issue — so the daily schedule doesn't open issues each run.
   noop:
