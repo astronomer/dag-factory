@@ -3,7 +3,7 @@ updates:
     default-days: 7
   directory: /
   ignore:
-  - dependency-name: "github/gh-aw-actions" # Managed by gh aw compile. Version-locked to the gh-aw compiler; do not bump.
+  - dependency-name: "github/gh-aw-actions" # gh-aw compiler-managed action pin; keep ignored and refresh via gh aw compile.
   labels:
   - dependencies
   package-ecosystem: github-actions
