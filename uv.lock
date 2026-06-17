@@ -399,7 +399,7 @@ wheels = [
 
 [[package]]
 name = "apache-airflow-providers-common-sql"
-version = "2.0.0"
+version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apache-airflow" },
@@ -408,14 +408,14 @@ dependencies = [
     { name = "more-itertools" },
     { name = "sqlparse" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/57/cf/358b5f2c042f7bc2fead0d63a8034e864789962a72eea37dc9f9659f9d16/apache_airflow_providers_common_sql-2.0.0.tar.gz", hash = "sha256:0012f1c2ad00ccc603c8307fd3e0f92624a07971890c9020df3dd57c5d8ef77f", size = 141915, upload-time = "2026-05-23T12:32:25.614Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/27/2a1721a962cdbea85aa412023be05dca3a2fab0153433182ee2670605b5e/apache_airflow_providers_common_sql-2.0.1.tar.gz", hash = "sha256:960d9524d4286c9b96dc65318c2846e560b46d5cfcf4efa84254e70e99edf2b9", size = 141963, upload-time = "2026-06-07T09:43:48.463Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/78/89bfbf0092b2d38a78e5736a4597fd0c8847814f497972b95fd23fdd7e16/apache_airflow_providers_common_sql-2.0.0-py3-none-any.whl", hash = "sha256:3e997e4e4d1fdd45de683287ccf8fe5abc9434ca585fd07ebcc431e2139bd8f0", size = 96272, upload-time = "2026-05-23T12:31:22.004Z" },
+    { url = "https://files.pythonhosted.org/packages/51/67/22d2bd5bf3cc01b20f56ff00da7244d0f523142fd602735b9e06b6484be7/apache_airflow_providers_common_sql-2.0.1-py3-none-any.whl", hash = "sha256:1f91d072c1f36fe39d07d85a0a098d16af3851b82e31bad1c69d7d6a2c5a9174", size = 96282, upload-time = "2026-06-07T09:42:31.956Z" },
 ]
 
 [[package]]
 name = "apache-airflow-providers-http"
-version = "6.0.2"
+version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -426,9 +426,9 @@ dependencies = [
     { name = "requests" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/ff/0f185ebd64675285d4f48d131b7cdd1d5e075bed6519bb296b16d15ad381/apache_airflow_providers_http-6.0.2.tar.gz", hash = "sha256:5363fdd504cf47664da4af92ae180c5d17d4dd501bcaad99a173800f09c93cff", size = 72198, upload-time = "2026-04-12T14:22:12.128Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/24/77a3f545bedb6e039e7a8a2985fdcd4cac123125f47901da8978b08dc7b2/apache_airflow_providers_http-6.0.3.tar.gz", hash = "sha256:036068861e670fcefdd44dd63deb80687761e5d533e5dd10fa4dc0324cd4f3cf", size = 72426, upload-time = "2026-06-07T09:44:05.254Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/65/0c4fee7cb2b552783276a526e540dc45b168712fde1b056023526966bb91/apache_airflow_providers_http-6.0.2-py3-none-any.whl", hash = "sha256:8eab92a31399edbc5cf5c4f60358381a17d8de1d46ac8709d49c28435afc70ed", size = 34973, upload-time = "2026-04-12T14:20:28.01Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/dd/269f735a00972089c7db12e92949f21a4bca0c9c8dfb34de14cd7399856e/apache_airflow_providers_http-6.0.3-py3-none-any.whl", hash = "sha256:f623d351818d70b95979779eac7f5e32984e37fe5dede311155152b4ce623e10", size = 34974, upload-time = "2026-06-07T09:42:50.889Z" },
 ]
 
 [[package]]
@@ -3589,7 +3589,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.26.5"
+version = "0.26.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -3597,9 +3597,9 @@ dependencies = [
     { name = "rich" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/eb/1a/2cf40b65b1d9c254fe5814bb0519f9b8f2ac38059df0810f9b866300c04a/typer-0.26.5.tar.gz", hash = "sha256:9b9b39e35c3afc9e1e51a06f21155246e457c0911279b09b35d8210ca74b935c", size = 201494, upload-time = "2026-06-01T14:42:49.744Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5e/ed/ef06584ccdd5c410df0837951ecd7e15d9a6144ea1bd4c73cecab1a89891/typer-0.26.7.tar.gz", hash = "sha256:e314a34c617e419c091b2830dda3ea1f257134ff593061a8f5b9717ab8dddb3a", size = 201709, upload-time = "2026-06-03T07:18:06.843Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/d6/baac76fc04a6532883de3d8722c7f921dae94d10965e7ffba9e38e42a251/typer-0.26.5-py3-none-any.whl", hash = "sha256:4bfd901d564e41608920134aa5d4481200f4ba76d98e982d9f9d32dcb7b84da0", size = 122451, upload-time = "2026-06-01T14:42:51.021Z" },
+    { url = "https://files.pythonhosted.org/packages/24/25/2201973529af2c954de0bb725323c3aaed6d7f0ceee8f550dec9185df013/typer-0.26.7-py3-none-any.whl", hash = "sha256:5c87cfbc5d34491c5346ebf49c23e18d56ccb863268d3a8d592b26087c2f5e58", size = 122456, upload-time = "2026-06-03T07:18:05.732Z" },
 ]
 
 [[package]]
