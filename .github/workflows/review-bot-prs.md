@@ -1,5 +1,5 @@
 ---
-# review-bot-prs — hourly Dependabot / pre-commit-ci PR safety review for dag-factory.
+# review-bot-prs — daily Dependabot / pre-commit-ci PR safety review for dag-factory.
 #
 # This is a GitHub Agentic Workflow (github.com/githubnext/gh-aw). It is the source
 # of truth; the runnable Action is the generated `review-bot-prs.lock.yml` sibling.
@@ -13,25 +13,51 @@
 # or push — those capabilities are simply not granted.
 
 on:
-  # Hourly sweep, plus a manual "Run workflow" button.
-  schedule: hourly
+  # Daily sweep, plus a manual "Run workflow" button.
+  schedule: daily
   workflow_dispatch:
+    inputs:
+      aw_context:
+        default: ""
+        description: "Leave blank for manual runs. Internal JSON used only by gh-aw."
+        required: false
+        type: string
 
   # Pre-activation guard: skip the (paid) agent run unless there is at least one open
-  # bot PR to review. Mirrors githubnext/agentics' dependabot-pr-bundler.
+  # bot PR that does not already have this workflow's review comment.
   permissions:
     pull-requests: read
   steps:
     - id: check
+      # Tolerate the non-zero exit below: a "nothing new to review" run should SKIP
+      # the agent cleanly (run stays green), not mark the whole workflow failed. gh-aw
+      # gates the agent on this step's outcome (check_result), so exit 1 = skip,
+      # exit 0 = run.
+      continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        count=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json author \
-          --jq '[.[] | select(.author.login=="app/dependabot" or .author.login=="app/pre-commit-ci")] | length')
-        echo "Open bot PRs: $count"
-        [ "$count" -gt 0 ]
+        set -o pipefail
+        bot_prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,author \
+          --jq '.[] | select(.author.login=="app/dependabot" or .author.login=="app/pre-commit-ci") | .number')
+        count=0
+        unreviewed=0
 
-# Only run the agent when the guard above found at least one open bot PR.
+        while IFS= read -r pr; do
+          [ -n "$pr" ] || continue
+          count=$((count + 1))
+          if gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$pr/comments" --jq '.[].body' \
+            | grep -Eq 'gh-aw-workflow-id: review-bot-prs|Bot PR safety review'; then
+            continue
+          fi
+          unreviewed=$((unreviewed + 1))
+        done <<< "$bot_prs"
+
+        echo "Open bot PRs: $count"
+        echo "Unreviewed bot PRs: $unreviewed"
+        [ "$unreviewed" -gt 0 ]
+
+# Only run the agent when the guard above found at least one unreviewed open bot PR.
 if: needs.pre_activation.outputs.check_result == 'success'
 
 # GitHub Copilot engine (gh-aw default). No ANTHROPIC_API_KEY or PAT: the
@@ -55,7 +81,8 @@ permissions:
 tools:
   github:
     toolsets: [repos, pull_requests, issues]
-    allowed-repos: "${{ github.repository }}"
+    allowed-repos:
+      - astronomer/dag-factory
     # Only read content at 'approved' integrity or higher (the default for public repos).
     # Same-repo bot PRs (Dependabot / pre-commit-ci, non-fork) qualify; injected content
     # from unapproved external accounts on the PR thread is filtered out before the agent.
@@ -74,13 +101,13 @@ network:
 # Approve / merge / push are not declared, so the agent has no way to perform them.
 safe-outputs:
   # The "nothing to review" steady state calls noop (see the prompt). Report it to the run
-  # summary only — NOT as a new issue — so the hourly schedule doesn't open issues each run.
+  # summary only — NOT as a new issue — so the daily schedule doesn't open issues each run.
   noop:
     report-as-issue: false
   add-comment:
     target: "*"        # comment on each bot PR it reviews (not just a triggering one)
-    max: 10            # cap comments per run
-    footer: false      # we append our own attribution footer (keeps the workflow-id marker for idempotency)
+    max: 20            # cap comments per run
+    footer: false      # we append our own footer with a hidden workflow-id marker for idempotency
 
 timeout-minutes: 20
 ---
@@ -97,10 +124,10 @@ per PR — merging is always a separate human decision.
 ## Steps
 
 1. **List** open PRs authored by `app/dependabot` or `app/pre-commit-ci`
-   (`gh pr list --repo ${{ github.repository }} --state open --json number,title,author,labels,createdAt,url`).
+   (`gh pr list --repo ${{ github.repository }} --state open --limit 200 --json number,title,author,labels,createdAt,url`).
    **Skip any PR that already carries a comment from this workflow** (search the PR's
-   comments for the `gh-aw-workflow-id` marker, or a prior "Bot PR safety review"
-   comment) — stay idempotent across the hourly runs.
+   comments for the `gh-aw-workflow-id: review-bot-prs` marker, or a prior "Bot PR safety
+   review" comment) — stay idempotent across the daily runs.
 
 2. For each remaining PR, answer **all** of these:
 
@@ -139,11 +166,15 @@ per PR — merging is always a separate human decision.
    Keep it public-safe: no customer data, internal hostnames, or private links.
 
 4. **End every posted comment** with this footer (fill the timestamp with the current
-   UTC time, `date -u +"%Y-%m-%d %H:%M UTC"`):
+   UTC time, `date -u +"%Y-%m-%d %H:%M UTC"`). Keep the hidden marker exactly as written;
+   the pre-activation guard uses it to avoid duplicate comments across runs:
 
-   > ---
-   > *This review comment was generated by an agent. It is advisory only and does not
-   > approve or merge the PR. Reviewed on &lt;YYYY-MM-DD HH:MM UTC&gt;.*
+   ```markdown
+   <!-- gh-aw-workflow-id: review-bot-prs -->
+   ---
+   *This review comment was generated by an agent. It is advisory only and does not
+   approve or merge the PR. Reviewed on <YYYY-MM-DD HH:MM UTC>.*
+   ```
 
 **If there is nothing to comment on** — every open bot PR was skipped because it is
 already reviewed (the normal steady state after the first run), or no unreviewed bot PR
