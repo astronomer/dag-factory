@@ -41,10 +41,9 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -126,11 +125,18 @@ jobs:
           echo "name=tests.py${PY_VERSION}-${AF_VERSION}${suffix}" >> "$GITHUB_OUTPUT"
           echo "suffix=${suffix}" >> "$GITHUB_OUTPUT"
 
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5  # zizmor: ignore[cache-poisoning]
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.cache/pip
+            .local/share/hatch/
+          key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}${{ steps.hatch-env.outputs.suffix }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -192,11 +198,18 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
 
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5  # zizmor: ignore[cache-poisoning]
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.cache/pip
+            .local/share/hatch/
+          key: integration-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -242,10 +255,9 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - name: Set up Python 3.11
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -286,10 +298,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: true
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -313,10 +322,9 @@ jobs:
           persist-credentials: true
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -362,10 +370,9 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0  # zizmor: ignore[cache-poisoning]
         with:
           version: "0.7.12"
-          enable-cache: false  # no cache (zizmor cache-poisoning)
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
