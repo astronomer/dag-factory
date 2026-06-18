@@ -120,6 +120,20 @@ Vulnerability reports go to `oss_security@astronomer.io` (see `SECURITY.md`). Do
 - CI runs the full matrix (`.github/workflows/cicd.yaml`). Wait for green before merging.
 - A maintainer must approve before merge — don't self-merge.
 
+## Automated Agentic Workflows (gh-aw)
+
+`.github/workflows/review-bot-prs.md` is a [GitHub Agentic Workflow](https://github.com/githubnext/gh-aw). It runs **daily**, reviews open **Dependabot / pre-commit-ci** PRs in this repo, and posts one advisory comment per PR with a **✅ Merge / ⏸️ Hold / ⚠️ Review carefully** verdict (cooldown, security/OSV, blast radius, CI gate, and github-actions SHA↔tag integrity). It runs **read-only**; its only routine write is the PR comment (a "nothing to review" run logs a no-op to the Actions run summary, and gh-aw opens a tracking issue only on an incomplete run or a missing tool). It never approves, merges, or pushes.
+
+Working with it:
+
+- **Edit the `.md`, never the `.lock.yml`.** The `.md` is the source; `review-bot-prs.lock.yml` is generated. After any edit run `gh aw compile` (needs `gh extension install githubnext/gh-aw`) and commit **both** files.
+- **`aw.json`** sets `"maintenance": false`, so `gh aw compile` does not emit the `agentics-maintenance.yml` companion (we create no expiring issues, so it has nothing to do). Leave it in place.
+- **`.github/dependabot.yml` remains hand-edited.** Keep the `github/gh-aw-actions` ignore entry so Dependabot does not bump gh-aw compiler-managed action pins; refresh those pins with `gh aw compile`.
+- **Rollout state:** comments post for real. The earlier `safe-outputs.staged: true` preview flag has been removed.
+- **Scope:** dag-factory only (`tools.github.allowed-repos: [astronomer/dag-factory]`), Copilot engine, `min-integrity: approved`. Scheduled runs only fire from `main`.
+- **Manual dispatch:** leave the `aw_context` input blank. It is gh-aw internal JSON context, not a free-form run note; arbitrary text makes generated `fromJSON(...)` expressions fail before the agent starts.
+- Dry-run against the live repo without posting: `gh aw trial ./.github/workflows/review-bot-prs.md --logical-repo astronomer/dag-factory --delete-host-repo-after`.
+
 ## Boundaries
 
 Ask first:
