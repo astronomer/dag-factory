@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "apache-airflow-providers-cncf-kubernetes"
-version = "10.17.1"
+version = "10.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -365,9 +365,9 @@ dependencies = [
     { name = "kubernetes-asyncio" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/7d/91f10d478344896bf8f147d71bc8ba293775110fe0e95e03f438b8b2269e/apache_airflow_providers_cncf_kubernetes-10.17.1.tar.gz", hash = "sha256:8b8122ec7c18c0fa7530d67e89a83fe28c33820562dc1983cf134da8ac17d21e", size = 474135, upload-time = "2026-05-23T12:32:22.116Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/cc/9143c8b7538debfbc19b8167ffb814718c7e95d9fe225a82b8cf86e2c789/apache_airflow_providers_cncf_kubernetes-10.18.0.tar.gz", hash = "sha256:5a0911cb0e008410551d30655539aae8030676604abcb18e9900db69d0adbcfe", size = 486611, upload-time = "2026-06-11T21:55:45.943Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/b3/fa8a96fcb0cba016e68096e289a2aa366fc28a561ce05027126dcc468366/apache_airflow_providers_cncf_kubernetes-10.17.1-py3-none-any.whl", hash = "sha256:145080dec202add179e1952ed743bf330279316c51d07e734e37676db6fb278b", size = 174829, upload-time = "2026-05-23T12:31:16.779Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/9d/2e5594d9e85297525aaac4c3a88cdbe56d5fc7d80afb52f365804ff0ea47/apache_airflow_providers_cncf_kubernetes-10.18.0-py3-none-any.whl", hash = "sha256:cb9732cf51b342477730a8e0f29fbf47fc408538320aa96c872256b8551c5ed9", size = 178776, upload-time = "2026-06-11T21:55:37.341Z" },
 ]
 
 [[package]]
