@@ -161,7 +161,7 @@
         "concurrency": {
           "type": "integer",
           "description": "Deprecated alias for max_active_tasks.",
-          "x-deprecated-since": "2.0",
+          "x-deprecated-since": "2.2",
           "x-airflow-max-version": "2"
         },
         "dagrun_timeout": {
