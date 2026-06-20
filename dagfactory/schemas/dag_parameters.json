@@ -272,7 +272,7 @@
         },
         "deadline": {
           "description": "Replacement for the removed SLA feature. Not yet wired through dag-factory (see github issue #696).",
-          "x-airflow-min-version": "3",
+          "x-airflow-min-version": "3.1",
           "oneOf": [
             {
               "type": "array"
