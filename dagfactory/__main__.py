@@ -218,7 +218,7 @@ def lint(
             f"[yellow]{total_warnings}[/yellow] warning(s)."
         )
         if not verbose:
-            console.print(f"For more details on the errors, run with --verbose.")
+            console.print("For more details on the errors, run with --verbose.")
         raise typer.Exit(1)
     if total_warnings:
         console.print(
