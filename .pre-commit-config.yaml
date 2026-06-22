@@ -35,11 +35,6 @@ repos:
       - id: detect-aws-credentials
         args: [ "--allow-missing-credentials" ]
 
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.19
-    hooks:
-      - id: uv-lock
-
   - repo: https://github.com/psf/black
     rev: 26.5.1
     hooks:
