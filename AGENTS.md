@@ -7,7 +7,7 @@ configuration files.
 ## Environment Setup
 
 - Install [`uv`](https://docs.astral.sh/uv/) and [`hatch`](https://hatch.pypa.io/) — `uv` manages the local virtualenv, `hatch` runs the test/docs matrix.
-- Set up the dev environment with `uv sync --dev`. This creates `.venv/` with the right Python and all dependencies from `uv.lock`. `make setup` is an alternative.
+- Set up the dev environment with `uv sync --dev`. This creates `.venv/` with the right Python and all dependencies resolved from `pyproject.toml`. `make setup` is an alternative.
 - Activate the venv: `source .venv/bin/activate` (or `source venv/bin/activate` if you used `make setup`).
 - Install pre-commit hooks once: `pre-commit install`.
 - To run example DAGs locally, export:
@@ -61,8 +61,7 @@ dag-factory/
 ├── examples/dags/      # Example YAML DAG configs included in the source tree
 ├── docs/               # mkdocs-material site
 ├── scripts/            # Test, doc, and release helpers
-├── pyproject.toml      # Build + tool config (ruff, black, hatch, uv)
-└── uv.lock             # Locked dependency graph — regenerated via `uv lock`
+└── pyproject.toml      # Build + tool config (ruff, black, hatch, uv)
 ```
 
 The library is single-package (`dagfactory`); there is no monorepo or workspace split. `dev/` and `examples/` are not packaged into the wheel (see `[tool.hatch.build.targets.wheel]`).
@@ -88,7 +87,6 @@ Vulnerability reports go to `oss_security@astronomer.io` (see `SECURITY.md`). Do
 - Formatting and linting are enforced via `pre-commit`:
     - `black` and `ruff`, both with `line-length = 120`. Ruff rule selection is `["C901", "D300", "I", "F"]`; isort `known-first-party = ["dagfactory", "tests"]`.
     - `codespell`, `markdownlint`, `markdown-link-check`, plus checks for large files, merge conflicts, private keys, and AWS credentials.
-    - `uv-lock` keeps `uv.lock` in sync — re-run `uv lock` after editing dependencies.
 - All source files are Apache-2.0 licensed (see `LICENSE`); don't add files under a different license without maintainer sign-off.
 - Raise library-specific exceptions from `dagfactory/exceptions.py` (e.g. `DagFactoryException`, `DagFactoryConfigException`) rather than bare `Exception` or generic `RuntimeError`.
 - Public API is whatever `dagfactory/__init__.py` re-exports (`__all__`). Treat it as a contract — additions are fine, renames/removals need a deprecation cycle and a `CHANGELOG.md` entry.
@@ -147,7 +145,6 @@ Ask first:
 Never:
 
 - Commit secrets, tokens, or credentials. The pre-commit `detect-private-key` and `detect-aws-credentials` hooks are there for a reason — don't bypass them.
-- Hand-edit `uv.lock`. Regenerate it with `uv lock` (or `uv sync`) and commit the result.
 - `git push --force` against `main` or release branches, or rewrite published history.
 - Publish to PyPI from a developer machine outside the documented release flow (`hatch version …` → GitHub Release → CI publish).
 - Skip pre-commit hooks (`--no-verify`) to land otherwise-failing changes.

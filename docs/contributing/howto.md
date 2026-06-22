@@ -85,8 +85,7 @@ source venv/bin/activate
 
 Once you're set up with uv, you can use these helpful commands:
 
-- `uv sync` - Sync dependencies from the lockfile
-- `uv lock --upgrade` - Update the lockfile with latest dependency versions
+- `uv sync` - Sync dependencies from `pyproject.toml`
 - `uv add <package>` - Add a new dependency
 - `uv remove <package>` - Remove a dependency
 

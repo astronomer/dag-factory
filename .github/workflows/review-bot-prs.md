@@ -147,8 +147,8 @@ per PR — merging is always a separate human decision.
      pending, failing, or **awaiting maintainer authorization** ("Approve and run") — a
      "green" PR with half its checks un-triggered is not validated.
      **dag-factory nuance:** the `Static-Check` job runs
-     `pre-commit run --files dagfactory/* uv.lock`, so it exercises
-     `ruff` / `black` / `codespell` / `uv-lock` but **NOT** `markdownlint` or
+     `pre-commit run --files dagfactory/*`, so it exercises
+     `ruff` / `black` / `codespell` but **NOT** `markdownlint` or
      `markdown-link-check` (no `.md` file is in the `--files` list). Green CI does **not**
      prove a markdownlint / markdown-link-check bump is clean — say so explicitly.
    - **Tag integrity (github-actions bumps only).** For a SHA-pinned action
