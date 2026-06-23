@@ -79,6 +79,9 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
+# uv lockfile (not tracked in this project)
+uv.lock
+
 # Environments
 .env
 .venv

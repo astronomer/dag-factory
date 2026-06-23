@@ -53,7 +53,7 @@ DAG Factory uses [uv](https://docs.astral.sh/uv/) for fast and reliable package 
 
 #### 1. Install the project dependencies
 
-Recommended: uv setup (fast, reproducible builds)
+Recommended: uv setup (fast)
 
 ```bash
 uv sync --dev
@@ -65,7 +65,7 @@ Alternative: Traditional setup
 make setup
 ```
 
-Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
+Both commands install all dependencies, including test dependencies. The uv option is significantly faster.
 
 #### 2. Activate the local python environment
 
@@ -85,8 +85,7 @@ source venv/bin/activate
 
 Once you're set up with uv, you can use these helpful commands:
 
-- `uv sync` - Sync dependencies from the lockfile
-- `uv lock --upgrade` - Update the lockfile with latest dependency versions
+- `uv sync` - Sync dependencies from `pyproject.toml`
 - `uv add <package>` - Add a new dependency
 - `uv remove <package>` - Remove a dependency
 

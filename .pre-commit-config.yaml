@@ -35,11 +35,6 @@ repos:
       - id: detect-aws-credentials
         args: [ "--allow-missing-credentials" ]
 
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.19
-    hooks:
-      - id: uv-lock
-
   - repo: https://github.com/psf/black
     rev: 26.5.1
     hooks:
@@ -50,7 +45,7 @@ repos:
     rev: v2.4.2
     hooks:
       - id: codespell
-        exclude: 'tests/fixtures/mydocfile\.md|uv\.lock'
+        exclude: 'tests/fixtures/mydocfile\.md'
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.48.0

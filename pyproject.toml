@@ -133,7 +133,7 @@ providers-standard = ["1.9.1"]
 
 [tool.hatch.envs.tests.scripts]
 freeze = "pip freeze"
-static-check = " pre-commit run --files dagfactory/* uv.lock"
+static-check = "pre-commit run --files dagfactory/*"
 test = 'sh scripts/test/unit.sh'
 test-cov = 'sh scripts/test/unit-cov.sh'
 test-integration = 'sh scripts/test/integration.sh'
