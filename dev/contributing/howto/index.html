@@ -2053,13 +2053,13 @@
 <h3 id="using-a-python-virtual-environment-for-local-development">Using a Python virtual environment for local development</h3>
 <p>DAG Factory uses <a href="https://docs.astral.sh/uv/">uv</a> for fast and reliable package management. The setup process is significantly faster than traditional pip-based installations.</p>
 <h4 id="1-install-the-project-dependencies">1. Install the project dependencies</h4>
-<p>Recommended: uv setup (fast, reproducible builds)</p>
+<p>Recommended: uv setup (fast)</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>sync<span class="w"> </span>--dev
 </span></code></pre></div>
 <p>Alternative: Traditional setup</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>make<span class="w"> </span>setup
 </span></code></pre></div>
-<p>Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.</p>
+<p>Both commands install all dependencies, including test dependencies. The uv option is significantly faster.</p>
 <h4 id="2-activate-the-local-python-environment">2. Activate the local python environment</h4>
 <p>For uv setup:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
@@ -2070,8 +2070,7 @@
 <h3 id="additional-uv-commands">Additional uv Commands</h3>
 <p>Once you're set up with uv, you can use these helpful commands:</p>
 <ul>
-<li><code>uv sync</code> - Sync dependencies from the lockfile</li>
-<li><code>uv lock --upgrade</code> - Update the lockfile with latest dependency versions</li>
+<li><code>uv sync</code> - Sync dependencies from <code>pyproject.toml</code></li>
 <li><code>uv add &lt;package&gt;</code> - Add a new dependency</li>
 <li><code>uv remove &lt;package&gt;</code> - Remove a dependency</li>
 </ul>
