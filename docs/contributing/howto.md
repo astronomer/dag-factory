@@ -65,7 +65,7 @@ Alternative: Traditional setup
 make setup
 ```
 
-Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
+Both commands install all dependencies, including test dependencies. The uv option is significantly faster.
 
 #### 2. Activate the local python environment
 
