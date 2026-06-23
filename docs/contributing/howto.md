@@ -53,7 +53,7 @@ DAG Factory uses [uv](https://docs.astral.sh/uv/) for fast and reliable package 
 
 #### 1. Install the project dependencies
 
-Recommended: uv setup (fast, reproducible builds)
+Recommended: uv setup (fast)
 
 ```bash
 uv sync --dev
