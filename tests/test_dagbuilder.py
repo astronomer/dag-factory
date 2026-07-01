@@ -400,6 +400,47 @@ def test_make_task_bad_operator():
         td.make_task(operator, task_params)
 
 
+def test_resolve_operator_alias_returns_full_path():
+    aliases = [{"operator_alias": "BashOperator", "operator_path": get_bash_operator_path()}]
+    resolved = DagBuilder._resolve_operator_alias("BashOperator", aliases)
+    assert resolved == get_bash_operator_path()
+
+
+def test_resolve_operator_alias_passthrough_full_path():
+    full_path = get_bash_operator_path()
+    resolved = DagBuilder._resolve_operator_alias(full_path, [])
+    assert resolved == full_path
+
+
+def test_resolve_operator_alias_unknown_alias_passthrough():
+    aliases = [{"operator_alias": "BashOperator", "operator_path": get_bash_operator_path()}]
+    resolved = DagBuilder._resolve_operator_alias("UnknownOperator", aliases)
+    assert resolved == "UnknownOperator"
+
+
+def test_resolve_operator_alias_empty_aliases():
+    resolved = DagBuilder._resolve_operator_alias("BashOperator", [])
+    assert resolved == "BashOperator"
+
+
+def test_build_dag_with_operator_alias():
+    aliases = [{"operator_alias": "BashOperator", "operator_path": get_bash_operator_path()}]
+    default_config_with_aliases = {**DEFAULT_CONFIG, "operator_aliases": aliases}
+    dag_config_with_alias = {
+        **DAG_CONFIG,
+        "tasks": [
+            {
+                "task_id": "task_1",
+                "operator": "BashOperator",
+                "bash_command": "echo 1",
+            }
+        ],
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config_with_alias, default_config_with_aliases)
+    result = td.build()
+    assert "task_1" in result["dag"].task_ids
+
+
 def test_make_task_missing_required_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = get_bash_operator_path()
