@@ -1205,7 +1205,9 @@ class DagBuilder:
             DagBuilder._replace_kwargs_values_as_xcom(kwargs, key, value, tasks_dict)
 
     @staticmethod
-    def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
+    def set_callback(
+        parameters: Union[dict, str], callback_type: str, has_name_and_file=False
+    ) -> Union[Callable, List[Callable]]:
         """
         Update the passed-in config with the callback.
 
@@ -1256,5 +1258,32 @@ class DagBuilder:
                         return on_state_callback_callable(**on_state_callback_params)
 
                     return partial(on_state_callback_callable, **on_state_callback_params)
+
+        # A list of callbacks — each entry is either a plain import string or a dict with a
+        # "callback" key plus optional kwargs (same resolution rules as the single-entry branches
+        # above). This mirrors how Airflow itself accepts on_*_callback as a list.
+        elif isinstance(parameters[callback_type], list):
+            resolved: List[Callable] = []
+            for item in parameters[callback_type]:
+                if isinstance(item, str):
+                    resolved.append(import_string(item))
+                elif isinstance(item, dict):
+                    if not utils.check_dict_key(item, "callback"):
+                        raise DagFactoryConfigException(
+                            f"Each list entry for '{callback_type}' must contain a 'callback' key"
+                        )
+                    item_callable: Callable = import_string(item["callback"])
+                    item_params = {k: v for k, v in item.items() if k != "callback"}
+                    if hasattr(item_callable, "notify"):
+                        resolved.append(item_callable(**item_params))
+                    elif item_params:
+                        resolved.append(partial(item_callable, **item_params))
+                    else:
+                        resolved.append(item_callable)
+                else:
+                    raise DagFactoryConfigException(
+                        f"Invalid type in '{callback_type}' list: expected str or dict, got {type(item).__name__}"
+                    )
+            return resolved
 
         raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
