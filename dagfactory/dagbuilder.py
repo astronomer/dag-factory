@@ -1259,9 +1259,8 @@ class DagBuilder:
 
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
-        # A list of callbacks — each string entry is imported as-is; each dict entry follows the
-        # same callback/kwargs resolution as the single-dict branch, except a dict with no extra
-        # kwargs returns the plain callable directly instead of wrapping in an empty partial.
+        # A list of callbacks — same string/dict resolution as above; dict with no kwargs returns
+        # the callable directly rather than wrapping in an empty partial.
         elif isinstance(parameters[callback_type], list):
             resolved: List[Callable] = []
             for item in parameters[callback_type]:
