@@ -1207,14 +1207,14 @@ class DagBuilder:
     @staticmethod
     def set_callback(
         parameters: dict, callback_type: str, has_name_and_file=False
-    ) -> Union[Callable, List[Callable]]:
+    ) -> Any:
         """
         Update the passed-in config with the callback.
 
         :param parameters:
         :param callback_type:
         :param has_name_and_file:
-        :returns: Callable or list of Callables
+        :returns: a callable, an Airflow BaseNotifier instance, or a list thereof
         """
 
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
@@ -1259,7 +1259,9 @@ class DagBuilder:
 
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
-        # A list of callbacks — each entry resolved using the same string/dict rules as above.
+        # A list of callbacks — each string entry is imported as-is; each dict entry follows the
+        # same callback/kwargs resolution as the single-dict branch, except a dict with no extra
+        # kwargs returns the plain callable directly instead of wrapping in an empty partial.
         elif isinstance(parameters[callback_type], list):
             resolved: List[Callable] = []
             for item in parameters[callback_type]:

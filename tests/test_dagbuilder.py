@@ -890,6 +890,27 @@ def test_set_callback_with_list():
             callback_type="on_failure_callback",
         )
 
+    # --- list with a notifier-style entry (hasattr "notify") ---
+    # Uses the Slack notifier as a representative BaseNotifier, consistent with existing tests.
+    from airflow.providers.slack.notifications.slack import send_slack_notification
+
+    params = {
+        "on_failure_callback": [
+            {
+                "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
+                "slack_conn_id": "slack_default",
+                "text": "DAG failed",
+                "channel": "#alerts",
+                "username": "airflow",
+            }
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert isinstance(result[0], send_slack_notification)
+    assert result[0].channel == "#alerts"
+
 
 @pytest.mark.callbacks
 def test_make_dag_with_callbacks():
