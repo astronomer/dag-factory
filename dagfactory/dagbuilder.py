@@ -1206,7 +1206,7 @@ class DagBuilder:
 
     @staticmethod
     def set_callback(
-        parameters: Union[dict, str], callback_type: str, has_name_and_file=False
+        parameters: dict, callback_type: str, has_name_and_file=False
     ) -> Union[Callable, List[Callable]]:
         """
         Update the passed-in config with the callback.
@@ -1214,7 +1214,7 @@ class DagBuilder:
         :param parameters:
         :param callback_type:
         :param has_name_and_file:
-        :returns: Callable
+        :returns: Callable or list of Callables
         """
 
         # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
@@ -1260,8 +1260,9 @@ class DagBuilder:
                     return partial(on_state_callback_callable, **on_state_callback_params)
 
         # A list of callbacks — each entry is either a plain import string or a dict with a
-        # "callback" key plus optional kwargs (same resolution rules as the single-entry branches
-        # above). This mirrors how Airflow itself accepts on_*_callback as a list.
+        # "callback" key plus optional kwargs. Resolution per entry mirrors the string/dict branches
+        # above, with one difference: a dict entry with no extra kwargs returns the plain callable
+        # directly (no empty partial), since there is nothing to bind.
         elif isinstance(parameters[callback_type], list):
             resolved: List[Callable] = []
             for item in parameters[callback_type]:
@@ -1271,6 +1272,11 @@ class DagBuilder:
                     if not utils.check_dict_key(item, "callback"):
                         raise DagFactoryConfigException(
                             f"Each list entry for '{callback_type}' must contain a 'callback' key"
+                        )
+                    if not isinstance(item["callback"], str):
+                        raise DagFactoryConfigException(
+                            f"The 'callback' value in a '{callback_type}' list entry must be a string import path, "
+                            f"got {type(item['callback']).__name__}"
                         )
                     item_callable: Callable = import_string(item["callback"])
                     item_params = {k: v for k, v in item.items() if k != "callback"}

@@ -844,6 +844,7 @@ def test_set_callback_with_list():
             {
                 "callback": f"{__name__}.empty_callback_with_params",
                 "param_1": "value_1",
+                "param_2": "value_2",
             }
         ]
     }
@@ -852,6 +853,7 @@ def test_set_callback_with_list():
     assert len(result) == 1
     assert isinstance(result[0], functools.partial)
     assert result[0].keywords["param_1"] == "value_1"
+    assert result[0].keywords["param_2"] == "value_2"
 
     # --- list with a dict entry that has no extra kwargs (plain callable) ---
     params = {
@@ -870,7 +872,8 @@ def test_set_callback_with_list():
             f"{__name__}.print_context_callback",
             {
                 "callback": f"{__name__}.empty_callback_with_params",
-                "param_1": "v",
+                "param_1": "v1",
+                "param_2": "v2",
             },
         ]
     }
@@ -879,6 +882,13 @@ def test_set_callback_with_list():
     assert callable(result[0])
     assert result[0].__name__ == "print_context_callback"
     assert isinstance(result[1], functools.partial)
+
+    # --- non-string 'callback' value in dict entry raises ---
+    with pytest.raises(DagFactoryConfigException, match="must be a string import path"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [{"callback": 123}]},
+            callback_type="on_failure_callback",
+        )
 
 
 @pytest.mark.callbacks
