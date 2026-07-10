@@ -802,14 +802,14 @@ def test_set_callback_exceptions():
         )
 
     # A list item that is neither str nor dict should raise
-    with pytest.raises(DagFactoryConfigException, match="Invalid type in 'on_failure_callback' list"):
+    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
         DagBuilder.set_callback(
             parameters={"on_failure_callback": [42]},
             callback_type="on_failure_callback",
         )
 
     # A list item that is a dict but missing the 'callback' key should raise
-    with pytest.raises(DagFactoryConfigException, match="must contain a 'callback' key"):
+    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
         DagBuilder.set_callback(
             parameters={"on_failure_callback": [{"not_callback": "foo"}]},
             callback_type="on_failure_callback",
@@ -884,7 +884,7 @@ def test_set_callback_with_list():
     assert isinstance(result[1], functools.partial)
 
     # --- non-string 'callback' value in dict entry raises ---
-    with pytest.raises(DagFactoryConfigException, match="must be a string import path"):
+    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
         DagBuilder.set_callback(
             parameters={"on_failure_callback": [{"callback": 123}]},
             callback_type="on_failure_callback",
