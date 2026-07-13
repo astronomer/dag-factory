@@ -1253,5 +1253,13 @@ class DagBuilder:
 
         value = parameters[callback_type]
         if isinstance(value, list):
-            return [DagBuilder._resolve_callback_entry(item, callback_type) for item in value]
+            resolved = []
+            for i, item in enumerate(value):
+                try:
+                    resolved.append(DagBuilder._resolve_callback_entry(item, callback_type))
+                except DagFactoryConfigException as exc:
+                    raise DagFactoryConfigException(
+                        f"{callback_type}[{i}]: {exc}"
+                    ) from exc
+            return resolved
         return DagBuilder._resolve_callback_entry(value, callback_type)

@@ -902,7 +902,7 @@ def test_set_callback_with_list():
     def dummy_notifier_factory(channel):
         return _DummyNotifier(channel=channel)
 
-    dummy_notifier_factory.notify = True  # makes hasattr(callable_, "notify") truthy
+    dummy_notifier_factory.notify = lambda context: None  # mirrors real notifier objects
 
     import unittest.mock as mock
 
