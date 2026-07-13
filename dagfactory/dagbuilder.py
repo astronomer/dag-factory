@@ -1209,26 +1209,26 @@ class DagBuilder:
         """Resolve a single str-or-dict callback entry to a callable or notifier."""
         if isinstance(entry, str):
             return import_string(entry)
-        if isinstance(entry, dict):
-            if not utils.check_dict_key(entry, "callback"):
-                raise DagFactoryConfigException(
-                    f"'{callback_type}' dict entry is missing a required 'callback' key "
-                    f"(expected a string import path, e.g. 'my.module.my_callback')"
-                )
-            if not isinstance(entry["callback"], str):
-                raise DagFactoryConfigException(
-                    f"'{callback_type}' dict entry 'callback' value must be a string import path, "
-                    f"got {type(entry['callback']).__name__}"
-                )
-            callback_callable = import_string(entry["callback"])
-            params = {k: v for k, v in entry.items() if k != "callback"}
-            if hasattr(callback_callable, "notify"):
-                return callback_callable(**params)
-            return partial(callback_callable, **params) if params else callback_callable
-        raise DagFactoryConfigException(
-            f"Invalid type passed to {callback_type}: expected a string import path or a dict "
-            f"with a 'callback' key, got {type(entry).__name__}"
-        )
+        if not isinstance(entry, dict):
+            raise DagFactoryConfigException(
+                f"Invalid type passed to {callback_type}: expected a string import path or a dict "
+                f"with a 'callback' key, got {type(entry).__name__}"
+            )
+        if not utils.check_dict_key(entry, "callback"):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry is missing a required 'callback' key "
+                f"(expected a string import path, e.g. 'my.module.my_callback')"
+            )
+        if not isinstance(entry["callback"], str):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry 'callback' value must be a string import path, "
+                f"got {type(entry['callback']).__name__}"
+            )
+        callback_callable = import_string(entry["callback"])
+        params = {k: v for k, v in entry.items() if k != "callback"}
+        if hasattr(callback_callable, "notify"):
+            return callback_callable(**params)
+        return partial(callback_callable, **params) if params else callback_callable
 
     @staticmethod
     def set_callback(
