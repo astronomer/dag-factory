@@ -1210,14 +1210,25 @@ class DagBuilder:
         if isinstance(entry, str):
             return import_string(entry)
         if isinstance(entry, dict):
-            if not utils.check_dict_key(entry, "callback") or not isinstance(entry["callback"], str):
-                raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
-            cb = import_string(entry["callback"])
+            if not utils.check_dict_key(entry, "callback"):
+                raise DagFactoryConfigException(
+                    f"'{callback_type}' dict entry is missing a required 'callback' key "
+                    f"(expected a string import path, e.g. 'my.module.my_callback')"
+                )
+            if not isinstance(entry["callback"], str):
+                raise DagFactoryConfigException(
+                    f"'{callback_type}' dict entry 'callback' value must be a string import path, "
+                    f"got {type(entry['callback']).__name__}"
+                )
+            callback_callable = import_string(entry["callback"])
             params = {k: v for k, v in entry.items() if k != "callback"}
-            if hasattr(cb, "notify"):
-                return cb(**params)
-            return partial(cb, **params) if params else cb
-        raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
+            if hasattr(callback_callable, "notify"):
+                return callback_callable(**params)
+            return partial(callback_callable, **params) if params else callback_callable
+        raise DagFactoryConfigException(
+            f"Invalid type passed to {callback_type}: expected a string import path or a dict "
+            f"with a 'callback' key, got {type(entry).__name__}"
+        )
 
     @staticmethod
     def set_callback(
@@ -1232,13 +1243,13 @@ class DagBuilder:
         :returns: a callable, an Airflow BaseNotifier instance, or a list thereof
         """
         if has_name_and_file:
-            cb = utils.get_python_callable(
+            callback_callable = utils.get_python_callable(
                 python_callable_name=parameters[f"{callback_type}_name"],
                 python_callable_file=parameters[f"{callback_type}_file"],
             )
             del parameters[f"{callback_type}_name"]
             del parameters[f"{callback_type}_file"]
-            return cb
+            return callback_callable
 
         value = parameters[callback_type]
         if isinstance(value, list):

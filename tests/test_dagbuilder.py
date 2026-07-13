@@ -808,8 +808,8 @@ def test_set_callback_exceptions():
             callback_type="on_failure_callback",
         )
 
-    # A list item that is a dict but missing the 'callback' key should raise
-    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
+    # A list item that is a dict but missing the 'callback' key should raise with a descriptive message
+    with pytest.raises(DagFactoryConfigException, match="missing a required 'callback' key"):
         DagBuilder.set_callback(
             parameters={"on_failure_callback": [{"not_callback": "foo"}]},
             callback_type="on_failure_callback",
@@ -883,32 +883,40 @@ def test_set_callback_with_list():
     assert result[0].__name__ == "print_context_callback"
     assert isinstance(result[1], functools.partial)
 
-    # --- non-string 'callback' value in dict entry raises ---
-    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
+    # --- non-string 'callback' value in dict entry raises with a descriptive message ---
+    with pytest.raises(DagFactoryConfigException, match="'callback' value must be a string import path"):
         DagBuilder.set_callback(
             parameters={"on_failure_callback": [{"callback": 123}]},
             callback_type="on_failure_callback",
         )
 
     # --- list with a notifier-style entry (hasattr "notify") ---
-    # Uses the Slack notifier as a representative BaseNotifier, consistent with existing tests.
-    from airflow.providers.slack.notifications.slack import send_slack_notification
+    # Uses a local dummy notifier to avoid requiring optional provider packages in the test env.
+    class _DummyNotifier:
+        def __init__(self, channel):
+            self.channel = channel
 
-    params = {
-        "on_failure_callback": [
-            {
-                "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
-                "slack_conn_id": "slack_default",
-                "text": "DAG failed",
-                "channel": "#alerts",
-                "username": "airflow",
-            }
-        ]
-    }
-    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+        def notify(self, context):
+            pass
+
+    def dummy_notifier_factory(channel):
+        return _DummyNotifier(channel=channel)
+
+    dummy_notifier_factory.notify = True  # makes hasattr(callable_, "notify") truthy
+
+    import unittest.mock as mock
+
+    with mock.patch("dagfactory.dagbuilder.import_string", return_value=dummy_notifier_factory):
+        params = {
+            "on_failure_callback": [
+                {"callback": "my.dummy.notifier", "channel": "#alerts"}
+            ]
+        }
+        result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+
     assert isinstance(result, list)
     assert len(result) == 1
-    assert isinstance(result[0], send_slack_notification)
+    assert isinstance(result[0], _DummyNotifier)
     assert result[0].channel == "#alerts"
 
 
