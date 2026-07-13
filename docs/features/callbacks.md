@@ -4,7 +4,7 @@ DAG Factory supports the use of callbacks. These callbacks can be set at the DAG
 that callbacks that can be configured for DAGs, TaskGroups, and Tasks differ slightly, and details around this can be
 found in the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#).
 
-Within DAG Factory itself, there are three approaches to defining callbacks. The goal is to make this process
+Within DAG Factory itself, there are four approaches to defining callbacks. The goal is to make this process
 intuitive and provide parity with the traditional DAG authoring experience. These approaches to configure callbacks
 are outlined below, each with an example of implementation. While proceeding examples are all defined for individual
 Tasks, callbacks can also be defined using `default_args`, or at the DAG and TaskGroup level.
