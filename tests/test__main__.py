@@ -46,7 +46,12 @@ def test_help_output_when_no_command():
     result = runner.invoke(app, [])
     assert result.exit_code == 0
     assert "DAG Factory" in result.output
-    assert "dagfactory [OPTIONS] COMMAND [ARGS]" in result.output
+    # typer's exact "Usage:" formatting (brackets/ellipsis around COMMAND/ARGS) varies by version,
+    # so just check the pieces that are stable across versions.
+    assert "Usage: dagfactory" in result.output
+    assert "OPTIONS" in result.output
+    assert "COMMAND" in result.output
+    assert "ARGS" in result.output
 
 
 def test_help_option():
