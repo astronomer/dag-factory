@@ -10,7 +10,7 @@ Since May 2025, [Astro Runtime](https://www.astronomer.io/docs/runtime/runtime-r
 environment variable `SCARF_NO_ANALYTICS=True`, which disables DAG Factory telemetry by default:
 
 - Airflow 3-based images: Astro Runtime 3.0-2 and newer
-- Airflow 2-based images: Astro Runtime 11.18.0, 12.9.0, 13.0.0 and newer
+- Airflow 2-based images: Astro Runtime 11.18.0 and newer (11.x line), 12.9.0 and newer (12.x line), and all 13.x releases
 
 [Astro Private Cloud](https://www.astronomer.io/docs/astro-private-cloud/) (APC) also disables telemetry by
 default, setting both `SCARF_NO_ANALYTICS=True` and `DO_NOT_TRACK=True` in all Deployments, regardless of
@@ -24,7 +24,7 @@ It assists the project maintainers in better understanding how DAG Factory is us
 Insights gained from this telemetry are critical for prioritizing patches, minor releases, and
 security fixes. Additionally, this information supports key decisions related to the development roadmap.
 
-Deployments and individual users can opt out of analytics by setting the configuration:
+Deployments and individual users can opt out of telemetry by setting the configuration:
 
 ```ini
 [dag_factory]
