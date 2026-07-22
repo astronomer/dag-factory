@@ -34,14 +34,14 @@ enable_telemetry = false
 or the equivalent environment variable:
 
 ```bash
-AIRFLOW__DAG_FACTORY__ENABLE_TELEMETRY=false
+export AIRFLOW__DAG_FACTORY__ENABLE_TELEMETRY=false
 ```
 
 As described in the [Scarf documentation](https://docs.scarf.sh/gateway/#do-not-track), it is also possible to opt out by setting one of the following environment variables (values are case-insensitive):
 
 ```bash
-DO_NOT_TRACK=true
-SCARF_NO_ANALYTICS=true
+export DO_NOT_TRACK=true
+export SCARF_NO_ANALYTICS=true
 ```
 
 In addition to Scarf's default data collection, DAG Factory collects the following information:
