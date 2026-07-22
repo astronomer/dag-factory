@@ -1,6 +1,6 @@
 # Privacy Notice
 
-By default, telemetry is disabled for Astronomer customers — see [Telemetry on Astronomer](#telemetry-on-astronomer) for details.
+By default, telemetry is disabled for Astronomer customers running recent Astro Runtime images or Astro Private Cloud — see [Telemetry on Astronomer](#telemetry-on-astronomer) for the specific versions.
 
 This project follows the [Privacy Policy of Astronomer](https://www.astronomer.io/privacy/).
 
