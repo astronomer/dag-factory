@@ -855,7 +855,7 @@ def test_set_callback_with_list():
     assert result[0].keywords["param_1"] == "value_1"
     assert result[0].keywords["param_2"] == "value_2"
 
-    # --- list with a dict entry that has no extra kwargs (plain callable) ---
+    # --- list with a dict entry that has no extra kwargs (partial with no kwargs) ---
     params = {
         "on_failure_callback": [
             {"callback": f"{__name__}.print_context_callback"}
@@ -863,8 +863,9 @@ def test_set_callback_with_list():
     }
     result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
     assert isinstance(result, list)
-    assert callable(result[0])
-    assert result[0].__name__ == "print_context_callback"
+    assert isinstance(result[0], functools.partial)
+    assert result[0].func.__name__ == "print_context_callback"
+    assert result[0].keywords == {}
 
     # --- mixed: string + dict-with-kwargs ---
     params = {

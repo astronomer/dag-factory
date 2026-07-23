@@ -78,7 +78,7 @@ Airflow accepts a list for any `on_*_callback` field, allowing multiple independ
 ```yaml
 ...
   - task_id: task_3
-    operator: airflow.operators.bash_operator.BashOperator
+    operator: airflow.operators.bash.BashOperator
     bash_command: "echo task_3"
     on_failure_callback:
       - callback: include.custom_callbacks.send_alert_to_datadog

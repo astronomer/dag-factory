@@ -1228,7 +1228,7 @@ class DagBuilder:
         params = {k: v for k, v in entry.items() if k != "callback"}
         if hasattr(callback_callable, "notify"):
             return callback_callable(**params)
-        return partial(callback_callable, **params) if params else callback_callable
+        return partial(callback_callable, **params)
 
     @staticmethod
     def set_callback(
