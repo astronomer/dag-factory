@@ -6,7 +6,7 @@ found in the [Apache Airflow documentation](https://airflow.apache.org/docs/apac
 
 Within DAG Factory itself, there are four approaches to defining callbacks. The goal is to make this process
 intuitive and provide parity with the traditional DAG authoring experience. These approaches to configure callbacks
-are outlined below, each with an example of implementation. While proceeding examples are all defined for individual
+are outlined below, each with an example of implementation. While preceding examples are all defined for individual
 Tasks, callbacks can also be defined using `default_args`, or at the DAG and TaskGroup level.
 
 * [Passing a string that points to a callable](#passing-a-string-that-points-to-a-callable)
