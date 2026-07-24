@@ -1231,9 +1231,7 @@ class DagBuilder:
         return partial(callback_callable, **params)
 
     @staticmethod
-    def set_callback(
-        parameters: dict, callback_type: str, has_name_and_file=False
-    ) -> Any:
+    def set_callback(parameters: dict, callback_type: str, has_name_and_file=False) -> Any:
         """
         Update the passed-in config with the callback.
 
@@ -1258,8 +1256,6 @@ class DagBuilder:
                 try:
                     resolved.append(DagBuilder._resolve_callback_entry(item, callback_type))
                 except DagFactoryConfigException as exc:
-                    raise DagFactoryConfigException(
-                        f"{callback_type}[{i}]: {exc}"
-                    ) from exc
+                    raise DagFactoryConfigException(f"{callback_type}[{i}]: {exc}") from exc
             return resolved
         return DagBuilder._resolve_callback_entry(value, callback_type)
