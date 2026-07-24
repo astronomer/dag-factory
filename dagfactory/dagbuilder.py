@@ -354,6 +354,13 @@ class DagBuilder:
                     "from a file. with the special pyyaml notation:\n"
                     "  python_callable_file: !!python/name:my_module.my_func"
                 )
+            if not task_params.get("python_callable") and bool(task_params.get("python_callable_name")) != bool(
+                task_params.get("python_callable_file")
+            ):
+                raise DagFactoryException(
+                    "Failed to create task. `python_callable_name` and "
+                    "`python_callable_file` must be provided together."
+                )
             if not task_params.get("python_callable"):
                 task_params["python_callable"]: Callable = utils.get_python_callable(
                     task_params["python_callable_name"], task_params["python_callable_file"]
