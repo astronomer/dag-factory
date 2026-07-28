@@ -2,6 +2,13 @@ updates:
 - cooldown:
     default-days: 7
   directory: /
+  groups:
+    # Keep github/codeql-action/init and github/codeql-action/analyze in a single PR.
+    # CodeQL requires init and analyze to run the same version; bumping them in
+    # separate PRs leaves the pair version-skewed and fails the Analyze job.
+    codeql-action:
+      patterns:
+      - "github/codeql-action*"
   ignore:
   - dependency-name: "github/gh-aw-actions*" # gh-aw compiler-managed action pin (incl. sub-actions like /setup); keep ignored and refresh via gh aw compile.
   labels:
