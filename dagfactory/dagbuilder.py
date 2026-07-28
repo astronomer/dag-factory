@@ -341,27 +341,21 @@ class DagBuilder:
         operator_obj: Callable[..., BaseOperator] = import_string(operator)
         # pylint: disable=too-many-nested-blocks
         if issubclass(operator_obj, PYTHON_CALLABLE_CLASSES):
-            if (
-                not task_params.get("python_callable")
-                and not task_params.get("python_callable_name")
-                and not task_params.get("python_callable_file")
-            ):
-                # pylint: disable=line-too-long
-                raise DagFactoryException(
-                    "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
-                    `python_callable_name` and `python_callable_file` "
-                    "parameters.\nOptionally you can load python_callable "
-                    "from a file. with the special pyyaml notation:\n"
-                    "  python_callable_file: !!python/name:my_module.my_func"
-                )
-            if not task_params.get("python_callable") and bool(task_params.get("python_callable_name")) != bool(
-                task_params.get("python_callable_file")
-            ):
-                raise DagFactoryException(
-                    "Failed to create task. `python_callable_name` and "
-                    "`python_callable_file` must be provided together."
-                )
             if not task_params.get("python_callable"):
+                if not task_params.get("python_callable_name") and not task_params.get("python_callable_file"):
+                    # pylint: disable=line-too-long
+                    raise DagFactoryException(
+                        "Failed to create task. PythonOperator, BranchPythonOperator and PythonSensor requires \
+                        `python_callable_name` and `python_callable_file` "
+                        "parameters.\nOptionally you can load python_callable "
+                        "from a file. with the special pyyaml notation:\n"
+                        "  python_callable_file: !!python/name:my_module.my_func"
+                    )
+                if bool(task_params.get("python_callable_name")) != bool(task_params.get("python_callable_file")):
+                    raise DagFactoryException(
+                        "Failed to create task. `python_callable_name` and "
+                        "`python_callable_file` must be provided together."
+                    )
                 task_params["python_callable"]: Callable = utils.get_python_callable(
                     task_params["python_callable_name"], task_params["python_callable_file"]
                 )
