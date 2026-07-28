@@ -791,16 +791,134 @@ def test_set_callback_exceptions():
     """
     test_set_callback_exceptions
 
-    Validate that exceptions are being throw for an incompatible version of Airflow, as well as for an invalid type
-    passed to the parameter config.
+    Validate that exceptions are being thrown for invalid types passed to the parameter config.
     """
-    # Test an exception parsing the parameters dictionary
+    # An int is still an invalid type
     invalid_type_passed_message = "Invalid type passed to on_execute_callback"
     with pytest.raises(DagFactoryConfigException, match=invalid_type_passed_message):
         DagBuilder.set_callback(
-            parameters={"on_execute_callback": ["callback_1", "callback_2", "callback_3"]},
+            parameters={"on_execute_callback": 42},
             callback_type="on_execute_callback",
         )
+
+    # A list item that is neither str nor dict should raise
+    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [42]},
+            callback_type="on_failure_callback",
+        )
+
+    # A list item that is a dict but missing the 'callback' key should raise with a descriptive message
+    with pytest.raises(DagFactoryConfigException, match="missing a required 'callback' key"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [{"not_callback": "foo"}]},
+            callback_type="on_failure_callback",
+        )
+
+
+@pytest.mark.callbacks
+def test_set_callback_with_list():
+    """
+    Validate that on_*_callback accepts a list of entries where each entry is either a
+    plain import string or a dict with a 'callback' key plus optional kwargs — mirroring
+    how Airflow itself accepts callbacks as a list.
+    """
+    import functools
+
+    # --- list of plain import strings ---
+    params = {
+        "on_failure_callback": [
+            f"{__name__}.print_context_callback",
+            f"{__name__}.print_context_callback",
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert all(callable(cb) for cb in result)
+    assert all(cb.__name__ == "print_context_callback" for cb in result)
+
+    # --- list with a dict entry that has extra kwargs (becomes a partial) ---
+    params = {
+        "on_failure_callback": [
+            {
+                "callback": f"{__name__}.empty_callback_with_params",
+                "param_1": "value_1",
+                "param_2": "value_2",
+            }
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert isinstance(result[0], functools.partial)
+    assert result[0].keywords["param_1"] == "value_1"
+    assert result[0].keywords["param_2"] == "value_2"
+
+    # --- list with a dict entry that has no extra kwargs (partial with no kwargs) ---
+    params = {
+        "on_failure_callback": [
+            {"callback": f"{__name__}.print_context_callback"}
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert isinstance(result[0], functools.partial)
+    assert result[0].func.__name__ == "print_context_callback"
+    assert result[0].keywords == {}
+
+    # --- mixed: string + dict-with-kwargs ---
+    params = {
+        "on_failure_callback": [
+            f"{__name__}.print_context_callback",
+            {
+                "callback": f"{__name__}.empty_callback_with_params",
+                "param_1": "v1",
+                "param_2": "v2",
+            },
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert len(result) == 2
+    assert callable(result[0])
+    assert result[0].__name__ == "print_context_callback"
+    assert isinstance(result[1], functools.partial)
+
+    # --- non-string 'callback' value in dict entry raises with a descriptive message ---
+    with pytest.raises(DagFactoryConfigException, match="'callback' value must be a string import path"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [{"callback": 123}]},
+            callback_type="on_failure_callback",
+        )
+
+    # --- list with a notifier-style entry (hasattr "notify") ---
+    # Uses a local dummy notifier to avoid requiring optional provider packages in the test env.
+    class _DummyNotifier:
+        def __init__(self, channel):
+            self.channel = channel
+
+        def notify(self, context):
+            pass
+
+    def dummy_notifier_factory(channel):
+        return _DummyNotifier(channel=channel)
+
+    dummy_notifier_factory.notify = lambda context: None  # mirrors real notifier objects
+
+    import unittest.mock as mock
+
+    with mock.patch("dagfactory.dagbuilder.import_string", return_value=dummy_notifier_factory):
+        params = {
+            "on_failure_callback": [
+                {"callback": "my.dummy.notifier", "channel": "#alerts"}
+            ]
+        }
+        result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert isinstance(result[0], _DummyNotifier)
+    assert result[0].channel == "#alerts"
 
 
 @pytest.mark.callbacks

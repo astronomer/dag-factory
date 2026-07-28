@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
@@ -46,7 +46,7 @@ jobs:
           version: "0.7.12"
           enable-cache: false
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -107,7 +107,7 @@ jobs:
             airflow-version: "2.11"
             providers-standard-version: "1.9.1"
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
@@ -133,7 +133,7 @@ jobs:
           enable-cache: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -187,7 +187,7 @@ jobs:
           - python-version: "3.14"
             airflow-version: "3.1"
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
@@ -199,7 +199,7 @@ jobs:
           enable-cache: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -236,7 +236,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
@@ -248,7 +248,7 @@ jobs:
           enable-cache: false
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.11"
 
@@ -281,7 +281,7 @@ jobs:
     needs:
       - Authorize
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: true
@@ -290,7 +290,7 @@ jobs:
         with:
           enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Install hatch via uv
@@ -306,7 +306,7 @@ jobs:
     needs:
       - Authorize
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: true
@@ -317,7 +317,7 @@ jobs:
           version: "0.7.12"
           enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -356,7 +356,7 @@ jobs:
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -366,7 +366,7 @@ jobs:
           version: "0.7.12"
           enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.10"
           architecture: "x64"

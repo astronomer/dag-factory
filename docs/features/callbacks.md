@@ -4,13 +4,14 @@ DAG Factory supports the use of callbacks. These callbacks can be set at the DAG
 that callbacks that can be configured for DAGs, TaskGroups, and Tasks differ slightly, and details around this can be
 found in the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#).
 
-Within DAG Factory itself, there are three approaches to defining callbacks. The goal is to make this process
+Within DAG Factory itself, there are four approaches to defining callbacks. The goal is to make this process
 intuitive and provide parity with the traditional DAG authoring experience. These approaches to configure callbacks
-are outlined below, each with an example of implementation. While proceeding examples are all defined for individual
+are outlined below, each with an example of implementation. While preceding examples are all defined for individual
 Tasks, callbacks can also be defined using `default_args`, or at the DAG and TaskGroup level.
 
 * [Passing a string that points to a callable](#passing-a-string-that-points-to-a-callable)
 * [Specifying a user-defined `.py` and the function within that file to be executed](#specifying-a-user-defined-py-file-and-function)
+* [Multiple callbacks](#multiple-callbacks)
 * [Configuring callbacks from providers](#provider-callbacks)
 
 ## Passing a string that points to a callable
@@ -69,6 +70,34 @@ specified for a DAG, TaskGroup, or Task. This provides a viable option for defin
 
 Note that this method for defining callbacks in DAG Factory does not allow for parameters to be passed to the callable
 within the YAML itself.
+
+## Multiple callbacks
+
+Airflow accepts a list for any `on_*_callback` field, allowing multiple independent callbacks to run sequentially on the same event. DAG Factory supports the same pattern — any callback field can be set to a YAML list where each entry follows the same string or dict format as the single-entry examples above.
+
+```yaml
+...
+  - task_id: task_3
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "echo task_3"
+    on_failure_callback:
+      - callback: include.custom_callbacks.send_alert_to_datadog
+      - callback: airflow.providers.smtp.notifications.smtp.SmtpNotifier
+        to:
+          - team@example.com
+...
+```
+
+This is also supported at the DAG level and in `default_args`:
+
+```yaml
+default_args:
+  on_failure_callback:
+    - include.custom_callbacks.send_alert_to_datadog
+    - callback: airflow.providers.smtp.notifications.smtp.SmtpNotifier
+      to:
+        - team@example.com
+```
 
 ## Provider callbacks
 

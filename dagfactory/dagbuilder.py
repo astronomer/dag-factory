@@ -1205,56 +1205,57 @@ class DagBuilder:
             DagBuilder._replace_kwargs_values_as_xcom(kwargs, key, value, tasks_dict)
 
     @staticmethod
-    def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
+    def _resolve_callback_entry(entry: Any, callback_type: str) -> Any:
+        """Resolve a single str-or-dict callback entry to a callable or notifier."""
+        if isinstance(entry, str):
+            return import_string(entry)
+        if not isinstance(entry, dict):
+            raise DagFactoryConfigException(
+                f"Invalid type passed to {callback_type}: expected a string import path or a dict "
+                f"with a 'callback' key, got {type(entry).__name__}"
+            )
+        if not utils.check_dict_key(entry, "callback"):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry is missing a required 'callback' key "
+                f"(expected a string import path, e.g. 'my.module.my_callback')"
+            )
+        if not isinstance(entry["callback"], str):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry 'callback' value must be a string import path, "
+                f"got {type(entry['callback']).__name__}"
+            )
+        callback_callable = import_string(entry["callback"])
+        params = {k: v for k, v in entry.items() if k != "callback"}
+        if hasattr(callback_callable, "notify"):
+            return callback_callable(**params)
+        return partial(callback_callable, **params)
+
+    @staticmethod
+    def set_callback(parameters: dict, callback_type: str, has_name_and_file=False) -> Any:
         """
         Update the passed-in config with the callback.
 
         :param parameters:
         :param callback_type:
         :param has_name_and_file:
-        :returns: Callable
+        :returns: a callable, an Airflow BaseNotifier instance, or a list thereof
         """
-
-        # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
-        # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That
-        # being said, what if this is not a Python callable? What if this is another type?
         if has_name_and_file:
-            on_state_callback_callable: Callable = utils.get_python_callable(
+            callback_callable = utils.get_python_callable(
                 python_callable_name=parameters[f"{callback_type}_name"],
                 python_callable_file=parameters[f"{callback_type}_file"],
             )
-
-            # Delete the callback_type name and file
             del parameters[f"{callback_type}_name"]
             del parameters[f"{callback_type}_file"]
+            return callback_callable
 
-            return on_state_callback_callable
-
-        # If the value stored at parameters[callback_type] is a string, it should be imported under the assumption that
-        # it is a function that is "ready to be called". If not returning the function, something like this could be
-        # used to update the config parameters[callback_type] = import_string(parameters[callback_type])
-        if isinstance(parameters[callback_type], str):
-            return import_string(parameters[callback_type])
-
-        # Otherwise, if the parameter[callback_type] is a dictionary, it should be treated similar to the Python
-        # callable
-        elif isinstance(parameters[callback_type], dict):
-            # Pull the on_failure_callback dictionary from dag_params
-            on_state_callback_params: dict = parameters[callback_type]
-
-            # Check to see if there is a "callback" key in the on_failure_callback dictionary. If there is, parse
-            # out that callable, and add the parameters
-            if utils.check_dict_key(on_state_callback_params, "callback"):
-                if isinstance(on_state_callback_params["callback"], str):
-                    on_state_callback_callable: Callable = import_string(on_state_callback_params["callback"])
-                    del on_state_callback_params["callback"]
-
-                    # Return the callable, this time, using the params provided in the YAML file, rather than a .py
-                    # file with a callable configured. If not returning the partial, something like this could be used
-                    # to update the config ... parameters[callback_type]: Callable = partial(...)
-                    if hasattr(on_state_callback_callable, "notify"):
-                        return on_state_callback_callable(**on_state_callback_params)
-
-                    return partial(on_state_callback_callable, **on_state_callback_params)
-
-        raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
+        value = parameters[callback_type]
+        if isinstance(value, list):
+            resolved = []
+            for i, item in enumerate(value):
+                try:
+                    resolved.append(DagBuilder._resolve_callback_entry(item, callback_type))
+                except DagFactoryConfigException as exc:
+                    raise DagFactoryConfigException(f"{callback_type}[{i}]: {exc}") from exc
+            return resolved
+        return DagBuilder._resolve_callback_entry(value, callback_type)
