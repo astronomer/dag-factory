@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from functools import cache
 from pathlib import Path
 
@@ -15,6 +16,9 @@ from . import utils as test_utils
 EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
+# Airflow 3.3 dropped the `include_examples` kwarg from DagBag.__init__ (examples
+# are no longer loaded implicitly), so only pass it on versions that still support it.
+_DAGBAG_SUPPORTS_INCLUDE_EXAMPLES = "include_examples" in inspect.signature(DagBag.__init__).parameters
 # TODO: Enable asset_triggered_dags.py once https://github.com/apache/airflow/issues/51644 is solved
 IGNORED_DAG_FILES = ["example_callbacks.py", "example_http_operator_task.py", "asset_triggered_dags.py", "kpo.py"]
 
@@ -27,7 +31,7 @@ MAX_VER_DAG_FILE_VER: dict[str, list[str]] = {
 
 @provide_session
 def get_session(session=None):
-    create_default_connections(session)
+    create_default_connections(session=session)
     return session
 
 
@@ -68,7 +72,10 @@ def get_dag_bag() -> DagBag:
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
-    db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
+    if _DAGBAG_SUPPORTS_INCLUDE_EXAMPLES:
+        db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
+    else:
+        db = DagBag(EXAMPLE_DAGS_DIR)
 
     assert db.dags
     assert not db.import_errors
