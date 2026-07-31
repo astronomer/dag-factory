@@ -303,7 +303,9 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
 
 
 def extract_dataset_names(expression) -> List[str]:
-    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
+    # Asset/dataset names may contain "-", which must be captured as part of the
+    # identifier instead of being treated as a separator (see issue #629).
+    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*\b"
     datasets = re.findall(dataset_pattern, expression)
     return datasets
 
