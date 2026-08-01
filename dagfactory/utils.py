@@ -302,17 +302,23 @@ def get_datasets_map_uri_yaml_file(file_path: str, datasets_filter: str) -> Dict
         raise
 
 
+STORAGE_PATTERN = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
+
+
 def extract_dataset_names(expression) -> List[str]:
     # Asset/dataset names may contain "-", which must be captured as part of the
     # identifier instead of being treated as a separator (see issue #629).
+    # Storage URIs are removed first: they are handled by extract_storage_names,
+    # and their dashed components (e.g. "bucket-cjmm" in "s3://bucket-cjmm/raw")
+    # would otherwise be returned here and rewritten inside the URI.
     dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*\b"
-    datasets = re.findall(dataset_pattern, expression)
+    expression_without_uris = re.sub(STORAGE_PATTERN, " ", expression)
+    datasets = re.findall(dataset_pattern, expression_without_uris)
     return datasets
 
 
 def extract_storage_names(expression) -> List[str]:
-    storage_pattern = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
-    storages = re.findall(storage_pattern, expression)
+    storages = re.findall(STORAGE_PATTERN, expression)
     return storages
 
 

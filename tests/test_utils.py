@@ -329,6 +329,17 @@ def test_extract_dataset_names_with_dashes():
     assert result == expected
 
 
+def test_extract_dataset_names_ignores_storage_uris():
+    # Storage URIs are handled by extract_storage_names; their components must not
+    # be returned here, otherwise "bucket-cjmm" would be rewritten inside the URI.
+    expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
+    assert utils.extract_dataset_names(expression) == []
+
+    expression = "s3://bucket-cjmm/raw/dataset_custom_1 & asset-1"
+    assert utils.extract_dataset_names(expression) == ["asset-1"]
+    assert utils.extract_storage_names(expression) == ["s3://bucket-cjmm/raw/dataset_custom_1"]
+
+
 def test_extract_storage_names():
     expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
     expected = ["s3://bucket-cjmm/raw/dataset_custom_1", "s3://bucket-cjmm/raw/dataset_custom_2"]
