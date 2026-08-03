@@ -243,7 +243,11 @@ def lint(
     table.add_column("Status", style="bold")
     table.add_column("Error Message", style="red", no_wrap=False, overflow="fold")
 
-    validator = DagParameterValidator(airflow_version=airflow_version, schema_only=schema_only)
+    try:
+        validator = DagParameterValidator(airflow_version=airflow_version, schema_only=schema_only)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(2)
 
     total_errors = 0
     total_warnings = 0
@@ -252,10 +256,14 @@ def lint(
         """Render a list of FileValidationResult into the table."""
         nonlocal total_errors, total_warnings
         for sub in results:
-            if label_prefix and sub.file != Path(label_prefix):
+            # sub.file is resolved to an absolute path by the validator, while
+            # label_prefix is whatever the user passed on the CLI (often
+            # relative) — compare resolved paths so a loader that just
+            # validates itself doesn't get a spurious "path → filename" arrow.
+            if label_prefix and sub.file.resolve() != Path(label_prefix).resolve():
                 label = f"{label_prefix} → {sub.file.name}"
             else:
-                label = str(sub.file)
+                label = label_prefix or str(sub.file)
             if sub.errors:
                 total_errors += 1
                 total_warnings += len(sub.warnings)
