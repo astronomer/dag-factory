@@ -6,21 +6,21 @@ import ast
 import datetime
 import importlib.util
 import json
-import os
+import sys
+import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-import yaml
 from jsonschema import Draft202012Validator, ValidationError, validators
 from packaging.version import InvalidVersion, Version
 
-from dagfactory._yaml import load_yaml_file
+from dagfactory._yaml import load_yaml_file, load_yaml_string
 from dagfactory.constants import DEFAULTS_FILE_NAMES
 from dagfactory.dagfactory import SYSTEM_PARAMS, _DagFactory
-from dagfactory.utils import cast_with_type, merge_configs
+from dagfactory.utils import merge_configs
 
 SCHEMA_PATH = Path(__file__).parent / "schemas" / "dag_parameters.json"
 
@@ -192,6 +192,25 @@ _LintValidatorClass = validators.extend(
 # TODO: x-dagfactory-supported should be a temporary field and can be removed once issue #696 is resolved.
 _WARNING_KEYWORDS = {"x-deprecated-since", "x-dagfactory-supported"}
 
+# Top-level fields commonly supplied via the external defaults.yml chain rather
+# than the DAG's own YAML — see _is_defaults_satisfiable_requirement.
+_DEFAULTS_SATISFIABLE_REQUIRED_FIELDS = {"tasks"}
+
+
+def _is_defaults_satisfiable_requirement(error: ValidationError) -> bool:
+    """True if *error* is a `tasks`/`start_date` requirement that an external
+    defaults.yml chain could plausibly satisfy.
+
+    Used only by callers that don't resolve that chain themselves, to avoid
+    reporting a hard error for a DAG that would build fine in practice.
+    """
+    if error.validator == "required":
+        return bool(_DEFAULTS_SATISFIABLE_REQUIRED_FIELDS.intersection(error.validator_value or []))
+    if error.validator == "x-required-anywhere":
+        fields = {f for group in (error.validator_value or []) for f in group.get("fields", [])}
+        return any(f == "start_date" or f.endswith(".start_date") for f in fields)
+    return False
+
 
 def imports_dagfactory(py_file_path: Path) -> bool:
     """Return True if *py_file_path* imports anything from the ``dagfactory`` package.
@@ -286,16 +305,47 @@ def _intercept_dag_builder() -> Iterator[List[_LintDagBuilder]]:
         df_module.DagBuilder = original
 
 
+@contextmanager
+def _force_strict_mode() -> Iterator[None]:
+    """Temporarily enable dagfactory.settings.strict_mode.
+
+    ``build_dags()`` no longer raises on a per-DAG build failure by default —
+    it returns ``(dags, first_build_error)`` and only raises through
+    ``_generate_dags`` when strict_mode is on. Lint's build-mode path needs
+    that exception to surface failures, so it forces strict_mode for the
+    duration of the import.
+    """
+    from dagfactory import settings as df_settings
+
+    original = df_settings.strict_mode
+    df_settings.strict_mode = True
+    try:
+        yield
+    finally:
+        df_settings.strict_mode = original
+
+
 def _import_loader(py_path: Path) -> Tuple[Optional[Any], Optional[Exception]]:
-    """Import *py_path* as a Python module. Returns ``(module, error_or_None)``."""
-    spec = importlib.util.spec_from_file_location("_dagfactory_lint_module", py_path)
+    """Import *py_path* as a Python module. Returns ``(module, error_or_None)``.
+
+    Registered in ``sys.modules`` under a unique per-file name before
+    ``exec_module`` (and removed again afterwards) — otherwise loaders using
+    relative imports, dataclasses, or ``pickle`` fail to import (all of those
+    rely on the module being resolvable via ``sys.modules``), and reusing one
+    module name across files would let later files clobber earlier ones.
+    """
+    module_name = f"_dagfactory_lint_module_{uuid.uuid4().hex}"
+    spec = importlib.util.spec_from_file_location(module_name, py_path)
     if spec is None or spec.loader is None:
         return None, ImportError(f"Could not load Python module from {py_path}.")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
     try:
         spec.loader.exec_module(module)
     except Exception as exc:
         return None, exc
+    finally:
+        sys.modules.pop(module_name, None)
     return module, None
 
 
@@ -345,8 +395,11 @@ class DagParameterValidator:
 
         if not self.schema_only:
             # Build mode: import the loader untouched, capture exceptions.
+            # Forced strict_mode makes a per-DAG build failure raise instead
+            # of being swallowed into build_dags()'s (dags, first_build_error).
             result = FileValidationResult(file=py_file_path)
-            module, exc = _import_loader(py_file_path)
+            with _force_strict_mode():
+                module, exc = _import_loader(py_file_path)
             if exc is not None:
                 result.issues.append(
                     ValidationIssue(
@@ -385,15 +438,26 @@ class DagParameterValidator:
             result = FileValidationResult(file=target)
             with _intercept_dag_builder() as builders:
                 try:
-                    factory.build_dags()
+                    # build_dags() itself can still raise (e.g. malformed top-level
+                    # config); per-DAG build failures instead come back as
+                    # first_build_error, though _LintDagBuilder.build() never fails.
+                    _, first_build_error = factory.build_dags()
                 except Exception as exc:
-                    # build_dags can raise from malformed configs.
                     result.issues.append(
                         ValidationIssue(
                             file=target, dag_id=None, severity="error",
                             message=f"dag-factory failed to build DAGs: {type(exc).__name__}: {exc}",
                         )
                     )
+                else:
+                    if first_build_error is not None:
+                        dag_name, exc = first_build_error
+                        result.issues.append(
+                            ValidationIssue(
+                                file=target, dag_id=dag_name, severity="error",
+                                message=f"dag-factory failed to build DAG: {type(exc).__name__}: {exc}",
+                            )
+                        )
             for builder in builders:
                 merged = merge_configs(builder.dag_config, builder.default_config)
                 self._validate_dag(target, builder.dag_name, merged, result)
@@ -426,11 +490,15 @@ class DagParameterValidator:
     def validate_yaml_content(
         self, yaml_content: str, source_label: str = "<inline yaml>"
     ) -> List[FileValidationResult]:
-        """Lint an inline YAML string. ``__and__``/``__or__``/``__join__`` directives are not expanded."""
+        """Lint an inline YAML string.
+
+        Parsed via the same ``load_yaml_string`` helper as ``validate_yaml_file``
+        (env-var expansion, ``__type__`` casting, ``__and__``/``__or__``/``__join__``
+        flattening), so this validates the same shape dag-factory actually builds.
+        """
         source = Path(source_label)
         try:
-            raw = yaml.load(os.path.expandvars(yaml_content), Loader=yaml.FullLoader)
-            config = cast_with_type(raw)
+            config = load_yaml_string(yaml_content)
         except Exception as exc:
             return [_make_result(
                 source, "error",
@@ -470,11 +538,18 @@ class DagParameterValidator:
 
         if not self.schema_only:
             try:
-                _DagFactory(config_dict=config).build_dags()
+                _, first_build_error = _DagFactory(config_dict=config).build_dags()
             except Exception as exc:
                 result.issues.append(ValidationIssue(
                     file=source, dag_id=None, severity="error",
                     message=f"Failed to build DAGs: {type(exc).__name__}: {exc}",
+                ))
+                return result
+            if first_build_error is not None:
+                dag_name, exc = first_build_error
+                result.issues.append(ValidationIssue(
+                    file=source, dag_id=dag_name, severity="error",
+                    message=f"Failed to build DAG: {type(exc).__name__}: {exc}",
                 ))
             return result
 
@@ -490,7 +565,11 @@ class DagParameterValidator:
                 ))
         for builder in builders:
             merged = merge_configs(builder.dag_config, builder.default_config)
-            self._validate_dag(source, builder.dag_name, merged, result)
+            # This entry point never resolves the external defaults.yml chain
+            # (see validate_yaml_file's docstring), so a DAG that legitimately
+            # gets `tasks`/`start_date` from there would otherwise be flagged
+            # with a false-positive error.
+            self._validate_dag(source, builder.dag_name, merged, result, defaults_unresolved=True)
         return result
 
     @staticmethod
@@ -508,10 +587,19 @@ class DagParameterValidator:
         dag_id: str,
         merged: Dict[str, Any],
         result: FileValidationResult,
+        defaults_unresolved: bool = False,
     ) -> None:
-        """Run the JSON schema over a merged DAG config and append issues to *result*."""
+        """Run the JSON schema over a merged DAG config and append issues to *result*.
+
+        ``defaults_unresolved`` softens ``tasks``/``start_date`` requirement
+        failures to warnings — set by callers (``validate_yaml_file``,
+        ``validate_yaml_content``) that don't consult the external
+        ``defaults.yml`` chain, where those fields are a common source.
+        """
         for error in self._validator.iter_errors(merged):
             severity = "warning" if error.validator in _WARNING_KEYWORDS else "error"
+            if defaults_unresolved and _is_defaults_satisfiable_requirement(error):
+                severity = "warning"
             result.issues.append(
                 ValidationIssue(
                     file=file_path, dag_id=dag_id, severity=severity, message=error.message,

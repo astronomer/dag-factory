@@ -8,13 +8,23 @@ import yaml
 from typer.testing import CliRunner
 
 from dagfactory import __version__
-from dagfactory.__main__ import app
+from dagfactory.__main__ import app, console
 
 EXAMPLE_YAML_AF2_DAGS = Path(__file__).parent.parent / "dev/dags/airflow2"
 EXAMPLE_YAML_AF3_DAGS = Path(__file__).parent.parent / "dev/dags/airflow3"
 EXAMPLE_YAML_INVALID_DAG = Path(__file__).parent.parent / "dev/dags/invalid.yaml"
 
 runner = CliRunner()
+
+
+@pytest.fixture(autouse=True)
+def _wide_console():
+    """Rich falls back to width 80 with no TTY (i.e. in CI), which can wrap a long
+    tmp path mid-message and split assertions across lines. Pin it wide for tests."""
+    original_size = console.size
+    console.size = (200, 50)
+    yield
+    console.size = original_size
 
 
 @pytest.fixture
@@ -58,6 +68,21 @@ load_yaml_dags(
     defaults_config_dict={"default_args": {"start_date": "2025-01-01"}},
 )
 """
+    )
+    return file_path
+
+
+@pytest.fixture
+def tmp_yaml_file(tmp_path):
+    """A YAML config valid enough to pass schema-only lint, for the --ignore tests."""
+    file_path = tmp_path / "valid.yaml"
+    file_path.write_text(
+        "my_dag:\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
     )
     return file_path
 
@@ -139,6 +164,19 @@ def test_lint_directory_no_dagfactory_imports(tmp_path):
     assert "No lintable files found" in result.stdout
     assert "2 .py file(s) scanned" in result.stdout
     # Hint about the new flag should be shown when YAMLs aren't included.
+    assert "--lint-yaml-in-dir" in result.stdout
+
+
+def test_lint_directory_yaml_only_without_flag_errors(tmp_path):
+    """Directory with only YAML configs (no .py loaders) and no --lint-yaml-in-dir:
+    nothing would actually get checked, so this must fail loudly rather than
+    silently exiting 0 (which would make a CI lint step a no-op)."""
+    (tmp_path / "config.yml").write_text(
+        "my_dag:\n  default_args: {start_date: '2025-01-01'}\n  tasks: [{task_id: t, operator: x}]\n"
+    )
+    result = runner.invoke(app, ["lint", str(tmp_path)])
+    assert result.exit_code != 0
+    assert "1 YAML file" in result.stdout
     assert "--lint-yaml-in-dir" in result.stdout
 
 
@@ -252,7 +290,9 @@ def test_lint_valid_loader(tmp_valid_loader):
 def test_lint_exclude_single_file(tmp_yaml_file, tmp_path):
     ignore_file = tmp_path / "ignore.yaml"
     ignore_file.write_text("key: value\n")
-    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", str(ignore_file)])
+    result = runner.invoke(
+        app, ["lint", str(tmp_path), "--ignore", str(ignore_file), "--schema-only", "--lint-yaml-in-dir"]
+    )
     assert result.exit_code == 0
     assert "Ignored 1 YAML file" in result.stdout
     assert "no errors found" in result.stdout.lower()
@@ -267,7 +307,9 @@ def test_lint_exlucde_single_file_with_airflowignore(tmp_yaml_file, tmp_path):
     dummy_ignore = tmp_path / "dummy.txt"
     dummy_ignore.write_text("noop")
 
-    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", str(dummy_ignore)])
+    result = runner.invoke(
+        app, ["lint", str(tmp_path), "--ignore", str(dummy_ignore), "--schema-only", "--lint-yaml-in-dir"]
+    )
     assert result.exit_code == 0
     assert "Ignored 1 YAML file" in result.stdout
     assert "no errors found" in result.stdout.lower()
@@ -278,7 +320,10 @@ def test_lint_exclude_multiple_files(tmp_yaml_file, tmp_path):
     ignore_first_yaml.write_text("key: value\n")
     ignore_second_yaml = tmp_path / "second.yaml"
     ignore_second_yaml.write_text("key: value\n")
-    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}"])
+    result = runner.invoke(
+        app,
+        ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}", "--schema-only", "--lint-yaml-in-dir"],
+    )
     assert result.exit_code == 0
     assert "Ignored 2 YAML files" in result.stdout
     assert "no errors found" in result.stdout.lower()
@@ -297,7 +342,14 @@ def test_lint_exclude_multiple_files_with_airflowignore(tmp_yaml_file, tmp_path)
 
     result = runner.invoke(
         app,
-        ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}"],
+        [
+            "lint",
+            str(tmp_path),
+            "--ignore",
+            f"{ignore_first_yaml},{ignore_second_yaml}",
+            "--schema-only",
+            "--lint-yaml-in-dir",
+        ],
     )
     assert result.exit_code == 0
     assert "Ignored 3 YAML files" in result.stdout
