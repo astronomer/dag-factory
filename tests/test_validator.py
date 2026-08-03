@@ -1,4 +1,5 @@
 """Tests for dagfactory.validator: imports_dagfactory helper + DagParameterValidator."""
+import sys
 import textwrap
 from pathlib import Path
 
@@ -101,6 +102,80 @@ def test_build_mode_dependency_cycle_is_caught(tmp_path):
     assert errors, "expected an error from cycle detection"
     assert "Failed to build DAGs" in errors[0].message
     assert "cycle" in errors[0].message.lower()
+
+
+# ---------------------------------------------------------------------------
+# _import_loader — module registration
+# ---------------------------------------------------------------------------
+def test_import_loader_registers_module_in_sys_modules(tmp_path):
+    """A loader that resolves its own forward-referenced type hints (e.g. a
+    dataclass field typed with another class in the same file, under
+    `from __future__ import annotations`) needs the module registered in
+    sys.modules — otherwise resolving the annotation raises."""
+    p = _write_loader(
+        tmp_path,
+        """
+        from __future__ import annotations
+        import typing
+        from dataclasses import dataclass
+        from dagfactory import load_yaml_dags
+
+        @dataclass
+        class Inner:
+            pass
+
+        @dataclass
+        class Config:
+            inner: Inner
+
+        typing.get_type_hints(Config)
+
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_dict={"my_dag": {"tasks": [{"task_id": "t", "operator": "x"}]}},
+            defaults_config_dict={"default_args": {"start_date": "2025-01-01"}},
+        )
+        """,
+    )
+    results = DagParameterValidator(schema_only=True).validate_python_loader(p)
+    assert not results[0].errors
+
+
+def test_import_loader_uses_unique_module_name_per_file(tmp_path):
+    """Two files linted in the same process must not clobber each other's
+    sys.modules entry (they used to share one hardcoded module name)."""
+    first = _write_loader(
+        tmp_path,
+        """
+        from dagfactory import load_yaml_dags
+        MARKER = "first"
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_dict={"first_dag": {"tasks": [{"task_id": "t", "operator": "x"}]}},
+            defaults_config_dict={"default_args": {"start_date": "2025-01-01"}},
+        )
+        """,
+        name="first.py",
+    )
+    second = _write_loader(
+        tmp_path,
+        """
+        from dagfactory import load_yaml_dags
+        MARKER = "second"
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_dict={"second_dag": {"tasks": [{"task_id": "t", "operator": "x"}]}},
+            defaults_config_dict={"default_args": {"start_date": "2025-01-01"}},
+        )
+        """,
+        name="second.py",
+    )
+    validator = DagParameterValidator(schema_only=True)
+    first_results = validator.validate_python_loader(first)
+    second_results = validator.validate_python_loader(second)
+    assert not first_results[0].errors
+    assert not second_results[0].errors
+    assert not any(m.startswith("_dagfactory_lint_module") for m in sys.modules)
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +298,26 @@ def test_validate_yaml_file_skips_non_dag_yaml(tmp_path):
     assert any("config-only" in i.message for i in results[0].warnings)
 
 
+def test_validate_yaml_file_missing_start_date_is_a_warning(tmp_path):
+    """validate_yaml_file never resolves the external defaults.yml chain, so a
+    DAG that gets `start_date` from there (a common pattern) shouldn't be a
+    hard error here — just a warning flagging the gap."""
+    p = tmp_path / "dag.yml"
+    p.write_text("my_dag:\n  tasks:\n    - task_id: t\n      operator: x\n")
+    results = DagParameterValidator(airflow_version="3").validate_yaml_file(p)
+    assert not results[0].errors
+    assert any("start_date" in w.message for w in results[0].warnings)
+
+
+def test_validate_yaml_file_missing_tasks_is_a_warning(tmp_path):
+    """Same as above for a `tasks` list supplied only via external defaults."""
+    p = tmp_path / "dag.yml"
+    p.write_text("my_dag:\n  default_args:\n    start_date: '2025-01-01'\n")
+    results = DagParameterValidator(airflow_version="3").validate_yaml_file(p)
+    assert not results[0].errors
+    assert any("tasks" in w.message for w in results[0].warnings)
+
+
 # ---------------------------------------------------------------------------
 # validate_yaml_content
 # ---------------------------------------------------------------------------
@@ -253,3 +348,111 @@ def test_validate_yaml_content_parse_error():
     results = DagParameterValidator(airflow_version="3").validate_yaml_content("key: [unclosed\n")
     assert results[0].errors
     assert "Failed to parse YAML" in results[0].errors[0].message
+
+
+def test_validate_yaml_content_expands_join_directive():
+    """--yaml-content shares load_yaml_string with the file path, so __join__/
+    __and__/__or__ directives are flattened the same way dag-factory actually
+    builds them, not left as raw dicts that would fail schema validation."""
+    yaml_text = (
+        "my_dag:\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "    owner:\n"
+        "      __join__: ['team-', 'data']\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
+    )
+    results = DagParameterValidator(airflow_version="3").validate_yaml_content(yaml_text)
+    assert not results[0].errors
+
+
+# ---------------------------------------------------------------------------
+# Custom x-* JSON Schema keywords
+# ---------------------------------------------------------------------------
+def test_x_deprecated_since_is_a_warning_not_error():
+    """x-deprecated-since (schedule_interval) is a warning once the configured
+    Airflow version reaches the deprecation, not an error."""
+    yaml_text = (
+        "my_dag:\n"
+        "  schedule_interval: '@daily'\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
+    )
+    results = DagParameterValidator(airflow_version="2.4").validate_yaml_content(yaml_text)
+    assert not results[0].errors
+    assert any("deprecated" in w.message for w in results[0].warnings)
+
+
+def test_x_dagfactory_supported_false_is_a_warning_not_error():
+    """x-dagfactory-supported: false (template_undefined) is a warning — the
+    value is valid Airflow but silently ignored by dag-factory at runtime."""
+    yaml_text = (
+        "my_dag:\n"
+        "  template_undefined: 'AllowUndefined'\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
+    )
+    results = DagParameterValidator(airflow_version="3").validate_yaml_content(yaml_text)
+    assert not results[0].errors
+    assert any("not currently wired through dag-factory" in w.message for w in results[0].warnings)
+
+
+def test_x_mutually_exclusive_is_an_error():
+    """x-mutually-exclusive (schedule vs schedule_interval vs timetable) errors
+    when more than one of the group is set."""
+    yaml_text = (
+        "my_dag:\n"
+        "  schedule: '@daily'\n"
+        "  schedule_interval: '@daily'\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
+    )
+    results = DagParameterValidator(airflow_version="2").validate_yaml_content(yaml_text)
+    assert any("Only one of" in e.message for e in results[0].errors)
+
+
+def test_x_airflow_min_version_is_an_error():
+    """x-airflow-min-version (allowed_run_types, introduced in 3.2) errors when
+    the configured Airflow predates it."""
+    yaml_text = (
+        "my_dag:\n"
+        "  allowed_run_types: ['backfill']\n"
+        "  default_args:\n"
+        "    start_date: '2025-01-01'\n"
+        "  tasks:\n"
+        "    - task_id: t\n"
+        "      operator: x\n"
+    )
+    results = DagParameterValidator(airflow_version="3.0").validate_yaml_content(yaml_text)
+    assert any("was introduced in Airflow" in e.message for e in results[0].errors)
+
+
+def test_x_required_anywhere_is_an_error_when_defaults_are_fully_resolved(tmp_path):
+    """Unlike validate_yaml_content/validate_yaml_file (which soften this to a
+    warning — see test_validate_yaml_file_missing_start_date_is_a_warning),
+    validate_python_loader resolves the real defaults chain, so if start_date
+    is genuinely missing everywhere it's still a hard error."""
+    p = _write_loader(
+        tmp_path,
+        """
+        from dagfactory import load_yaml_dags
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_dict={"my_dag": {"tasks": [{"task_id": "t", "operator": "x"}]}},
+        )
+        """,
+    )
+    results = DagParameterValidator(schema_only=True).validate_python_loader(p)
+    rendered = " ".join(i.render() for i in results[0].errors)
+    assert "start_date" in rendered

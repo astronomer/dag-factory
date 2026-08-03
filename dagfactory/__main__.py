@@ -53,6 +53,19 @@ def _find_lintable_files(path: Path, lint_yaml_in_dir: bool = False) -> list[Pat
         else:
             files = py_loaders
         if not files:
+            if not lint_yaml_in_dir:
+                skipped_yaml = list(path.rglob("*.yml")) + list(path.rglob("*.yaml"))
+                if skipped_yaml:
+                    # Directory has YAML configs but no .py loaders — without
+                    # --lint-yaml-in-dir nothing would actually get checked, which
+                    # would make a CI lint step silently pass on unvalidated YAML.
+                    console.print(
+                        f"[red]Error:[/red] '{path}' has {len(skipped_yaml)} YAML "
+                        f"{_file_or_files(len(skipped_yaml))} but no .py loaders "
+                        f"({len(py_candidates)} .py file(s) scanned; none import dagfactory). "
+                        "Pass --lint-yaml-in-dir to lint them."
+                    )
+                    raise typer.Exit(1)
             extra = "" if lint_yaml_in_dir else " (pass --lint-yaml-in-dir to also include .yml/.yaml files)"
             console.print(
                 f"[yellow]No lintable files found in '{path}' "
