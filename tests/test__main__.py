@@ -125,6 +125,18 @@ def test_lint_path_not_exist():
     assert "does not exist" in result.stdout
 
 
+def test_lint_invalid_airflow_version_is_a_friendly_error(tmp_path):
+    """An invalid --airflow-version used to surface as a raw ValueError/stack
+    trace from DagParameterValidator's constructor; it must be a clean CLI
+    error (exit code 2, no unhandled exception) instead."""
+    target = tmp_path / "dag.yml"
+    target.write_text("my_dag:\n  tasks: []\n")
+    result = runner.invoke(app, ["lint", "--airflow-version", "not-a-version", str(target)])
+    assert result.exit_code == 2
+    assert "Traceback" not in result.output
+    assert "airflow_version must be a PEP440 version string" in result.stdout
+
+
 def test_lint_no_python_files(tmp_path):
     (tmp_path / "not_python.txt").write_text("hello")
     result = runner.invoke(app, ["lint", str(tmp_path)])
@@ -228,6 +240,20 @@ def test_lint_single_non_loader_py_is_skipped(tmp_path):
     result = runner.invoke(app, ["lint", str(target)])
     assert result.exit_code == 0
     assert "does not import dagfactory" in result.stdout
+
+
+def test_lint_single_file_relative_path_has_no_arrow(tmp_path, monkeypatch):
+    """A single file linted by its own path shouldn't get a `path → filename`
+    arrow — that's meant for a loader that routes to a *different* config
+    file. The comparison must hold even for a relative CLI path, since the
+    validator resolves sub.file to an absolute path internally."""
+    monkeypatch.chdir(tmp_path)
+    Path("dag.yml").write_text(
+        "my_dag:\n  default_args: {start_date: '2025-01-01'}\n  tasks: [{task_id: t, operator: x}]\n"
+    )
+    result = runner.invoke(app, ["lint", "--schema-only", "dag.yml"])
+    assert result.exit_code == 0
+    assert "→" not in result.stdout
 
 
 def test_lint_yaml_file_is_validated(tmp_path):

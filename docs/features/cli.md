@@ -6,7 +6,7 @@ After installing DAG Factory, the CLI can be invoked using the `dagfactory` comm
 
 | Command   | Description                                                          |
 | --------- | -------------------------------------------------------------------- |
-| `lint`    | Validate dag-factory loader / YAML files against the bundled schema  |
+| `lint`    | Validate dag-factory loader / YAML files (full build by default; `--schema-only` validates against the bundled schema instead) |
 | `convert` | Convert YAML file(s) from Airflow 2 to 3 in the terminal or in-place |
 
 For more details about the available commands, run `dagfactory --help`.
