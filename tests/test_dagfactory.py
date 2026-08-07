@@ -633,6 +633,40 @@ def test_build_dag_with_global_dag_level_defaults():
     assert "global_tag" in dags["test_dag_override"].tags
 
 
+def test_build_dags_with_operator_aliases_from_global_defaults():
+    """Test that operator_aliases in global defaults.yml propagate to DagBuilder and resolve correctly."""
+    global_defaults = {
+        "default_args": {
+            "owner": "test_owner",
+            "start_date": "2025-01-01",
+        },
+        "operator_aliases": [
+            {"operator_alias": "BashOperator", "operator_path": get_bash_operator_path()},
+        ],
+    }
+
+    config = {
+        "test_dag": {
+            "tasks": [
+                {
+                    "task_id": "task_1",
+                    "operator": "BashOperator",
+                    "bash_command": "echo 1",
+                }
+            ]
+        }
+    }
+
+    td = _DagFactory(config_dict=config)
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr(td, "_global_default_args", lambda: global_defaults)
+        dags, build_error = td.build_dags()
+
+    assert build_error is None
+    assert "task_1" in dags["test_dag"].task_ids
+    assert type(dags["test_dag"].get_task("task_1")).__name__ == "BashOperator"
+
+
 def test_build_dag_with_global_default_dict():
     dags, _ = _DagFactory(
         config_dict=DAG_FACTORY_CONFIG,
