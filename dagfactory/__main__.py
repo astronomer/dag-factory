@@ -10,6 +10,9 @@ from rich.text import Text
 
 from dagfactory import __version__
 from dagfactory._yaml import load_yaml_file
+from dagfactory.constants import DEFAULTS_FILE_NAMES
+from dagfactory.dag_codegen import generate_dag_block, generate_dags_file
+from dagfactory.dagfactory import _DagFactory
 from dagfactory.utils import update_yaml_structure
 
 DESCRIPTION = """
@@ -182,6 +185,102 @@ def convert(
         console.print(
             f"Tried to convert {len(files)} {_file_or_files(len(files))}, converted [green]{total_converted}[/green] {_file_or_files(total_converted)}, [green]no errors found.[/green]"
         )
+
+
+@app.command()
+def generate(
+    yaml_file_dir: Path = typer.Argument(..., help="Path to a directory containing YAML files to generate DAGs from"),
+    py_dags_dir: Path = typer.Argument(
+        ..., help="Path to a directory where the generated .py DAG files will be written"
+    ),
+):
+
+    if not yaml_file_dir.exists():
+        console.print(f"[red]Error:[/red] Path '{yaml_file_dir}' does not exist.")
+        raise typer.Exit(1)
+
+    if not py_dags_dir.exists():
+        py_dags_dir.mkdir(parents=True)
+
+    all_yaml_files = list(yaml_file_dir.rglob("*.yaml")) + list(yaml_file_dir.rglob("*.yml"))
+    # `defaults.yml`/`defaults.yaml` files hold shared default_args for other DAGs in the
+    # directory tree — they are not DAG definitions themselves and must not be generated as one.
+    yaml_files = [f for f in all_yaml_files if f.name not in DEFAULTS_FILE_NAMES]
+    if not yaml_files:
+        console.print(f"[yellow]No YAML files found in '{yaml_file_dir}'.[/yellow]")
+        raise typer.Exit(0)
+
+    errors = []
+    skipped = []
+    for yaml_file in yaml_files:
+        try:
+            # `cast_types=False` keeps `__type__` dicts as-is, so `dag_codegen` can re-emit them
+            # as real constructor source code instead of an already-instantiated, unrenderable object.
+            config = load_yaml_file(str(yaml_file), cast_types=False)
+            default_config = config.get("default", {})
+
+            # Merge in the shared `defaults.yml`, if any, the same way the runtime YAML loader does:
+            # global default_args are lowest priority, this file's own `default:` args take precedence.
+            factory = _DagFactory(
+                config_filepath=str(yaml_file.resolve()), defaults_config_path=str(yaml_file_dir.resolve())
+            )
+            global_default_args = factory._global_default_args()
+            dag_level_args = {}
+            if isinstance(global_default_args, dict):
+                default_config["default_args"] = factory._merge_default_args_from_list_configs(
+                    [global_default_args, default_config]
+                )
+                dag_level_args = factory._merge_dag_args_from_list_configs([global_default_args])
+
+            dags_to_generate = {}
+            for dag_name in config:
+                if dag_name == "default":
+                    continue
+                if not isinstance(config[dag_name], dict):
+                    continue
+                dag_config = {**dag_level_args, **deepcopy(config[dag_name])}
+                for key, value in default_config.items():
+                    if key not in dag_config:
+                        dag_config[key] = deepcopy(value)
+                try:
+                    generate_dag_block(dag_name, dag_config)  # validate first
+                    dags_to_generate[dag_name] = dag_config
+                    console.print(f"[green]✓ DAG {dag_name} generated successfully")
+                except ValueError as e:
+                    console.print(
+                        f"[yellow]⚠ Skipping DAG '{dag_name}' in '{yaml_file.name}': {e} "
+                        f"— tasks may be inheriting config not supported by generate[/yellow]"
+                    )
+                    skipped.append(f"{yaml_file.name}::{dag_name}")
+            if dags_to_generate:
+                py_file = py_dags_dir / (yaml_file.stem + ".py")
+                py_file.write_text(generate_dags_file(dags_to_generate))
+        except yaml.YAMLError as e:
+            console.print(f"[yellow]⚠ Skipping '{yaml_file.name}': invalid YAML syntax — {e}[/yellow]")
+            skipped.append(yaml_file.name)
+        except Exception as e:
+            error_msg = str(e)
+            if "No module named" in error_msg:
+                import re
+
+                match = re.search(r"No module named '([^']+)'", error_msg)
+                package = match.group(1) if match else "unknown"
+                console.print(
+                    f"[yellow]⚠ Skipping '{yaml_file.name}': missing optional package '{package}'. "
+                    f"Install it with: pip install {package}[/yellow]"
+                )
+                skipped.append(yaml_file.name)
+            else:
+                console.print(f"[red]✗ Skipping '{yaml_file.name}': {e}[/red]")
+                errors.append(yaml_file)
+
+    if skipped:
+        console.print(
+            f"[yellow]{len(skipped)} DAG(s)/file(s) were skipped and NOT generated — "
+            f"see warnings above. Failing so this isn't silently missed in CI.[/yellow]"
+        )
+    if errors or skipped:
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":  # pragma: no cover

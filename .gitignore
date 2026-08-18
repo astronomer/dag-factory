@@ -131,3 +131,5 @@ webserver_config.py
 
 # Astro
 dev/include/dag_factory-*
+
+*/generated/*
