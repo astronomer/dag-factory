@@ -1624,7 +1624,7 @@ enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mapp
 <p>Given a TaskFlow task <code>collect</code> that returns a multiple_outputs dict like:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@task</span><span class="p">(</span><span class="n">multiple_outputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">collect</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">):</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;key1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;key2&quot;</span><span class="p">:</span> <span class="s2">&quot;value2&quot;</span><span class="p">}</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">"key1"</span><span class="p">:</span> <span class="s2">"value1"</span><span class="p">,</span> <span class="s2">"key2"</span><span class="p">:</span> <span class="s2">"value2"</span><span class="p">}</span>
 </span></code></pre></div>
 <p>Its representation in dag_factory YAML looks like:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">collect</span>
@@ -1633,7 +1633,7 @@ enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mapp
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">python_callable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sample.collect</span>
 </span></code></pre></div>
 <p>Then you can use a single value from the mapping with:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;+collect[&#39;key1&#39;]&quot;</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"+collect['key1']"</span>
 </span></code></pre></div>
 
 
