@@ -233,6 +233,9 @@ class _DagFactory:
             default_config["default_args"] = self._merge_default_args_from_list_configs(
                 [global_default_args, default_config]
             )
+            # Propagate operator_aliases from defaults.yml unless the dag YAML already defines them
+            if "operator_aliases" not in default_config and "operator_aliases" in global_default_args:
+                default_config["operator_aliases"] = global_default_args["operator_aliases"]
 
         dags: Dict[str, Any] = {}
 
