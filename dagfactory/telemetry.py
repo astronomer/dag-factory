@@ -8,6 +8,11 @@ from urllib.parse import urlencode
 import httpx
 from airflow import __version__ as airflow_version
 
+try:
+    from airflow.sdk.observability.stats import Stats
+except ImportError:  # Airflow < 3.3
+    from airflow.stats import Stats
+
 import dagfactory
 from dagfactory import constants, settings
 
@@ -51,6 +56,7 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
         Exception
     ) as e:  # We are exceptionally capturing Exception since telemetry should not fail DAG parsing in any scenario
         logging.warning("Unable to emit usage metrics to %s. An error occurred: %s.", telemetry_url, str(e))
+        Stats.incr("dagfactory.telemetry.emit_failure", tags={"reason": "exception"})
         is_success = False
     else:
         is_success = response.is_success
@@ -61,6 +67,7 @@ def emit_usage_metrics(metrics: dict[str, object]) -> bool:
                 response.status_code,
                 response.text,
             )
+            Stats.incr("dagfactory.telemetry.emit_failure", tags={"reason": "http_error"})
     return is_success
 
 
