@@ -562,6 +562,9 @@ def load_yaml_dags(
 
         for root_path, _dirs, files in _iter_dags_folder_contents(dags_folder_path):
             for file_name in files:
+                # defaults.yml/.yaml hold shared defaults, not DAG definitions.
+                if file_name in DEFAULTS_FILE_NAMES:
+                    continue
                 if any(file_name.endswith(suf) for suf in suffix):
                     candidate_dag_files.append(root_path / file_name)
 

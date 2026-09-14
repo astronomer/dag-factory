@@ -576,6 +576,26 @@ def test_load_yaml_dags_folder_scan_forwards_defaults_config_path(tmp_path):
     assert globals_dict["example_dag"].tasks[0].depends_on_past == True
 
 
+def test_load_yaml_dags_skips_defaults_file_in_dags_folder(tmp_path):
+    dags_folder = tmp_path / "dags"
+    dags_folder.mkdir()
+
+    shutil.copyfile(DAG_FACTORY_VARIABLES_AS_ARGUMENTS, dags_folder / "dag.yml")
+    with open(dags_folder / "defaults.yml", "w") as fp:
+        yaml.dump({"default_args": {"depends_on_past": True}}, fp)
+
+    globals_dict = {}
+    load_yaml_dags(
+        globals_dict=globals_dict,
+        dags_folder=str(dags_folder),
+        defaults_config_path=str(dags_folder),
+    )
+
+    # The defaults still apply, but defaults.yml must not become a DAG itself.
+    assert "default_args" not in globals_dict
+    assert globals_dict["example_dag"].tasks[0].depends_on_past == True
+
+
 def test_load_yaml_dags_config_dict_forwards_defaults_config_path():
     globals_dict = {}
 
