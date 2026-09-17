@@ -496,11 +496,26 @@ def test_python_callable_resolution_both_paths(operator_path):
     assert "python_callable_file" not in task_params
 
 
-def test_make_python_operator_missing_param():
+@pytest.mark.parametrize(
+    "task_params",
+    [
+        pytest.param(
+            {"task_id": "test_task", "python_callable_name": "print_test"},
+            id="missing-file",
+        ),
+        pytest.param(
+            {"task_id": "test_task", "python_callable_file": os.path.realpath(__file__)},
+            id="missing-name",
+        ),
+    ],
+)
+def test_make_python_operator_missing_param(task_params):
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = get_python_operator_path()
-    task_params = {"task_id": "test_task", "python_callable_name": "print_test"}
-    with pytest.raises(Exception):
+    with pytest.raises(
+        DagFactoryException,
+        match="`python_callable_name` and `python_callable_file` must be provided together",
+    ):
         td.make_task(operator, task_params)
 
 
@@ -508,7 +523,7 @@ def test_make_python_operator_missing_params():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = get_python_operator_path()
     task_params = {"task_id": "test_task"}
-    with pytest.raises(Exception):
+    with pytest.raises(DagFactoryException):
         td.make_task(operator, task_params)
 
 
