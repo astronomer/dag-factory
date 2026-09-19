@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 try:
@@ -21,9 +20,8 @@ except ImportError:
 # from airflow import DAG
 from dagfactory import load_yaml_dags
 
-DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
+CONFIG_ROOT_DIR = Path(__file__).resolve().parent
 
-CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
 if HTTP_OPERATOR_AVAILABLE:
     config_file = str(CONFIG_ROOT_DIR / "example_http_operator_task.yml")
 elif SIMPLE_HTTP_OPERATOR_AVAILABLE:

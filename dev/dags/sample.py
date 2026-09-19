@@ -10,6 +10,19 @@ except ImportError:
     from airflow.operators.python import get_current_context
 
 
+from airflow.utils.context import Context
+
+
+def collect(**context: Context):
+    return {"key1": "value1", "key2": "value2"}
+
+
+def echo(value):
+    print(value)
+    return value
+
+
+
 def build_numbers_list():
     return [2, 4, 6]
 
@@ -54,6 +67,12 @@ def extract_last_name(full_name: str):
 
 def one_day_ago(execution_date: datetime):
     return execution_date - timedelta(days=1)
+
+
+def add_days(ds: str, num_days: int) -> str:
+    """Custom Jinja2 macro that offsets a date string by num_days days."""
+    dt = datetime.strptime(ds, "%Y-%m-%d")
+    return (dt + timedelta(days=num_days)).strftime("%Y-%m-%d")
 
 
 def read_params(params: dict[str, Any]) -> None:

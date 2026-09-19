@@ -1,0 +1,23 @@
+# Self-contained timezone examples (no tests/fixtures/defaults.yml merge).
+timezone_dag_level:
+  timezone: Europe/Paris
+  start_date: "2024-06-15"
+  schedule: "@daily"
+  default_args:
+    owner: timezone_fixture_owner
+    start_date: "2024-06-15"
+  tasks:
+    - task_id: t1
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator
+
+timezone_default_args:
+  schedule: "@daily"
+  default_args:
+    owner: timezone_fixture_owner
+    start_date: "2024-07-01"
+    timezone: America/New_York
+  tasks:
+    - task_id: t1
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator

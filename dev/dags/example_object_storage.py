@@ -1,12 +1,15 @@
-import os
+import sys
 from pathlib import Path
 
 # The following import is here so Airflow parses this file
 # from airflow import DAG
 from dagfactory import load_yaml_dags
 
-DEFAULT_CONFIG_ROOT_DIR = "/usr/local/airflow/dags/"
-CONFIG_ROOT_DIR = Path(os.getenv("CONFIG_ROOT_DIR", DEFAULT_CONFIG_ROOT_DIR))
+CONFIG_ROOT_DIR = Path(__file__).resolve().parent
+config_root_dir_str = str(CONFIG_ROOT_DIR)
+# Astro DAG bundles deploy to a timestamped path not in sys.path; insert it so helper modules are importable.
+if config_root_dir_str not in sys.path:
+    sys.path.insert(0, config_root_dir_str)
 
 config_file = str(CONFIG_ROOT_DIR / "example_object_storage.yml")
 

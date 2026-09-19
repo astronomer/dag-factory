@@ -20,24 +20,94 @@ from dagfactory.utils import check_dict_key
 try:
     from airflow.sdk.bases.operator import BaseOperator
     from airflow.sdk.definitions.dag import DAG
+    from airflow.sdk.definitions.taskgroup import TaskGroup
     from airflow.sdk.definitions.variable import Variable
 except ImportError:
     from airflow.models import BaseOperator, Variable
     from airflow.models.dag import DAG
+    from airflow.utils.task_group import TaskGroup
 
-from airflow.datasets import Dataset
-from airflow.models import MappedOperator
-from airflow.utils.module_loading import import_string
-from airflow.utils.task_group import TaskGroup
+try:
+    from airflow.sdk.definitions.asset import Asset as Dataset
+except ImportError:
+    from airflow.datasets import Dataset
+
+try:
+    from airflow.sdk.definitions.mappedoperator import MappedOperator
+except ImportError:
+    from airflow.models import MappedOperator
+
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 
-try:  # Try Airflow 3
-    from airflow.providers.standard.operators.python import BranchPythonOperator, PythonOperator
-    from airflow.providers.standard.sensors.python import PythonSensor
-except ImportError:
-    from airflow.operators.python import BranchPythonOperator, PythonOperator
-    from airflow.sensors.python import PythonSensor
+# On Airflow 2.x with apache-airflow-providers-standard installed, both
+# `airflow.operators.python` and `airflow.providers.standard.operators.python`
+# resolve to *different* classes that aren't related by inheritance, so a single
+# try/except would let issubclass() checks miss whichever path the user's YAML
+# didn't pick. Import both when available so the union (PYTHON_CALLABLE_CLASSES)
+# matches either canonical path.
+#
+# We deliberately keep this as classes (and check via issubclass) rather than a
+# set of dotted paths: users may YAML-reference a subclass of PythonOperator
+# (e.g. a custom wrapper), and python_callable resolution should still apply.
+_python_operator_classes = []
+_branch_python_operator_classes = []
+_python_sensor_classes = []
 
+try:
+    from airflow.providers.standard.operators.python import (
+        BranchPythonOperator as _StdBranchPythonOperator,
+        PythonOperator as _StdPythonOperator,
+    )
+    from airflow.providers.standard.sensors.python import PythonSensor as _StdPythonSensor
+
+    _python_operator_classes.append(_StdPythonOperator)
+    _branch_python_operator_classes.append(_StdBranchPythonOperator)
+    _python_sensor_classes.append(_StdPythonSensor)
+except ImportError:  # pragma: no cover
+    pass
+
+try:
+    from airflow.operators.python import (
+        BranchPythonOperator as _CoreBranchPythonOperator,
+        PythonOperator as _CorePythonOperator,
+    )
+    from airflow.sensors.python import PythonSensor as _CorePythonSensor
+
+    _python_operator_classes.append(_CorePythonOperator)
+    _branch_python_operator_classes.append(_CoreBranchPythonOperator)
+    _python_sensor_classes.append(_CorePythonSensor)
+except ImportError:  # pragma: no cover
+    pass
+
+if not _python_operator_classes:  # pragma: no cover
+    raise ImportError(
+        "Could not import PythonOperator/BranchPythonOperator/PythonSensor. "
+        "On Airflow 2 these live under `airflow.operators.python` (built-in); "
+        "on Airflow 3 they live under `airflow.providers.standard.operators.python` "
+        "and require `apache-airflow-providers-standard`, which is a hard dependency "
+        "of `apache-airflow>=3` and is normally pulled in automatically. "
+        "Reaching this branch means the install is broken — reinstall apache-airflow "
+        "(and apache-airflow-providers-standard on Airflow 3)."
+    )
+
+PythonOperator = _python_operator_classes[0]
+BranchPythonOperator = _branch_python_operator_classes[0]
+PythonSensor = _python_sensor_classes[0]
+PYTHON_CALLABLE_CLASSES = tuple(_python_operator_classes + _branch_python_operator_classes + _python_sensor_classes)
+
+try:
+    from airflow.timetables.assets import AssetOrTimeSchedule
+except ImportError:
+    AssetOrTimeSchedule = None
+
+try:  # Try Airflow 2.9
+    from airflow.timetables.datasets import DatasetOrTimeSchedule
+except ImportError:
+    DatasetOrTimeSchedule = None
 
 logger = logging.getLogger(__name__)
 
@@ -180,8 +250,13 @@ class DagBuilder:
             "sla_miss_callback",  # Not applicable at the default_args level
         ]:
             if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
-                # sla_miss_callbacks are removed as of 3.1.0
-                logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
+                # sla_miss_callbacks are removed as of 3.1.0; only warn if it was actually configured
+                sla_configured = utils.check_dict_key(dag_params, "sla_miss_callback") or (
+                    utils.check_dict_key(dag_params, "sla_miss_callback_name")
+                    and utils.check_dict_key(dag_params, "sla_miss_callback_file")
+                )
+                if sla_configured:
+                    logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
                 continue
 
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
@@ -205,25 +280,19 @@ class DagBuilder:
                         parameters=dag_params, callback_type=callback_type, has_name_and_file=True
                     )
 
-            # SLAs are defined at the DAG-level, and will be applied to every task.
-            # https://www.astronomer.io/docs/learn/error-notifications-in-airflow/. Here, we are not going to add
-            # callbacks for sla_miss_callback, or on_skipped_callback if the Airflow version is less than 2.7.0
-            if (callback_type != "sla_miss_callback") or not (
-                callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")
-            ):
-                # Next, check for a callback at the Task-level using default_args
-                if utils.check_dict_key(dag_params["default_args"], callback_type):
-                    dag_params["default_args"][callback_type]: Callable = self.set_callback(
-                        parameters=dag_params["default_args"], callback_type=callback_type
-                    )
+            # Next, check for a callback at the Task-level using default_args
+            if utils.check_dict_key(dag_params["default_args"], callback_type):
+                dag_params["default_args"][callback_type]: Callable = self.set_callback(
+                    parameters=dag_params["default_args"], callback_type=callback_type
+                )
 
-                # Finally, check for file path and name at the Task-level using default_args
-                if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") and utils.check_dict_key(
-                    dag_params["default_args"], f"{callback_type}_file"
-                ):
-                    dag_params["default_args"][callback_type] = self.set_callback(
-                        parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
-                    )
+            # Finally, check for file path and name at the Task-level using default_args
+            if utils.check_dict_key(dag_params["default_args"], f"{callback_type}_name") and utils.check_dict_key(
+                dag_params["default_args"], f"{callback_type}_file"
+            ):
+                dag_params["default_args"][callback_type] = self.set_callback(
+                    parameters=dag_params["default_args"], callback_type=callback_type, has_name_and_file=True
+                )
 
         if utils.check_dict_key(dag_params, "template_searchpath"):
             if isinstance(dag_params["template_searchpath"], (list, str)) and utils.check_template_searchpath(
@@ -246,6 +315,28 @@ class DagBuilder:
             )
 
         return dag_params
+
+    @staticmethod
+    def _resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
+        """
+        Recursively resolves user_defined_macros values. String values are imported
+        as callables via their dotted module path. Nested dicts are resolved recursively.
+        Other types are passed through as-is.
+        """
+        if not isinstance(macros, dict):
+            raise DagFactoryConfigException(
+                f"Invalid `{path}` config: expected a mapping/dict, got {type(macros).__name__}."
+            )
+
+        resolved: Dict[str, Any] = {}
+        for key, value in macros.items():
+            if isinstance(value, str):
+                resolved[key] = import_string(value)
+            elif isinstance(value, dict):
+                resolved[key] = DagBuilder._resolve_user_defined_macros(value, path=f"{path}.{key}")
+            else:
+                resolved[key] = value
+        return resolved
 
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
@@ -285,7 +376,7 @@ class DagBuilder:
         # class is a Callable https://stackoverflow.com/a/34578836/3679900
         operator_obj: Callable[..., BaseOperator] = import_string(operator)
         # pylint: disable=too-many-nested-blocks
-        if issubclass(operator_obj, (PythonOperator, BranchPythonOperator, PythonSensor)):
+        if issubclass(operator_obj, PYTHON_CALLABLE_CLASSES):
             if (
                 not task_params.get("python_callable")
                 and not task_params.get("python_callable_name")
@@ -348,7 +439,7 @@ class DagBuilder:
         expand_kwargs: Dict[str, Union[Dict[str, Any], Any]] = {}
         if utils.check_dict_key(task_params, "expand") or utils.check_dict_key(task_params, "partial"):
             # Getting expand and partial kwargs from task_params
-            (task_params, expand_kwargs, partial_kwargs) = utils.get_expand_partial_kwargs(task_params)
+            task_params, expand_kwargs, partial_kwargs = utils.get_expand_partial_kwargs(task_params)
 
             # If there are partial_kwargs we should merge them with existing task_params
             if partial_kwargs and not utils.is_partial_duplicated(partial_kwargs, task_params):
@@ -377,6 +468,18 @@ class DagBuilder:
         return task_groups_dict
 
     @staticmethod
+    def _build_datasets_schedule(schedule: Dict[str, Any]) -> Any:
+        datasets = schedule["datasets"]
+        datasets_conditions: str = utils.parse_list_datasets(datasets)
+        datasets_schedule = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
+        if utils.check_dict_key(schedule, "timetable"):
+            timetable_schedule = schedule["timetable"]
+            if INSTALLED_AIRFLOW_VERSION.major >= AIRFLOW3_MAJOR_VERSION:
+                return AssetOrTimeSchedule(timetable=timetable_schedule, assets=datasets_schedule)
+            return DatasetOrTimeSchedule(timetable=timetable_schedule, datasets=datasets_schedule)
+        return datasets_schedule
+
+    @staticmethod
     def _init_task_group_callback_param(task_group_conf):
         """
         _init_task_group_callback_param
@@ -385,13 +488,7 @@ class DagBuilder:
 
         :param task_group_conf: dict containing the configuration of the TaskGroup
         """
-        # The Airflow version needs to be at least 2.2.0, and default args must be present. Basically saying here: if
-        # it's not the case that we're using at least Airflow 2.2.0 and default_args are present, then return the
-        # TaskGroup configuration without doing anything
-        if not (
-            version.parse(AIRFLOW_VERSION) >= version.parse("2.2.0")
-            and isinstance(task_group_conf.get("default_args"), dict)
-        ):
+        if not isinstance(task_group_conf.get("default_args"), dict):
             return task_group_conf
 
         # Check the callback types that can be in the default_args of the TaskGroup
@@ -402,10 +499,6 @@ class DagBuilder:
             "on_retry_callback",
             "on_skipped_callback",  # This is only available AIRFLOW_VERSION >= 2.7.0
         ]:
-            # on_skipped_callback can only be added to the default_args of a TaskGroup for AIRFLOW_VERSION >= 2.7.0
-            if callback_type == "on_skipped_callback" and version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"):
-                continue
-
             # First, check for a str, str with params, or provider callback
             if utils.check_dict_key(task_group_conf["default_args"], callback_type):
                 task_group_conf["default_args"][callback_type]: Callable = DagBuilder.set_callback(
@@ -600,17 +693,10 @@ class DagBuilder:
         :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
         :rtype: Any
         """
-        is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
         datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-
-        if is_airflow_version_at_least_2_9:
-            map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
-            dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
-            evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
-            return evaluated_condition
-        else:
-            datasets_uri = utils.get_datasets_uri_yaml_file(file, list(dataset_map.keys()))
-            return [Dataset(uri) for uri in datasets_uri]
+        map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
+        dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
+        return DagBuilder.safe_eval(datasets_conditions, dataset_map)
 
     # TODO: migrate configure_schedule() out of the class, so it can be used as a transform in _build_dag_kwargs().
     @staticmethod
@@ -637,7 +723,6 @@ class DagBuilder:
         schedule_key = "schedule"
 
         if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            is_airflow_version_at_least_2_9 = version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0")
             has_schedule_attr = utils.check_dict_key(dag_params, "schedule")
 
             if has_schedule_attr:
@@ -653,11 +738,8 @@ class DagBuilder:
                     datasets_conditions: str = utils.parse_list_datasets(datasets)
                     dag_kwargs[schedule_key] = DagBuilder.process_file_with_datasets(file, datasets_conditions)
 
-                elif has_datasets_attr and is_airflow_version_at_least_2_9:
-                    datasets = schedule["datasets"]
-                    datasets_conditions: str = utils.parse_list_datasets(datasets)
-                    dag_kwargs[schedule_key] = DagBuilder.evaluate_condition_with_datasets(datasets_conditions)
-
+                elif has_datasets_attr:
+                    dag_kwargs[schedule_key] = DagBuilder._build_datasets_schedule(schedule)
                 else:
                     if isinstance(schedule, str):
                         # check if it's "none" (case-insensitive, with whitespace)
@@ -688,8 +770,31 @@ class DagBuilder:
                 and schedule.strip().lower() == "none"
             ):
                 dag_kwargs[schedule_key] = None
+            elif isinstance(schedule, list):
+                # Convert URI strings into Asset objects on Airflow 3 and normalise
+                # the list (skip None, strip strings, drop empties). Without the
+                # conversion, Airflow 3's _default_timetable validator raises
+                # ValueError if any list element is not a BaseAsset. The ``Dataset``
+                # symbol imported at the top of this module resolves to
+                # ``airflow.sdk.definitions.asset.Asset`` on Airflow 3, so the same
+                # conversion that adjust_general_task_params performs for
+                # outlets/inlets (see #737) is correct here for schedule too.
+                # The normalisation step mirrors the existing AF2 list filter at
+                # lines 619-623 so cross-version behaviour is consistent. See #718.
+                normalized_schedule = []
+                for uri in schedule:
+                    if uri is None:
+                        continue
+                    if isinstance(uri, str):
+                        uri = uri.strip()
+                        if not uri:
+                            continue
+                        normalized_schedule.append(Dataset(uri))
+                    else:
+                        normalized_schedule.append(uri)
+                dag_kwargs[schedule_key] = normalized_schedule
             else:
-                dag_kwargs[schedule_key] = dag_params.get("schedule")
+                dag_kwargs[schedule_key] = schedule
 
     @staticmethod
     def _normalise_tasks_config(tasks_cfg: Any) -> Dict[str, Dict[str, Any]]:
@@ -843,6 +948,13 @@ class DagBuilder:
         dag_kwargs: Dict[str, Any] = DagBuilder._build_dag_kwargs(dag_params)
 
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        # TODO: move _resolve_user_defined_macros to module level so it can be used as a
+        # transform in _DAG_PARAM_SPEC.
+        if dag_params.get("user_defined_macros"):
+            dag_kwargs["user_defined_macros"] = DagBuilder._resolve_user_defined_macros(
+                dag_params["user_defined_macros"]
+            )
 
         dag: DAG = DAG(**dag_kwargs)
 
@@ -1014,23 +1126,28 @@ class DagBuilder:
                     task_params[variable["attribute"]] = variable_value
             del task_params["variables_as_arguments"]
 
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-            for key in ["inlets", "outlets"]:
-                if utils.check_dict_key(task_params, key):
-                    if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
-                        task_params[key], "datasets"
-                    ):
-                        file = task_params[key]["file"]
-                        datasets_filter = task_params[key]["datasets"]
-                        datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
+        # Convert URI strings in inlets/outlets into Dataset/Asset objects.
+        # On Airflow 3, the ``Dataset`` symbol imported above resolves to
+        # ``airflow.sdk.definitions.asset.Asset``. Without this conversion,
+        # outlets passed as bare URI strings stay as strings on the task; no
+        # AssetEvent is emitted on task success, so consumer DAGs scheduled on
+        # the corresponding Asset never trigger. See issue #718.
+        for key in ["inlets", "outlets"]:
+            if utils.check_dict_key(task_params, key):
+                if utils.check_dict_key(task_params[key], "file") and utils.check_dict_key(
+                    task_params[key], "datasets"
+                ):
+                    file = task_params[key]["file"]
+                    datasets_filter = task_params[key]["datasets"]
+                    datasets_uri = utils.get_datasets_uri_yaml_file(file, datasets_filter)
 
-                        del task_params[key]["file"]
-                        del task_params[key]["datasets"]
-                    else:
-                        datasets_uri = task_params[key]
+                    del task_params[key]["file"]
+                    del task_params[key]["datasets"]
+                else:
+                    datasets_uri = task_params[key]
 
-                    if key in task_params and datasets_uri:
-                        task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
+                if key in task_params and datasets_uri:
+                    task_params[key] = [Dataset(uri) if isinstance(uri, str) else uri for uri in datasets_uri]
 
     @staticmethod
     def make_decorator(
@@ -1076,19 +1193,11 @@ class DagBuilder:
         for arg_key, arg_value in task_params.items():
             if arg_key in callable_args_keys:
                 decorator_kwargs.pop(arg_key)
-                if isinstance(arg_value, str) and arg_value.startswith("+"):
-                    upstream_task_name = arg_value.split("+")[-1]
-                    callable_kwargs[arg_key] = tasks_dict[upstream_task_name]
-                else:
+                if not DagBuilder._replace_kwargs_values_as_xcom(callable_kwargs, arg_key, arg_value, tasks_dict):
                     callable_kwargs[arg_key] = arg_value
 
         expand_kwargs = decorator_kwargs.pop("expand", {})
         partial_kwargs = decorator_kwargs.pop("partial", {})
-
-        if ("map_index_template" in decorator_kwargs) and (version.parse(AIRFLOW_VERSION) < version.parse("2.7.0")):
-            raise DagFactoryConfigException(
-                "The dynamic task mapping argument `map_index_template` is only supported since Airflow 2.7"
-            )
 
         if expand_kwargs and partial_kwargs:
             if callable_kwargs:
@@ -1105,63 +1214,81 @@ class DagBuilder:
             return decorator(**decorator_kwargs)(**callable_kwargs)
 
     @staticmethod
-    def replace_kwargs_values_as_tasks(kwargs: dict(str, Any), tasks_dict: dict(str, Any)):
-        for key, value in kwargs.items():
-            if isinstance(value, str) and value.startswith("+"):
-                upstream_task_name = value.split("+")[-1]
-                kwargs[key] = tasks_dict[upstream_task_name]
+    def _replace_kwargs_values_as_xcom(kwargs: dict(str, Any), key: str, value: Any, tasks_dict: dict(str, Any)):
+        # Match with multiple_outputs=True case with {key}: +{task}["{xcom_key}"]
+        _PATTERN = re.compile(r"^\+(?P<task>\w*)(\[['\"](?P<xcom_key>.*)['\"]\])?$")
+
+        if not isinstance(value, str):
+            return False
+
+        m = _PATTERN.match(value)
+        if m:
+            task = m.group("task")
+            xcom_key = m.group("xcom_key")
+            if not xcom_key:
+                kwargs[key] = tasks_dict[task]
+            else:
+                kwargs[key] = tasks_dict[task][xcom_key]
+            return True
+        return False
 
     @staticmethod
-    def set_callback(parameters: Union[dict, str], callback_type: str, has_name_and_file=False) -> Callable:
+    def replace_kwargs_values_as_tasks(kwargs: dict(str, Any), tasks_dict: dict(str, Any)):
+        for key, value in kwargs.items():
+            DagBuilder._replace_kwargs_values_as_xcom(kwargs, key, value, tasks_dict)
+
+    @staticmethod
+    def _resolve_callback_entry(entry: Any, callback_type: str) -> Any:
+        """Resolve a single str-or-dict callback entry to a callable or notifier."""
+        if isinstance(entry, str):
+            return import_string(entry)
+        if not isinstance(entry, dict):
+            raise DagFactoryConfigException(
+                f"Invalid type passed to {callback_type}: expected a string import path or a dict "
+                f"with a 'callback' key, got {type(entry).__name__}"
+            )
+        if not utils.check_dict_key(entry, "callback"):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry is missing a required 'callback' key "
+                f"(expected a string import path, e.g. 'my.module.my_callback')"
+            )
+        if not isinstance(entry["callback"], str):
+            raise DagFactoryConfigException(
+                f"'{callback_type}' dict entry 'callback' value must be a string import path, "
+                f"got {type(entry['callback']).__name__}"
+            )
+        callback_callable = import_string(entry["callback"])
+        params = {k: v for k, v in entry.items() if k != "callback"}
+        if hasattr(callback_callable, "notify"):
+            return callback_callable(**params)
+        return partial(callback_callable, **params)
+
+    @staticmethod
+    def set_callback(parameters: dict, callback_type: str, has_name_and_file=False) -> Any:
         """
         Update the passed-in config with the callback.
 
         :param parameters:
         :param callback_type:
         :param has_name_and_file:
-        :returns: Callable
+        :returns: a callable, an Airflow BaseNotifier instance, or a list thereof
         """
-
-        # There is scenario where a callback is passed in via a file and a name. For the most part, this will be a
-        # Python callable that is treated similarly to a Python callable that the PythonOperator may leverage. That
-        # being said, what if this is not a Python callable? What if this is another type?
         if has_name_and_file:
-            on_state_callback_callable: Callable = utils.get_python_callable(
+            callback_callable = utils.get_python_callable(
                 python_callable_name=parameters[f"{callback_type}_name"],
                 python_callable_file=parameters[f"{callback_type}_file"],
             )
-
-            # Delete the callback_type name and file
             del parameters[f"{callback_type}_name"]
             del parameters[f"{callback_type}_file"]
+            return callback_callable
 
-            return on_state_callback_callable
-
-        # If the value stored at parameters[callback_type] is a string, it should be imported under the assumption that
-        # it is a function that is "ready to be called". If not returning the function, something like this could be
-        # used to update the config parameters[callback_type] = import_string(parameters[callback_type])
-        if isinstance(parameters[callback_type], str):
-            return import_string(parameters[callback_type])
-
-        # Otherwise, if the parameter[callback_type] is a dictionary, it should be treated similar to the Python
-        # callable
-        elif isinstance(parameters[callback_type], dict):
-            # Pull the on_failure_callback dictionary from dag_params
-            on_state_callback_params: dict = parameters[callback_type]
-
-            # Check to see if there is a "callback" key in the on_failure_callback dictionary. If there is, parse
-            # out that callable, and add the parameters
-            if utils.check_dict_key(on_state_callback_params, "callback"):
-                if isinstance(on_state_callback_params["callback"], str):
-                    on_state_callback_callable: Callable = import_string(on_state_callback_params["callback"])
-                    del on_state_callback_params["callback"]
-
-                    # Return the callable, this time, using the params provided in the YAML file, rather than a .py
-                    # file with a callable configured. If not returning the partial, something like this could be used
-                    # to update the config ... parameters[callback_type]: Callable = partial(...)
-                    if hasattr(on_state_callback_callable, "notify"):
-                        return on_state_callback_callable(**on_state_callback_params)
-
-                    return partial(on_state_callback_callable, **on_state_callback_params)
-
-        raise DagFactoryConfigException(f"Invalid type passed to {callback_type}")
+        value = parameters[callback_type]
+        if isinstance(value, list):
+            resolved = []
+            for i, item in enumerate(value):
+                try:
+                    resolved.append(DagBuilder._resolve_callback_entry(item, callback_type))
+                except DagFactoryConfigException as exc:
+                    raise DagFactoryConfigException(f"{callback_type}[{i}]: {exc}") from exc
+            return resolved
+        return DagBuilder._resolve_callback_entry(value, callback_type)

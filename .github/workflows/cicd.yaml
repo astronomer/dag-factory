@@ -35,17 +35,18 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -61,67 +62,98 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-        airflow-version:
-          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        airflow-version: ["2.9", "2.10", "2.11", "3.0", "3.1", "3.2", "3.3"]
+        # Third matrix axis: optional pin for apache-airflow-providers-standard.
+        #
+        # Purpose: regression coverage for issue #679. On Airflow 2.x with
+        # `apache-airflow-providers-standard==1.9.1` installed, the core and
+        # providers.standard PythonOperator classes diverge — dagbuilder must
+        # handle both. To exercise that combination in CI we need a job where
+        # providers-standard is pinned to a specific version.
+        #
+        # We run this through the same `Run-Unit-Tests` job, not a dedicated
+        # one — the value flows through to `scripts/test/pre-install-airflow.sh`
+        # (3rd arg) via a Hatch matrix variable of the same name in
+        # pyproject.toml. Empty string here = the base-matrix default; every
+        # base combination runs without an explicit pin so providers-standard
+        # is resolved from Airflow's constraints file as usual. The single
+        # `include:` row below adds one extra Run-Unit-Tests job that pins it
+        # to 1.9.1, giving us the regression coverage without multiplying the
+        # matrix across every Python/Airflow combination.
+        providers-standard-version: [""]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.4"
-          - python-version: "3.11"
-            airflow-version: "2.5"
-          - python-version: "3.11"
-            airflow-version: "2.6"
-          # Apache Airflow versions prior to 2.9.0 have not been tested with Python 3.12.
-          # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
-          # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
-          # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
+          - python-version: "3.13"
+            airflow-version: "2.9"
+          - python-version: "3.13"
+            airflow-version: "2.10"
+          - python-version: "3.13"
+            airflow-version: "2.11"
+          - python-version: "3.13"
+            airflow-version: "3.0"
+          - python-version: "3.14"
+            airflow-version: "2.9"
+          - python-version: "3.14"
+            airflow-version: "2.10"
+          - python-version: "3.14"
+            airflow-version: "2.11"
+          - python-version: "3.14"
+            airflow-version: "3.0"
+          - python-version: "3.14"
+            airflow-version: "3.1"
+        # Regression coverage for issue #679: AF 2.11 + apache-airflow-providers-standard 1.9.1.
+        include:
           - python-version: "3.12"
-            airflow-version: "2.4"
-          - python-version: "3.12"
-            airflow-version: "2.5"
-          - python-version: "3.12"
-            airflow-version: "2.6"
-          - python-version: "3.12"
-            airflow-version: "2.7"
-          - python-version: "3.12"
-            airflow-version: "2.8"
+            airflow-version: "2.11"
+            providers-standard-version: "1.9.1"
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
 
-      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
-        with:
-          path: |
-            ~/.cache/uv
-            ~/.cache/pip
-            .local/share/hatch/
-          key: unit-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
+      - name: Compute hatch env name
+        id: hatch-env
+        env:
+          PY_VERSION: ${{ matrix.python-version }}
+          AF_VERSION: ${{ matrix.airflow-version }}
+          PROVIDERS_STANDARD_VERSION: ${{ matrix.providers-standard-version }}
+        run: |
+          suffix=""
+          if [ -n "$PROVIDERS_STANDARD_VERSION" ]; then
+            suffix="-$PROVIDERS_STANDARD_VERSION"
+          fi
+          echo "name=tests.py${PY_VERSION}-${AF_VERSION}${suffix}" >> "$GITHUB_OUTPUT"
+          echo "suffix=${suffix}" >> "$GITHUB_OUTPUT"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install packages and dependencies
+        env:
+          HATCH_ENV_NAME: ${{ steps.hatch-env.outputs.name }}
         run: |
           uv pip install  --system "hatch>=1.14.2"
-          hatch -e tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }} run pip freeze
+          hatch -e "$HATCH_ENV_NAME" run pip freeze
 
       - name: Test DAG Factory against Airflow ${{ matrix.airflow-version }} and Python ${{ matrix.python-version }}
+        env:
+          HATCH_ENV_NAME: ${{ steps.hatch-env.outputs.name }}
         run: |
-          hatch run tests.py${{ matrix.python-version }}-${{ matrix.airflow-version }}:test-cov
+          hatch run "$HATCH_ENV_NAME:test-cov"
 
       - name: Upload coverage to Github
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: coverage-unit-test-${{ matrix.python-version }}-${{ matrix.airflow-version }}
+          name: coverage-unit-test-${{ matrix.python-version }}-${{ matrix.airflow-version }}${{ steps.hatch-env.outputs.suffix }}
           path: .coverage
           include-hidden-files: true
 
@@ -133,51 +165,41 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-        airflow-version:
-          ["2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "3.0"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        airflow-version: ["2.9", "2.10", "2.11", "3.0", "3.1", "3.2", "3.3"]
         exclude:
-          - python-version: "3.11"
-            airflow-version: "2.4"
-          - python-version: "3.11"
-            airflow-version: "2.5"
-          - python-version: "3.11"
-            airflow-version: "2.6"
-          # Apache Airflow versions prior to 2.9.0 have not been tested with Python 3.12.
-          # Official support for Python 3.12 and the corresponding constraints.txt are available only for Apache Airflow >= 2.9.0.
-          # See: https://github.com/apache/airflow/tree/2.9.0?tab=readme-ov-file#requirements
-          # See: https://github.com/apache/airflow/tree/2.8.4?tab=readme-ov-file#requirements
-          - python-version: "3.12"
-            airflow-version: "2.4"
-          - python-version: "3.12"
-            airflow-version: "2.5"
-          - python-version: "3.12"
-            airflow-version: "2.6"
-          - python-version: "3.12"
-            airflow-version: "2.7"
-          - python-version: "3.12"
-            airflow-version: "2.8"
+          - python-version: "3.13"
+            airflow-version: "2.9"
+          - python-version: "3.13"
+            airflow-version: "2.10"
+          - python-version: "3.13"
+            airflow-version: "2.11"
+          - python-version: "3.13"
+            airflow-version: "3.0"
+          - python-version: "3.14"
+            airflow-version: "2.9"
+          - python-version: "3.14"
+            airflow-version: "2.10"
+          - python-version: "3.14"
+            airflow-version: "2.11"
+          - python-version: "3.14"
+            airflow-version: "3.0"
+          - python-version: "3.14"
+            airflow-version: "3.1"
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
 
-      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
-        with:
-          path: |
-            ~/.cache/uv
-            ~/.cache/pip
-            .local/share/hatch/
-          key: integration-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.airflow-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('dagfactory/__init__.py') }}
-
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -197,7 +219,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/dev/dags:$PYTHONPATH
 
       - name: Upload coverage to Github
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-integration-test-${{ matrix.python-version }}-${{ matrix.airflow-version }}
           path: .coverage
@@ -214,18 +236,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.11"
 
@@ -242,7 +265,7 @@ jobs:
           coverage report
           coverage xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6.0.2
         with:
           # Only fail CI if error when token is available (internal PRs and pushes)
           # External PRs from forks don't have access to secrets
@@ -258,14 +281,16 @@ jobs:
     needs:
       - Authorize
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: true
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Install hatch via uv
@@ -281,17 +306,18 @@ jobs:
     needs:
       - Authorize
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: true
 
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -330,16 +356,17 @@ jobs:
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.7.12"
+          enable-cache: false  # no cache on docs/publish job (zizmor cache-poisoning)
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.10"
           architecture: "x64"

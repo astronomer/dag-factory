@@ -79,6 +79,9 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
+# uv lockfile (not tracked in this project)
+uv.lock
+
 # Environments
 .env
 .venv
@@ -105,6 +108,14 @@ pip-selfcheck.json
 
 # vscode
 .vscode
+
+# Claude Code
+.claude/settings.local.json
+.claude/plans/
+CLAUDE.local.md
+
+# Cursor
+.cursor/plans/
 
 # IntelliJ
 .idea/*

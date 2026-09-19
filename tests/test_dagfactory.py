@@ -24,7 +24,7 @@ from tests.utils import get_bash_operator_path
 here = os.path.dirname(__file__)
 
 from dagfactory import dagfactory, load_yaml_dags
-from dagfactory.dagfactory import _DagFactory
+from dagfactory.dagfactory import _DagFactory, _get_dag_ignore_file_syntax, _load_airflowignore, _should_ignore_file
 
 TEST_DAG_FACTORY = os.path.join(here, "fixtures/dag_factory.yml")
 DAG_FACTORY_NO_OR_NONE_STRING_SCHEDULE = os.path.join(here, "fixtures/dag_factory_no_or_none_string_schedule.yml")
@@ -37,6 +37,7 @@ DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7 = os.path.join(
     here, "fixtures/dag_factory_kubernetes_pod_operator_lt_2_7.yml"
 )
 DAG_FACTORY_VARIABLES_AS_ARGUMENTS = os.path.join(here, "fixtures/dag_factory_variables_as_arguments.yml")
+DAG_FACTORY_TIMEZONE = os.path.join(here, "fixtures_without_default_yaml/dag_factory_timezone.yml")
 
 DOC_MD_FIXTURE_FILE = os.path.join(here, "fixtures/mydocfile.md")
 DOC_MD_PYTHON_CALLABLE_FILE = os.path.join(here, "fixtures/doc_md_builder.py")
@@ -145,6 +146,7 @@ def test_load_dag_config_valid(monkeypatch):
         },
         "example_dag": {
             "doc_md": "##here is a doc md string",
+            "timezone": "UTC",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule": "0 3 * * *",
@@ -232,6 +234,7 @@ def test_get_dag_configs(monkeypatch):
     expected = {
         "example_dag": {
             "doc_md": "##here is a doc md string",
+            "timezone": "UTC",
             "default_args": {"owner": "custom_owner", "start_date": "2 days"},
             "description": "this is an example dag",
             "schedule": "0 3 * * *",
@@ -349,28 +352,36 @@ def test_generate_dags_with_removal_valid():
     assert "fake_example_dag" not in globals()
 
 
-def test_generate_dags_invalid():
-    with pytest.raises(Exception):
+def test_generate_dags_invalid_strict(monkeypatch):
+    """In strict mode a broken DAG config raises DagFactoryConfigException."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    monkeypatch.setattr(dag_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException, match="DAG build failed"):
         load_yaml_dags(
             globals_dict=globals(),
             config_filepath=INVALID_DAG_FACTORY,
         )
 
 
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) < version.parse("2.7.0"), reason="Requires Airflow >= 2.7.0")
-def test_kubernetes_pod_operator_dag_gte_2_7():
+def test_generate_dags_invalid_non_strict(monkeypatch, caplog):
+    """In non-strict mode a broken DAG config is logged but does not raise."""
+    from dagfactory import settings as dag_settings
+
+    monkeypatch.setattr(dag_settings, "strict_mode", False)
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(
+            globals_dict=globals(),
+            config_filepath=INVALID_DAG_FACTORY,
+        )
+    assert any("Failed to build DAG" in r.message for r in caplog.records)
+
+
+def test_kubernetes_pod_operator_dag():
     load_yaml_dags(
         globals_dict=globals(),
         config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR,
-    )
-    assert "example_dag" in globals()
-
-
-@pytest.mark.skipif(version.parse(AIRFLOW_VERSION) >= version.parse("2.7.0"), reason="Requires Airflow < 2.7.0")
-def test_kubernetes_pod_operator_dag_lt_2_7():
-    load_yaml_dags(
-        globals_dict=globals(),
-        config_filepath=DAG_FACTORY_KUBERNETES_POD_OPERATOR_LT_2_7,
     )
     assert "example_dag" in globals()
 
@@ -539,9 +550,74 @@ def test_set_callback_after_loading_config():
 
 
 def test_build_dag_with_global_default():
-    dags = _DagFactory(config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
+    dags, _ = _DagFactory(config_dict=DAG_FACTORY_CONFIG, defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT).build_dags()
 
     assert dags.get("example_dag").tasks[0].depends_on_past == True
+
+
+def test_load_yaml_dags_folder_scan_forwards_defaults_config_path(tmp_path):
+    defaults_root = tmp_path / "defaults_root"
+    dags_folder = defaults_root / "nested"
+    dags_folder.mkdir(parents=True)
+
+    dag_file = dags_folder / "dag.yml"
+    shutil.copyfile(DAG_FACTORY_VARIABLES_AS_ARGUMENTS, dag_file)
+
+    with open(defaults_root / "defaults.yml", "w") as fp:
+        yaml.dump({"default_args": {"depends_on_past": True}}, fp)
+
+    globals_dict = {}
+    load_yaml_dags(
+        globals_dict=globals_dict,
+        dags_folder=str(dags_folder),
+        defaults_config_path=str(defaults_root),
+    )
+
+    assert globals_dict["example_dag"].tasks[0].depends_on_past == True
+
+
+def test_load_yaml_dags_skips_defaults_file_in_dags_folder(tmp_path):
+    dags_folder = tmp_path / "dags"
+    dags_folder.mkdir()
+
+    shutil.copyfile(DAG_FACTORY_VARIABLES_AS_ARGUMENTS, dags_folder / "dag.yml")
+    with open(dags_folder / "defaults.yml", "w") as fp:
+        yaml.dump({"default_args": {"depends_on_past": True}}, fp)
+
+    globals_dict = {}
+    load_yaml_dags(
+        globals_dict=globals_dict,
+        dags_folder=str(dags_folder),
+        defaults_config_path=str(dags_folder),
+    )
+
+    # The defaults still apply, but defaults.yml must not become a DAG itself.
+    assert "default_args" not in globals_dict
+    assert globals_dict["example_dag"].tasks[0].depends_on_past == True
+
+
+def test_load_yaml_dags_config_dict_forwards_defaults_config_path():
+    globals_dict = {}
+
+    load_yaml_dags(
+        globals_dict=globals_dict,
+        config_dict=DAG_FACTORY_CONFIG,
+        defaults_config_path=DEFAULT_ARGS_CONFIG_ROOT,
+    )
+
+    assert globals_dict["example_dag"].tasks[0].depends_on_past == True
+
+
+def test_load_yaml_dags_config_filepath_forwards_defaults_config_dict():
+    globals_dict = {}
+
+    load_yaml_dags(
+        globals_dict=globals_dict,
+        config_filepath=DAG_FACTORY_VARIABLES_AS_ARGUMENTS,
+        defaults_config_dict={"default_args": {"depends_on_past": True}},
+    )
+
+    assert globals_dict["example_dag"].tasks[0].depends_on_past == True
 
 
 def test_build_dag_with_global_dag_level_defaults():
@@ -567,7 +643,7 @@ def test_build_dag_with_global_dag_level_defaults():
     td = _DagFactory(config_dict=config)
     with pytest.MonkeyPatch.context() as m:
         m.setattr(td, "_global_default_args", lambda: global_defaults)
-        dags = td.build_dags()
+        dags, _ = td.build_dags()
 
     assert dags["test_dag"].catchup == False
     assert "global_tag" in dags["test_dag"].tags
@@ -578,7 +654,7 @@ def test_build_dag_with_global_dag_level_defaults():
 
 
 def test_build_dag_with_global_default_dict():
-    dags = _DagFactory(
+    dags, _ = _DagFactory(
         config_dict=DAG_FACTORY_CONFIG,
         defaults_config_dict={
             "default_args": {"start_date": "2025-01-01", "owner": "global_owner", "depends_on_past": True}
@@ -605,6 +681,488 @@ def test_load_yaml_dags_default_suffix_succeed(caplog):
         dags_folder="tests/fixtures",
     )
     assert "Loading DAGs from tests/fixtures" in caplog.messages
+
+
+@pytest.mark.parametrize(
+    "root_ignore_file_content,nested_ignore_file_content,expected_patterns",
+    [
+        (None, None, {}),  # No ignore files
+        ("", None, {Path("."): []}),  # Empty file
+        (
+            "test_*.yml\n*_test.yaml\n# This is a comment\nold_dags/*.yaml\nbackup/**/*.yml\n",
+            None,
+            {Path("."): ["test_*.yml", "*_test.yaml", "old_dags/*.yaml", "backup/**/*.yml"]},
+        ),
+        (
+            "  test_*.yml  \n    \n*_test.yaml\n",
+            "nested/*.yml\n",
+            {Path("."): ["test_*.yml", "*_test.yaml"], Path("subdir"): ["nested/*.yml"]},
+        ),
+        (
+            "test_*.yml # inline comment\n*_test.yaml  # another comment\n",
+            None,
+            {Path("."): ["test_*.yml", "*_test.yaml"]},
+        ),
+    ],
+)
+def test_load_airflowignore(tmp_path, root_ignore_file_content, nested_ignore_file_content, expected_patterns):
+    """Test that _load_airflowignore loads root and nested patterns correctly."""
+    if root_ignore_file_content is not None:
+        (tmp_path / ".airflowignore").write_text(root_ignore_file_content)
+
+    if nested_ignore_file_content is not None:
+        nested_dir = tmp_path / "subdir"
+        nested_dir.mkdir()
+        (nested_dir / ".airflowignore").write_text(nested_ignore_file_content)
+
+    ignore_patterns = _load_airflowignore(str(tmp_path))
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
+    assert relative_ignore_patterns == expected_patterns
+
+    loaded_patterns = [pattern for patterns in ignore_patterns.values() for pattern in patterns]
+    assert "# This is a comment" not in loaded_patterns
+
+
+def test_load_airflowignore_follows_symlinked_directories(tmp_path):
+    """Nested .airflowignore files inside symlinked directories should be discovered."""
+    external_dir = tmp_path.parent / "airflowignore_external"
+    external_dir.mkdir()
+    (external_dir / ".airflowignore").write_text("ignored/*.yml\n")
+
+    symlink_dir = tmp_path / "linked"
+    symlink_dir.symlink_to(external_dir, target_is_directory=True)
+
+    ignore_patterns = _load_airflowignore(str(tmp_path))
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
+
+    assert relative_ignore_patterns == {Path("linked"): ["ignored/*.yml"]}
+
+
+def test_load_airflowignore_read_failure(caplog, tmp_path):
+    """Test that _load_airflowignore handles file read failures gracefully."""
+    caplog.set_level(logging.WARNING)
+    ignore_file = tmp_path / ".airflowignore"
+    ignore_file.write_text("test_*.yml\n")
+
+    # Mock open to raise OSError
+    with patch("builtins.open", side_effect=OSError("Permission denied")):
+        ignore_patterns = _load_airflowignore(str(tmp_path))
+        assert ignore_patterns == {tmp_path: []}
+        assert any("Failed to read .airflowignore" in msg for msg in caplog.messages)
+
+
+@pytest.mark.parametrize(
+    "file_path_str,ignore_patterns,expected,outside_dags_folder",
+    [
+        # Basic patterns
+        ("test.yml", {}, False, False),
+        ("test_example.yml", {Path("."): ["test_*.yml"]}, True, False),
+        ("nested/test_example.yml", {Path("."): ["test_*.yml"]}, True, False),
+        ("old_dags/dag.yml", {Path("."): ["old_dags/*.yml"]}, True, False),
+        ("old_dags/sub/inner.yml", {Path("."): ["old_dags/*.yml"]}, False, False),
+        ("valid_dag.yml", {Path("."): ["test_*.yml", "old_dags/*.yaml"]}, False, False),
+        # Directory and negation patterns
+        ("ignored/file.yml", {Path("."): ["ignored/"]}, True, False),
+        ("nested/ignored/file.yml", {Path("."): ["ignored/"]}, True, False),
+        ("keep.yml", {Path("."): ["*.yml", "!keep.yml"]}, False, False),
+        ("nested/keep.yml", {Path("."): ["*.yml", "!keep.yml"]}, False, False),
+        ("nested/skip.yml", {Path("."): ["*.yml", "!keep.yml"]}, True, False),
+        # Recursive patterns
+        ("backup/backup_dag.yaml", {Path("."): ["backup/**/*.yaml"]}, True, False),
+        ("backup/file.yaml", {Path("."): ["backup/**/*.yaml"]}, True, False),
+        ("backup/subdir/file.yaml", {Path("."): ["backup/**/*.yaml"]}, True, False),
+        ("backup/subdir/nested/file.yaml", {Path("."): ["backup/**/*.yaml"]}, True, False),
+        ("backup2/file.yaml", {Path("."): ["backup/**/*.yaml"]}, False, False),
+        ("backup_file.yaml", {Path("."): ["backup/**/*.yaml"]}, False, False),
+        # Recursive pattern without suffix
+        ("backup/file1.yaml", {Path("."): ["backup/**"]}, True, False),
+        ("backup/subdir/file2.yaml", {Path("."): ["backup/**"]}, True, False),
+        ("backup/subdir/nested/file3.yaml", {Path("."): ["backup/**"]}, True, False),
+        ("backup2/file.yaml", {Path("."): ["backup/**"]}, False, False),
+        ("backup_file.yaml", {Path("."): ["backup/**"]}, False, False),
+        ("other_file.yaml", {Path("."): ["backup/**"]}, False, False),
+        # Files outside dags_folder
+        ("outside_file.yml", {Path("."): ["outside_*.yml"]}, True, True),
+        ("outside_file.yml", {Path("."): ["test_*.yml"]}, False, True),
+        ("backup_file.yaml", {Path("."): ["backup/**/*.yaml"]}, False, True),
+        ("backup_file.yaml", {Path("."): ["backup/**/*.yml"]}, False, True),
+        ("file.yaml", {Path("."): ["backup/**/*.yaml"]}, False, True),
+        # Nested .airflowignore files are applied relative to their own directory
+        (
+            "nested/ignored/child.yml",
+            {Path("nested"): ["ignored/*.yml"]},
+            True,
+            False,
+        ),
+        (
+            "nested/other/child.yml",
+            {Path("nested"): ["ignored/*.yml"]},
+            False,
+            False,
+        ),
+    ],
+)
+def test_should_ignore_file(monkeypatch, tmp_path, file_path_str, ignore_patterns, expected, outside_dags_folder):
+    """Test that _should_ignore_file matches patterns correctly."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    dags_folder = tmp_path
+    ignore_patterns_by_dir = {
+        dags_folder / relative_dir: patterns for relative_dir, patterns in ignore_patterns.items()
+    }
+
+    if outside_dags_folder:
+        file_path = tmp_path.parent / file_path_str
+    else:
+        file_path = tmp_path / file_path_str
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    file_path.touch()
+    assert _should_ignore_file(file_path, dags_folder, ignore_patterns_by_dir) is expected
+
+
+def test_should_ignore_file_uses_lexical_path_for_symlinked_files(monkeypatch, tmp_path):
+    """Lexically in-tree symlinked files should still match path-based ignore patterns."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    dags_folder = tmp_path
+    external_target = tmp_path.parent / "external_dag.yml"
+    external_target.write_text("external")
+
+    symlink_path = dags_folder / "symlinked" / "external_dag.yml"
+    symlink_path.parent.mkdir(parents=True, exist_ok=True)
+    symlink_path.symlink_to(external_target)
+
+    ignore_patterns = {dags_folder: ["symlinked/*.yml"]}
+    assert _should_ignore_file(symlink_path, dags_folder, ignore_patterns) is True
+
+
+def test_get_dag_ignore_file_syntax_defaults_to_glob(monkeypatch):
+    monkeypatch.setattr(dagfactory.airflow_conf, "get", lambda *args, **kwargs: kwargs.get("fallback", "glob"))
+
+    assert _get_dag_ignore_file_syntax() == "glob"
+
+
+def test_should_ignore_file_respects_regexp_syntax(monkeypatch, tmp_path):
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "regexp")
+
+    dags_folder = tmp_path
+    ignore_patterns = {
+        dags_folder: [r"(^|/)skip_.*\.ya?ml$"],
+        dags_folder / "nested": [r"^nested/also_skip\.ya?ml$"],
+    }
+
+    skip_root = dags_folder / "skip_root.yml"
+    keep_root = dags_folder / "keep_root.yml"
+    skip_nested = dags_folder / "nested" / "skip_nested.yaml"
+    also_skip_nested = dags_folder / "nested" / "also_skip.yml"
+    keep_nested = dags_folder / "nested" / "keep_nested.yml"
+
+    for file_path in [skip_root, keep_root, skip_nested, also_skip_nested, keep_nested]:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.touch()
+
+    assert _should_ignore_file(skip_root, dags_folder, ignore_patterns) is True
+    assert _should_ignore_file(keep_root, dags_folder, ignore_patterns) is False
+    assert _should_ignore_file(skip_nested, dags_folder, ignore_patterns) is True
+    assert _should_ignore_file(also_skip_nested, dags_folder, ignore_patterns) is True
+    assert _should_ignore_file(keep_nested, dags_folder, ignore_patterns) is False
+
+
+def test_should_ignore_file_regexp_ignores_outside_files(monkeypatch, tmp_path):
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "regexp")
+
+    dags_folder = tmp_path
+    outside_file = tmp_path.parent / "skip_outside.yml"
+    outside_file.touch()
+
+    assert _should_ignore_file(outside_file, dags_folder, {dags_folder: [r"skip_.*\.yml$"]}) is False
+
+
+def _create_dag_file(file_path: Path, dag_id: str, bash_operator_path: str) -> None:
+    """Helper function to create a DAG YAML file"""
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(f"""
+default:
+  default_args:
+    owner: airflow
+    start_date: 2024-01-01
+{dag_id}:
+  schedule: "@daily"
+  tasks:
+    - task_id: task_1
+      operator: {bash_operator_path}
+      bash_command: echo 1
+""")
+
+
+def test_load_yaml_dags_with_airflowignore(monkeypatch, caplog, tmp_path):
+    """Test that load_yaml_dags respects .airflowignore file."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    # Create test DAG files
+    _create_dag_file(tmp_path / "valid_dag.yml", "valid_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "test_ignored.yml", "ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "another_valid.yaml", "another_valid_dag", bash_operator_path)
+
+    # Create .airflowignore file
+    (tmp_path / ".airflowignore").write_text("test_*.yml\n")
+
+    # Load DAGs
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    # Check results
+    assert "valid_dag" in globals_dict
+    assert "another_valid_dag" in globals_dict
+    assert "ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "test_ignored.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_nested_airflowignore(monkeypatch, caplog, tmp_path):
+    """Nested .airflowignore files should apply relative to their own directory."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "valid_dag.yml", "valid_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "kept.yml", "nested_kept_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "ignored" / "skip.yml", "nested_ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "other" / "keep.yml", "nested_other_kept_dag", bash_operator_path)
+
+    (tmp_path / "nested").mkdir(exist_ok=True)
+    (tmp_path / "nested" / ".airflowignore").write_text("ignored/*.yml\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "valid_dag" in globals_dict
+    assert "nested_kept_dag" in globals_dict
+    assert "nested_other_kept_dag" in globals_dict
+    assert "nested_ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "nested/ignored/skip.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_symlinked_file_uses_lexical_path_ignore(monkeypatch, caplog, tmp_path):
+    """Path-based ignore patterns should still match lexically in-tree symlinked files."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    external_target = tmp_path.parent / "external_dag.yml"
+    _create_dag_file(external_target, "symlinked_ignored_dag", bash_operator_path)
+
+    symlink_path = tmp_path / "symlinked" / "external_dag.yml"
+    symlink_path.parent.mkdir(parents=True, exist_ok=True)
+    symlink_path.symlink_to(external_target)
+
+    (tmp_path / ".airflowignore").write_text("symlinked/*.yml\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "symlinked_ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "symlinked/external_dag.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_follows_symlinked_directories_and_nested_airflowignore(monkeypatch, caplog, tmp_path):
+    """Symlinked directories should be scanned and use their nested .airflowignore rules."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    external_dir = tmp_path.parent / "symlinked_dags_external"
+    external_dir.mkdir()
+    _create_dag_file(external_dir / "ignored" / "skip.yml", "symlinked_nested_ignored_dag", bash_operator_path)
+    _create_dag_file(external_dir / "keep.yml", "symlinked_nested_kept_dag", bash_operator_path)
+    (external_dir / ".airflowignore").write_text("ignored/*.yml\n")
+
+    symlink_dir = tmp_path / "linked"
+    symlink_dir.symlink_to(external_dir, target_is_directory=True)
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "symlinked_nested_kept_dag" in globals_dict
+    assert "symlinked_nested_ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "linked/ignored/skip.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_airflowignore_negation(monkeypatch, caplog, tmp_path):
+    """Negated patterns should re-include matching files within the same ignore scope."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "skip.yml", "ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "keep.yml", "kept_dag", bash_operator_path)
+
+    (tmp_path / ".airflowignore").write_text("*.yml\n!keep.yml\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "kept_dag" in globals_dict
+    assert "ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "skip.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_nested_airflowignore_negation(monkeypatch, caplog, tmp_path):
+    """Nested negations should override parent ignore rules for files in that subtree."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "nested" / "keep.yml", "nested_kept_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "skip.yml", "nested_ignored_dag", bash_operator_path)
+
+    (tmp_path / ".airflowignore").write_text("*.yml\n")
+    (tmp_path / "nested").mkdir(exist_ok=True)
+    (tmp_path / "nested" / ".airflowignore").write_text("!keep.yml\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "nested_kept_dag" in globals_dict
+    assert "nested_ignored_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "nested/skip.yml" in msg for msg in caplog.messages)
+
+
+@pytest.mark.parametrize("ignore_syntax", ["glob", "regexp"])
+def test_load_yaml_dags_prunes_parent_ignored_subtrees(monkeypatch, caplog, tmp_path, ignore_syntax):
+    """Parent-ignored directories should not be traversed or load nested .airflowignore files."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: ignore_syntax)
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "kept.yml", "kept_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "ignored" / "keep.yml", "ignored_kept_dag", bash_operator_path)
+
+    (tmp_path / ".airflowignore").write_text("ignored/\n")
+    (tmp_path / "ignored" / ".airflowignore").write_text("!keep.yml\n")
+
+    ignore_patterns = _load_airflowignore(str(tmp_path))
+    relative_ignore_patterns = {
+        ignore_dir.relative_to(tmp_path): patterns for ignore_dir, patterns in ignore_patterns.items()
+    }
+    assert relative_ignore_patterns == {Path("."): ["ignored/"]}
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "kept_dag" in globals_dict
+    assert "ignored_kept_dag" not in globals_dict
+    assert not any("Loading" in msg and "ignored/keep.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_directory_airflowignore_pattern(monkeypatch, caplog, tmp_path):
+    """Directory patterns ending with `/` should ignore matching subtrees."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "ignored" / "skip.yml", "ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "ignored" / "skip.yml", "nested_ignored_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "kept.yml", "kept_dag", bash_operator_path)
+
+    (tmp_path / ".airflowignore").write_text("ignored/\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "kept_dag" in globals_dict
+    assert "ignored_dag" not in globals_dict
+    assert "nested_ignored_dag" not in globals_dict
+    assert not any("Loading" in msg and "ignored/skip.yml" in msg for msg in caplog.messages)
+
+
+def test_load_yaml_dags_with_airflowignore_regexp_syntax(monkeypatch, caplog, tmp_path):
+    """Regexp syntax should follow Airflow's dag_ignore_file_syntax setting."""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "regexp")
+    caplog.set_level(logging.DEBUG)
+    bash_operator_path = get_bash_operator_path()
+
+    _create_dag_file(tmp_path / "keep.yml", "kept_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "skip_root.yml", "ignored_root_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "skip_nested.yaml", "ignored_nested_dag", bash_operator_path)
+    _create_dag_file(tmp_path / "nested" / "keep_nested.yml", "kept_nested_dag", bash_operator_path)
+
+    (tmp_path / ".airflowignore").write_text("(^|/)skip_.*\\.ya?ml$\n")
+
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    assert "kept_dag" in globals_dict
+    assert "kept_nested_dag" in globals_dict
+    assert "ignored_root_dag" not in globals_dict
+    assert "ignored_nested_dag" not in globals_dict
+    assert any("Ignoring file" in msg and "skip_root.yml" in msg for msg in caplog.messages)
+    assert any("Ignoring file" in msg and "nested/skip_nested.yaml" in msg for msg in caplog.messages)
+
+
+@pytest.mark.parametrize(
+    "dag_files,ignore_patterns,expected_loaded,expected_not_loaded",
+    [
+        # Subdirectory patterns
+        (
+            {"valid_dag.yml": "valid_dag", "old_dags/old_dag.yml": "old_dag", "backup/backup_dag.yaml": "backup_dag"},
+            "old_dags/*.yml\nbackup/**/*.yaml\n",
+            ["valid_dag"],
+            ["old_dag", "backup_dag"],
+        ),
+        # Path-aware matching should not ignore similarly named paths
+        (
+            {
+                "valid_dag.yml": "valid_dag",
+                "backup2/file.yaml": "backup2_dag",
+                "backup_file.yaml": "backup_file_dag",
+                "old_dags/sub/inner.yml": "old_dags_inner_dag",
+            },
+            "old_dags/*.yml\nbackup/**/*.yaml\n",
+            ["valid_dag", "backup2_dag", "backup_file_dag", "old_dags_inner_dag"],
+            [],
+        ),
+        # No ignore file
+        ({"dag1.yml": "dag1", "dag2.yaml": "dag2"}, None, ["dag1", "dag2"], []),
+        # Comments in ignore file
+        (
+            {"valid_dag.yml": "valid_dag", "test_dag.yml": "test_dag"},
+            "# This is a comment\n# Another comment\ntest_*.yml\n# Yet another comment\n",
+            ["valid_dag"],
+            ["test_dag"],
+        ),
+    ],
+)
+def test_load_yaml_dags_with_airflowignore_scenarios(
+    monkeypatch, tmp_path, dag_files, ignore_patterns, expected_loaded, expected_not_loaded
+):
+    """Test various .airflowignore scenarios"""
+    monkeypatch.setattr(dagfactory, "_get_dag_ignore_file_syntax", lambda: "glob")
+    bash_operator_path = get_bash_operator_path()
+
+    # Create DAG files
+    for file_path_str, dag_id in dag_files.items():
+        file_path = tmp_path / file_path_str
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        _create_dag_file(file_path, dag_id, bash_operator_path)
+
+    # Create .airflowignore file if provided
+    if ignore_patterns:
+        (tmp_path / ".airflowignore").write_text(ignore_patterns)
+
+    # Load DAGs
+    globals_dict = {}
+    load_yaml_dags(globals_dict=globals_dict, dags_folder=str(tmp_path))
+
+    # Check results
+    for dag_id in expected_loaded:
+        assert dag_id in globals_dict, f"Expected {dag_id} to be loaded"
+    for dag_id in expected_not_loaded:
+        assert dag_id not in globals_dict, f"Expected {dag_id} to be ignored"
 
 
 @pytest.mark.skipif(
@@ -686,6 +1244,18 @@ def test_dag_level_start():
         assert dag.tasks[0].sla == datetime.timedelta(seconds=10)
 
 
+def test_build_dags_timezone_example():
+    """DAG-level and default_args timezone keys yield expected aware datetimes (see docs/configuration/defaults.md)."""
+    path = os.path.abspath(DAG_FACTORY_TIMEZONE)
+    factory = _DagFactory(config_filepath=path)
+    dags, _ = factory.build_dags()
+    assert set(dags) == {"timezone_dag_level", "timezone_default_args"}
+    paris = DateTime(2024, 6, 15, 0, 0, 0, tzinfo=Timezone("Europe/Paris"))
+    assert dags["timezone_dag_level"].start_date == paris
+    nyc = DateTime(2024, 7, 1, 0, 0, 0, tzinfo=Timezone("America/New_York"))
+    assert dags["timezone_default_args"].default_args["start_date"] == nyc
+
+
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):
     # Create structure: tmp_path/a/b/c/dag.yml
     dag_path = tmp_path / "a" / "b" / "c"
@@ -754,7 +1324,7 @@ def test_default_override_based_on_directory_tree(serialize_config_md_mock, tmp_
 
     some_dag = _DagFactory(str(dag_file), defaults_config_path=str(tmp_path / "a"))
 
-    result = some_dag.build_dags()
+    result, _ = some_dag.build_dags()
     dag = result["second_example_dag"]
     assert dag.default_args["a_param"] == "a"  # accumulates properties define throughout the directories tree
     assert dag.default_args["b_param"] == "b"  # accumulates properties define throughout the directories tree
@@ -854,3 +1424,140 @@ example_dict_dag_yaml:
     assert len(dag.tasks) == 2
     # Validate grouping
     assert any(task.task_id.startswith("task_group_1.task_2") for task in dag.tasks)
+
+
+# ---------------------------------------------------------------------------
+# Strict mode tests
+# ---------------------------------------------------------------------------
+
+_GOOD_DAG_CONFIG = {
+    "good_dag": {
+        "default_args": {"owner": "airflow", "start_date": "2024-01-01"},
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": get_bash_operator_path(),
+                "bash_command": "echo hello",
+            }
+        },
+    }
+}
+
+_BAD_DAG_CONFIG = {
+    "bad_dag": {
+        "default_args": {"owner": "airflow", "start_date": "2024-01-01"},
+        "schedule": "0 3 * * *",
+        "tasks": {
+            "task_1": {
+                "operator": "non.existent.Operator",
+                "bash_command": "echo hello",
+            }
+        },
+    }
+}
+
+_MIXED_DAG_CONFIG = {**_GOOD_DAG_CONFIG, **_BAD_DAG_CONFIG}
+
+
+def test_build_dags_returns_tuple():
+    """build_dags always returns (dags_dict, first_build_error)."""
+    factory = _DagFactory(config_dict=_GOOD_DAG_CONFIG)
+    result = factory.build_dags()
+    assert isinstance(result, tuple) and len(result) == 2
+    dags, first_error = result
+    assert "good_dag" in dags
+    assert first_error is None
+
+
+def test_build_dags_partial_failure_returns_good_dags():
+    """A broken DAG does not prevent valid ones from being returned."""
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    dags, first_error = factory.build_dags()
+    assert "good_dag" in dags
+    assert first_error is not None
+    assert first_error[0] == "bad_dag"
+    assert isinstance(first_error[1], Exception)
+
+
+def test_generate_dags_non_strict_swallows_errors():
+    """In non-strict mode, build errors are logged but no exception is raised."""
+    from dagfactory import settings as dag_settings
+
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    g: dict = {}
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(dag_settings, "strict_mode", False)
+        factory._generate_dags(g)  # must not raise
+
+    assert "good_dag" in g
+
+
+def test_generate_dags_strict_raises_and_registers_good():
+    """In strict mode, good DAGs are registered AND an exception is raised."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    factory = _DagFactory(config_dict=_MIXED_DAG_CONFIG)
+    g: dict = {}
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(dag_settings, "strict_mode", True)
+        with pytest.raises(DagFactoryConfigException, match="DAG build failed"):
+            factory._generate_dags(g)
+
+    assert "good_dag" in g
+
+
+def test_load_yaml_dags_strict_mode_folder_scan_bad_file_raises(tmp_path, monkeypatch):
+    """In folder-scan strict mode a broken YAML file raises after loading good files."""
+    from dagfactory import settings as dag_settings
+    from dagfactory.exceptions import DagFactoryConfigException
+
+    good_yaml = tmp_path / "good.yml"
+    good_yaml.write_text(f"""
+good_scan_dag:
+  default_args:
+    owner: airflow
+    start_date: "2024-01-01"
+  schedule: "@daily"
+  tasks:
+    t1:
+      operator: {get_bash_operator_path()}
+      bash_command: echo 1
+""")
+    bad_yaml = tmp_path / "bad.yml"
+    bad_yaml.write_text("not: valid: yaml: [")
+
+    g: dict = {}
+    monkeypatch.setattr(dag_settings, "strict_mode", True)
+    with pytest.raises(DagFactoryConfigException):
+        load_yaml_dags(globals_dict=g, dags_folder=str(tmp_path))
+
+    assert "good_scan_dag" in g
+
+
+def test_load_yaml_dags_non_strict_folder_scan_continues_on_error(tmp_path, monkeypatch, caplog):
+    """In non-strict folder-scan mode a broken file is logged but does not prevent other files loading."""
+    from dagfactory import settings as dag_settings
+
+    good_yaml = tmp_path / "good.yml"
+    good_yaml.write_text(f"""
+good_scan_dag2:
+  default_args:
+    owner: airflow
+    start_date: "2024-01-01"
+  schedule: "@daily"
+  tasks:
+    t1:
+      operator: {get_bash_operator_path()}
+      bash_command: echo 1
+""")
+    bad_yaml = tmp_path / "bad.yml"
+    bad_yaml.write_text("not: valid: yaml: [")
+
+    g: dict = {}
+    monkeypatch.setattr(dag_settings, "strict_mode", False)
+    with caplog.at_level(logging.ERROR):
+        load_yaml_dags(globals_dict=g, dags_folder=str(tmp_path))  # must not raise
+
+    assert "good_scan_dag2" in g
+    assert any("bad.yml" in r.message for r in caplog.records)

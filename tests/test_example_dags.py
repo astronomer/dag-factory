@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from functools import cache
 from pathlib import Path
 
@@ -8,7 +9,6 @@ import pytest
 from airflow.models.dagbag import DagBag
 from airflow.utils.db import create_default_connections
 from airflow.utils.session import provide_session
-from airflow.utils.state import DagRunState
 from packaging.version import Version
 
 from . import utils as test_utils
@@ -16,19 +16,13 @@ from . import utils as test_utils
 EXAMPLE_DAGS_DIR = Path(__file__).parent.parent / "dev/dags"
 AIRFLOW_IGNORE_FILE = EXAMPLE_DAGS_DIR / ".airflowignore"
 AIRFLOW_VERSION = Version(airflow.__version__)
+# Airflow 3.3 dropped the `include_examples` kwarg from DagBag.__init__ (examples
+# are no longer loaded implicitly), so only pass it on versions that still support it.
+_DAGBAG_SUPPORTS_INCLUDE_EXAMPLES = "include_examples" in inspect.signature(DagBag.__init__).parameters
 # TODO: Enable asset_triggered_dags.py once https://github.com/apache/airflow/issues/51644 is solved
 IGNORED_DAG_FILES = ["example_callbacks.py", "example_http_operator_task.py", "asset_triggered_dags.py", "kpo.py"]
 
-MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {
-    "2.5": [
-        "example_pypi_stats_dagfactory",
-        "example_hackernews_dagfactory",
-        "example_hackernews_plain_airflow",
-        "example_pypi_stats_plain_airflow",
-    ],
-    "2.7": ["example_timetable_schedule.py"],
-    "2.9": ["example_map_index_template.py", "example_object_storage.py"],
-}
+MIN_VER_DAG_FILE_VER: dict[str, list[str]] = {}
 
 MAX_VER_DAG_FILE_VER: dict[str, list[str]] = {
     "3.0": ["example_timetable_schedule.py"],  # `timetable` parameter removed in Airflow 3.0
@@ -37,7 +31,7 @@ MAX_VER_DAG_FILE_VER: dict[str, list[str]] = {
 
 @provide_session
 def get_session(session=None):
-    create_default_connections(session)
+    create_default_connections(session=session)
     return session
 
 
@@ -78,7 +72,10 @@ def get_dag_bag() -> DagBag:
     # Print the contents of the .airflowignore file, and build the DagBag
     print(".airflowignore contents: ")
     print(AIRFLOW_IGNORE_FILE.read_text())
-    db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
+    if _DAGBAG_SUPPORTS_INCLUDE_EXAMPLES:
+        db = DagBag(EXAMPLE_DAGS_DIR, include_examples=False)
+    else:
+        db = DagBag(EXAMPLE_DAGS_DIR)
 
     assert db.dags
     assert not db.import_errors
@@ -96,13 +93,6 @@ def test_example_dag(session, dag_id: str):
     dag_bag = get_dag_bag()
     dag = dag_bag.get_dag(dag_id)
 
-    # This feature is available since Airflow 2.5:
-    # https://airflow.apache.org/docs/apache-airflow/stable/release_notes.html#airflow-2-5-0-2022-12-02
-    dag_run = None
-    if AIRFLOW_VERSION >= Version("2.5"):
-        dag_run = dag.test()
-    else:
-        dag_run = test_utils.run_dag(dag)
+    dag_run = test_utils.run_dag(dag)
 
-    if dag_run is not None:
-        assert dag_run.state == DagRunState.SUCCESS
+    assert test_utils.check_dag_success(dag_run)

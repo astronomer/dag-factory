@@ -14,7 +14,7 @@ declaratively via configuration files.
 The minimum requirements for **dag-factory** are:
 
 - Python 3.10.0+
-- [Apache Airflow®](https://airflow.apache.org) 2.4+
+- [Apache Airflow®](https://airflow.apache.org) 2.9+
 
 For a gentle introduction, please take a look at our [Quickstart Guide](https://astronomer.github.io/dag-factory/latest/getting-started/quick-start-airflow-standalone/). For more examples, please see the
 [examples](/examples/dags/) folder.
@@ -50,6 +50,10 @@ Version **1.0** introduces important improvements and breaking changes to suppor
 ## 🚀 Dag-Factory Supports Airflow 3
 
 DAG-Factory is compatible with **Apache Airflow 3** and supports modern scheduling, and updated import paths.
+
+## Community
+
+Join us on the Apache Airflow Slack Workspace at [#yaml-dags](https://apache-airflow.slack.com/archives/C099751BPHT)
 
 ## License
 

@@ -46,7 +46,14 @@ def test_help_output_when_no_command():
     result = runner.invoke(app, [])
     assert result.exit_code == 0
     assert "DAG Factory" in result.output
-    assert "dagfactory [OPTIONS] COMMAND [ARGS]" in result.output
+    # typer's exact "Usage:" formatting (brackets/ellipsis around COMMAND/ARGS, and whether
+    # ANSI color codes split "Usage:" from "dagfactory") varies by version and environment,
+    # so just check the pieces that are stable across both.
+    assert "Usage" in result.output
+    assert "dagfactory" in result.output
+    assert "OPTIONS" in result.output
+    assert "COMMAND" in result.output
+    assert "ARGS" in result.output
 
 
 def test_help_option():
@@ -72,6 +79,61 @@ def test_lint_no_yaml_files(tmp_path):
 def test_lint_valid_yaml(tmp_yaml_file):
     result = runner.invoke(app, ["lint", str(tmp_yaml_file)])
     assert result.exit_code == 0
+    assert "no errors found" in result.stdout.lower()
+
+
+def test_lint_exclude_single_file(tmp_yaml_file, tmp_path):
+    ignore_file = tmp_path / "ignore.yaml"
+    ignore_file.write_text("key: value\n")
+    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", str(ignore_file)])
+    assert result.exit_code == 0
+    assert "Ignored 1 YAML file" in result.stdout
+    assert "no errors found" in result.stdout.lower()
+
+
+def test_lint_exlucde_single_file_with_airflowignore(tmp_yaml_file, tmp_path):
+    airflowignore_yaml = tmp_path / "ignored.yaml"
+    airflowignore_yaml.write_text("key: value\n")
+
+    (tmp_path / ".airflowignore").write_text("ignored\n")
+
+    dummy_ignore = tmp_path / "dummy.txt"
+    dummy_ignore.write_text("noop")
+
+    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", str(dummy_ignore)])
+    assert result.exit_code == 0
+    assert "Ignored 1 YAML file" in result.stdout
+    assert "no errors found" in result.stdout.lower()
+
+
+def test_lint_exclude_multiple_files(tmp_yaml_file, tmp_path):
+    ignore_first_yaml = tmp_path / "first.yaml"
+    ignore_first_yaml.write_text("key: value\n")
+    ignore_second_yaml = tmp_path / "second.yaml"
+    ignore_second_yaml.write_text("key: value\n")
+    result = runner.invoke(app, ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}"])
+    assert result.exit_code == 0
+    assert "Ignored 2 YAML files" in result.stdout
+    assert "no errors found" in result.stdout.lower()
+
+
+def test_lint_exclude_multiple_files_with_airflowignore(tmp_yaml_file, tmp_path):
+    ignore_first_yaml = tmp_path / "first.yaml"
+    ignore_first_yaml.write_text("key: value\n")
+    ignore_second_yaml = tmp_path / "second.yaml"
+    ignore_second_yaml.write_text("key: value\n")
+
+    airflowignore_third_yaml = tmp_path / "third.yaml"
+    airflowignore_third_yaml.write_text("key: value\n")
+
+    (tmp_path / ".airflowignore").write_text("third\n")
+
+    result = runner.invoke(
+        app,
+        ["lint", str(tmp_path), "--ignore", f"{ignore_first_yaml},{ignore_second_yaml}"],
+    )
+    assert result.exit_code == 0
+    assert "Ignored 3 YAML files" in result.stdout
     assert "no errors found" in result.stdout.lower()
 
 

@@ -31,7 +31,7 @@ To contribute to the DAG Factory project:
 ### Requirements
 
 - [Git](https://git-scm.com/)
-- [Python](https://www.python.org/) <= 3.12 (due to dependencies, such as `google-re2` not supporting Python 3.13 yet)
+- [Python](https://www.python.org/) 3.10–3.14
 - [uv](https://docs.astral.sh/uv/) (for fast package management)
 - [Hatch](https://hatch.pypa.io/latest/) (installed automatically via uv)
 
@@ -53,7 +53,7 @@ DAG Factory uses [uv](https://docs.astral.sh/uv/) for fast and reliable package 
 
 #### 1. Install the project dependencies
 
-Recommended: uv setup (fast, reproducible builds)
+Recommended: uv setup (fast)
 
 ```bash
 uv sync --dev
@@ -65,7 +65,7 @@ Alternative: Traditional setup
 make setup
 ```
 
-Both commands install all dependencies, including test dependencies. The uv option is significantly faster and uses the lockfile for reproducible builds.
+Both commands install all dependencies, including test dependencies. The uv option is significantly faster.
 
 #### 2. Activate the local python environment
 
@@ -85,8 +85,7 @@ source venv/bin/activate
 
 Once you're set up with uv, you can use these helpful commands:
 
-- `uv sync` - Sync dependencies from the lockfile
-- `uv lock --upgrade` - Update the lockfile with latest dependency versions
+- `uv sync` - Sync dependencies from `pyproject.toml`
 - `uv add <package>` - Add a new dependency
 - `uv remove <package>` - Remove a dependency
 
@@ -146,10 +145,10 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 !!! note
     - These tests create local Python virtual environments in a hatch-managed directory.
 
-To run unit tests using Python 3.10 and Airflow 2.5, use the following:
+To run unit tests using Python 3.10 and Airflow 2.9, use the following:
 
 ```bash
-hatch run tests.py3.10-2.5:test-cov
+hatch run tests.py3.10-2.9:test-cov
 ```
 
 It is also possible to run the tests using all the matrix combinations, by using:

@@ -1,0 +1,18 @@
+example_multiple_outputs_taskflow:
+  schedule: null
+  render_template_as_native_obj: True
+  catchup: false
+  tags: [example, test]
+  tasks:
+    - task_id: collect
+      multiple_outputs: true
+      decorator: airflow.decorators.task
+      python_callable: sample.collect
+    - task_id: echo1
+      decorator: airflow.decorators.task
+      python_callable: sample.echo
+      value: "+collect['key1']"
+    - task_id: echo2
+      decorator: airflow.decorators.task
+      python_callable: sample.echo
+      value: "+collect['key2']"

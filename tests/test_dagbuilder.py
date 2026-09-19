@@ -7,7 +7,8 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-
+import logging
+import copy
 from dagfactory._yaml import load_yaml_file
 
 try:
@@ -18,6 +19,10 @@ except ImportError:
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor
+try:
+    from airflow.sdk.module_loading import import_string
+except ImportError:
+    from airflow.utils.module_loading import import_string
 from airflow.version import version as AIRFLOW_VERSION
 from packaging import version
 
@@ -38,16 +43,12 @@ from tests.utils import (
     read_yml,
 )
 
-try:
-    from airflow.providers.standard.operators.bash import BashOperator
-except ImportError:
-    from airflow.operators.bash import BashOperator
-
-
-try:  # Try Airflow 3
-    from airflow.providers.standard.operators.python import PythonOperator
-except ImportError:
-    from airflow.operators.python import PythonOperator
+# Resolve operator classes through the same module path the YAML helpers point to,
+# so isinstance assertions match the class actually instantiated by make_task. On
+# AF2 with providers-standard installed, the core and providers.standard classes
+# are unrelated — picking the wrong one breaks isinstance checks.
+BashOperator = import_string(get_bash_operator_path())
+PythonOperator = import_string(get_python_operator_path())
 
 
 from dagfactory import dagbuilder
@@ -448,6 +449,53 @@ def test_make_python_operator_with_callable_str():
     assert isinstance(actual, PythonOperator)
 
 
+# Regression test for issue #679: on Airflow 2.x with apache-airflow-providers-standard
+# installed, `airflow.operators.python.PythonOperator` and
+# `airflow.providers.standard.operators.python.PythonOperator` are different, unrelated
+# classes. dagbuilder must resolve python_callable_name/file regardless of which path the
+# YAML uses.
+def _module_importable(module_path):
+    try:
+        __import__(module_path)
+        return True
+    except ImportError:
+        return False
+
+
+_PYTHON_OPERATOR_PATHS = [
+    pytest.param(
+        "airflow.providers.standard.operators.python.PythonOperator",
+        id="providers-standard",
+        marks=pytest.mark.skipif(
+            not _module_importable("airflow.providers.standard.operators.python"),
+            reason="apache-airflow-providers-standard is not installed",
+        ),
+    ),
+    pytest.param(
+        "airflow.operators.python.PythonOperator",
+        id="core",
+        marks=pytest.mark.skipif(
+            INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+            reason="airflow.operators.python was removed in Airflow 3",
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize("operator_path", _PYTHON_OPERATOR_PATHS)
+def test_python_callable_resolution_both_paths(operator_path):
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+    task_params = {
+        "task_id": "test_task",
+        "python_callable_name": "print_test",
+        "python_callable_file": os.path.realpath(__file__),
+    }
+    actual = td.make_task(operator_path, task_params)
+    assert callable(actual.python_callable)
+    assert "python_callable_name" not in task_params
+    assert "python_callable_file" not in task_params
+
+
 def test_make_python_operator_missing_param():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
     operator = get_python_operator_path()
@@ -596,8 +644,7 @@ def test_build():
     assert isinstance(actual["dag"], DAG)
     assert len(actual["dag"].tasks) == 3
     assert actual["dag"].task_dict["task_1"].downstream_task_ids == {"task_2", "task_3"}
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.9.0"):
-        assert actual["dag"].dag_display_name == "Pretty example dag"
+    assert actual["dag"].dag_display_name == "Pretty example dag"
     assert sorted(actual["dag"].tags) == sorted(["tag1", "tag2", "dagfactory"])
 
 
@@ -744,25 +791,134 @@ def test_set_callback_exceptions():
     """
     test_set_callback_exceptions
 
-    Validate that exceptions are being throw for an incompatible version of Airflow, as well as for an invalid type
-    passed to the parameter config.
+    Validate that exceptions are being thrown for invalid types passed to the parameter config.
     """
-    # Test a versioning exception
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.0.0"):
-        error_message = "Cannot parse callbacks with an Airflow version less than 2.0.0"
-        with pytest.raises(DagFactoryConfigException, match=error_message):
-            DagBuilder.set_callback(
-                parameters={"dummy_key": "dummy_value"},
-                callback_type="on_execute_callback",
-            )
-
-    # Now, test an exception parsing the parameters dictionary
+    # An int is still an invalid type
     invalid_type_passed_message = "Invalid type passed to on_execute_callback"
     with pytest.raises(DagFactoryConfigException, match=invalid_type_passed_message):
         DagBuilder.set_callback(
-            parameters={"on_execute_callback": ["callback_1", "callback_2", "callback_3"]},
+            parameters={"on_execute_callback": 42},
             callback_type="on_execute_callback",
         )
+
+    # A list item that is neither str nor dict should raise
+    with pytest.raises(DagFactoryConfigException, match="Invalid type passed to on_failure_callback"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [42]},
+            callback_type="on_failure_callback",
+        )
+
+    # A list item that is a dict but missing the 'callback' key should raise with a descriptive message
+    with pytest.raises(DagFactoryConfigException, match="missing a required 'callback' key"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [{"not_callback": "foo"}]},
+            callback_type="on_failure_callback",
+        )
+
+
+@pytest.mark.callbacks
+def test_set_callback_with_list():
+    """
+    Validate that on_*_callback accepts a list of entries where each entry is either a
+    plain import string or a dict with a 'callback' key plus optional kwargs — mirroring
+    how Airflow itself accepts callbacks as a list.
+    """
+    import functools
+
+    # --- list of plain import strings ---
+    params = {
+        "on_failure_callback": [
+            f"{__name__}.print_context_callback",
+            f"{__name__}.print_context_callback",
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert all(callable(cb) for cb in result)
+    assert all(cb.__name__ == "print_context_callback" for cb in result)
+
+    # --- list with a dict entry that has extra kwargs (becomes a partial) ---
+    params = {
+        "on_failure_callback": [
+            {
+                "callback": f"{__name__}.empty_callback_with_params",
+                "param_1": "value_1",
+                "param_2": "value_2",
+            }
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert isinstance(result[0], functools.partial)
+    assert result[0].keywords["param_1"] == "value_1"
+    assert result[0].keywords["param_2"] == "value_2"
+
+    # --- list with a dict entry that has no extra kwargs (partial with no kwargs) ---
+    params = {
+        "on_failure_callback": [
+            {"callback": f"{__name__}.print_context_callback"}
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert isinstance(result, list)
+    assert isinstance(result[0], functools.partial)
+    assert result[0].func.__name__ == "print_context_callback"
+    assert result[0].keywords == {}
+
+    # --- mixed: string + dict-with-kwargs ---
+    params = {
+        "on_failure_callback": [
+            f"{__name__}.print_context_callback",
+            {
+                "callback": f"{__name__}.empty_callback_with_params",
+                "param_1": "v1",
+                "param_2": "v2",
+            },
+        ]
+    }
+    result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+    assert len(result) == 2
+    assert callable(result[0])
+    assert result[0].__name__ == "print_context_callback"
+    assert isinstance(result[1], functools.partial)
+
+    # --- non-string 'callback' value in dict entry raises with a descriptive message ---
+    with pytest.raises(DagFactoryConfigException, match="'callback' value must be a string import path"):
+        DagBuilder.set_callback(
+            parameters={"on_failure_callback": [{"callback": 123}]},
+            callback_type="on_failure_callback",
+        )
+
+    # --- list with a notifier-style entry (hasattr "notify") ---
+    # Uses a local dummy notifier to avoid requiring optional provider packages in the test env.
+    class _DummyNotifier:
+        def __init__(self, channel):
+            self.channel = channel
+
+        def notify(self, context):
+            pass
+
+    def dummy_notifier_factory(channel):
+        return _DummyNotifier(channel=channel)
+
+    dummy_notifier_factory.notify = lambda context: None  # mirrors real notifier objects
+
+    import unittest.mock as mock
+
+    with mock.patch("dagfactory.dagbuilder.import_string", return_value=dummy_notifier_factory):
+        params = {
+            "on_failure_callback": [
+                {"callback": "my.dummy.notifier", "channel": "#alerts"}
+            ]
+        }
+        result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert isinstance(result[0], _DummyNotifier)
+    assert result[0].channel == "#alerts"
 
 
 @pytest.mark.callbacks
@@ -798,10 +954,10 @@ def test_make_dag_with_callbacks():
     assert dag.on_failure_callback.__name__ == "print_context_callback"
 
     # sla_miss_callback is removed as of Airflow 3.1.0
-    if version.parse("2.6.0") < version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
         from airflow.providers.slack.notifications.slack import send_slack_notification
 
-        dag_config_callbacks__with_provider = dict(DAG_CONFIG_CALLBACKS)
+        dag_config_callbacks__with_provider = copy.deepcopy(DAG_CONFIG_CALLBACKS)
         dag_config_callbacks__with_provider["sla_miss_callback"] = {
             "callback": "airflow.providers.slack.notifications.slack.send_slack_notification",
             "slack_conn_id": "slack_conn_id",
@@ -823,6 +979,57 @@ def test_make_dag_with_callbacks():
         assert sla_miss_callback.slack_conn_id == "slack_conn_id"
         assert sla_miss_callback.channel == "#channel"
         assert sla_miss_callback.username == "username"
+
+
+@pytest.mark.callbacks
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"),
+    reason="sla_miss_callback removal warning only applies to Airflow 3.1.0+",
+)
+def test_sla_miss_callback_no_warning_when_not_configured(caplog):
+    """
+    When sla_miss_callback is NOT present in the DAG config and Airflow >= 3.1.0,
+    no deprecation warning should be emitted during DAG parsing.
+    """
+
+    dag_config_no_sla = copy.deepcopy(DAG_CONFIG_CALLBACKS)
+    dag_config_no_sla.pop("sla_miss_callback", None)
+
+    with caplog.at_level(logging.WARNING, logger="dagfactory"):
+        td = dagbuilder.DagBuilder("test_dag", dag_config_no_sla, DEFAULT_CONFIG)
+        td.build()
+
+    sla_warnings = [r for r in caplog.records if "sla_miss_callback" in r.message]
+    assert sla_warnings == [], (
+        "Expected no sla_miss_callback warning when sla_miss_callback is not configured, "
+        f"but got: {[r.message for r in sla_warnings]}"
+    )
+
+
+@pytest.mark.callbacks
+@pytest.mark.skipif(
+    version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"),
+    reason="sla_miss_callback removal warning only applies to Airflow 3.1.0+",
+)
+def test_sla_miss_callback_warning_when_configured(caplog):
+    """
+    When sla_miss_callback IS present in the DAG config and Airflow >= 3.1.0,
+    a warning about its removal should be emitted.
+    """
+
+    dag_config_with_sla = copy.deepcopy(DAG_CONFIG_CALLBACKS)
+    dag_config_with_sla["sla_miss_callback"] = f"{__name__}.print_context_callback"
+
+    with caplog.at_level(logging.WARNING, logger="dagfactory"):
+        td = dagbuilder.DagBuilder("test_dag", dag_config_with_sla, DEFAULT_CONFIG)
+        td.build()
+
+    sla_warnings = [r for r in caplog.records if "sla_miss_callback" in r.message]
+    assert len(sla_warnings) == 1, (
+        "Expected exactly one sla_miss_callback warning when sla_miss_callback is configured, "
+        f"but got: {[r.message for r in sla_warnings]}"
+    )
+    assert "removed" in sla_warnings[0].message.lower()
 
 
 @pytest.mark.callbacks
@@ -848,22 +1055,19 @@ def test_make_dag_with_callbacks_default_args():
         "on_retry_callback",
         "on_skipped_callback",
     ):
-        # on_skipped_callback could only be added to default_args starting in Airflow version 2.7.0
-        # TODO: Address this, this should be 2.7.0
-        if not (version.parse(AIRFLOW_VERSION) < version.parse("2.9.0") and callback_type == "on_skipped_callback"):
-            assert callback_type in default_args
-            assert callable(default_args.get(callback_type))
-            assert default_args.get(callback_type).__name__ == "print_context_callback"
+        assert callback_type in default_args
+        assert callable(default_args.get(callback_type))
+        assert default_args.get(callback_type).__name__ == "print_context_callback"
 
-            # Assert that these callbacks have been applied at the Task-level
-            assert callback_type in task_1.__dict__
-            # Airflow 3 callback type is sequence
-            if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-                assert callable(task_1.__dict__[callback_type][0])
-                assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
-            else:
-                assert callable(task_1.__dict__[callback_type])
-                assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
+        # Assert that these callbacks have been applied at the Task-level
+        assert callback_type in task_1.__dict__
+        # Airflow 3 callback type is sequence
+        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+            assert callable(task_1.__dict__[callback_type][0])
+            assert task_1.__dict__[callback_type][0].__name__ == "print_context_callback"
+        else:
+            assert callable(task_1.__dict__[callback_type])
+            assert task_1.__dict__[callback_type].__name__ == "print_context_callback"
 
         # Assert that these callbacks have been applied at the Task-level
         assert "on_failure_callback" in task_1.__dict__
@@ -893,24 +1097,17 @@ def test_make_dag_with_task_group_callbacks():
     # Import the DAG using the callback config that was build above
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
-    # This will be done only once; validate the exception that is raised if trying to use an invalid version of Airflow
-    # when building TaskGroups
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.2.0"):
-        error_message = "`task_groups` key can only be used with Airflow 2.x.x"
-        with pytest.raises(Exception, match=error_message):
-            td.build()
-    else:
-        dag = td.build()["dag"]  # Also, pull the dag
+    dag = td.build()["dag"]
 
-        # Basic checks to ensure the DAG was built as expected
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
-            assert dag.task_count == 4
-        assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
-        assert (
-            "task_group_1.task_1" in dag.task_dict
-            and "task_group_1.task_2" in dag.task_dict
-            and "task_group_1.task_3" in dag.task_dict
-        )
+    # Basic checks to ensure the DAG was built as expected
+    if version.parse(AIRFLOW_VERSION) < version.parse("3.0.0"):
+        assert dag.task_count == 4
+    assert len([task for task in dag.task_dict.keys() if task.startswith("task_group_1")]) == 3
+    assert (
+        "task_group_1.task_1" in dag.task_dict
+        and "task_group_1.task_2" in dag.task_dict
+        and "task_group_1.task_3" in dag.task_dict
+    )
 
 
 @pytest.mark.callbacks
@@ -929,45 +1126,43 @@ def test_make_dag_with_task_group_callbacks_default_args():
     # if the version was not met. Here, we'll pass testing
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP_WITH_CALLBACKS, DEFAULT_CONFIG)
 
-    # TODO: This should be 2.2.0
-    if version.parse(AIRFLOW_VERSION) >= version.parse("2.3.0"):  # This is a work-around for now
-        dag = td.build()["dag"]  # Also, pull the dag
+    dag = td.build()["dag"]
 
-        # Now, loop through each of the callback types and validate
-        assert "task_group_1" in td.dag_config["task_groups"]
-        task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
+    # Now, loop through each of the callback types and validate
+    assert "task_group_1" in td.dag_config["task_groups"]
+    task_group_default_args = td.dag_config["task_groups"]["task_group_1"]["default_args"]
 
-        # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
-        # grouped into task_group_1
-        assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
-        # Airflow 3 callback type is sequence
-        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
-            assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
-        else:
-            assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
-            assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
+    # Test that the on_execute_callback configured in the default_args of the TaskGroup are passed down to the Tasks
+    # grouped into task_group_1
+    assert "on_execute_callback" in task_group_default_args and "on_failure_callback" in task_group_default_args
+    # Airflow 3 callback type is sequence
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback[0])
+        assert dag.task_dict["task_group_1.task_1"].on_execute_callback[0].__name__ == "print_context_callback"
+    else:
+        assert callable(dag.task_dict["task_group_1.task_1"].on_execute_callback)
+        assert dag.task_dict["task_group_1.task_1"].on_execute_callback.__name__ == "print_context_callback"
 
-        # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
-        # validated but checking the type, "callab-ility", name, and parameters configured with it
-        # Airflow 3 callback type is sequence
-        if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
-            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
-            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
-            assert (
-                dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
-                == "empty_callback_with_params"
-            )
-            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
-            assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
-        else:
-            assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
-            assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-            assert (
-                dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-            )
-            assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
-            assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
+    # task_2 overrides the on_failure_callback configured in the default_args of task_group_1. Below, this is
+    # validated but checking the type, "callab-ility", name, and parameters configured with it
+    # Airflow 3 callback type is sequence
+    if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
+        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
+        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
+        assert (
+            dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
+            == "empty_callback_with_params"
+        )
+        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
+    else:
+        assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
+        assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
+        assert (
+            dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
+        )
+        assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
 
 @pytest.mark.callbacks
@@ -1063,49 +1258,37 @@ def test_make_task_with_duplicated_partial_kwargs():
 
 def test_dynamic_task_mapping():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        error_message = "Dynamic task mapping available only in Airflow >= 2.3.0"
-        with pytest.raises(Exception, match=error_message):
-            td.build()
-    else:
-        operator = get_python_operator_path()
-        task_params = {
-            "task_id": "process",
-            "python_callable_name": "expand_task",
-            "python_callable_file": os.path.realpath(__file__),
-            "partial": {"op_kwargs": {"test_id": "test"}},
-            "expand": {"op_args": {"request_output": "request.output"}},
-        }
-        actual = td.make_task(operator, task_params)
-        assert isinstance(actual, MappedOperator)
+    operator = get_python_operator_path()
+    task_params = {
+        "task_id": "process",
+        "python_callable_name": "expand_task",
+        "python_callable_file": os.path.realpath(__file__),
+        "partial": {"op_kwargs": {"test_id": "test"}},
+        "expand": {"op_args": {"request_output": "request.output"}},
+    }
+    actual = td.make_task(operator, task_params)
+    assert isinstance(actual, MappedOperator)
 
 
 def test_replace_expand_string_with_xcom():
+    from airflow.models.xcom_arg import XComArg
+
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
-    if version.parse(AIRFLOW_VERSION) < version.parse("2.3.0"):
-        with pytest.raises(Exception):
-            td.build()
-    else:
-        from airflow.models.xcom_arg import XComArg
+    task_conf_output = {"expand": {"key_1": "task_1.output"}}
+    task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
 
-        task_conf_output = {"expand": {"key_1": "task_1.output"}}
-        task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
+    task1 = PythonOperator(
+        task_id="task1",
+        python_callable=lambda: print("hello"),
+    )
 
-        task1 = PythonOperator(
-            task_id="task1",
-            python_callable=lambda: print("hello"),
-        )
-
-        tasks_dict = {"task_1": task1}
-        updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
-        updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
-        assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
-        assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+    tasks_dict = {"task_1": task1}
+    updated_task_conf_output = dagbuilder.DagBuilder.replace_expand_values(task_conf_output, tasks_dict)
+    updated_task_conf_xcomarg = dagbuilder.DagBuilder.replace_expand_values(task_conf_xcomarg, tasks_dict)
+    assert updated_task_conf_output["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
+    assert updated_task_conf_xcomarg["expand"]["key_1"] == XComArg(tasks_dict["task_1"])
 
 
-@pytest.mark.skipif(
-    version.parse(AIRFLOW_VERSION) > version.parse("3.0.0"), reason="Requires Airflow version less than 3.0.0"
-)
 @pytest.mark.parametrize(
     "inlets, outlets, expected_inlets, expected_outlets",
     [
@@ -1184,8 +1367,8 @@ def test_make_nested_task_groups():
 class TestSchedule:
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset(self):
         schedule_data = load_yaml_file(str(schedule_path / "dataset_as_list.yml"))
@@ -1195,36 +1378,33 @@ class TestSchedule:
         ]
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_object(self):
-        from airflow.datasets import Dataset, DatasetAll, DatasetAny
+        from airflow.datasets import Dataset
 
         schedule_data = load_yaml_file(str(schedule_path / "dataset_object_as_list.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = [
+            Dataset(uri="s3://dag1/output_1.txt", extra=None),
+            Dataset(uri="s3://dag2/output_1.txt", extra=None),
+        ]
+        assert schedule_data["schedule"] == expected
 
     @pytest.mark.skipif(
-        not (version.parse("2.8.0") < INSTALLED_AIRFLOW_VERSION < version.parse("3.0.0")),
-        reason="Requires Airflow < 3.0.0 and > 2.8.0",
+        INSTALLED_AIRFLOW_VERSION >= version.parse("3.0.0"),
+        reason="Requires Airflow < 3.0.0",
     )
     def test_asset_schedule_list_of_dataset_nested(self):
         from airflow.datasets import Dataset, DatasetAll, DatasetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_dataset.yml"))
-        expected = DatasetAny(
-            DatasetAll(
-                Dataset(uri="s3://dag1/output_1.txt", extra=None), Dataset(uri="s3://dag2/output_1.txt", extra=None)
-            ),
-            Dataset(uri="s3://dag3/output_3.txt", extra=None),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, DatasetAny)
+        assert isinstance(actual.objects[0], DatasetAll)
+        assert actual.objects[0].objects[0] == Dataset(uri="s3://dag1/output_1.txt", extra=None)
+        assert actual.objects[0].objects[1] == Dataset(uri="s3://dag2/output_1.txt", extra=None)
+        assert actual.objects[1] == Dataset(uri="s3://dag3/output_3.txt", extra=None)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_list_of_assets(self):
@@ -1255,81 +1435,40 @@ class TestSchedule:
         from airflow.sdk import Asset, AssetAll
 
         schedule_data = load_yaml_file(str(schedule_path / "and_asset.yml"))
-
-        expected = AssetAll(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAll)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_or_operator(self):
         from airflow.sdk import Asset, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "or_asset.yml"))
-
-        expected = AssetAny(
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-            Asset(
-                name="s3://dag2/output_1.txt",
-                uri="s3://dag2/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
-        )
-        assert schedule_data["schedule"].__eq__(expected)
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert list(actual.objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_nested_operators(self):
         from airflow.sdk import Asset, AssetAll, AssetAny
 
         schedule_data = load_yaml_file(str(schedule_path / "nested_asset.yml"))
-
-        expected = AssetAny(
-            AssetAll(
-                Asset(
-                    name="s3://dag1/output_1.txt",
-                    uri="s3://dag1/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-                Asset(
-                    name="s3://dag2/output_1.txt",
-                    uri="s3://dag2/output_1.txt",
-                    group="asset",
-                    extra={"hi": "bye"},
-                    watchers=[],
-                ),
-            ),
-            Asset(
-                name="s3://dag3/output_3.txt",
-                uri="s3://dag3/output_3.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[],
-            ),
+        actual = schedule_data["schedule"]
+        assert isinstance(actual, AssetAny)
+        assert isinstance(actual.objects[0], AssetAll)
+        assert list(actual.objects[0].objects) == [
+            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+        ]
+        assert actual.objects[1] == Asset(
+            name="s3://dag3/output_3.txt", uri="s3://dag3/output_3.txt", group="asset", extra={"hi": "bye"}, watchers=[]
         )
-        assert schedule_data["schedule"].__eq__(expected)
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
     def test_asset_schedule_with_watcher(self):
@@ -1338,21 +1477,19 @@ class TestSchedule:
 
         schedule_data = load_yaml_file(str(schedule_path / "asset_with_watcher.yml"))
 
-        expected = [
-            Asset(
-                name="s3://dag1/output_1.txt",
-                uri="s3://dag1/output_1.txt",
-                group="asset",
-                extra={"hi": "bye"},
-                watchers=[
-                    AssetWatcher(
-                        name="test_asset_watcher",
-                        trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
-                    )
-                ],
-            )
-        ]
-        assert schedule_data["schedule"].__eq__(expected)
+        expected = Asset(
+            name="s3://dag1/output_1.txt",
+            uri="s3://dag1/output_1.txt",
+            group="asset",
+            extra={"hi": "bye"},
+            watchers=[
+                AssetWatcher(
+                    name="test_asset_watcher",
+                    trigger=FileDeleteTrigger(filepath="/temp/file.txt", poke_interval=5.0),
+                )
+            ],
+        )
+        assert schedule_data["schedule"] == expected
 
     def test_resolve_schedule_cron_string(self):
         yaml_str = "schedule: '* * * * *'"
@@ -1393,6 +1530,20 @@ class TestSchedule:
         DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
         assert schedule_data["schedule"] == relativedelta(hour=18)
 
+    @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
+    def test_resolve_schedule_dataset_timetable_type(self):
+        from airflow.timetables.trigger import CronTriggerTimetable
+
+        data = read_yml(schedule_path / "dataset_timetable.yml")
+        schedule_data = {}
+        DagBuilder.configure_schedule(cast_with_type(data), schedule_data)
+        actual = schedule_data["schedule"]
+        assert actual["datasets"] == "((dataset_uri_1 & dataset_uri_2) | dataset_uri_3)"
+
+        actual_timetable = actual["timetable"]
+        assert isinstance(actual_timetable, CronTriggerTimetable)
+        assert actual_timetable.serialize()["expression"] == "* * * * *"
+        assert actual_timetable.serialize()["timezone"] == "UTC"
 
 # ===============================
 # Test ConfigureSchedule
@@ -1496,6 +1647,85 @@ class TestConfigureSchedule:
             mock_func.assert_called_once()
 
         assert dag_kwargs["schedule"] == expected_return
+
+    def test_configure_schedule_airflow3_list_of_uri_strings(self, patch_airflow_version):
+        """On Airflow 3, ``schedule`` declared as a list of bare URI strings should be
+        converted to Asset objects.
+
+        Without this conversion, Airflow 3's ``_default_timetable`` validator raises
+        ``ValueError`` at DAG construction time because list elements are not
+        ``BaseAsset`` instances. Mirrors the producer-side fix in PR #737. See #718.
+        """
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": ["s3://bucket/data1.parquet", "s3://bucket/data2.parquet"]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/data1.parquet"), Dataset("s3://bucket/data2.parquet")]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_list_mixed_string_and_object(self, patch_airflow_version):
+        """``isinstance(uri, str)`` guard preserves already-typed Asset/Dataset
+        objects, so users can mix bare URIs with explicit ``__type__`` entries
+        (e.g. ``airflow.sdk.AssetAlias``) in the same schedule list.
+
+        Pattern reused from PR #601.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {"schedule": ["s3://bucket/raw.parquet", pre_built]}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        expected = [Dataset("s3://bucket/raw.parquet"), pre_built]
+        assert dag_kwargs["schedule"] == expected
+
+    def test_configure_schedule_airflow3_empty_list(self, patch_airflow_version):
+        """An empty schedule list must round-trip as an empty list, not crash."""
+        patch_airflow_version(3)
+
+        dag_params = {"schedule": []}
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == []
+
+    def test_configure_schedule_airflow3_list_normalises_none_and_empty(self, patch_airflow_version):
+        """On Airflow 3, list elements are normalised the same way the AF2 branch
+        normalises them (see ``configure_schedule`` lines 619-623): ``None`` entries
+        are dropped, string entries are ``strip()``-ed, and entries that strip to
+        empty are dropped. Pre-typed Asset/Dataset objects pass through unchanged.
+
+        Mirrors the filter behaviour already present on AF2 so cross-version
+        behaviour is consistent. Suggested by Copilot review on PR #738.
+        """
+        patch_airflow_version(3)
+
+        pre_built = Dataset("s3://bucket/already.parquet")
+        dag_params = {
+            "schedule": [
+                "s3://bucket/data.parquet",  # kept, wrapped in Dataset
+                None,  # dropped
+                "",  # dropped (empty string)
+                "   ",  # dropped (whitespace-only)
+                "  s3://bucket/padded.parquet  ",  # kept, stripped, then wrapped
+                pre_built,  # passes through unchanged
+            ]
+        }
+        dag_kwargs = {}
+
+        DagBuilder.configure_schedule(dag_params, dag_kwargs)
+
+        assert dag_kwargs["schedule"] == [
+            Dataset("s3://bucket/data.parquet"),
+            Dataset("s3://bucket/padded.parquet"),
+            pre_built,
+        ]
 
 
 class TestTopologicalSortTasks:
@@ -1730,3 +1960,67 @@ class TestBuildDagKwargs:
     def test_no_transform_copies_value_directly(self):
         result = self._call({"dag_id": "d", "max_active_runs": 4})
         assert result["max_active_runs"] == 4
+
+
+# Tests for DagBuilder._resolve_user_defined_macros
+class TestResolveUserDefinedMacros:
+    def test_string_value_is_imported_as_callable(self):
+        result = DagBuilder._resolve_user_defined_macros({"ds": "pendulum.now"})
+        import pendulum as _pendulum
+
+        assert result["ds"] is _pendulum.now
+
+    def test_non_string_primitive_passed_through(self):
+        macros = {"my_int": 42, "my_float": 3.14, "my_list": [1, 2, 3]}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        assert result["my_int"] == 42
+        assert result["my_float"] == 3.14
+        assert result["my_list"] == [1, 2, 3]
+
+    def test_callable_passed_through(self):
+        def my_func():
+            pass
+
+        result = DagBuilder._resolve_user_defined_macros({"fn": my_func})
+        assert result["fn"] is my_func
+
+    def test_nested_dict_resolved_recursively(self):
+        macros = {"outer": {"ds": "pendulum.now"}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["outer"]["ds"] is _pendulum.now
+
+    def test_deeply_nested_dict_resolved(self):
+        macros = {"a": {"b": {"ds": "pendulum.now"}}}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["a"]["b"]["ds"] is _pendulum.now
+
+    def test_empty_dict_returns_empty_dict(self):
+        assert DagBuilder._resolve_user_defined_macros({}) == {}
+
+    def test_mixed_values_resolved_correctly(self):
+        macros = {"imported": "pendulum.now", "literal": 99}
+        result = DagBuilder._resolve_user_defined_macros(macros)
+        import pendulum as _pendulum
+
+        assert result["imported"] is _pendulum.now
+        assert result["literal"] == 99
+
+    def test_non_dict_input_raises_exception(self):
+        with pytest.raises(DagFactoryConfigException, match="expected a mapping/dict"):
+            DagBuilder._resolve_user_defined_macros("not_a_dict")  # type: ignore[arg-type]
+
+    def test_non_dict_nested_value_raises_exception(self):
+        # A list nested inside is not a dict — the outer loop treats it as "other type"
+        # and passes it through. Only non-dict at the top level (or in a nested dict
+        # slot that itself should be a dict) raises.  Here we verify a non-dict at the
+        # top level raises with the default path label.
+        with pytest.raises(DagFactoryConfigException, match="user_defined_macros"):
+            DagBuilder._resolve_user_defined_macros([1, 2, 3])  # type: ignore[arg-type]
+
+    def test_invalid_import_string_raises(self):
+        with pytest.raises(Exception):
+            DagBuilder._resolve_user_defined_macros({"bad": "nonexistent.module.func"})
