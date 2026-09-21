@@ -13,12 +13,9 @@ from datetime import datetime
 from functools import partial
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-try:
-    from airflow import configuration
-except ImportError:
-    import airflow.configuration as configuration
 from packaging import version
 
+from dagfactory import parameters, settings
 from dagfactory.utils import check_dict_key
 
 try:
@@ -213,14 +210,9 @@ class DagBuilder:
             "on_skipped_callback",  # Not applicable at the DAG-level
             "sla_miss_callback",  # Not applicable at the default_args level
         ]:
+            # Removed in Airflow 3.1. PARAM_METADATA records the bound, so
+            # validate_config reports it and _build_dag_kwargs drops it.
             if callback_type == "sla_miss_callback" and version.parse(AIRFLOW_VERSION) >= version.parse("3.1.0"):
-                # sla_miss_callbacks are removed as of 3.1.0; only warn if it was actually configured
-                sla_configured = utils.check_dict_key(dag_params, "sla_miss_callback") or (
-                    utils.check_dict_key(dag_params, "sla_miss_callback_name")
-                    and utils.check_dict_key(dag_params, "sla_miss_callback_file")
-                )
-                if sla_configured:
-                    logger.warning("The sla_miss_callback has been removed in Airflow 3.1.0.")
                 continue
 
             # Here, we are parsing both the DAG-level params and default_args for callbacks. Previously, this was
@@ -279,28 +271,6 @@ class DagBuilder:
             )
 
         return dag_params
-
-    @staticmethod
-    def _resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
-        """
-        Recursively resolves user_defined_macros values. String values are imported
-        as callables via their dotted module path. Nested dicts are resolved recursively.
-        Other types are passed through as-is.
-        """
-        if not isinstance(macros, dict):
-            raise DagFactoryConfigException(
-                f"Invalid `{path}` config: expected a mapping/dict, got {type(macros).__name__}."
-            )
-
-        resolved: Dict[str, Any] = {}
-        for key, value in macros.items():
-            if isinstance(value, str):
-                resolved[key] = import_string(value)
-            elif isinstance(value, dict):
-                resolved[key] = DagBuilder._resolve_user_defined_macros(value, path=f"{path}.{key}")
-            else:
-                resolved[key] = value
-        return resolved
 
     @staticmethod
     def _handle_http_sensor(operator_obj, task_params):
@@ -838,6 +808,88 @@ class DagBuilder:
 
         raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
 
+    def resolved_params(self) -> Dict[str, Any]:
+        """The config as ``build`` sees it: merged, then normalised.
+
+        ``tasks`` and ``task_groups`` may each be written as a mapping or as a
+        list, so they are put in canonical form before anything reads them.
+        ``dagfactory lint`` calls this too, so it checks the same shape the
+        builder does rather than whichever one the author happened to write.
+        """
+        dag_params = self.get_dag_params()
+        dag_params["tasks"] = DagBuilder._normalise_tasks_config(dag_params.get("tasks"))
+        dag_params["task_groups"] = DagBuilder._normalise_task_groups_config(dag_params.get("task_groups"))
+        return dag_params
+
+    @staticmethod
+    def validate_config(dag_params: Dict[str, Any]) -> None:
+        """Check a resolved DAG config against the parameter metadata.
+
+        Reports only what Airflow accepts silently; see
+        :func:`dagfactory.parameters.check_for_build`. Findings are logged;
+        under ``strict_mode`` an error stops the build.
+
+        Reporting is all this does. ``_build_dag_kwargs`` reads the same
+        metadata to decide what to forward, so switching this off silences the
+        messages without letting an unsupported parameter through.
+        """
+        if not settings.validate_on_build:
+            return
+
+        dag_id = dag_params.get("dag_id")
+        errors = []
+        for severity, path, message in parameters.check_for_build(dag_params, INSTALLED_AIRFLOW_VERSION):
+            rendered = f"[{dag_id}.{path}] {message}" if path else f"[{dag_id}] {message}"
+            if severity == parameters.ERROR:
+                errors.append(rendered)
+                logger.error("Invalid DAG config: %s", rendered)
+            else:
+                logger.warning("DAG config warning: %s", rendered)
+
+        if errors and settings.strict_mode:
+            raise DagFactoryConfigException(f"DAG '{dag_id}' failed validation: " + "; ".join(errors))
+
+    @staticmethod
+    def _build_dag_kwargs(dag_params: Dict[str, Any]) -> Dict[str, Any]:
+        """Builds the kwargs passed to the DAG constructor, driven by the metadata.
+
+        The table decides which keys are DAG arguments and which Airflow
+        versions accept them, so the builder and ``dagfactory lint`` work from
+        one description. Only keys the config actually sets are forwarded;
+        anything absent is left to Airflow's own default rather than being
+        re-derived from ``airflow.cfg`` here.
+        """
+        dag_kwargs: Dict[str, Any] = {}
+        arguments = parameters.dag_argument_names()
+        aliased: List[Tuple[str, str, Any]] = []
+
+        for key in dag_params:
+            if key not in arguments:
+                continue
+            if parameters.unsupported_reason(key, INSTALLED_AIRFLOW_VERSION):
+                continue  # already reported by validate_config
+
+            meta = parameters.PARAM_METADATA[key]
+            value = dag_params[key]
+            transform = meta.get("transform")
+            if transform:
+                value = transform(value)
+
+            target = meta.get("deprecated_in_favor_of")
+            if target:
+                aliased.append((key, target, value))
+            else:
+                dag_kwargs[key] = value
+
+        # Deprecated aliases are applied last so they win over the key they
+        # defer to, matching Airflow, which warns and then assigns
+        # `max_active_tasks = concurrency`.
+        for key, target, value in aliased:
+            warnings.warn(f"`{key}` param is deprecated. Please use {target}.", category=DeprecationWarning)
+            dag_kwargs[target] = value
+
+        return dag_kwargs
+
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
         """
@@ -846,82 +898,13 @@ class DagBuilder:
         :returns: dict with dag_id and DAG object
         :type: Dict[str, Union[str, DAG]]
         """
-        dag_params: Dict[str, Any] = self.get_dag_params()
+        dag_params: Dict[str, Any] = self.resolved_params()
 
-        dag_params["tasks"] = DagBuilder._normalise_tasks_config(dag_params.get("tasks"))
+        DagBuilder.validate_config(dag_params)
 
-        dag_params["task_groups"] = DagBuilder._normalise_task_groups_config(dag_params.get("task_groups"))
-
-        dag_kwargs: Dict[str, Any] = {}
-
-        dag_kwargs["dag_id"] = dag_params["dag_id"]
-        dag_kwargs["dag_display_name"] = dag_params.get("dag_display_name", dag_params["dag_id"])
-
-        dag_kwargs["description"] = dag_params.get("description", None)
-
-        if "concurrency" in dag_params:
-            warnings.warn(
-                "`concurrency` param is deprecated. Please use max_active_tasks.", category=DeprecationWarning
-            )
-            dag_kwargs["max_active_tasks"] = dag_params["concurrency"]
-        else:
-            dag_kwargs["max_active_tasks"] = dag_params.get(
-                "max_active_tasks", configuration.conf.getint("core", "max_active_tasks_per_dag")
-            )
-
-        if dag_params.get("timetable"):
-            dag_kwargs["timetable"] = dag_params.get("timetable")
-
-        dag_kwargs["catchup"] = dag_params.get(
-            "catchup", configuration.conf.getboolean("scheduler", "catchup_by_default")
-        )
-
-        dag_kwargs["max_active_runs"] = dag_params.get(
-            "max_active_runs", configuration.conf.getint("core", "max_active_runs_per_dag")
-        )
-
-        dag_kwargs["dagrun_timeout"] = dag_params.get("dagrun_timeout", None)
-
-        if INSTALLED_AIRFLOW_VERSION.major < AIRFLOW3_MAJOR_VERSION:
-            dag_kwargs["default_view"] = dag_params.get(
-                "default_view", configuration.conf.get("webserver", "dag_default_view")
-            )
-
-            dag_kwargs["orientation"] = dag_params.get(
-                "orientation", configuration.conf.get("webserver", "dag_orientation")
-            )
-
-        dag_kwargs["template_searchpath"] = dag_params.get("template_searchpath", None)
-
-        dag_kwargs["render_template_as_native_obj"] = dag_params.get("render_template_as_native_obj", False)
-
-        if version.parse(AIRFLOW_VERSION) < version.parse("3.1.0"):
-            # sla_miss_callback is fully-deprecated as of 3.1.0
-            dag_kwargs["sla_miss_callback"] = dag_params.get("sla_miss_callback", None)
-
-        dag_kwargs["on_success_callback"] = dag_params.get("on_success_callback", None)
-
-        dag_kwargs["on_failure_callback"] = dag_params.get("on_failure_callback", None)
-
-        dag_kwargs["default_args"] = dag_params.get("default_args", None)
-
-        dag_kwargs["doc_md"] = dag_params.get("doc_md", None)
-
-        dag_kwargs["access_control"] = dag_params.get("access_control", None)
-
-        dag_kwargs["is_paused_upon_creation"] = dag_params.get("is_paused_upon_creation", None)
+        dag_kwargs: Dict[str, Any] = DagBuilder._build_dag_kwargs(dag_params)
 
         DagBuilder.configure_schedule(dag_params, dag_kwargs)
-
-        dag_kwargs["params"] = dag_params.get("params", None)
-
-        if dag_params.get("user_defined_macros"):
-            dag_kwargs["user_defined_macros"] = DagBuilder._resolve_user_defined_macros(
-                dag_params["user_defined_macros"]
-            )
-
-        dag_kwargs["start_date"] = dag_params.get("start_date", None)
-        dag_kwargs["end_date"] = dag_params.get("end_date", None)
 
         dag: DAG = DAG(**dag_kwargs)
 
