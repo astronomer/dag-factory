@@ -358,11 +358,11 @@ def check(
     *check_values* covers types, enums, minimums and patterns; callers turn it
     off for sections whose values reach an Airflow operator, because Airflow
     validates operator arguments itself and says it better. *report_unknown*
-    is turned off for a section whose keys are mostly not dag-factory
-    parameters at all.
+    is turned off for tasks, where most keys are operator arguments this table
+    does not model and :func:`check_tasks` decides instead.
 
-    Use :func:`check_for_build` rather than calling this directly; it encodes
-    which sections the builder should check.
+    Use :func:`check_for_build` or :func:`check_for_lint` rather than calling
+    this directly; they encode which sections each caller should check.
 
     The config must already be resolved — defaults merged, values cast.
     """
@@ -456,3 +456,100 @@ def check_for_build(config: Dict[str, Any], airflow_version: Version) -> List[Tu
             check(default_args, airflow_version, scope="default_args", check_values=False),
         )
     return findings
+
+
+def check_for_lint(
+    config: Dict[str, Any], airflow_version: Version, check_operators: bool = True
+) -> List[Tuple[str, str, str]]:
+    """Everything ``dagfactory lint`` reports.
+
+    Lint never builds, so it has to cover the ground Airflow would otherwise
+    cover at build time: the shape of ``default_args`` values, and every
+    task-level problem.
+
+    *check_operators* imports each task's operator to confirm it exists. Turn
+    it off to lint in an environment that does not have every provider
+    installed.
+    """
+    findings = check(config, airflow_version)
+    default_args = config.get("default_args")
+    if isinstance(default_args, dict):
+        findings += _under("default_args", check(default_args, airflow_version, scope="default_args"))
+    return findings + check_tasks(config, airflow_version, check_operators=check_operators)
+
+
+def check_tasks(
+    config: Dict[str, Any], airflow_version: Version, check_operators: bool = True
+) -> List[Tuple[str, str, str]]:
+    """Check each task's own parameters, and how the tasks fit together.
+
+    Called by ``dagfactory lint`` only. Building a DAG surfaces all of this
+    anyway — an unimportable operator raises ImportError, a bad argument
+    raises TypeError, an unknown one is rejected by the operator, a missing
+    dependency raises KeyError and a cycle raises ValueError — so running
+    these while building would duplicate the work and the message. Lint never
+    builds, so it has to do the work itself.
+
+    Unrecognised keys are not reported. Most Airflow operators take ``*args``
+    and ``**kwargs``, so a signature cannot tell a typo from a legitimate
+    operator argument; Airflow decides at construction, raising ``TypeError:
+    Invalid arguments were passed`` for what it does not want.
+    """
+    findings: List[Tuple[str, str, str]] = []
+    tasks = config.get("tasks")
+    if not isinstance(tasks, dict):
+        return findings
+
+    group_names = set(config.get("task_groups") or {})
+
+    for task_id, task in tasks.items():
+        if not isinstance(task, dict):
+            findings.append((ERROR, f"tasks.{task_id}", f"Task `{task_id}` should be a mapping."))
+            continue
+
+        prefix = f"tasks.{task_id}"
+        _check_operator(task, prefix, findings, check_operators)
+        findings += _under(prefix, check(task, airflow_version, scope="task", report_unknown=False))
+
+        for upstream in task.get("dependencies") or []:
+            if upstream not in tasks and upstream not in group_names:
+                findings.append(
+                    (ERROR, f"{prefix}.dependencies", f"`{task_id}` depends on `{upstream}`, which does not exist.")
+                )
+
+    findings.extend(_check_for_cycles(tasks))
+    return findings
+
+
+def _check_operator(task: Dict[str, Any], prefix: str, findings: List[Tuple[str, str, str]], do_import: bool) -> None:
+    """Check a task names an operator, and optionally that it can be imported.
+
+    Declaring one is structural and always checked. Importing it needs the
+    provider installed, which the caller may not want to require.
+    """
+    import_path = task.get("operator") or task.get("decorator")
+    if not import_path:
+        findings.append((ERROR, prefix, "A task must define either `operator` or `decorator`."))
+        return
+    if not do_import or not isinstance(import_path, str):
+        return
+
+    from dagfactory.utils import import_string
+
+    try:
+        import_string(import_path)
+    except Exception as exc:
+        findings.append((ERROR, prefix, f"Cannot import `{import_path}`: {type(exc).__name__}: {exc}"))
+
+
+def _check_for_cycles(tasks: Dict[str, Any]) -> List[Tuple[str, str, str]]:
+    """Reuse the builder's topological sort to find dependency cycles."""
+    from dagfactory.dagbuilder import DagBuilder
+
+    try:
+        DagBuilder.topological_sort_tasks(tasks)
+    except ValueError as exc:
+        return [(ERROR, "tasks", str(exc))]
+    except Exception:
+        return []
+    return []
