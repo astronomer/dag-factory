@@ -1,9 +1,15 @@
 """Canonical metadata for every configuration key dag-factory understands.
 
-One plain dict. :mod:`dagfactory.dagbuilder` reads it to decide which keys
-reach the ``DAG`` constructor, which Airflow versions accept them, and which
-are deprecated aliases. Stating a fact once is the point: a version bound
-written here changes what gets forwarded and what gets reported, together.
+One plain dict, read by two consumers:
+
+* :mod:`dagfactory.dagbuilder` uses it to decide which keys reach the ``DAG``
+  constructor, which Airflow versions accept them, and which are deprecated
+  aliases.
+* :mod:`dagfactory.lint` uses it to report the same facts as ``dagfactory
+  lint`` diagnostics.
+
+Stating a fact once is the point: a version bound written here changes what
+the builder forwards and what lint reports, together.
 
 Each entry maps a configuration key to a metadata mapping. Recognised fields:
 

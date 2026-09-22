@@ -1,4 +1,4 @@
-"""Tests for the parameter metadata that drives DAG building."""
+"""Tests for the parameter metadata that drives DAG building and lint."""
 
 import datetime
 
