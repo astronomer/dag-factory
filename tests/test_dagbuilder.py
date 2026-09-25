@@ -1,5 +1,7 @@
+import copy
 import datetime
 import functools
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -7,8 +9,7 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-import logging
-import copy
+
 from dagfactory._yaml import load_yaml_file
 
 try:
@@ -19,6 +20,7 @@ except ImportError:
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor
+
 try:
     from airflow.sdk.module_loading import import_string
 except ImportError:
@@ -33,7 +35,7 @@ from dagfactory.dagbuilder import (
     DagFactoryException,
     Dataset,
 )
-from dagfactory.utils import cast_with_type
+from dagfactory.utils import cast_with_type, resolve_user_defined_macros
 from tests.utils import (
     get_bash_operator_path,
     get_http_sensor_path,
@@ -856,11 +858,7 @@ def test_set_callback_with_list():
     assert result[0].keywords["param_2"] == "value_2"
 
     # --- list with a dict entry that has no extra kwargs (partial with no kwargs) ---
-    params = {
-        "on_failure_callback": [
-            {"callback": f"{__name__}.print_context_callback"}
-        ]
-    }
+    params = {"on_failure_callback": [{"callback": f"{__name__}.print_context_callback"}]}
     result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
     assert isinstance(result, list)
     assert isinstance(result[0], functools.partial)
@@ -908,11 +906,7 @@ def test_set_callback_with_list():
     import unittest.mock as mock
 
     with mock.patch("dagfactory.dagbuilder.import_string", return_value=dummy_notifier_factory):
-        params = {
-            "on_failure_callback": [
-                {"callback": "my.dummy.notifier", "channel": "#alerts"}
-            ]
-        }
+        params = {"on_failure_callback": [{"callback": "my.dummy.notifier", "channel": "#alerts"}]}
         result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
 
     assert isinstance(result, list)
@@ -1149,18 +1143,13 @@ def test_make_dag_with_task_group_callbacks_default_args():
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
         assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
         assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
-        assert (
-            dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
-            == "empty_callback_with_params"
-        )
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__ == "empty_callback_with_params"
         assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
         assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
     else:
         assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
         assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-        assert (
-            dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-        )
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
         assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
         assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
@@ -1438,8 +1427,20 @@ class TestSchedule:
         actual = schedule_data["schedule"]
         assert isinstance(actual, AssetAll)
         assert list(actual.objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
@@ -1450,8 +1451,20 @@ class TestSchedule:
         actual = schedule_data["schedule"]
         assert isinstance(actual, AssetAny)
         assert list(actual.objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
@@ -1463,8 +1476,20 @@ class TestSchedule:
         assert isinstance(actual, AssetAny)
         assert isinstance(actual.objects[0], AssetAll)
         assert list(actual.objects[0].objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
         assert actual.objects[1] == Asset(
             name="s3://dag3/output_3.txt", uri="s3://dag3/output_3.txt", group="asset", extra={"hi": "bye"}, watchers=[]
@@ -1544,6 +1569,7 @@ class TestSchedule:
         assert isinstance(actual_timetable, CronTriggerTimetable)
         assert actual_timetable.serialize()["expression"] == "* * * * *"
         assert actual_timetable.serialize()["timezone"] == "UTC"
+
 
 # ===============================
 # Test ConfigureSchedule
@@ -1790,17 +1816,17 @@ class TestTopologicalSortTasks:
         assert task_names.index("task3") < task_names.index("task4")
 
 
-# Tests for DagBuilder._resolve_user_defined_macros
+# Tests for dagfactory.utils.resolve_user_defined_macros
 class TestResolveUserDefinedMacros:
     def test_string_value_is_imported_as_callable(self):
-        result = DagBuilder._resolve_user_defined_macros({"ds": "pendulum.now"})
+        result = resolve_user_defined_macros({"ds": "pendulum.now"})
         import pendulum as _pendulum
 
         assert result["ds"] is _pendulum.now
 
     def test_non_string_primitive_passed_through(self):
         macros = {"my_int": 42, "my_float": 3.14, "my_list": [1, 2, 3]}
-        result = DagBuilder._resolve_user_defined_macros(macros)
+        result = resolve_user_defined_macros(macros)
         assert result["my_int"] == 42
         assert result["my_float"] == 3.14
         assert result["my_list"] == [1, 2, 3]
@@ -1809,29 +1835,29 @@ class TestResolveUserDefinedMacros:
         def my_func():
             pass
 
-        result = DagBuilder._resolve_user_defined_macros({"fn": my_func})
+        result = resolve_user_defined_macros({"fn": my_func})
         assert result["fn"] is my_func
 
     def test_nested_dict_resolved_recursively(self):
         macros = {"outer": {"ds": "pendulum.now"}}
-        result = DagBuilder._resolve_user_defined_macros(macros)
+        result = resolve_user_defined_macros(macros)
         import pendulum as _pendulum
 
         assert result["outer"]["ds"] is _pendulum.now
 
     def test_deeply_nested_dict_resolved(self):
         macros = {"a": {"b": {"ds": "pendulum.now"}}}
-        result = DagBuilder._resolve_user_defined_macros(macros)
+        result = resolve_user_defined_macros(macros)
         import pendulum as _pendulum
 
         assert result["a"]["b"]["ds"] is _pendulum.now
 
     def test_empty_dict_returns_empty_dict(self):
-        assert DagBuilder._resolve_user_defined_macros({}) == {}
+        assert resolve_user_defined_macros({}) == {}
 
     def test_mixed_values_resolved_correctly(self):
         macros = {"imported": "pendulum.now", "literal": 99}
-        result = DagBuilder._resolve_user_defined_macros(macros)
+        result = resolve_user_defined_macros(macros)
         import pendulum as _pendulum
 
         assert result["imported"] is _pendulum.now
@@ -1839,7 +1865,7 @@ class TestResolveUserDefinedMacros:
 
     def test_non_dict_input_raises_exception(self):
         with pytest.raises(DagFactoryConfigException, match="expected a mapping/dict"):
-            DagBuilder._resolve_user_defined_macros("not_a_dict")  # type: ignore[arg-type]
+            resolve_user_defined_macros("not_a_dict")  # type: ignore[arg-type]
 
     def test_non_dict_nested_value_raises_exception(self):
         # A list nested inside is not a dict — the outer loop treats it as "other type"
@@ -1847,8 +1873,77 @@ class TestResolveUserDefinedMacros:
         # slot that itself should be a dict) raises.  Here we verify a non-dict at the
         # top level raises with the default path label.
         with pytest.raises(DagFactoryConfigException, match="user_defined_macros"):
-            DagBuilder._resolve_user_defined_macros([1, 2, 3])  # type: ignore[arg-type]
+            resolve_user_defined_macros([1, 2, 3])  # type: ignore[arg-type]
 
     def test_invalid_import_string_raises(self):
         with pytest.raises(Exception):
-            DagBuilder._resolve_user_defined_macros({"bad": "nonexistent.module.func"})
+            resolve_user_defined_macros({"bad": "nonexistent.module.func"})
+
+
+class TestResolvedParams:
+    """build() and lint must read the config through the same normalisation."""
+
+    def test_list_form_tasks_become_a_mapping(self):
+        config = {
+            "start_date": "2024-01-01",
+            "tasks": [{"task_id": "t1", "operator": "x", "bash_command": "echo"}],
+        }
+        params = dagbuilder.DagBuilder("d", config, {}).resolved_params()
+        assert isinstance(params["tasks"], dict)
+        assert "t1" in params["tasks"]
+
+    def test_list_form_task_groups_become_a_mapping(self):
+        config = {
+            "start_date": "2024-01-01",
+            "tasks": {"t1": {"operator": "x"}},
+            "task_groups": [{"group_name": "tg1", "tooltip": "t"}],
+        }
+        params = dagbuilder.DagBuilder("d", config, {}).resolved_params()
+        assert isinstance(params["task_groups"], dict)
+        assert "tg1" in params["task_groups"]
+
+    def test_build_reads_the_config_through_resolved_params(self):
+        """If build stopped using it, lint would drift back out of step."""
+        import inspect
+
+        assert "resolved_params()" in inspect.getsource(dagbuilder.DagBuilder.build)
+
+
+class TestValidateOnBuildOnlyAffectsReporting:
+    """Turning validation off must not change which kwargs reach DAG()."""
+
+    CONFIG = {
+        "dag_id": "d",
+        "start_date": "2024-01-01",
+        "timetable": {"x": 1},  # removed in Airflow 3
+        "fail_fast": True,  # a real Airflow argument dag-factory does not forward
+        "catchup": False,
+    }
+
+    def _kwargs(self, validate):
+        with patch.object(dagbuilder.settings, "validate_on_build", validate):
+            return dagbuilder.DagBuilder._build_dag_kwargs(dict(self.CONFIG))
+
+    def test_unsupported_params_are_dropped_either_way(self):
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", version.parse("3.0.0")):
+            on, off = self._kwargs(True), self._kwargs(False)
+        assert on == off
+        for dropped in ("timetable", "fail_fast"):
+            assert dropped not in off
+
+    def test_supported_params_are_kept_either_way(self):
+        with patch.object(dagbuilder, "INSTALLED_AIRFLOW_VERSION", version.parse("3.0.0")):
+            on, off = self._kwargs(True), self._kwargs(False)
+        assert on["catchup"] is False and off["catchup"] is False
+
+    def test_the_setting_only_silences_the_log(self, caplog):
+        config = {"dag_id": "d", "start_date": "2024-01-01", "nonsense_key": 1, "tasks": {"t": {"operator": "x"}}}
+        with caplog.at_level(logging.WARNING, logger="dagfactory"):
+            with patch.object(dagbuilder.settings, "validate_on_build", False):
+                dagbuilder.DagBuilder.validate_config(config)
+        assert not caplog.records
+
+        with caplog.at_level(logging.WARNING, logger="dagfactory"):
+            with patch.object(dagbuilder.settings, "validate_on_build", True):
+                dagbuilder.DagBuilder.validate_config(config)
+        assert any("nonsense_key" in r.message for r in caplog.records)
