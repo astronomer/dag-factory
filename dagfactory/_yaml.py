@@ -9,9 +9,11 @@ import yaml
 from .utils import cast_with_type
 
 
-def load_yaml_file(file_path: str) -> dict[str, any]:
+def load_yaml_string(content: str) -> dict[str, any]:
     """
-    Load a YAML file into a dictionary.
+    Load a YAML string into a dictionary, applying the same env-var expansion,
+    ``__type__`` casting, and ``__and__``/``__or__``/``__join__`` flattening as
+    :func:`load_yaml_file`.
     """
 
     def _flatten_logical_expressions_helper(data):
@@ -44,10 +46,17 @@ def load_yaml_file(file_path: str) -> dict[str, any]:
     def _flatten_logical_expressions(data):
         return _flatten_logical_expressions_helper(copy.deepcopy(data))
 
-    with open(file_path, "r", encoding="utf-8") as fp:
-        config_with_env = os.path.expandvars(fp.read())
-        config: dict[str, any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-        config = cast_with_type(config)
-        config = _flatten_logical_expressions(config)
+    config_with_env = os.path.expandvars(content)
+    config: dict[str, any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
+    config = cast_with_type(config)
+    config = _flatten_logical_expressions(config)
 
     return config
+
+
+def load_yaml_file(file_path: str) -> dict[str, any]:
+    """
+    Load a YAML file into a dictionary.
+    """
+    with open(file_path, "r", encoding="utf-8") as fp:
+        return load_yaml_string(fp.read())
