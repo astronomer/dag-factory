@@ -22,7 +22,6 @@ def echo(value):
     return value
 
 
-
 def build_numbers_list():
     return [2, 4, 6]
 

@@ -14,7 +14,8 @@ try:
 except ImportError:
     from airflow.models.dag import DAG  # noqa: F401
 
-from dagfactory.dagbuilder import DagBuilder
+from dagfactory.dagbuilder import BaseOperator, DagBuilder
+from dagfactory.exceptions import DagFactoryConfigException
 
 # Get current directory and project root
 here = Path(__file__).parent
@@ -39,6 +40,84 @@ except ImportError:
 
 # Test constants
 HTTP_OPERATOR_UNAVAILABLE_MSG = "HTTP operator not available in this Airflow version"
+
+
+@pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"value": 'request.output["a"]'},
+        {"nested": [{"value": "request.output['a']"}]},
+        {"value": "request.output"},
+        'request.output["a"]',
+    ],
+)
+def test_json_http_payload_rejects_output_references(data):
+    producer = BaseOperator(task_id="request")
+    with pytest.raises(DagFactoryConfigException, match="Output references.*JSON.*data"):
+        DagBuilder.make_task(
+            HTTP_OPERATOR_PATH,
+            {
+                "task_id": "send",
+                "endpoint": "/test",
+                "headers": {"Content-Type": "application/json"},
+                "data": data,
+            },
+            {"request": producer},
+        )
+
+
+@pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
+def test_static_json_http_payload_remains_literal():
+    payload = {"value": "Text containing request.output is not a reference", "items": [1, 2], "enabled": True}
+    consumer = DagBuilder.make_task(
+        HTTP_OPERATOR_PATH,
+        {
+            "task_id": "send",
+            "endpoint": "/test",
+            "headers": {"Content-Type": "application/json"},
+            "data": payload,
+        },
+        {},
+    )
+    assert json.loads(consumer.data()) == payload
+
+
+@pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
+def test_non_json_http_payload_accepts_named_output_reference():
+    producer = BaseOperator(task_id="request", dag=DAG("http_named_xcom"))
+    consumer = DagBuilder.make_task(
+        HTTP_OPERATOR_PATH,
+        {
+            "task_id": "send",
+            "dag": producer.dag,
+            "endpoint": "/test",
+            "headers": {"Content-Type": "text/plain"},
+            "data": 'request.output["a"]',
+        },
+        {"request": producer},
+    )
+    assert consumer.data.operator is producer
+    assert consumer.data.key == "a"
+
+
+@pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
+def test_http_headers_accepts_named_output_reference():
+    producer = BaseOperator(task_id="request", dag=DAG("http_named_headers"))
+    consumer = DagBuilder.make_task(
+        HTTP_OPERATOR_PATH,
+        {
+            "task_id": "send",
+            "dag": producer.dag,
+            "endpoint": "/test",
+            "headers": 'request.output["headers"]',
+        },
+        {"request": producer},
+    )
+    assert consumer.headers.operator is producer
+    assert consumer.headers.key == "headers"
+    assert consumer.upstream_task_ids == {"request"}
+
 
 # Default config for testing
 DEFAULT_CONFIG = {

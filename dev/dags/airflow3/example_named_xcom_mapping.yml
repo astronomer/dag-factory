@@ -1,0 +1,21 @@
+named_xcom_mapping:
+  default_args:
+    owner: example
+    start_date: 2 days
+  schedule: null
+  catchup: false
+  tasks:
+    - task_id: request
+      operator: airflow.providers.standard.operators.python.PythonOperator
+      python_callable: named_xcom_tasks.publish_values
+    - task_id: select_a
+      operator: airflow.providers.standard.operators.python.PythonOperator
+      python_callable: named_xcom_tasks.forward_values
+      op_kwargs:
+        value: 'request.output["a"]'
+      dependencies: [request]
+    - task_id: process
+      operator: named_xcom_tasks.ValueOperator
+      expand:
+        value: select_a.output
+      dependencies: [select_a]

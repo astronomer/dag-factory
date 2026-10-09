@@ -1,0 +1,24 @@
+named_xcom_mapping:
+  default_args:
+    owner: test
+    start_date: 2026-01-01
+  schedule: null
+  catchup: false
+  tasks:
+    - task_id: process
+      operator: tests.test_named_xcom_references.ValueOperator
+      partial:
+        fixed_param: test
+      expand:
+        value: select_a.output
+      dependencies: [select_a]
+    - task_id: select_a
+      operator: airflow.operators.python.PythonOperator
+      python_callable: tests.test_named_xcom_references.forward
+      op_kwargs:
+        value: 'request.output["a"]'
+      dependencies: [request]
+    - task_id: request
+      operator: airflow.operators.python.PythonOperator
+      python_callable: tests.test_named_xcom_references.publish_named_outputs
+      do_xcom_push: true

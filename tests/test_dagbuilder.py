@@ -1,5 +1,7 @@
+import copy
 import datetime
 import functools
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -7,8 +9,7 @@ from unittest.mock import mock_open, patch
 
 import pendulum
 import pytest
-import logging
-import copy
+
 from dagfactory._yaml import load_yaml_file
 
 try:
@@ -19,6 +20,7 @@ except ImportError:
 import yaml
 from airflow.providers.common.sql.sensors.sql import SqlSensor
 from airflow.providers.http.sensors.http import HttpSensor
+
 try:
     from airflow.sdk.module_loading import import_string
 except ImportError:
@@ -856,11 +858,7 @@ def test_set_callback_with_list():
     assert result[0].keywords["param_2"] == "value_2"
 
     # --- list with a dict entry that has no extra kwargs (partial with no kwargs) ---
-    params = {
-        "on_failure_callback": [
-            {"callback": f"{__name__}.print_context_callback"}
-        ]
-    }
+    params = {"on_failure_callback": [{"callback": f"{__name__}.print_context_callback"}]}
     result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
     assert isinstance(result, list)
     assert isinstance(result[0], functools.partial)
@@ -908,11 +906,7 @@ def test_set_callback_with_list():
     import unittest.mock as mock
 
     with mock.patch("dagfactory.dagbuilder.import_string", return_value=dummy_notifier_factory):
-        params = {
-            "on_failure_callback": [
-                {"callback": "my.dummy.notifier", "channel": "#alerts"}
-            ]
-        }
+        params = {"on_failure_callback": [{"callback": "my.dummy.notifier", "channel": "#alerts"}]}
         result = DagBuilder.set_callback(parameters=params, callback_type="on_failure_callback")
 
     assert isinstance(result, list)
@@ -1149,18 +1143,13 @@ def test_make_dag_with_task_group_callbacks_default_args():
     if version.parse(AIRFLOW_VERSION) >= version.parse("3.0.0"):
         assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback[0], functools.partial)
         assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback[0])
-        assert (
-            dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__
-            == "empty_callback_with_params"
-        )
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].func.__name__ == "empty_callback_with_params"
         assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords
         assert dag.task_dict["task_group_1.task_2"].on_failure_callback[0].keywords.get("param_1") == "value_1"
     else:
         assert isinstance(dag.task_dict["task_group_1.task_2"].on_failure_callback, functools.partial)
         assert callable(dag.task_dict["task_group_1.task_2"].on_failure_callback)
-        assert (
-            dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
-        )
+        assert dag.task_dict["task_group_1.task_2"].on_failure_callback.func.__name__ == "empty_callback_with_params"
         assert "param_1" in dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords
         assert dag.task_dict["task_group_1.task_2"].on_failure_callback.keywords.get("param_1") == "value_1"
 
@@ -1273,7 +1262,6 @@ def test_dynamic_task_mapping():
 def test_replace_expand_string_with_xcom():
     from airflow.models.xcom_arg import XComArg
 
-    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_DYNAMIC_TASK_MAPPING, DEFAULT_CONFIG)
     task_conf_output = {"expand": {"key_1": "task_1.output"}}
     task_conf_xcomarg = {"expand": {"key_1": "XcomArg(task_1)"}}
 
@@ -1438,8 +1426,20 @@ class TestSchedule:
         actual = schedule_data["schedule"]
         assert isinstance(actual, AssetAll)
         assert list(actual.objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
@@ -1450,8 +1450,20 @@ class TestSchedule:
         actual = schedule_data["schedule"]
         assert isinstance(actual, AssetAny)
         assert list(actual.objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
 
     @pytest.mark.skipif(INSTALLED_AIRFLOW_VERSION.major < 3, reason="Requires Airflow >= 3.0.0")
@@ -1463,8 +1475,20 @@ class TestSchedule:
         assert isinstance(actual, AssetAny)
         assert isinstance(actual.objects[0], AssetAll)
         assert list(actual.objects[0].objects) == [
-            Asset(name="s3://dag1/output_1.txt", uri="s3://dag1/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
-            Asset(name="s3://dag2/output_1.txt", uri="s3://dag2/output_1.txt", group="asset", extra={"hi": "bye"}, watchers=[]),
+            Asset(
+                name="s3://dag1/output_1.txt",
+                uri="s3://dag1/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
+            Asset(
+                name="s3://dag2/output_1.txt",
+                uri="s3://dag2/output_1.txt",
+                group="asset",
+                extra={"hi": "bye"},
+                watchers=[],
+            ),
         ]
         assert actual.objects[1] == Asset(
             name="s3://dag3/output_3.txt", uri="s3://dag3/output_3.txt", group="asset", extra={"hi": "bye"}, watchers=[]
@@ -1544,6 +1568,7 @@ class TestSchedule:
         assert isinstance(actual_timetable, CronTriggerTimetable)
         assert actual_timetable.serialize()["expression"] == "* * * * *"
         assert actual_timetable.serialize()["timezone"] == "UTC"
+
 
 # ===============================
 # Test ConfigureSchedule

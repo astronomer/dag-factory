@@ -46,6 +46,74 @@ Below, you can see a list of mapped tasks generated dynamically as part of the `
 
 ![example_dynamic_task_mapping.png](../static/example_dynamic_task_mapping.png "Dynamic Task Mapping visualization")
 
+## Named XCom outputs from classic operators
+
+For traditional class-based operators, DAG Factory resolves `request.output` and
+`request.output["a"]` strings into native Airflow `XComArg` objects. These references
+work in the operator's templated arguments, including nested `op_kwargs` and
+templated arguments under `partial`. Both `request.output["a"]` and
+`request.output['a']` select the XCom entry named `a`, just as they do in Python.
+Keys must be quoted string literals; arbitrary Python expressions are not evaluated.
+
+Classic consumers can also reference the output of a TaskFlow producer using the
+same syntax. DAG Factory reuses the producer's native `XComArg` in that case.
+
+One exception is automatically serialized JSON `HttpOperator.data` (with
+`Content-Type: application/json`). DAG Factory serializes this payload when the
+DAG is built, before XCom values are available. Output references in that payload
+raise a configuration error; literal JSON payloads retain their existing behavior.
+Other native templated HTTP arguments support output references normally.
+
+`request.output` selects `return_value`. Indexing it with `["a"]` selects a separate
+XCom entry; it does not extract the dictionary field `a` from `return_value`.
+The producer must publish that named entry. For example, a classic `PythonOperator`
+can run this function:
+
+```python
+def publish_values(ti):
+    result = {"a": [1, 2, 3, 4], "b": [10, 20]}
+    for key, value in result.items():
+        ti.xcom_push(key=key, value=value)
+    return result
+```
+
+Airflow currently rejects a custom-key `XComArg` passed directly to `expand`, as
+discussed in [Apache Airflow issue #25061](https://github.com/apache/airflow/issues/25061).
+DAG Factory preserves this restriction: `expand: {value: 'request.output["a"]'}`
+raises Airflow's error instead of silently mapping over `return_value`.
+Use an intermediate classic operator to return the named entry as its own
+`return_value`, then map over that output:
+
+```title="example_named_xcom_mapping.yml"
+--8<-- "dev/dags/airflow2/example_named_xcom_mapping.yml"
+```
+
+The helper functions and scalar `ValueOperator` are defined in `named_xcom_tasks.py`:
+
+```python title="named_xcom_tasks.py"
+--8<-- "dev/dags/named_xcom_tasks.py"
+```
+
+`select_a` receives the named XCom `a` through templated `op_kwargs` and returns
+`[1, 2, 3, 4]`. `process` maps its scalar `value` parameter into four instances,
+receiving `1`, `2`, `3`, and `4`. The corresponding Airflow 3 example uses
+`airflow.providers.standard.operators.python.PythonOperator`.
+
+In native Airflow Python, the equivalent forwarding step is:
+
+```python
+select_a = PythonOperator(
+    task_id="select_a",
+    python_callable=forward_values,
+    op_kwargs={"value": request.output["a"]},
+)
+process = ValueOperator.partial(task_id="process").expand(value=select_a.output)
+```
+
+Include each referenced task in `dependencies` so DAG Factory builds it before
+resolving the reference. Dot syntax such as `request.output.a` and chained
+dictionary access such as `request.output["a"]["b"]` are not supported.
+
 ## Advanced Dynamic Task Mapping with DAG Factory
 
 Below, we explain the different methods for defining dynamic task mapping, illustrated by the provided example configuration.

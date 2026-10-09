@@ -16,6 +16,7 @@ except ImportError:
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.secrets.local_filesystem import LocalFilesystemBackend
+
 try:
     from airflow.sdk import timezone
 except ImportError:
@@ -47,7 +48,7 @@ def new_test_dag(dag: DAG) -> DagRun:
             from airflow.dag_processing.dagbag import DagBag, sync_bag_to_db
         except ImportError:
             from airflow.models.dagbag import DagBag, sync_bag_to_db
-            
+
         from airflow.models.dagbundle import DagBundleModel
         from airflow.utils.session import create_session
 
