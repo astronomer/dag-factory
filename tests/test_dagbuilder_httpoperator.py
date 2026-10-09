@@ -50,6 +50,7 @@ HTTP_OPERATOR_UNAVAILABLE_MSG = "HTTP operator not available in this Airflow ver
         {"nested": [{"value": "request.output['a']"}]},
         {"value": "request.output"},
         'request.output["a"]',
+        {"nested": [{"value": '+request["a"]'}]},
     ],
 )
 def test_json_http_payload_rejects_output_references(data):
@@ -84,7 +85,8 @@ def test_static_json_http_payload_remains_literal():
 
 
 @pytest.mark.skipif(HTTP_OPERATOR_CLASS is None, reason=HTTP_OPERATOR_UNAVAILABLE_MSG)
-def test_non_json_http_payload_accepts_named_output_reference():
+@pytest.mark.parametrize("reference", ['request.output["a"]', '+request["a"]'])
+def test_non_json_http_payload_accepts_named_output_reference(reference):
     producer = BaseOperator(task_id="request", dag=DAG("http_named_xcom"))
     consumer = DagBuilder.make_task(
         HTTP_OPERATOR_PATH,
@@ -93,7 +95,7 @@ def test_non_json_http_payload_accepts_named_output_reference():
             "dag": producer.dag,
             "endpoint": "/test",
             "headers": {"Content-Type": "text/plain"},
-            "data": 'request.output["a"]',
+            "data": reference,
         },
         {"request": producer},
     )

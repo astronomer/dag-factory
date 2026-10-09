@@ -585,7 +585,7 @@ class DagBuilder:
 
     @staticmethod
     def _resolve_output_references(value: Any, tasks_dict: Dict[str, Union[BaseOperator, XComArg]]) -> Any:
-        """Resolve native operator output references without evaluating Python expressions."""
+        """Resolve shorthand and native output references without evaluating Python expressions."""
         if isinstance(value, dict):
             return {key: DagBuilder._resolve_output_references(item, tasks_dict) for key, item in value.items()}
         if isinstance(value, list):
@@ -595,7 +595,9 @@ class DagBuilder:
         if not isinstance(value, str):
             return value
 
-        match = re.fullmatch(r"([\w.-]+)\.output(?:\[(.*)\])?", value)
+        match = re.fullmatch(r"([\w.-]+)\.output(?:\[(.*)\])?", value) or re.fullmatch(
+            r"\+([\w.-]+)(?:\[(.*)\])?", value
+        )
         legacy_match = re.fullmatch(r"XcomArg\(([\w.-]+)\)", value)
         if not match and not legacy_match:
             return value
@@ -1032,15 +1034,18 @@ class DagBuilder:
                 task: Union[BaseOperator, MappedOperator] = DagBuilder.make_task(
                     operator=operator, task_params=params, tasks_dict=tasks_dict
                 )
-                tasks_dict[task.task_id]: BaseOperator = task
 
             elif "decorator" in task_conf:
                 task = DagBuilder.make_decorator(
                     decorator_import_path=task_conf["decorator"], task_params=params, tasks_dict=tasks_dict
                 )
-                tasks_dict[task_name]: BaseOperator = task
             else:
                 raise DagFactoryConfigException("Tasks must define either 'operator' or 'decorator")
+
+            # Preserve native Airflow IDs when another task's YAML alias overlaps.
+            tasks_dict.setdefault(task_name, task)
+            task_operator = task.operator if isinstance(task, XComArg) else task
+            tasks_dict[task_operator.task_id] = task
 
         # set task dependencies after creating tasks
         self.set_dependencies(tasks, tasks_dict, dag_params.get("task_groups", {}), task_groups_dict)
@@ -1213,8 +1218,7 @@ class DagBuilder:
         for arg_key, arg_value in task_params.items():
             if arg_key in callable_args_keys:
                 decorator_kwargs.pop(arg_key)
-                if not DagBuilder._replace_kwargs_values_as_xcom(callable_kwargs, arg_key, arg_value, tasks_dict):
-                    callable_kwargs[arg_key] = arg_value
+                callable_kwargs[arg_key] = DagBuilder._resolve_output_references(arg_value, tasks_dict)
 
         expand_kwargs = decorator_kwargs.pop("expand", {})
         partial_kwargs = decorator_kwargs.pop("partial", {})
@@ -1225,7 +1229,7 @@ class DagBuilder:
                     "When using dynamic task mapping, all the task arguments should be defined in expand and partial."
                 )
             DagBuilder.replace_kwargs_values_as_tasks(expand_kwargs, tasks_dict)
-            DagBuilder.replace_kwargs_values_as_tasks(partial_kwargs, tasks_dict)
+            partial_kwargs = DagBuilder._resolve_output_references(partial_kwargs, tasks_dict)
             return decorator(**decorator_kwargs).partial(**partial_kwargs).expand(**expand_kwargs)
         elif expand_kwargs:
             DagBuilder.replace_kwargs_values_as_tasks(expand_kwargs, tasks_dict)
@@ -1235,20 +1239,11 @@ class DagBuilder:
 
     @staticmethod
     def _replace_kwargs_values_as_xcom(kwargs: dict(str, Any), key: str, value: Any, tasks_dict: dict(str, Any)):
-        # Match with multiple_outputs=True case with {key}: +{task}["{xcom_key}"]
-        _PATTERN = re.compile(r"^\+(?P<task>\w*)(\[['\"](?P<xcom_key>.*)['\"]\])?$")
-
         if not isinstance(value, str):
             return False
-
-        m = _PATTERN.match(value)
-        if m:
-            task = m.group("task")
-            xcom_key = m.group("xcom_key")
-            if not xcom_key:
-                kwargs[key] = tasks_dict[task]
-            else:
-                kwargs[key] = tasks_dict[task][xcom_key]
+        resolved = DagBuilder._resolve_output_references(value, tasks_dict)
+        if isinstance(resolved, XComArg):
+            kwargs[key] = resolved
             return True
         return False
 

@@ -2,16 +2,22 @@
 
 DAG Factory supports Airflow’s
 [Pythonic Dags with the TaskFlow API](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html),
-enabling "getitem" shorthand for TaskFlow-style decorated tasks that return mappings (multiple_outputs=True).
+enabling a shared output-reference shorthand for TaskFlow tasks and traditional operators.
 
 ## What it enables
 
-- When a TaskFlow-decorated task returns a dict (for example, using `multiple_outputs=True`), downstream task arguments can reference either the whole returned mapping or a single key from it using a concise syntax.
+- Downstream tasks can reference the whole return value or a named XCom entry from either producer type.
+- The same shorthand works in TaskFlow callable arguments and traditional operators' templated arguments, including nested values and `partial` arguments.
 
 ## Syntax
 
-- `+task_id` (with default `multiple_outputs=False`) — reference the entire Python function return value (the pushed value from the task). This is useful when the upstream task returns a mapping and the downstream callable expects the return_value.
-- `+task_id['key']` or `+task_id["key"]` — reference a single value from the mapping returned by the upstream TaskFlow task.
+- `+task_id` — reference the producer's `return_value`, including when `multiple_outputs=True`.
+- `+task_id['key']` or `+task_id["key"]` — select the named XCom entry `key`. The producer must publish that entry using `multiple_outputs=True` or an explicit `xcom_push`; this does not extract a field from the dictionary stored in `return_value`.
+- `task_id.output` and `task_id.output["key"]` are also supported, with the same meaning.
+
+Airflow's restriction on mapping directly over a custom-key XCom is preserved.
+See [Named XCom output references](dynamic_tasks.md#named-xcom-output-references)
+for the forwarding pattern and traditional operator examples.
 
 ## Examples
 

@@ -12,10 +12,10 @@ named_xcom_mapping:
       operator: airflow.providers.standard.operators.python.PythonOperator
       python_callable: named_xcom_tasks.forward_values
       op_kwargs:
-        value: 'request.output["a"]'
+        value: '+request["a"]'
       dependencies: [request]
     - task_id: process
       operator: named_xcom_tasks.ValueOperator
       expand:
-        value: select_a.output
+        value: +select_a
       dependencies: [select_a]

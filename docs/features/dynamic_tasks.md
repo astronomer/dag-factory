@@ -46,17 +46,19 @@ Below, you can see a list of mapped tasks generated dynamically as part of the `
 
 ![example_dynamic_task_mapping.png](../static/example_dynamic_task_mapping.png "Dynamic Task Mapping visualization")
 
-## Named XCom outputs from classic operators
+## Named XCom output references
 
-For traditional class-based operators, DAG Factory resolves `request.output` and
-`request.output["a"]` strings into native Airflow `XComArg` objects. These references
-work in the operator's templated arguments, including nested `op_kwargs` and
-templated arguments under `partial`. Both `request.output["a"]` and
-`request.output['a']` select the XCom entry named `a`, just as they do in Python.
+Use `+request` for the producer's `return_value`, or `+request["a"]` to select the
+XCom entry named `a`. The same shorthand works with both traditional operators
+and TaskFlow tasks, in all four producer/consumer combinations. DAG Factory
+normalizes either producer type into a native Airflow `XComArg`.
+
+For traditional consumers, references work in templated arguments, including nested
+`op_kwargs` and templated arguments under `partial`. For TaskFlow consumers, they
+work in callable arguments, including nested values and arguments under `partial`.
+Existing `request.output`, `request.output["a"]`, and `request.output['a']` forms
+also work in these contexts. Both single and double quoted keys are supported.
 Keys must be quoted string literals; arbitrary Python expressions are not evaluated.
-
-Classic consumers can also reference the output of a TaskFlow producer using the
-same syntax. DAG Factory reuses the producer's native `XComArg` in that case.
 
 One exception is automatically serialized JSON `HttpOperator.data` (with
 `Content-Type: application/json`). DAG Factory serializes this payload when the
@@ -64,7 +66,7 @@ DAG is built, before XCom values are available. Output references in that payloa
 raise a configuration error; literal JSON payloads retain their existing behavior.
 Other native templated HTTP arguments support output references normally.
 
-`request.output` selects `return_value`. Indexing it with `["a"]` selects a separate
+`+request` and `request.output` select `return_value`. Indexing with `["a"]` selects a separate
 XCom entry; it does not extract the dictionary field `a` from `return_value`.
 The producer must publish that named entry. For example, a classic `PythonOperator`
 can run this function:
@@ -77,11 +79,27 @@ def publish_values(ti):
     return result
 ```
 
+A producer using `multiple_outputs: true` can instead return the dictionary and
+let Airflow publish its entries as named XComs. This works with both a
+`PythonOperator` and a TaskFlow producer. For example, a TaskFlow consumer on
+Airflow 3 can select the named entry with:
+
+```yaml
+- task_id: select_a
+  decorator: airflow.sdk.task
+  python_callable: named_xcom_tasks.forward_values
+  value: '+request["a"]'
+  dependencies: [request]
+```
+
+Use `airflow.decorators.task` for the decorator on Airflow 2.
+
 Airflow currently rejects a custom-key `XComArg` passed directly to `expand`, as
 discussed in [Apache Airflow issue #25061](https://github.com/apache/airflow/issues/25061).
-DAG Factory preserves this restriction: `expand: {value: 'request.output["a"]'}`
+DAG Factory preserves this restriction: `expand: {value: '+request["a"]'}`
 raises Airflow's error instead of silently mapping over `return_value`.
-Use an intermediate classic operator to return the named entry as its own
+The same restriction applies to `request.output["a"]` and TaskFlow mapping.
+Use an intermediate operator or TaskFlow task to return the named entry as its own
 `return_value`, then map over that output:
 
 ```title="example_named_xcom_mapping.yml"
@@ -110,8 +128,10 @@ select_a = PythonOperator(
 process = ValueOperator.partial(task_id="process").expand(value=select_a.output)
 ```
 
-Include each referenced task in `dependencies` so DAG Factory builds it before
-resolving the reference. Dot syntax such as `request.output.a` and chained
+Include each producer's YAML task name in `dependencies` so DAG Factory builds it
+before resolving the reference. References also accept fully qualified Airflow IDs,
+such as `+group.request["a"]`; full IDs take precedence over overlapping YAML aliases.
+Dot syntax such as `request.output.a` and chained
 dictionary access such as `request.output["a"]["b"]` are not supported.
 
 ## Advanced Dynamic Task Mapping with DAG Factory
