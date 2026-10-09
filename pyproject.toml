@@ -33,7 +33,8 @@ dependencies = [
     "pathspec",
     "pyyaml",
     "packaging",
-    "typer"
+    "typer",
+    "jsonschema>=4.0",
 ]
 
 [project.scripts]
