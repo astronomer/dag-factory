@@ -145,7 +145,7 @@ def test_lint_invalid_yaml(mock_add_row, tmp_invalid_yaml_file):
     assert "invalid.yaml" in row[0]
     assert "Syntax Error" in row[1].plain
     assert "while parsing a flow sequence" in row[2].plain
-    assert "Analysed 1 files, found 1 invalid YAML files" in result.stdout
+    assert "Analysed 1 file, found 1 with errors" in result.stdout
     assert len(row[2].plain) == 32  # Cropped error message
 
 
@@ -157,7 +157,7 @@ def test_lint_invalid_yaml_verbose(mock_add_row, tmp_invalid_yaml_file):
     assert "invalid.yaml" in row[0]
     assert "Syntax Error" in row[1].plain
     assert "while parsing a flow sequence" in row[2].plain
-    assert "Analysed 1 files, found 1 invalid YAML files" in result.stdout
+    assert "Analysed 1 file, found 1 with errors" in result.stdout
     assert len(row[2].plain) == 200  # Full error message
 
 
@@ -231,3 +231,40 @@ def test_convert_invalid_yaml(tmpdir):
     assert result.exit_code == 1
     assert cmp(original_file, converted_file, shallow=False)
     assert "Failed to convert" in result.stdout
+
+
+def test_lint_reports_an_unloadable_type_directive_instead_of_crashing(tmp_path):
+    """load_yaml_file materialises __type__, so any import error lands in lint.
+
+    Before this was caught, one such file took down a whole directory scan.
+    """
+    yml = tmp_path / "bad_type.yml"
+    yml.write_text(
+        "d:\n"
+        "  timetable:\n"
+        "    __type__: airflow.providers.nowhere.SomeTimetable\n"
+        "  tasks:\n"
+        "    t: {operator: airflow.providers.standard.operators.bash.BashOperator, bash_command: echo}\n"
+    )
+    result = runner.invoke(app, ["lint", "--verbose", str(yml)])
+    assert result.exit_code == 1
+    assert "Analysed 1 file" in result.stdout  # reached the summary, so it did not crash
+
+    # The table squeezes long paths, so check the finding itself rather than
+    # how it rendered.
+    from packaging.version import Version
+
+    from dagfactory.lint import lint_file
+
+    findings = lint_file(yml, Version("3.0.0"), str(tmp_path)).findings
+    assert any("ModuleNotFoundError" in f.message for f in findings)
+
+
+def test_lint_no_check_operators_flag_is_accepted(tmp_path):
+    yml = tmp_path / "dag.yml"
+    yml.write_text(
+        "d:\n  default_args:\n    start_date: '2024-01-01'\n  tasks:\n"
+        "    t: {operator: airflow.providers.nowhere.Thing, bash_command: echo}\n"
+    )
+    assert runner.invoke(app, ["lint", str(yml)]).exit_code == 1
+    assert runner.invoke(app, ["lint", "--no-check-operators", str(yml)]).exit_code == 0
