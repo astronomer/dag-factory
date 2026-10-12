@@ -329,6 +329,18 @@ def test_extract_dataset_names_with_dashes():
     assert result == expected
 
 
+def test_extract_dataset_names_with_consecutive_dashes():
+    # Consecutive dashes are part of the name (Airflow allows them); leading
+    # and trailing dashes are still excluded.
+    expression = "my--asset & asset-1"
+    expected = ["my--asset", "asset-1"]
+    result = utils.extract_dataset_names(expression)
+    assert result == expected
+
+    assert utils.extract_dataset_names("-leading") == ["leading"]
+    assert utils.extract_dataset_names("trailing-") == ["trailing"]
+
+
 def test_extract_dataset_names_ignores_storage_uris():
     # Storage URIs are handled by extract_storage_names; their components must not
     # be returned here, otherwise "bucket-cjmm" would be rewritten inside the URI.

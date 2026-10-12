@@ -308,10 +308,12 @@ STORAGE_PATTERN = r"[a-zA-Z][a-zA-Z0-9+.-]*://[a-zA-Z0-9\-_/\.]+"
 def extract_dataset_names(expression) -> List[str]:
     # Asset/dataset names may contain "-", which must be captured as part of the
     # identifier instead of being treated as a separator (see issue #629).
+    # Consecutive dashes are allowed as well (e.g. "my--asset"). Leading and
+    # trailing dashes are still excluded by the word boundaries.
     # Storage URIs are removed first: they are handled by extract_storage_names,
     # and their dashed components (e.g. "bucket-cjmm" in "s3://bucket-cjmm/raw")
     # would otherwise be returned here and rewritten inside the URI.
-    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*\b"
+    dataset_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_-]*\b"
     expression_without_uris = re.sub(STORAGE_PATTERN, " ", expression)
     datasets = re.findall(dataset_pattern, expression_without_uris)
     return datasets
