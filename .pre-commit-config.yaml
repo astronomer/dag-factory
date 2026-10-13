@@ -36,7 +36,7 @@ repos:
         args: [ "--allow-missing-credentials" ]
 
   - repo: https://github.com/psf/black
-    rev: 26.5.1
+    rev: 26.10.0
     hooks:
       - id: black
         args: [ "--config", "./pyproject.toml" ]
