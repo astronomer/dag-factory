@@ -1,15 +1,20 @@
 import difflib
 from copy import deepcopy
 from pathlib import Path
+from typing import Optional
 
 import typer
 import yaml
+from airflow.version import version as AIRFLOW_VERSION
+from packaging.version import InvalidVersion, Version
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
 from dagfactory import __version__
 from dagfactory._yaml import load_yaml_file
+from dagfactory.constants import DEFAULTS_FILE_NAMES
+from dagfactory.lint import lint_file
 from dagfactory.utils import update_yaml_structure
 
 DESCRIPTION = """
@@ -29,14 +34,27 @@ app = typer.Typer(
 )
 
 
-def _check_yaml_syntax(file_path: Path):
-    """
-    Check if the YAML file is valid.
+def _load_error(file_path: Path) -> Optional[Exception]:
+    """Return whatever stopped the YAML file loading, or None if it loaded.
+
+    Loading also materialises `__type__` directives, so this catches more than
+    a syntax error: anything the import raises lands here too. Returning the
+    exception rather than a string leaves the caller to decide how to show it.
     """
     try:
         load_yaml_file(file_path)
-    except yaml.YAMLError as e:
-        return str(e)
+    except Exception as exc:
+        return exc
+    return None
+
+
+def _describe(exc: Exception, verbose: bool) -> str:
+    """Render a load failure for the results table."""
+    text = str(exc).strip() if isinstance(exc, yaml.YAMLError) else f"{type(exc).__name__}: {exc}"
+    if verbose:
+        return text
+    first_line = text.split("\n")[0]
+    return first_line[:120] + "..."
 
 
 def _find_yaml_files(path: Path) -> list[Path]:
@@ -141,36 +159,112 @@ def lint(
     path: Path = typer.Argument(..., help="Path to a directory containing YAML files or to a YAML file to lint"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full error messages"),
     ignore: Path = typer.Option(None, "--ignore", "-i", help="Files or directories to ignore"),
+    airflow_version: str = typer.Option(
+        AIRFLOW_VERSION,
+        "--airflow-version",
+        "-a",
+        help="Airflow version to check against (e.g. '3.1.2' or just '2'). "
+        "Defaults to the installed Airflow version.",
+    ),
+    check_operators: bool = typer.Option(
+        True,
+        "--check-operators/--no-check-operators",
+        help="Import each task's operator to confirm it exists. Turn it off to lint where the "
+        "provider packages are not installed. Other imports may still happen while resolving a "
+        "config, such as callables and `__type__` directives.",
+    ),
+    defaults_path: Optional[Path] = typer.Option(
+        None,
+        "--defaults-path",
+        help="Root directory to search for defaults.yml/defaults.yaml, as dag-factory does at "
+        "runtime. Defaults to Airflow's dags_folder.",
+    ),
 ):
-    """Scan YAML files for syntax errors."""
-    files = _find_yaml_files(path)
+    """Scan YAML configs for syntax errors and invalid DAG parameters.
+
+    Each DAG is resolved the way the runtime resolves it, including the
+    defaults.yml chain, then checked against the parameter metadata: unknown
+    keys, wrong types, parameters the configured Airflow does not accept,
+    deprecated parameters, and missing required fields.
+
+    Files named defaults.yml / defaults.yaml are dag-factory infrastructure
+    rather than DAG configs, so they are not linted in their own right; their
+    contents still reach the DAGs that inherit them.
+    """
+    try:
+        target_version = Version(str(airflow_version))
+    except InvalidVersion:
+        console.print(f"[red]Error:[/red] --airflow-version must be a PEP440 version, got {airflow_version!r}.")
+        raise typer.Exit(2)
+
+    files = [f for f in _find_yaml_files(path) if f.name not in DEFAULTS_FILE_NAMES]
     airflow_ignore_files = _find_yaml_files_on_airflow_ignore(path)
     if ignore:
         _exclude_yaml_files(files, ignore, airflow_ignore_files)
 
-    table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: YAML Lint Results", show_lines=True)
+    table = Table(title="[bold][medium_purple3]DAG Factory[/medium_purple3][/bold]: Lint Results", show_lines=True)
     table.add_column("File", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("Error Message", style="red", no_wrap=False, overflow="fold")
 
     total_errors = 0
+    total_warnings = 0
     for file_path in files:
-        error = _check_yaml_syntax(file_path)
-        if error:
+        load_error = _load_error(file_path)
+        if load_error is not None:
             total_errors += 1
-            message = error.strip() if verbose else error.strip().split("\n")[0][:120] + "..."
-            table.add_row(str(file_path), Text("Syntax Error", style="red"), Text(message, style="red"))
+            table.add_row(
+                str(file_path),
+                Text("Syntax Error", style="red"),
+                Text(_describe(load_error, verbose), style="red"),
+            )
+            continue
+
+        result = lint_file(
+            file_path,
+            target_version,
+            str(defaults_path) if defaults_path else None,
+            check_operators=check_operators,
+        )
+        if result.errors:
+            total_errors += 1
+            total_warnings += len(result.warnings)
+            table.add_row(
+                str(file_path), Text("Error", style="red"), Text(_format_findings(result, verbose), style="red")
+            )
+        elif result.warnings:
+            total_warnings += len(result.warnings)
+            table.add_row(
+                str(file_path),
+                Text("Warnings", style="yellow"),
+                Text(_format_findings(result, verbose), style="yellow"),
+            )
         else:
             table.add_row(str(file_path), Text("OK", style="green"), "")
 
     console.print(table)
-    if total_errors > 0:
-        console.print(f"Analysed {len(files)} files, found [red]{total_errors}[/red] invalid YAML files.")
+    summary = f"Analysed {len(files)} {_file_or_files(len(files))}"
+    if total_errors:
+        console.print(f"{summary}, found [red]{total_errors}[/red] with errors and {total_warnings} warning(s).")
         if not verbose:
-            console.print(f"For more details on the errors, run with --verbose.")
+            console.print("For more details on the errors, run with --verbose.")
         raise typer.Exit(1)
+    if total_warnings:
+        console.print(f"{summary}, [green]no errors found[/green] ([yellow]{total_warnings} warning(s)[/yellow]).")
     else:
-        console.print(f"Analysed {len(files)} files, [green]no errors found.[/green]")
+        console.print(f"{summary}, [green]no errors found.[/green]")
+
+
+def _format_findings(result, verbose: bool) -> str:
+    """Render a file's findings for the results table."""
+    shown = result.errors + result.warnings
+    if not verbose:
+        shown = shown[:3]
+    lines = [f"{'error' if f.severity == 'error' else 'warn'}: {f.render()}" for f in shown]
+    hidden = len(result.errors) + len(result.warnings) - len(shown)
+    if hidden > 0:
+        lines.append(f"... and {hidden} more; run with --verbose")
+    return "\n".join(lines)
 
 
 def _file_or_files(count: int) -> str:
