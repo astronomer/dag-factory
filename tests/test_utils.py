@@ -317,6 +317,41 @@ def test_extract_dataset_names():
     assert result == expected
 
 
+def test_extract_dataset_names_with_dashes():
+    expression = "(asset-1 & asset2)"
+    expected = ["asset-1", "asset2"]
+    result = utils.extract_dataset_names(expression)
+    assert result == expected
+
+    expression = "my-asset-1 | other_asset & third-asset"
+    expected = ["my-asset-1", "other_asset", "third-asset"]
+    result = utils.extract_dataset_names(expression)
+    assert result == expected
+
+
+def test_extract_dataset_names_with_consecutive_dashes():
+    # Consecutive dashes are part of the name (Airflow allows them); leading
+    # and trailing dashes are still excluded.
+    expression = "my--asset & asset-1"
+    expected = ["my--asset", "asset-1"]
+    result = utils.extract_dataset_names(expression)
+    assert result == expected
+
+    assert utils.extract_dataset_names("-leading") == ["leading"]
+    assert utils.extract_dataset_names("trailing-") == ["trailing"]
+
+
+def test_extract_dataset_names_ignores_storage_uris():
+    # Storage URIs are handled by extract_storage_names; their components must not
+    # be returned here, otherwise "bucket-cjmm" would be rewritten inside the URI.
+    expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
+    assert utils.extract_dataset_names(expression) == []
+
+    expression = "s3://bucket-cjmm/raw/dataset_custom_1 & asset-1"
+    assert utils.extract_dataset_names(expression) == ["asset-1"]
+    assert utils.extract_storage_names(expression) == ["s3://bucket-cjmm/raw/dataset_custom_1"]
+
+
 def test_extract_storage_names():
     expression = "s3://bucket-cjmm/raw/dataset_custom_1 & s3://bucket-cjmm/raw/dataset_custom_2"
     expected = ["s3://bucket-cjmm/raw/dataset_custom_1", "s3://bucket-cjmm/raw/dataset_custom_2"]
