@@ -9,7 +9,7 @@ exclude: '^(\.github/workflows/.*\.lock\.yml|\.github/aw/actions-lock\.json)$'
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.5
+    rev: v0.16.10
     hooks:
       - id: ruff
         args:
@@ -36,7 +36,7 @@ repos:
         args: [ "--allow-missing-credentials" ]
 
   - repo: https://github.com/psf/black
-    rev: 26.5.1
+    rev: 26.10.0
     hooks:
       - id: black
         args: [ "--config", "./pyproject.toml" ]
