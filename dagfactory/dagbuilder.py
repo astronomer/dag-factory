@@ -607,27 +607,58 @@ class DagBuilder:
         return evaluator.evaluate(tree)
 
     @staticmethod
-    def _extract_and_transform_datasets(datasets_conditions: str) -> Tuple[str, Dict[str, Any]]:
+    def _dataset_variable_names(names: List[str]) -> Dict[str, str]:
+        """
+        Maps each extracted dataset name/URI to a unique, valid Python variable name.
+
+        ``make_valid_variable_name`` turns "-" into "_", so distinct names such as
+        "asset-1" and "asset_1" would otherwise collapse into the same variable.
+        """
+        variable_names: Dict[str, str] = {}
+        used = set()
+        for name in names:
+            if name in variable_names:
+                continue
+            base = utils.make_valid_variable_name(name)
+            candidate = base
+            counter = 2
+            while candidate in used:
+                candidate = f"{base}_{counter}"
+                counter += 1
+            variable_names[name] = candidate
+            used.add(candidate)
+        return variable_names
+
+    @staticmethod
+    def _extract_and_transform_datasets(
+        datasets_conditions: str,
+    ) -> Tuple[str, Dict[str, Any], Dict[str, str]]:
         """
         Extracts dataset names and storage paths from the conditions string and transforms them into valid variable names.
 
         :param datasets_conditions: A string of conditions dataset URIs to be evaluated in the condition.
         :type datasets_conditions: str
 
-        :returns: A tuple containing the transformed conditions string and the dataset map.
-        :rtype: Tuple[str, Dict[str, Any]]
+        :returns: A tuple containing the transformed conditions string, the dataset map,
+            and the mapping of original names to variable names.
+        :rtype: Tuple[str, Dict[str, Any], Dict[str, str]]
         """
-        dataset_map = {}
         datasets_filter: List[str] = utils.extract_dataset_names(datasets_conditions) + utils.extract_storage_names(
             datasets_conditions
         )
+        if not datasets_filter:
+            return datasets_conditions, {}, {}
 
-        for uri in datasets_filter:
-            valid_variable_name = utils.make_valid_variable_name(uri)
-            datasets_conditions = datasets_conditions.replace(uri, valid_variable_name)
-            dataset_map[valid_variable_name] = Dataset(uri)
+        name_map = DagBuilder._dataset_variable_names(datasets_filter)
 
-        return datasets_conditions, dataset_map
+        # Replace every name in a single pass (longest first) so overlapping names
+        # such as "asset" and "asset-1" cannot corrupt each other.
+        unique_names = list(dict.fromkeys(datasets_filter))
+        pattern = re.compile("|".join(re.escape(name) for name in sorted(unique_names, key=len, reverse=True)))
+        datasets_conditions = pattern.sub(lambda match: name_map[match.group(0)], datasets_conditions)
+
+        dataset_map = {name_map[name]: Dataset(name) for name in unique_names}
+        return datasets_conditions, dataset_map, name_map
 
     @staticmethod
     def evaluate_condition_with_datasets(datasets_conditions: str) -> Any:
@@ -640,7 +671,7 @@ class DagBuilder:
         :returns: The result of the logical condition evaluation with URIs replaced by valid variable names.
         :rtype: Any
         """
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
+        datasets_conditions, dataset_map, _ = DagBuilder._extract_and_transform_datasets(datasets_conditions)
         evaluated_condition = DagBuilder.safe_eval(datasets_conditions, dataset_map)
         return evaluated_condition
 
@@ -657,9 +688,11 @@ class DagBuilder:
         :returns: The result of the condition evaluation if `condition_string` is provided, otherwise a list of `Dataset` objects.
         :rtype: Any
         """
-        datasets_conditions, dataset_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
-        map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(dataset_map.keys()))
-        dataset_map = {alias_dataset: Dataset(uri) for alias_dataset, uri in map_datasets.items()}
+        datasets_conditions, dataset_map, name_map = DagBuilder._extract_and_transform_datasets(datasets_conditions)
+        # Look the file up by the original dataset names: the YAML file stores them
+        # as written (e.g. "asset-1"), not as the transformed variable names.
+        map_datasets = utils.get_datasets_map_uri_yaml_file(file, list(name_map.keys()))
+        dataset_map = {name_map[name]: Dataset(uri) for name, uri in map_datasets.items()}
         return DagBuilder.safe_eval(datasets_conditions, dataset_map)
 
     @staticmethod
