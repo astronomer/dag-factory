@@ -281,6 +281,26 @@ class DagBuilder:
         return dag_params
 
     @staticmethod
+    def _resolve_operator_alias(operator: str, operator_aliases: List[Dict[str, str]]) -> str:
+        """
+        Resolves a short operator alias to its full dotted module path.
+
+        If ``operator`` matches an ``operator_alias`` entry in the provided list,
+        the corresponding ``operator_path`` is returned. Otherwise the original
+        string is returned unchanged, allowing full dotted paths to pass through.
+
+        :param operator: the operator string from the task config (alias or full path)
+        :param operator_aliases: list of dicts with ``operator_alias`` and ``operator_path`` keys
+        :returns: resolved full dotted operator path
+        """
+        aliases_map: Dict[str, str] = {
+            entry["operator_alias"]: entry["operator_path"]
+            for entry in operator_aliases
+            if "operator_alias" in entry and "operator_path" in entry
+        }
+        return aliases_map.get(operator, operator)
+
+    @staticmethod
     def _resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
         """
         Recursively resolves user_defined_macros values. String values are imported
@@ -974,6 +994,9 @@ class DagBuilder:
 
             if "operator" in task_conf:
                 operator: str = task_conf["operator"]
+                operator = DagBuilder._resolve_operator_alias(
+                    operator, self.default_config.get("operator_aliases", [])
+                )
 
                 if task_conf.get("expand"):
                     task_conf = self.replace_expand_values(task_conf, tasks_dict)
