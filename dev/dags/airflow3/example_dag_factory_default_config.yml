@@ -23,14 +23,17 @@ default:
 machine_learning:
   tasks:
     - task_id: "load"
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo machine_larning"
 
 data_science:
   tasks:
     - task_id: "load"
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo data_science"
 
 artificial_intelligence:
   tasks:
     - task_id: "load"
+      operator: airflow.providers.standard.operators.bash.BashOperator
       bash_command: "echo artificial_intelligence"
