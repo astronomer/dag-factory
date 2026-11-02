@@ -32,7 +32,7 @@ body:
     attributes:
       label: Python version
       description: What version of Python are you running?
-      placeholder: e.g. 3.10
+      placeholder: e.g. 3.11
     validations:
       required: true
   - type: dropdown
