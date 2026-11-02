@@ -75,7 +75,7 @@ as input parameters.
 
 ## Named Mapping in Dynamic Tasks with DAG Factory
 
-Starting with Airflow 2.9, the `map_index_template` feature allows for custom mapping name for dynamic tasks based on a
+The `map_index_template` feature allows for custom mapping name for dynamic tasks based on a
 user-defined key. DAG Factory fully supports this feature, enabling users to name tasks dynamically in a meaningful way
 during runtime. This can be useful for tracing and debugging tasks.
 
