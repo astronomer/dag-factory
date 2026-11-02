@@ -123,17 +123,9 @@ try:
     HTTP_OPERATOR_CLASS = HttpOperator
     HTTP_SENSOR_CLASS = HttpSensor
 except ImportError:  # pragma: no cover
-    try:
-        # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
-        from airflow.providers.http.operators.http import SimpleHttpOperator
-        from airflow.providers.http.sensors.http import HttpSensor
-
-        HTTP_OPERATOR_CLASS = SimpleHttpOperator
-        HTTP_SENSOR_CLASS = HttpSensor
-    except ImportError:  # pragma: no cover
-        HTTP_OPERATOR_CLASS = None
-        HTTP_SENSOR_CLASS = None
-        logger.info("Package apache-airflow-providers-http is not installed.")
+    HTTP_OPERATOR_CLASS = None
+    HTTP_SENSOR_CLASS = None
+    logger.info("Package apache-airflow-providers-http is not installed.")
 
 # Try to import SqlSensor only if the package is installed
 try:
