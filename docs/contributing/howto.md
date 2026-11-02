@@ -145,10 +145,10 @@ The [pyproject. toml](https://github.com/astronomer/dag-factory/blob/main/pyproj
 !!! note
     - These tests create local Python virtual environments in a hatch-managed directory.
 
-To run unit tests using Python 3.11 and Airflow 2.9, use the following:
+To run unit tests using Python 3.11 and Airflow 2.11, use the following:
 
 ```bash
-hatch run tests.py3.11-2.9:test-cov
+hatch run tests.py3.11-2.11:test-cov
 ```
 
 It is also possible to run the tests using all the matrix combinations, by using:
@@ -172,11 +172,11 @@ export CONFIG_ROOT_DIR=$(pwd)/dev/dags
 export PYTHONPATH=$(pwd)/dev/dags:$PYTHONPATH
 ```
 
-To run the integration tests using Python 3.11 and Airflow 2.9, use
+To run the integration tests using Python 3.11 and Airflow 2.11, use
 
 ```bash
-hatch run tests.py3.11-2.9:test-integration-setup
-hatch run tests.py3.11-2.9:test-integration
+hatch run tests.py3.11-2.11:test-integration-setup
+hatch run tests.py3.11-2.11:test-integration
 ```
 
 ## Pre-Commit and linting
@@ -196,7 +196,7 @@ pre-commit run --all-files
 Pre-commit runs several static checks, including Black and Ruff. It is also possible to run them using `hatch`:
 
 ```bash
-hatch run tests.py3.11-2.9:static-check
+hatch run tests.py3.11-2.11:static-check
 ```
 
 ## Write docs
