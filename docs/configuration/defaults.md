@@ -182,6 +182,8 @@ my_dag:
 
 Relative values such as `2 days` are anchored to the **start of the current calendar day** in the chosen timezone, then shifted backward by the parsed delta (see `dagfactory.utils.get_datetime`).
 
+Dates without an offset (for example `2026-01-01` or `2026-01-01 09:00`) are read as wall-clock time in the chosen timezone. Dates that already carry an offset (for example `2026-01-01T00:00:00+08:00`) keep the instant they describe and are converted to the chosen timezone, so the offset is never silently dropped.
+
 A dedicated example lives in the test fixtures: `tests/fixtures_without_default_yaml/dag_factory_timezone.yml` (DAG-level `timezone` vs `default_args.timezone`). The shared canonical fixture `tests/fixtures/dag_factory.yml` sets `timezone: UTC` on `example_dag`.
 
 !!! note

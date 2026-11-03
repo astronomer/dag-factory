@@ -38,12 +38,16 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
     """
     local_tz: pendulum.timezone = pendulum.timezone(timezone)
     if isinstance(date_value, datetime):
-        return date_value.replace(tzinfo=local_tz)
+        if date_value.tzinfo is None:
+            return date_value.replace(tzinfo=local_tz)
+        # Already tz-aware: convert so the instant is kept, rather than relabeling the wall clock
+        return date_value.astimezone(local_tz)
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(tzinfo=local_tz)
-    # Try parsing as date string
+    # Try parsing as date string. Strings without an offset are read in ``timezone``;
+    # strings with an explicit offset keep their instant and are converted to ``timezone``.
     try:
-        return pendulum.parse(date_value).replace(tzinfo=local_tz)
+        return pendulum.parse(date_value, tz=local_tz).in_timezone(local_tz)
     except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
