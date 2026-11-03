@@ -23,7 +23,7 @@ The consumer DAG will run when all the specified datasets become available.
 ### Minimum Requirements
 
 * dag-factory 0.22.0+
-* [Apache Airflow® 2.9+](https://www.astronomer.io/docs/learn/airflow-datasets/#conditional-dataset-scheduling)
+* [Apache Airflow® 2.11+](https://www.astronomer.io/docs/learn/airflow-datasets/#conditional-dataset-scheduling)
 
 ### Logical operators for datasets
 
