@@ -19,11 +19,11 @@ configuration files.
 
 | Task | Command |
 | --- | --- |
-| Unit tests (one matrix cell) | `hatch run tests.py3.10-2.9:test` |
-| Unit tests with coverage | `hatch run tests.py3.10-2.9:test-cov` |
+| Unit tests (one matrix cell) | `hatch run tests.py3.11-2.11:test` |
+| Unit tests with coverage | `hatch run tests.py3.11-2.11:test-cov` |
 | Unit tests across the full matrix | `hatch run tests:test-cov` |
-| Integration tests setup | `hatch run tests.py3.11-2.9:test-integration-setup` |
-| Integration tests | `hatch run tests.py3.11-2.9:test-integration` |
+| Integration tests setup | `hatch run tests.py3.11-2.11:test-integration-setup` |
+| Integration tests | `hatch run tests.py3.11-2.11:test-integration` |
 | Static checks (ruff, black, codespell, …) | `pre-commit run --all-files` |
 | Build wheel + sdist | `uv build --wheel --sdist` (or `make build-whl`) |
 | Local Airflow via Astro CLI | `make docker-run` / `make docker-stop` |
@@ -76,7 +76,7 @@ dag-factory is a thin authoring layer that runs *inside* an Airflow deployment. 
 4. **CLI** (`__main__.py`, the `dagfactory` Typer console script) is for operator commands; it should not import from runtime listener code.
 5. **Telemetry** (`telemetry.py`) must stay opt-out and must never block DAG parsing if the network is down. Errors are swallowed by design.
 
-Don't import Airflow at module top-level in code that may run before Airflow is initialized; prefer local imports or guarded `try/except ImportError`. dag-factory must keep working on both Airflow 2.9+ and Airflow 3.x.
+Don't import Airflow at module top-level in code that may run before Airflow is initialized; prefer local imports or guarded `try/except ImportError`. dag-factory must keep working on both Airflow 2.11+ and Airflow 3.x.
 
 ## Security Model
 

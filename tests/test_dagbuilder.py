@@ -1655,7 +1655,7 @@ class TestConfigureSchedule:
                 {"schedule": {"datasets": ["dataset1", "dataset2"]}},
                 "evaluate_condition_with_datasets",
                 "evaluated_result",
-                "2.9.0",
+                "2.11.0",
             ),
         ],
     )
