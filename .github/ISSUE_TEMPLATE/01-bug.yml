@@ -24,7 +24,7 @@ body:
     attributes:
       label: airflow version
       description: What version of Apache Airflow are you running?
-      placeholder: ex. 2.9.0
+      placeholder: ex. 2.11.0
     validations:
       required: true
   - type: input

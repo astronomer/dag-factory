@@ -21,24 +21,17 @@ here = Path(__file__).parent
 PROJECT_ROOT_PATH = str(here.parent)
 UTC = pendulum.timezone("UTC")
 
-# Get the appropriate HTTP operator based on what's available
 try:
     from airflow.providers.http.operators.http import HttpOperator
 
     HTTP_OPERATOR_CLASS = HttpOperator
     HTTP_OPERATOR_PATH = "airflow.providers.http.operators.http.HttpOperator"
 except ImportError:
-    try:
-        from airflow.providers.http.operators.http import SimpleHttpOperator
-
-        HTTP_OPERATOR_CLASS = SimpleHttpOperator
-        HTTP_OPERATOR_PATH = "airflow.providers.http.operators.http.SimpleHttpOperator"
-    except ImportError:
-        HTTP_OPERATOR_CLASS = None
-        HTTP_OPERATOR_PATH = None
+    HTTP_OPERATOR_CLASS = None
+    HTTP_OPERATOR_PATH = None
 
 # Test constants
-HTTP_OPERATOR_UNAVAILABLE_MSG = "HTTP operator not available in this Airflow version"
+HTTP_OPERATOR_UNAVAILABLE_MSG = "apache-airflow-providers-http is not installed"
 
 # Default config for testing
 DEFAULT_CONFIG = {
@@ -240,13 +233,8 @@ def test_dag_with_http_operator():
 def test_http_operator_from_yaml():
     """Test loading HTTP operator from a fixture YAML file"""
 
-    # Select the appropriate fixture based on which operator is available
-    if HTTP_OPERATOR_PATH == "airflow.providers.http.operators.http.HttpOperator":
-        fixture_path = os.path.join(PROJECT_ROOT_PATH, "tests", "fixtures", "dag_factory_http_operator_task.yml")
-        dag_id = "http_operator_example_dag"
-    else:
-        fixture_path = os.path.join(PROJECT_ROOT_PATH, "tests", "fixtures", "dag_factory_simple_http_operator_task.yml")
-        dag_id = "simple_http_operator_example_dag"
+    fixture_path = os.path.join(PROJECT_ROOT_PATH, "tests", "fixtures", "dag_factory_http_operator_task.yml")
+    dag_id = "http_operator_example_dag"
 
     # Skip if fixture doesn't exist
     if not os.path.exists(fixture_path):

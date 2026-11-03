@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 - Drop Python 3.10 support; the minimum supported version is now Python 3.11 by @pankajastro
+- Drop support for Airflow 2.9 and 2.10; the minimum supported version is now Airflow 2.11 by @pankajastro
+- Raise minimum provider versions: `apache-airflow-providers-http>=5.0.0`, `apache-airflow-providers-cncf-kubernetes>=10.0.0`, `apache-airflow-providers-common-sql>=1.20.0`; `SimpleHttpOperator` is no longer special-cased (use `HttpOperator`) by @pankajastro
 
 ## [1.1.0] - 2026-05-07
 

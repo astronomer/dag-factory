@@ -108,7 +108,7 @@ try:
 except ImportError:
     AssetOrTimeSchedule = None
 
-try:  # Try Airflow 2.9
+try:  # Airflow 2.x only; removed in Airflow 3
     from airflow.timetables.datasets import DatasetOrTimeSchedule
 except ImportError:
     DatasetOrTimeSchedule = None
@@ -123,17 +123,9 @@ try:
     HTTP_OPERATOR_CLASS = HttpOperator
     HTTP_SENSOR_CLASS = HttpSensor
 except ImportError:  # pragma: no cover
-    try:
-        # TODO: Remove this when apache-airflow-providers-http >= 5.0.0
-        from airflow.providers.http.operators.http import SimpleHttpOperator
-        from airflow.providers.http.sensors.http import HttpSensor
-
-        HTTP_OPERATOR_CLASS = SimpleHttpOperator
-        HTTP_SENSOR_CLASS = HttpSensor
-    except ImportError:  # pragma: no cover
-        HTTP_OPERATOR_CLASS = None
-        HTTP_SENSOR_CLASS = None
-        logger.info("Package apache-airflow-providers-http is not installed.")
+    HTTP_OPERATOR_CLASS = None
+    HTTP_SENSOR_CLASS = None
+    logger.info("Package apache-airflow-providers-http is not installed.")
 
 # Try to import SqlSensor only if the package is installed
 try:
@@ -359,7 +351,7 @@ class DagBuilder:
                     task_params["python_callable_name"], task_params["python_callable_file"]
                 )
                 # remove dag-factory specific parameters
-                # Airflow 2.0 doesn't allow these to be passed to operator
+                # Airflow doesn't allow these to be passed to the operator
                 del task_params["python_callable_name"]
                 del task_params["python_callable_file"]
             elif isinstance(task_params["python_callable"], str):
@@ -461,7 +453,7 @@ class DagBuilder:
             "on_success_callback",
             "on_failure_callback",
             "on_retry_callback",
-            "on_skipped_callback",  # This is only available AIRFLOW_VERSION >= 2.7.0
+            "on_skipped_callback",
         ]:
             # First, check for a str, str with params, or provider callback
             if utils.check_dict_key(task_group_conf["default_args"], callback_type):
@@ -1060,7 +1052,6 @@ class DagBuilder:
             del task_params["execution_date_fn_name"]
             del task_params["execution_date_fn_file"]
 
-        # on_execute_callback is an Airflow 2.0 feature
         for callback_type in [
             "on_execute_callback",
             "on_success_callback",
@@ -1133,7 +1124,7 @@ class DagBuilder:
             python_callable: Callable = utils.get_python_callable(
                 task_params["python_callable_name"], task_params["python_callable_file"]
             )
-            # Remove dag-factory specific parameters since Airflow 2.0 doesn't allow these to be passed to operator
+            # Remove dag-factory specific parameters since Airflow doesn't allow these to be passed to operator
             del task_params["python_callable_name"]
             del task_params["python_callable_file"]
         elif "python_callable" in task_params:
