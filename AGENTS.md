@@ -19,8 +19,8 @@ configuration files.
 
 | Task | Command |
 | --- | --- |
-| Unit tests (one matrix cell) | `hatch run tests.py3.10-2.9:test` |
-| Unit tests with coverage | `hatch run tests.py3.10-2.9:test-cov` |
+| Unit tests (one matrix cell) | `hatch run tests.py3.11-2.9:test` |
+| Unit tests with coverage | `hatch run tests.py3.11-2.9:test-cov` |
 | Unit tests across the full matrix | `hatch run tests:test-cov` |
 | Integration tests setup | `hatch run tests.py3.11-2.9:test-integration-setup` |
 | Integration tests | `hatch run tests.py3.11-2.9:test-integration` |
