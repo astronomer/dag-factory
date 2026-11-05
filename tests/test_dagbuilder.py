@@ -718,6 +718,83 @@ def test_get_dag_params_dag_with_task_group():
     assert td.get_dag_params() == expected
 
 
+DEFAULT_CONFIG_WITH_TASKS = {
+    **DEFAULT_CONFIG,
+    "tasks": [
+        {"task_id": "extract", "operator": get_bash_operator_path(), "bash_command": "echo extract"},
+        {
+            "task_id": "transform",
+            "operator": get_bash_operator_path(),
+            "bash_command": "echo transform",
+            "dependencies": ["extract"],
+        },
+        {"task_id": "load", "operator": get_bash_operator_path(), "dependencies": ["transform"]},
+    ],
+}
+
+
+def test_get_dag_params_merges_list_tasks_with_default_by_task_id():
+    dag_config = {
+        "tasks": [
+            {"task_id": "load", "bash_command": "echo load"},
+            {"task_id": "notify", "bash_command": "echo notify", "operator": get_bash_operator_path()},
+        ]
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+
+    assert td.get_dag_params()["tasks"] == {
+        "load": {"bash_command": "echo load", "operator": get_bash_operator_path(), "dependencies": ["transform"]},
+        "notify": {"bash_command": "echo notify", "operator": get_bash_operator_path()},
+        "extract": {"operator": get_bash_operator_path(), "bash_command": "echo extract"},
+        "transform": {
+            "operator": get_bash_operator_path(),
+            "bash_command": "echo transform",
+            "dependencies": ["extract"],
+        },
+    }
+
+
+def test_get_dag_params_merges_list_tasks_with_dict_default_tasks():
+    default_config = {**DEFAULT_CONFIG, "tasks": {"load": {"operator": get_bash_operator_path(), "retries": 3}}}
+    dag_config = {"tasks": [{"task_id": "load", "bash_command": "echo load"}]}
+    td = dagbuilder.DagBuilder("test_dag", dag_config, default_config)
+
+    assert td.get_dag_params()["tasks"] == {
+        "load": {"bash_command": "echo load", "operator": get_bash_operator_path(), "retries": 3}
+    }
+
+
+def test_get_dag_params_merges_list_task_groups_with_default_by_group_name():
+    default_config = {
+        **DEFAULT_CONFIG,
+        "task_groups": [{"group_name": "group_1", "tooltip": "default tooltip"}, {"group_name": "group_2"}],
+    }
+    dag_config = {"task_groups": [{"group_name": "group_1", "dependencies": ["task_1"]}]}
+    td = dagbuilder.DagBuilder("test_dag", dag_config, default_config)
+
+    assert td.get_dag_params()["task_groups"] == {
+        "group_1": {"dependencies": ["task_1"], "tooltip": "default tooltip"},
+        "group_2": {},
+    }
+
+
+def test_get_dag_params_keeps_list_tasks_when_default_has_none():
+    td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG, DEFAULT_CONFIG)
+
+    assert td.get_dag_params()["tasks"] == DAG_CONFIG["tasks"]
+
+
+def test_build_inherits_list_tasks_from_default():
+    dag_config = {"tasks": [{"task_id": "load", "bash_command": "echo load"}]}
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+    dag = td.build()["dag"]
+
+    assert sorted(dag.task_ids) == ["extract", "load", "transform"]
+    assert dag.task_dict["load"].bash_command == "echo load"
+    assert dag.task_dict["load"].upstream_task_ids == {"transform"}
+    assert dag.task_dict["transform"].upstream_task_ids == {"extract"}
+
+
 def test_build_task_groups():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
 

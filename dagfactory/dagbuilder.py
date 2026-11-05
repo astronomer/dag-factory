@@ -170,6 +170,7 @@ class DagBuilder:
 
         :returns: dict of dag parameters
         """
+        self._normalise_inherited_task_configs()
         dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
         dag_params["dag_id"]: str = self.dag_name
 
@@ -829,6 +830,22 @@ class DagBuilder:
             return converted
 
         raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
+
+    def _normalise_inherited_task_configs(self) -> None:
+        """Put ``tasks`` and ``task_groups`` in dict form when both the DAG and the default define them.
+
+        ``merge_configs`` only merges dicts, so a list on either side would replace the default instead of
+        merging with it. In dict form, a DAG task (or task group) merges with the default one of the same
+        ``task_id`` (or ``group_name``), and default-only entries are kept.
+        """
+        normalisers = {
+            "tasks": DagBuilder._normalise_tasks_config,
+            "task_groups": DagBuilder._normalise_task_groups_config,
+        }
+        for key, normalise in normalisers.items():
+            if key in self.dag_config and key in self.default_config:
+                self.dag_config[key] = normalise(self.dag_config[key])
+                self.default_config[key] = normalise(self.default_config[key])
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:
