@@ -20,7 +20,7 @@ try:
 except ImportError:
     from airflow.utils.module_loading import import_string
 
-from dagfactory.exceptions import DagFactoryException
+from dagfactory.exceptions import DagFactoryConfigException, DagFactoryException
 
 
 def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
@@ -421,3 +421,25 @@ def cast_with_type(data):
         return [cast_with_type(item) for item in data]
 
     return data
+
+
+def resolve_user_defined_macros(macros: Dict[str, Any], path: str = "user_defined_macros") -> Dict[str, Any]:
+    """
+    Recursively resolves user_defined_macros values. String values are imported
+    as callables via their dotted module path. Nested dicts are resolved recursively.
+    Other types are passed through as-is.
+    """
+    if not isinstance(macros, dict):
+        raise DagFactoryConfigException(
+            f"Invalid `{path}` config: expected a mapping/dict, got {type(macros).__name__}."
+        )
+
+    resolved: Dict[str, Any] = {}
+    for key, value in macros.items():
+        if isinstance(value, str):
+            resolved[key] = import_string(value)
+        elif isinstance(value, dict):
+            resolved[key] = resolve_user_defined_macros(value, path=f"{path}.{key}")
+        else:
+            resolved[key] = value
+    return resolved
