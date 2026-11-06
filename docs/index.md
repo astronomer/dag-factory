@@ -15,7 +15,7 @@ Are you new to DAG Factory? This is the place to start!
     - [Quickstart with Astro CLI](getting-started/quick-start-astro-cli.md)
 
 - [Why DAG Factory?](why-dag-factory.md)
-- [Python and YAML side by side](comparison/index.md)
+- [A workflow definition, not a program](comparison/index.md)
     - [Traditional Airflow Operators](comparison/traditional_operators.md)
     - [TaskFlow API](comparison/taskflow_api.md)
 

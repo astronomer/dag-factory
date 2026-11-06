@@ -38,7 +38,7 @@ For a gentle introduction, please take a look at our [Quickstart Guide](https://
 
 ## Why dag-factory?
 
-Writing an Airflow DAG in Python is cheap now that AI agents can do it. For a team with many DAGs and many authors, the
+With AI coding agents, writing an Airflow DAG in Python is cheap. For a team with many DAGs and many authors, the
 expensive part is reviewing, checking, and changing those DAGs later. dag-factory is built for that:
 
 - Constrained: a workflow is a definition, not a program. The schedule, tasks, and dependencies always sit in the same

@@ -1,10 +1,10 @@
 # Why DAG Factory?
 
-Writing an Airflow DAG in Python is cheap now. An AI agent can write a working DAG in a minute, and read one just as
-fast. So "you don't have to write Python" is no longer a good reason to use DAG Factory.
+With AI coding agents, writing an Airflow DAG in Python is cheap. An agent can write a working DAG in a minute, and read
+one just as fast. So "you don't have to write Python" is not a strong reason to use DAG Factory on its own.
 
-The reason that remains is about what happens after a DAG is written. When an agent writes the code, writing is not the
-expensive part anymore. Reviewing it, checking it, and changing it later are. A team with many DAGs and many authors,
+The stronger reason is about what happens after a DAG is written. When an agent writes the code, writing is not the
+expensive part. Reviewing it, checking it, and changing it later are. A team with many DAGs and many authors,
 people or agents, still wants a workflow definition layer that is built for those jobs. AI sits upstream of DAG Factory,
 not opposite it.
 
@@ -43,7 +43,7 @@ still run any command or use any importable Python object. What is fixed is wher
 described.
 
 Python does not go away. The functions that clean data, call APIs, or train models stay in Python, and the YAML only
-describes how they are scheduled and wired together. Other tools already work this way. dbt keeps the logic in SQL and the
+describes how they are scheduled and wired together. Other tools work the same way. dbt keeps the logic in SQL and the
 model properties in YAML.
 
 ## Verifiable: checked before it reaches Airflow
@@ -52,16 +52,16 @@ YAML has a fixed grammar, so a DAG Factory config can be checked without running
 owner", "no `BashOperator` in production", or "memory request under 4Gi" is a few lines of code over the YAML tree. The
 same rule over Python DAGs needs AST analysis, and it still misses DAGs that are built dynamically.
 
-AI made writing code much faster, but review did not get faster, so review became the bottleneck. Every rule a machine
-can check is review work that a person no longer has to do.
+AI makes writing code much faster, but not reviewing it, so review becomes the bottleneck. Every rule a machine can
+check is review work that a person does not have to do.
 
 It also lets an agent check its own work before any person looks at it. The agent writes the config, a validator checks
 it, and the errors go back to the agent until the config is valid. This loop works best when errors use the terms of the
 workflow, like "task `transform` depends on `extract_data`, which does not exist", rather than a stack trace from
 Airflow's DAG parser.
 
-Today, [`dagfactory lint`](features/cli.md#lint-command) checks that each file is valid YAML. Checks against the
-parameters DAG Factory accepts, such as unknown keys, wrong types, and missing dependencies, are being added.
+[`dagfactory lint`](features/cli.md#lint-command) checks that each file is valid YAML and exits with an error if any
+file is not, so it can gate a CI job or an agent's loop.
 
 ## Maintainable: keep the whole fleet up to date
 
@@ -94,10 +94,10 @@ them.
 | You need changes across the whole fleet                | The DAG structure depends on complex logic or external systems  |
 
 DAG Factory works best while the YAML stays small. When a workflow needs real logic to decide its own structure, write
-that DAG in Python. Both kinds of DAG run side by side in the same Airflow deployment.
+that DAG in Python. Both kinds of DAG can run in the same Airflow deployment.
 
 In a company with hundreds of DAGs, written by many teams and many agents, writing them is the cheap part. The hard part
 is keeping all of them correct, consistent, and up to date, and that is where a constrained, verifiable, and
 maintainable format helps the most.
 
-To see the same workflow written both ways, see [Python and YAML side by side](comparison/index.md).
+To see the same workflow written both ways, see [A workflow definition, not a program](comparison/index.md).

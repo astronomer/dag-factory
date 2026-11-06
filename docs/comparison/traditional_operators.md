@@ -1,4 +1,4 @@
-# Traditional Operators: Python and YAML side by side
+# Traditional Operators
 
 Traditionally, operators are Airflow's building blocks, and while they are robust and diverse,
 they can sometimes lead to boilerplate-heavy DAGs compared to the newer [TaskFlow API](./taskflow_api.md).
