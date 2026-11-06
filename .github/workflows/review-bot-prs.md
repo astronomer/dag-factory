@@ -87,6 +87,8 @@ tools:
 network:
   allowed:
     - defaults
+    - api.github.com  # `gh api` tag-to-SHA integrity checks on upstream action repos
+    - github.com
     - api.osv.dev
     - python      # ecosystem identifier (pypi.org + pythonhosted, etc.)
 
