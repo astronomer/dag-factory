@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop support for Airflow 2.9 and 2.10; the minimum supported version is now Airflow 2.11 by @pankajastro
 - Raise minimum provider versions: `apache-airflow-providers-http>=5.0.0`, `apache-airflow-providers-cncf-kubernetes>=10.0.0`, `apache-airflow-providers-common-sql>=1.20.0`; `SimpleHttpOperator` is no longer special-cased (use `HttpOperator`) by @pankajastro
 
+### Changed
+
+- A DAG's list-form `tasks` and `task_groups` now merge with the `default` block by `task_id` and `group_name` instead of replacing it, so DAGs also get the default-only tasks. A DAG task that sets a different `operator` or `decorator` replaces the default task, and an empty `tasks` value means no tasks by @gyli in [#902](https://github.com/astronomer/dag-factory/pull/902)
+
 ## [1.1.0] - 2026-05-07
 
 ### Breaking Changes

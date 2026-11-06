@@ -58,6 +58,15 @@ Using a `default` block in a YAML file allows for those key-value pairs to apply
    --8<-- "dev/dags/airflow2/example_dag_factory_default_config.yml"
  ```
 
+ When both the `default` block and a DAG define `tasks`, they are merged by `task_id`. A task that appears in both is merged key by key, and the DAG's values win. Tasks that only appear in the `default` block are kept, and tasks that only appear in the DAG are added. In the example above, each DAG's `load` task sets its own `bash_command` and inherits `operator` and `dependencies` from the default `load` task, so every DAG runs `extract`, `transform` and `load`. `task_groups` are merged the same way by `group_name`. This works whether `tasks` and `task_groups` are written as lists or as mappings.
+
+ Two exceptions apply to `tasks`:
+
+- If a DAG task sets an `operator` or `decorator` that differs from the default task with the same `task_id`, it replaces the default task instead of merging with it.
+- If a DAG sets `tasks` to an empty value (`tasks:`, `tasks: []` or `tasks: {}`), the DAG has no tasks and does not inherit the default ones.
+
+ Other list values, such as `tags`, are not merged: a list in the DAG replaces the list in the `default` block.
+
 ## Specifying `default` arguments via a Python dictionary
 
 This configuration affects DAGs created using the `DagFactory` class with the `default_args_config_dict` argument.
