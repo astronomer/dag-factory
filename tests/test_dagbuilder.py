@@ -1852,3 +1852,28 @@ class TestResolveUserDefinedMacros:
     def test_invalid_import_string_raises(self):
         with pytest.raises(Exception):
             DagBuilder._resolve_user_defined_macros({"bad": "nonexistent.module.func"})
+
+
+class TestExtractAndTransformDatasets:
+    def test_dash_and_underscore_names_get_distinct_variables(self):
+        conditions, dataset_map, name_map = DagBuilder._extract_and_transform_datasets("asset-1 & asset_1")
+        assert name_map["asset-1"] != name_map["asset_1"]
+        assert conditions == f"{name_map['asset-1']} & {name_map['asset_1']}"
+        assert set(dataset_map) == set(name_map.values())
+
+    def test_consecutive_dashes_stay_one_name(self):
+        conditions, dataset_map, name_map = DagBuilder._extract_and_transform_datasets("my--asset")
+        assert name_map == {"my--asset": "my__asset"}
+        assert conditions == "my__asset"
+        assert set(dataset_map) == {"my__asset"}
+
+    def test_overlapping_names_do_not_corrupt_each_other(self):
+        conditions, dataset_map, name_map = DagBuilder._extract_and_transform_datasets("asset | asset-1")
+        assert conditions == "asset | asset_1"
+        assert set(dataset_map) == {"asset", "asset_1"}
+
+    def test_process_file_with_datasets_looks_up_original_dashed_names(self, tmp_path):
+        datasets_file = tmp_path / "datasets.yml"
+        datasets_file.write_text("datasets:\n  - name: asset-1\n    uri: s3://bucket/asset-1\n")
+        result = DagBuilder.process_file_with_datasets(str(datasets_file), "asset-1")
+        assert result.uri == "s3://bucket/asset-1"
