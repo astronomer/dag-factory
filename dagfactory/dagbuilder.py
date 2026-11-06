@@ -170,6 +170,8 @@ class DagBuilder:
 
         :returns: dict of dag parameters
         """
+        # Only tasks and task_groups merge with the default by id. Other list values, such as tags, still
+        # replace the default list.
         self._normalise_inherited_task_configs()
         dag_params: Dict[str, Any] = utils.merge_configs(self.dag_config, self.default_config)
         dag_params["dag_id"]: str = self.dag_name
@@ -832,20 +834,51 @@ class DagBuilder:
         raise DagFactoryConfigException("'task_groups' must be either a mapping or a list of group configs")
 
     def _normalise_inherited_task_configs(self) -> None:
-        """Put ``tasks`` and ``task_groups`` in dict form when both the DAG and the default define them.
+        """Get ``tasks`` and ``task_groups`` in the DAG and default config ready to merge.
 
         ``merge_configs`` only merges dicts, so a list on either side would replace the default instead of
-        merging with it. In dict form, a DAG task (or task group) merges with the default one of the same
-        ``task_id`` (or ``group_name``), and default-only entries are kept.
+        merging with it. When both configs define ``tasks`` or ``task_groups``, they are put in dict form, so
+        a DAG task (or task group) merges with the default one of the same ``task_id`` (or ``group_name``),
+        and default-only entries are kept.
+
+        Two cases keep the DAG's value as it is:
+
+        - An empty ``tasks`` value (``None``, ``[]`` or ``{}``) in the DAG means the DAG has no tasks, so it
+          is kept and the default tasks are not inherited.
+        - A DAG task that sets an ``operator`` or ``decorator`` different from the default task's replaces the
+          default task instead of merging with it, so it does not pick up kwargs meant for another operator.
+
+        Like ``merge_configs``, this updates ``self.dag_config`` and ``self.default_config`` in place.
         """
+        dag_config = self.dag_config
+        default_config = self.default_config
         normalisers = {
             "tasks": DagBuilder._normalise_tasks_config,
             "task_groups": DagBuilder._normalise_task_groups_config,
         }
         for key, normalise in normalisers.items():
-            if key in self.dag_config and key in self.default_config:
-                self.dag_config[key] = normalise(self.dag_config[key])
-                self.default_config[key] = normalise(self.default_config[key])
+            if key not in dag_config or key not in default_config:
+                continue
+            if key == "tasks" and not dag_config[key]:
+                del default_config[key]
+                continue
+            dag_entries = normalise(dag_config[key])
+            default_entries = normalise(default_config[key])
+            if key == "tasks":
+                default_entries = {
+                    task_id: task_conf
+                    for task_id, task_conf in default_entries.items()
+                    if not DagBuilder._changes_operator(dag_entries.get(task_id), task_conf)
+                }
+            dag_config[key] = dag_entries
+            default_config[key] = default_entries
+
+    @staticmethod
+    def _changes_operator(dag_task: Any, default_task: Any) -> bool:
+        """Whether a DAG task sets an ``operator`` or ``decorator`` that differs from the default task's."""
+        if not isinstance(dag_task, dict) or not isinstance(default_task, dict):
+            return False
+        return any(key in dag_task and dag_task[key] != default_task.get(key) for key in ("operator", "decorator"))
 
     # pylint: disable=too-many-locals
     def build(self) -> Dict[str, Union[str, DAG]]:

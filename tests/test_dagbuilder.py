@@ -795,6 +795,111 @@ def test_build_inherits_list_tasks_from_default():
     assert dag.task_dict["transform"].upstream_task_ids == {"extract"}
 
 
+try:
+    from airflow.sdk import task as _task  # noqa: F401
+
+    TASK_DECORATOR_PATH = "airflow.sdk.task"
+except ImportError:
+    TASK_DECORATOR_PATH = "airflow.decorators.task"
+
+
+def test_get_dag_params_dag_task_with_decorator_replaces_default_operator_task():
+    dag_config = {
+        "tasks": [{"task_id": "load", "decorator": TASK_DECORATOR_PATH, "python_callable": "platform.system"}]
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+    tasks = td.get_dag_params()["tasks"]
+
+    assert tasks["load"] == {"decorator": TASK_DECORATOR_PATH, "python_callable": "platform.system"}
+    assert sorted(tasks) == ["extract", "load", "transform"]
+
+
+def test_build_dag_task_with_decorator_replaces_default_operator_task():
+    dag_config = {
+        "tasks": [{"task_id": "load", "decorator": TASK_DECORATOR_PATH, "python_callable": "platform.system"}]
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+    dag = td.build()["dag"]
+
+    assert sorted(dag.task_ids) == ["extract", "load", "transform"]
+    assert dag.task_dict["load"].task_type != "BashOperator"
+    assert not hasattr(dag.task_dict["load"], "bash_command")
+
+
+def test_get_dag_params_dag_task_with_different_operator_replaces_default_task():
+    dag_config = {
+        "tasks": [{"task_id": "load", "operator": get_python_operator_path(), "python_callable": "platform.system"}]
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+
+    assert td.get_dag_params()["tasks"]["load"] == {
+        "operator": get_python_operator_path(),
+        "python_callable": "platform.system",
+    }
+
+
+def test_get_dag_params_dag_task_with_same_operator_merges_default_task():
+    dag_config = {"tasks": [{"task_id": "load", "operator": get_bash_operator_path(), "bash_command": "echo load"}]}
+    td = dagbuilder.DagBuilder("test_dag", dag_config, DEFAULT_CONFIG_WITH_TASKS)
+
+    assert td.get_dag_params()["tasks"]["load"] == {
+        "operator": get_bash_operator_path(),
+        "bash_command": "echo load",
+        "dependencies": ["transform"],
+    }
+
+
+@pytest.mark.parametrize("empty_tasks", [None, [], {}])
+@pytest.mark.parametrize(
+    "default_tasks",
+    [
+        DEFAULT_CONFIG_WITH_TASKS["tasks"],
+        {"load": {"operator": get_bash_operator_path(), "bash_command": "echo load"}},
+    ],
+    ids=["list_default", "dict_default"],
+)
+def test_get_dag_params_empty_dag_tasks_do_not_inherit_default_tasks(empty_tasks, default_tasks):
+    td = dagbuilder.DagBuilder("test_dag", {"tasks": empty_tasks}, {**DEFAULT_CONFIG, "tasks": default_tasks})
+
+    assert td.get_dag_params()["tasks"] == empty_tasks
+
+
+def test_get_dag_params_duplicate_task_id_in_default_raises():
+    default_config = {
+        **DEFAULT_CONFIG,
+        "tasks": [
+            {"task_id": "load", "operator": get_bash_operator_path(), "bash_command": "echo 1"},
+            {"task_id": "load", "operator": get_bash_operator_path(), "bash_command": "echo 2"},
+        ],
+    }
+    dag_config = {"tasks": [{"task_id": "load", "bash_command": "echo load"}]}
+    td = dagbuilder.DagBuilder("test_dag", dag_config, default_config)
+
+    with pytest.raises(DagFactoryConfigException, match="Duplicate task_id detected in tasks list: 'load'"):
+        td.get_dag_params()
+
+
+def test_build_assigns_task_to_task_group_inherited_from_default():
+    default_config = {**DEFAULT_CONFIG, "task_groups": [{"group_name": "group_1", "tooltip": "default tooltip"}]}
+    dag_config = {
+        # dagfactory.py adds an empty task_groups to every DAG config that does not define one.
+        "task_groups": {},
+        "tasks": [
+            {
+                "task_id": "task_1",
+                "operator": get_bash_operator_path(),
+                "bash_command": "echo 1",
+                "task_group_name": "group_1",
+            }
+        ],
+    }
+    td = dagbuilder.DagBuilder("test_dag", dag_config, default_config)
+    dag = td.build()["dag"]
+
+    assert dag.task_group_dict["group_1"].tooltip == "default tooltip"
+    assert dag.task_dict["group_1.task_1"].task_group.group_id == "group_1"
+
+
 def test_build_task_groups():
     td = dagbuilder.DagBuilder("test_dag", DAG_CONFIG_TASK_GROUP, DEFAULT_CONFIG)
 
