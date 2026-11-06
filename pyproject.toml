@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "dag-factory"
 dynamic = ["version"]
-description = "Dynamically build Apache Airflow DAGs from YAML files"
+description = "Build Apache Airflow DAGs from declarative YAML that is easy to review, check, and migrate"
 authors = [{ name = "Astronomer", email = "humans@astronomer.io" }]
 readme = "README.md"
 license = "Apache-2.0"
