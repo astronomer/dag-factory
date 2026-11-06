@@ -16,12 +16,6 @@ on:
   # Daily sweep, plus a manual "Run workflow" button.
   schedule: daily
   workflow_dispatch:
-    inputs:
-      aw_context:
-        default: ""
-        description: "Leave blank for manual runs. Internal JSON used only by gh-aw."
-        required: false
-        type: string
 
   # Pre-activation guard: skip the (paid) agent run unless there is at least one open
   # bot PR that does not already have this workflow's review comment.
@@ -88,7 +82,6 @@ tools:
     # from unapproved external accounts on the PR thread is filtered out before the agent.
     min-integrity: approved
   bash: ["gh:*", "git:*", "curl:*", "jq:*", "python3:*", "date", "grep", "sort", "head", "cat"]
-  web-fetch:
 
 # Egress firewall: GitHub plus the advisory / version sources the review needs.
 network:
