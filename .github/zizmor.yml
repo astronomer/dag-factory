@@ -12,4 +12,5 @@
 rules:
   template-injection:
     ignore:
-      - .github/workflows/review-bot-prs.lock.yml
+      # zizmor matches workflow files by bare filename; a full path silently never matches.
+      - review-bot-prs.lock.yml
