@@ -2085,6 +2085,13 @@ It is one of DAG Factory's most powerful features; using defaults allows for the
 </span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="s">"load"</span>
 </span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">        </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s">"echo</span><span class="nv"> </span><span class="s">artificial_intelligence"</span>
 </span></code></pre></div>
+<p>When both the <code>default</code> block and a DAG define <code>tasks</code>, they are merged by <code>task_id</code>. A task that appears in both is merged key by key, and the DAG's values win. Tasks that only appear in the <code>default</code> block are kept, and tasks that only appear in the DAG are added. In the example above, each DAG's <code>load</code> task sets its own <code>bash_command</code> and inherits <code>operator</code> and <code>dependencies</code> from the default <code>load</code> task, so every DAG runs <code>extract</code>, <code>transform</code> and <code>load</code>. <code>task_groups</code> are merged the same way by <code>group_name</code>. This works whether <code>tasks</code> and <code>task_groups</code> are written as lists or as mappings.</p>
+<p>Two exceptions apply to <code>tasks</code>:</p>
+<ul>
+<li>If a DAG task sets an <code>operator</code> or <code>decorator</code> that differs from the default task with the same <code>task_id</code>, it replaces the default task instead of merging with it.</li>
+<li>If a DAG sets <code>tasks</code> to an empty value (<code>tasks:</code>, <code>tasks: []</code> or <code>tasks: {}</code>), the DAG has no tasks and does not inherit the default ones.</li>
+</ul>
+<p>Other list values, such as <code>tags</code>, are not merged: a list in the DAG replaces the list in the <code>default</code> block.</p>
 <h2 id="specifying-default-arguments-via-a-python-dictionary">Specifying <code>default</code> arguments via a Python dictionary</h2>
 <p>This configuration affects DAGs created using the <code>DagFactory</code> class with the <code>default_args_config_dict</code> argument.</p>
 <p>It allows you to define DAG-level arguments, including the <code>default_args</code>, using Python dictionaries.</p>
