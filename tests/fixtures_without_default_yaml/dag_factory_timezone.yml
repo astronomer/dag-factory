@@ -21,3 +21,16 @@ timezone_default_args:
     - task_id: t1
       bash_command: echo 1
       operator: airflow.operators.bash.BashOperator
+
+timezone_offset_start_date:
+  timezone: Europe/Paris
+  start_date: "2024-06-15T00:00:00+08:00"
+  schedule: "@daily"
+  default_args:
+    owner: timezone_fixture_owner
+    start_date: "2024-07-01T00:00:00Z"
+    timezone: America/New_York
+  tasks:
+    - task_id: t1
+      bash_command: echo 1
+      operator: airflow.operators.bash.BashOperator
