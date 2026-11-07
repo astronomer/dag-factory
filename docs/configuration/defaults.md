@@ -182,7 +182,10 @@ my_dag:
 
 Relative values such as `2 days` are anchored to the **start of the current calendar day** in the chosen timezone, then shifted backward by the parsed delta (see `dagfactory.utils.get_datetime`).
 
-Dates without an offset (for example `2026-01-01` or `2026-01-01 09:00`) are read as wall-clock time in the chosen timezone. Dates that already carry an offset (for example `2026-01-01T00:00:00+08:00`) keep the instant they describe and are converted to the chosen timezone, so the offset is never silently dropped.
+Dates without an offset (for example `2026-01-01` or `2026-01-01 09:00`) are read as wall-clock time in the chosen timezone. Dates that already carry an offset (for example `2026-01-01T00:00:00+08:00`, or `2026-01-01T00:00:00Z`) keep the instant they describe. If no `timezone` is set, they are used unchanged; if a `timezone` is set, they are converted to it.
+
+!!! warning "Behavior change"
+    Earlier versions dropped the offset and relabeled the wall-clock time with the chosen timezone (`UTC` when not set). For example, `2026-01-01T00:00:00+08:00` became `2026-01-01T00:00:00+00:00`, and `2026-01-01T00:00:00Z` with `timezone: Europe/Amsterdam` became `2026-01-01T00:00:00+01:00`. This also applies to the `Z` suffix. If your `start_date` or `end_date` (at DAG level or in `default_args`) carries an offset or `Z`, the first logical date of the DAG can move after upgrading, and with `catchup` enabled that can trigger an extra backfill run.
 
 A dedicated example lives in the test fixtures: `tests/fixtures_without_default_yaml/dag_factory_timezone.yml` (DAG-level `timezone` vs `default_args.timezone`). The shared canonical fixture `tests/fixtures/dag_factory.yml` sets `timezone: UTC` on `example_dag`.
 

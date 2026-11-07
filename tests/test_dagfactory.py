@@ -1249,11 +1249,16 @@ def test_build_dags_timezone_example():
     path = os.path.abspath(DAG_FACTORY_TIMEZONE)
     factory = _DagFactory(config_filepath=path)
     dags, _ = factory.build_dags()
-    assert set(dags) == {"timezone_dag_level", "timezone_default_args"}
+    assert set(dags) == {"timezone_dag_level", "timezone_default_args", "timezone_offset_start_date"}
     paris = DateTime(2024, 6, 15, 0, 0, 0, tzinfo=Timezone("Europe/Paris"))
     assert dags["timezone_dag_level"].start_date == paris
     nyc = DateTime(2024, 7, 1, 0, 0, 0, tzinfo=Timezone("America/New_York"))
     assert dags["timezone_default_args"].default_args["start_date"] == nyc
+    # Offset-bearing values keep the instant they describe instead of being relabeled
+    # with the DAG-level or default_args timezone.
+    offset_dag = dags["timezone_offset_start_date"]
+    assert offset_dag.start_date == DateTime(2024, 6, 14, 16, 0, 0, tzinfo=Timezone("UTC"))
+    assert offset_dag.default_args["start_date"] == DateTime(2024, 7, 1, 0, 0, 0, tzinfo=Timezone("UTC"))
 
 
 def test_retrieve_possible_default_config_dirs_default_path_is_parent(tmp_path):

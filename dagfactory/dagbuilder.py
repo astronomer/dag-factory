@@ -182,20 +182,20 @@ class DagBuilder:
         if utils.check_dict_key(dag_params, "start_date"):
             dag_params["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["start_date"],
-                timezone=dag_params.get("timezone", "UTC"),
+                timezone=dag_params.get("timezone"),
             )
 
         if utils.check_dict_key(dag_params, "end_date"):
             dag_params["end_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["end_date"],
-                timezone=dag_params.get("timezone", "UTC"),
+                timezone=dag_params.get("timezone"),
             )
 
         # Convert from 'end_date: Union[str, datetime, date]' to 'end_date: datetime'
         if utils.check_dict_key(dag_params["default_args"], "end_date"):
             dag_params["default_args"]["end_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["end_date"],
-                timezone=dag_params["default_args"].get("timezone", "UTC"),
+                timezone=dag_params["default_args"].get("timezone"),
             )
 
         # Parse callbacks at the DAG-level and at the Task-level, configured in default_args. Note that the version
@@ -270,7 +270,7 @@ class DagBuilder:
         if check_dict_key(dag_params["default_args"], "start_date"):
             dag_params["default_args"]["start_date"]: datetime = utils.get_datetime(
                 date_value=dag_params["default_args"]["start_date"],
-                timezone=dag_params["default_args"].get("timezone", "UTC"),
+                timezone=dag_params["default_args"].get("timezone"),
             )
 
         return dag_params
