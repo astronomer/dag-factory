@@ -129,7 +129,7 @@ Working with it:
 - **`.github/dependabot.yml` remains hand-edited.** Keep the `github/gh-aw-actions` ignore entry so Dependabot does not bump gh-aw compiler-managed action pins; refresh those pins with `gh aw compile`.
 - **Rollout state:** comments post for real. The earlier `safe-outputs.staged: true` preview flag has been removed.
 - **Scope:** dag-factory only (`tools.github.allowed-repos: [astronomer/dag-factory]`), Copilot engine, `min-integrity: approved`. Scheduled runs only fire from `main`.
-- **Manual dispatch:** leave the `aw_context` input blank. It is gh-aw internal JSON context, not a free-form run note; arbitrary text makes generated `fromJSON(...)` expressions fail before the agent starts.
+- **Manual dispatch:** use the "Run workflow" button; the workflow takes no inputs. (gh-aw reserves `aw_context` and manages it itself, so do not declare it in the `.md` frontmatter.)
 - Dry-run against the live repo without posting: `gh aw trial ./.github/workflows/review-bot-prs.md --logical-repo astronomer/dag-factory --delete-host-repo-after`.
 
 ## Boundaries
