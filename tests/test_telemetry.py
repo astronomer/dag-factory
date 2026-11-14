@@ -46,6 +46,46 @@ class MockFailedResponse:
     text = "Non existent URL"
 
 
+class MockSuccessResponse:
+    is_success = True
+    status_code = "200"
+    text = "OK"
+
+
+SAMPLE_METRICS = {
+    "dagfactory_version": "0.2.0a1",
+    "airflow_version": "2.10.1",
+    "python_version": "3.11",
+    "platform_system": "darwin",
+    "platform_machine": "amd64",
+    "event_type": "dag_run",
+    "status": "success",
+    "dag_hash": "d151d1fa2f03270ea116cc7494f2c591",
+    "task_count": 3,
+}
+
+
+@patch("dagfactory.telemetry.Stats.incr")
+@patch("dagfactory.telemetry.httpx.get", return_value=MockFailedResponse())
+def test_emit_usage_metrics_counts_http_error(mock_httpx_get, mock_incr):
+    assert not telemetry.emit_usage_metrics(dict(SAMPLE_METRICS))
+    mock_incr.assert_called_once_with("dagfactory.telemetry.emit_failure", tags={"reason": "http_error"})
+
+
+@patch("dagfactory.telemetry.Stats.incr")
+@patch("dagfactory.telemetry.httpx.get", side_effect=httpx.ConnectError(message="Something is not right"))
+def test_emit_usage_metrics_counts_exception(mock_httpx_get, mock_incr):
+    assert not telemetry.emit_usage_metrics(dict(SAMPLE_METRICS))
+    mock_incr.assert_called_once_with("dagfactory.telemetry.emit_failure", tags={"reason": "exception"})
+
+
+@patch("dagfactory.telemetry.Stats.incr")
+@patch("dagfactory.telemetry.httpx.get", return_value=MockSuccessResponse())
+def test_emit_usage_metrics_does_not_count_success(mock_httpx_get, mock_incr):
+    assert telemetry.emit_usage_metrics(dict(SAMPLE_METRICS))
+    mock_incr.assert_not_called()
+
+
 @patch("dagfactory.telemetry.httpx.get", return_value=MockFailedResponse())
 def test_emit_usage_metrics_is_unsuccessful(mock_httpx_get, caplog):
     sample_metrics = {
