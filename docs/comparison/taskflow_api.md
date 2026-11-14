@@ -1,4 +1,4 @@
-# TaskFlow API: Using YAML instead of Python
+# TaskFlow API
 
 For users that employ lots of Python functions in their DAGs, [TaskFlow API](https://www.astronomer.io/docs/learn/airflow-decorators/) represent a simpler way to transform functions into tasks, with a more intuitive way of passing data between them.
 They were  introduced in Airflow 2 as an alternative to Airflow [traditional operators](traditional_operators.md).

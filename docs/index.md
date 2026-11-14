@@ -2,6 +2,10 @@
 
 Everything you need to know about how to build Apache Airflow® workflows using YAML files.
 
+DAG Factory keeps the logic inside each task in Python, and describes the workflow around it, meaning the schedule, the
+tasks, and their dependencies, in declarative YAML. That format is easy to review, check, and update across many DAGs,
+whether people or AI agents write them. Read [Why DAG Factory?](why-dag-factory.md) to see when it is a good fit.
+
 ## Getting started
 
 Are you new to DAG Factory? This is the place to start!
@@ -10,7 +14,8 @@ Are you new to DAG Factory? This is the place to start!
     - [Quickstart with Airflow standalone](getting-started/quick-start-airflow-standalone.md)
     - [Quickstart with Astro CLI](getting-started/quick-start-astro-cli.md)
 
-- [Using YAML instead of Python](comparison/index.md)
+- [Why DAG Factory?](why-dag-factory.md)
+- [A workflow definition, not a program](comparison/index.md)
     - [Traditional Airflow Operators](comparison/traditional_operators.md)
     - [TaskFlow API](comparison/taskflow_api.md)
 
