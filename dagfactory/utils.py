@@ -23,27 +23,35 @@ except ImportError:
 from dagfactory.exceptions import DagFactoryException
 
 
-def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") -> datetime:
+def get_datetime(date_value: Union[str, datetime, date], timezone: Optional[str] = None) -> datetime:
     """
     Takes value from DAG config and generates valid datetime. Defaults to
     today, if not a valid date or relative time (1 hours, 1 days, etc.)
     Relative times use start of the current day in ``timezone``, then subtract the parsed delta.
 
+    Values without an offset are read as wall-clock time in ``timezone`` (``UTC`` when not set).
+    Values that already carry an offset are returned unchanged when ``timezone`` is not set, and
+    converted to ``timezone`` (keeping the instant) when it is.
+
     :param date_value: either a datetime (or date), a date string or a relative time as string
     :type date_value: Uniont[datetime, date, str]
-    :param timezone: string value representing timezone for the DAG
-    :type timezone: str
+    :param timezone: string value representing timezone for the DAG, or None if not set
+    :type timezone: Optional[str]
     :returns: datetime for date_value
     :type: datetime.datetime
     """
-    local_tz: pendulum.timezone = pendulum.timezone(timezone)
+    local_tz: pendulum.timezone = pendulum.timezone(timezone or "UTC")
     if isinstance(date_value, datetime):
-        return date_value.replace(tzinfo=local_tz)
+        if date_value.tzinfo is None:
+            return date_value.replace(tzinfo=local_tz)
+        if timezone is None:
+            return date_value
+        return date_value.astimezone(local_tz)
     if isinstance(date_value, date):
         return datetime.combine(date=date_value, time=datetime.min.time()).replace(tzinfo=local_tz)
-    # Try parsing as date string
+    # Try parsing as date string. ``tz`` only applies to strings without an offset.
     try:
-        return pendulum.parse(date_value).replace(tzinfo=local_tz)
+        parsed: datetime = pendulum.parse(date_value, tz=local_tz)
     except pendulum.parsing.exceptions.ParserError:
         # Try parsing as relative time string
         rel_delta: timedelta = get_time_delta(date_value)
@@ -51,6 +59,9 @@ def get_datetime(date_value: Union[str, datetime, date], timezone: str = "UTC") 
         if not rel_delta:
             return now
         return now - rel_delta
+    if timezone is None:
+        return parsed
+    return parsed.in_timezone(local_tz)
 
 
 def get_time_delta(time_string: str) -> timedelta:

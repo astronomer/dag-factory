@@ -48,6 +48,59 @@ def test_get_start_date_relative_time_timezone():
     assert actual == expected
 
 
+SHANGHAI = pendulum.timezone("Asia/Shanghai")
+
+
+@pytest.mark.parametrize(
+    "value, tz, expected_utc, offset_hours",
+    [
+        ("2026-01-01T00:00:00+08:00", None, datetime.datetime(2025, 12, 31, 16, tzinfo=UTC), 8),
+        ("2026-01-01T00:00:00+08:00", "UTC", datetime.datetime(2025, 12, 31, 16, tzinfo=UTC), 0),
+        ("2026-01-01T00:00:00+08:00", "Europe/Amsterdam", datetime.datetime(2025, 12, 31, 16, tzinfo=UTC), 1),
+        ("2026-01-01T00:00:00Z", None, datetime.datetime(2026, 1, 1, tzinfo=UTC), 0),
+        ("2026-01-01T00:00:00Z", "Europe/Amsterdam", datetime.datetime(2026, 1, 1, tzinfo=UTC), 1),
+        ("2026-01-01T00:00:00-05:00", "UTC", datetime.datetime(2026, 1, 1, 5, tzinfo=UTC), 0),
+        ("2026-07-01T00:00:00Z", "Europe/Amsterdam", datetime.datetime(2026, 7, 1, tzinfo=UTC), 2),
+        (datetime.datetime(2026, 1, 1, tzinfo=SHANGHAI), None, datetime.datetime(2025, 12, 31, 16, tzinfo=UTC), 8),
+        (
+            datetime.datetime(2026, 1, 1, tzinfo=UTC),
+            "Europe/Amsterdam",
+            datetime.datetime(2026, 1, 1, tzinfo=UTC),
+            1,
+        ),
+    ],
+    ids=[
+        "offset-no-tz",
+        "offset-utc",
+        "offset-ams",
+        "z-suffix-no-tz",
+        "z-suffix",
+        "negative-offset",
+        "dst-summer",
+        "aware-datetime-no-tz",
+        "aware-datetime",
+    ],
+)
+def test_get_datetime_tz_aware_keeps_instant(value, tz, expected_utc, offset_hours):
+    actual = utils.get_datetime(value, tz)
+    assert actual == expected_utc
+    assert actual.utcoffset() == datetime.timedelta(hours=offset_hours)
+
+
+def test_get_datetime_offset_without_timezone_is_unchanged():
+    actual = utils.get_datetime("2026-01-01T00:00:00+08:00")
+    expected = datetime.datetime(2026, 1, 1, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=8)))
+    assert actual == expected
+    assert actual.replace(tzinfo=None) == expected.replace(tzinfo=None)
+    assert actual.utcoffset() == expected.utcoffset()
+
+
+def test_get_start_date_naive_string_uses_timezone():
+    expected = datetime.datetime(2018, 2, 1, 0, 0, tzinfo=CET)
+    actual = utils.get_datetime("2018-02-01", "Europe/Amsterdam")
+    assert actual == expected
+
+
 def test_get_start_date_bad_timezone():
     with pytest.raises(Exception):
         utils.get_datetime(datetime.datetime(2018, 2, 1), "bad_timezone")

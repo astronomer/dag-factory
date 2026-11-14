@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - A DAG's list-form `tasks` and `task_groups` now merge with the `default` block by `task_id` and `group_name` instead of replacing it, so DAGs also get the default-only tasks. A DAG task that sets a different `operator` or `decorator` replaces the default task, and an empty `tasks` value means no tasks by @gyli in [#902](https://github.com/astronomer/dag-factory/pull/902)
+- `start_date` and `end_date` values that carry an offset (including the `Z` suffix) now keep the instant they describe instead of having the offset dropped and the wall-clock time relabeled with `timezone`. They are used unchanged when no `timezone` is set and converted to `timezone` when it is set. DAGs with offset-bearing dates can see their first logical date move after upgrading by @Mohith26 in [#952](https://github.com/astronomer/dag-factory/pull/952)
 
 ## [1.1.0] - 2026-05-07
 
