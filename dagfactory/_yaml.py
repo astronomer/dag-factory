@@ -9,9 +9,13 @@ import yaml
 from .utils import cast_with_type
 
 
-def load_yaml_file(file_path: str) -> dict[str, any]:
+def load_yaml_file(file_path: str, cast_types: bool = True) -> dict[str, any]:
     """
     Load a YAML file into a dictionary.
+
+    :param cast_types: Whether `__type__` dicts are instantiated into live Python objects
+        (the default, used by the runtime DAG loader). Pass False to keep the raw dict shape,
+        which callers that need to re-emit source code (e.g. `dagfactory generate`) require.
     """
 
     def _flatten_logical_expressions_helper(data):
@@ -47,7 +51,8 @@ def load_yaml_file(file_path: str) -> dict[str, any]:
     with open(file_path, "r", encoding="utf-8") as fp:
         config_with_env = os.path.expandvars(fp.read())
         config: dict[str, any] = yaml.load(stream=config_with_env, Loader=yaml.FullLoader)
-        config = cast_with_type(config)
+        if cast_types:
+            config = cast_with_type(config)
         config = _flatten_logical_expressions(config)
 
     return config
